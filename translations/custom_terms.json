@@ -1,0 +1,27 @@
+{
+ "version": 1,
+ "terms": [
+  {
+   "key": "add_political_power",
+   "cn": "增加政治点数",
+   "tags": [
+    "政治",
+    "增改"
+   ],
+   "description": "给国家增加政治权力。如是负数，就删除政治权力。",
+   "source": "user",
+   "node_type": "value"
+  },
+  {
+   "key": "has_war_with",
+   "cn": "与某国交战",
+   "tags": [
+    "外交",
+    "战争"
+   ],
+   "description": "检查是否与指定国家处于战争状态。",
+   "source": "user",
+   "node_type": "value"
+  }
+ ]
+}

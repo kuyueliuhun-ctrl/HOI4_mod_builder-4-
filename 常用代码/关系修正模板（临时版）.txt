@@ -1,0 +1,36 @@
+###  关系修正模板（临时版）【作者：Bstarh-Tao(胡桃)】  所有人可以使用、修改，祝所有mod制作者的制作道理顺利！
+#原版文件位置：Hearts of Iron IV\common\opinion_modifiers
+#文件名字格式：xxx_opinion_modifiers.txt
+
+opinion_modifiers = {
+    xxx = {
+        value = 修正的数值（正的就是加，负的就是减）
+		max_trust = 应该是最高关系数
+        min_trust = 应该是最低关系数
+        trade = yes/no #加了就是表示这个关系修正是贸易关系修正的意思
+        days = 时间（结合下面decay使用）
+        decay = 减少的关系（结合days使用，比如days = 10，decay = 1，则表示每十天减少1点关系。参考justifying_war_goal（正当化战争目标））
+        months = 同days同理
+        years = 同days同理
+        target = yes/no #应该是表示针对？尚不明确
+    }
+}
+
+#大概修正就是这么多，我暂时找到这么多
+#本地化直接把xxx拿去汉化就彳亍了
+
+
+
+#用法
+#在国策、决议、事件等中可能会有一下代码（以上代码来自mod常用代码模板中）
+
+add_named_threat = { threat = TAG name = 【名字】 }
+#设置威胁（大概是制造紧张度）
+add_opinion_modifier = { target = TAG modifier = 【预设的外交关系】}
+#对某国设定一个外交关系
+remove_opinion_modifier = { target = TAG modifier = 【预设的外交关系】 } 
+#移除与某国的外交关系
+reverse_add_opinion_modifier = { target = TAG modifier = 【预设的外交】 }
+#反向添加外交关系（？？？）
+【预设的外交关系】、【预设的外交】 = 上面opinion_modifiers里定义的xxx
+

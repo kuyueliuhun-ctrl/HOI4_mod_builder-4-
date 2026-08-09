@@ -1,0 +1,75 @@
+政治 search_filters = {FOCUS_FILTER_POLITICAL}
+科研 search_filters = {FOCUS_FILTER_RESEARCH}
+工业 search_filters = {FOCUS_FILTER_INDUSTRY}
+稳定度 search_filters = {FOCUS_FILTER_STABILITY}
+战争支持度 search_filters = {FOCUS_FILTER_WAR_SUPPORT}
+人力 search_filters = {FOCUS_FILTER_MANPOWER}
+吞并 search_filters = {FOCUS_FILTER_ANNEXATION}
+
+以下为国策树内容
+focus_tree = {
+	id = 新国策树的ID
+	
+	country = {
+		factor = 0
+		
+		modifier = {
+			add = 10
+			条件通常是tag = XXX
+		}
+	}
+	
+	default = no
+
+	focus = {
+		id = 单独国策ID（或名字）
+		icon = 在.gfx文件里的图片名
+		x = X轴横向坐标
+		y = Y轴纵向坐标
+		
+		cost = 国策需要的天数，一个值等于7天，可加小数点
+
+		ai_will_do = {
+			factor = 1
+			modifier = {
+				条件
+				Add、Factor、Base中选择其一
+			}
+		}
+		search_filters = { 标签 }
+		completion_reward = {
+			效果
+		}
+		
+	}
+
+	focus = {
+		id = 单独国策ID（或名字）
+		icon = 在.gfx文件里的图片名
+		relative_position_id = 相对国策ID
+		prerequisite = { focus = 前提国策ID }
+		mutually_exclusive = { focus = 互斥国策ID }
+		x = 以相对国策为原点的X轴横向坐标
+		y = 以相对位国策为原点的Y轴纵向坐标
+
+		cost = 国策需要的天数，一个值等于7天，可加小数点
+
+		ai_will_do = {
+			factor = X
+			modifier = {
+				条件
+				Add、Factor、Base中选择其一
+			}
+		}
+
+		bypass = {
+			跳过国策的条件
+		}
+		
+		search_filters = { 标签 }
+
+		completion_reward = {	
+			效果
+		}
+	}
+}

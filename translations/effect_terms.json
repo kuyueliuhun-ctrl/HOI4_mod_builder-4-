@@ -1,0 +1,8002 @@
+{
+ "version": 1,
+ "terms": [
+  {
+   "key": "acclimatization_cold_climate_gain_factor",
+   "cn": "修改军队冰冻适应的速度",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "acclimatization_hot_climate_gain_factor",
+   "cn": "修改军队炎热适应的速度",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "activate_decision",
+   "cn": "激活指定国家 决议",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "activate_mission",
+   "cn": "激活任务，忽略正常触发条件。无法激活已经激活的任务",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "activate_mission_tooltip",
+   "cn": "显示将激活任务名称。手动激活，显示任务名称简单效果",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "activate_targeted_decision",
+   "cn": "激活指定决议或任务，忽视正常触发条件，只有一次冷却和触发。如已在界面中激活则不能激活。",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_ace",
+   "cn": "增加飞行员",
+   "tags": [
+    "空军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_attack",
+   "cn": "增加领导人攻击能力",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_autonomy_ratio",
+   "cn": "添加自治率（使用自定义名称）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_building_construction",
+   "cn": "开启地区内地块工程",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_claim_by",
+   "cn": "增加地区声索国",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_command_power",
+   "cn": "增加国家指挥点数",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_core_of",
+   "cn": "增加地区某国核心",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_country_leader_trait",
+   "cn": "增加当前的国家领导人的一个特质",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_defense",
+   "cn": "增加领导人防御能力",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_equipment_production",
+   "cn": "增加装备生产",
+   "tags": [
+    "经济",
+    "装备"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_equipment_to_stockpile",
+   "cn": "增加国家储备中的装备数量",
+   "tags": [
+    "装备"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_extra_state_shared_building_slots",
+   "cn": "增加地区额外建筑位置",
+   "tags": [
+    "经济",
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_ideas",
+   "cn": "增加理念(民族精神)",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_logistics",
+   "cn": "增加领导人后勤能力",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_manpower",
+   "cn": "增加人力",
+   "tags": [
+    "人力"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_max_trait",
+   "cn": "增加最大可分配特性槽位给上将（需测试）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_named_threat",
+   "cn": "增加国家威胁（只对AI有用，不要使用，除非你知道你在做什么）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_national_unity",
+   "cn": "增加国家凝聚力",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_offsite_building",
+   "cn": "将异地建筑增加到一个国家",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_opinion_modifier",
+   "cn": "增加一个意见修改到一个国家",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_planning",
+   "cn": "增加领导人计划能力",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_political_power",
+   "cn": "给国家增加政治权力。如是负数，就删除政治权力。",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_popularity",
+   "cn": "增加意识形态的声望",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_region_efficiency",
+   "cn": "增加从国家战略区域获得效率",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_relation_modifier",
+   "cn": "增加不可变修改在目标范围之间",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_research_slot",
+   "cn": "增设研究槽数",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_resource",
+   "cn": "增加地区资源",
+   "tags": [
+    "经济",
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_scaled_political_power",
+   "cn": "将增加国家凝聚力差值发送给他国（需测试）",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_skill_level",
+   "cn": "增加领导人技能等级",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_stability",
+   "cn": "增加稳定性",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_state_claim",
+   "cn": "增加指定地区的声索权（夺取地区）",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_state_core",
+   "cn": "增加指定地区的核心",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_tech_bonus",
+   "cn": "增加研究效率",
+   "tags": [
+    "科技",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_temporary_buff_to_units",
+   "cn": "增加属于本单位陆军集团/海军领导人的效果（加BUFF）",
+   "tags": [
+    "陆军",
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_threat",
+   "cn": "增加国家威胁（只对AI有用，不要使用，除非你知道你在做什么）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_timed_idea",
+   "cn": "增加限时理念",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_timed_unit_leader_trait",
+   "cn": "增加临时变量给领导人",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_to_faction",
+   "cn": "增加指定盟友（增加一个国家到派系）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_to_tech_sharing_group",
+   "cn": "增加科技共享内容",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_to_temp_variable",
+   "cn": "增加值或变量到临时变量",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_to_variable",
+   "cn": "增加值或变量到另一个",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_to_war",
+   "cn": "加入国家战争",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_unit_leader_trait",
+   "cn": "增加当前的指挥者一个特质（需测试）",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "add_war_support",
+   "cn": "增加战争支持度",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_badass_factor",
+   "cn": "修改AI对他人的威胁感知。0.01=1%威胁感知",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_call_ally_desire_factor",
+   "cn": "AI修正:请求盟友加入战争意愿",
+   "tags": [
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_focus_aggressive_factor",
+   "cn": "AI修正:专注进攻",
+   "tags": [
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_focus_aviation_factor",
+   "cn": "AI修正:专注空军",
+   "tags": [
+    "空军",
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_focus_defense_factor",
+   "cn": "AI修正:专注防御",
+   "tags": [
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_focus_naval_air_factor",
+   "cn": "AI修正:专注海航",
+   "tags": [
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_focus_naval_factor",
+   "cn": "AI修正:专注海军",
+   "tags": [
+    "海军",
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_get_ally_desire_factor",
+   "cn": "AI修正:加入或扩大阵营意愿",
+   "tags": [
+    "外交",
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_irrationality",
+   "cn": "检查不合理 AI 数字",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_join_ally_desire_factor",
+   "cn": "AI修正:参战意愿",
+   "tags": [
+    "AI",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ai_liberate_desire",
+   "cn": "检查 AI 是如何解放另一个国家的（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_accidents",
+   "cn": "空军事故概率",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_accidents_factor",
+   "cn": "空军事故概率",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_ace_generation_chance_factor",
+   "cn": "王牌机师产生的概率",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_agility_factor",
+   "cn": "机动",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_air_superiority_agility_factor",
+   "cn": "修改夺取制空权任务机动",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_air_superiority_attack_factor",
+   "cn": "修改夺取制空权任务攻击",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_air_superiority_defence_factor",
+   "cn": "修改夺取制空权任务防御",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_attack",
+   "cn": "对空攻击",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_attack_factor",
+   "cn": "对空攻击",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_bombing",
+   "cn": "战略轰炸",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_cas_efficiency",
+   "cn": "密接支援任务效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_cas_present_factor",
+   "cn": "地面支援",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_chief_cost_factor",
+   "cn": "空军部长花费",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_close_air_support_agility_factor",
+   "cn": "修改密接支援任务机动（CAS）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_close_air_support_attack_factor",
+   "cn": "修改密接支援任务攻击（CAS）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_close_air_support_defence_factor",
+   "cn": "修改密接支援任务防御（CAS）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_doctrine_cost_factor",
+   "cn": "空军学说花费",
+   "tags": [
+    "空军",
+    "科技",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_equipment_upgrade_xp_cost",
+   "cn": "创建对XP成本效率比的变量（空军装备升级成本）",
+   "tags": [
+    "空军",
+    "变量",
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_escort_efficiency",
+   "cn": "空军护航效率",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_experience",
+   "cn": "增加空军经验",
+   "tags": [
+    "空军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_fuel_consumption_factor",
+   "cn": "空军燃料消耗",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_ground_attack",
+   "cn": "空军对地攻击",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_intercept_efficiency",
+   "cn": "拦截任务效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_interception_agility_factor",
+   "cn": "修改空中拦截任务机动",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_interception_attack_factor",
+   "cn": "修改空中拦截任务攻击",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_interception_defence_factor",
+   "cn": "修改空中拦截任务防御",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_mission_efficiency",
+   "cn": "空军任务效率",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_mission_xp_gain_factor",
+   "cn": "空军任务经验增长",
+   "tags": [
+    "空军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_nav_efficiency",
+   "cn": "对海任务效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_night_penalty",
+   "cn": "夜间行动惩罚",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_paradrop_agility_factor",
+   "cn": "修改空降部队机动（类似无效）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_paradrop_attack_factor",
+   "cn": "修改空降部队攻击",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_paradrop_defence_factor",
+   "cn": "修改空降部队防御",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_range",
+   "cn": "作战半径",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_range_factor",
+   "cn": "空军航程",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_strategic_bomber_agility_factor",
+   "cn": "修改轰炸任务机动",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_strategic_bomber_attack_factor",
+   "cn": "修改轰炸任务攻击",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_strategic_bomber_bombing_factor",
+   "cn": "战略轰炸",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_strategic_bomber_defence_factor",
+   "cn": "修改轰炸任务防御",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_superiority_bonus_in_combat",
+   "cn": "战斗中空优加成",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_superiority_efficiency",
+   "cn": "夺取制空权任务效率",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_training_xp_gain_factor",
+   "cn": "空军训练经验增长",
+   "tags": [
+    "空军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "air_weather_penalty",
+   "cn": "空军恶劣天气惩罚",
+   "tags": [
+    "空军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "aircraft_manufacturer_cost_factor",
+   "cn": "飞机制造商花费",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "all_allied_country",
+   "cn": "目标所有盟国",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_army_leader",
+   "cn": "检查国家范围内激活的所有陆军指挥官单位",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_country",
+   "cn": "目标所有国家",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_enemy_country",
+   "cn": "目标所有敌国",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_navy_leader",
+   "cn": "检查国家范围内激活的所有海军指挥官单位",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_neighbor_country",
+   "cn": "目标所有邻国",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_neighbor_state",
+   "cn": "目标所有相邻地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_state",
+   "cn": "目标所有地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "all_unit_leader",
+   "cn": "检查国家范围内激活的所有领导人单位",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "always",
+   "cn": "总是返回指定数值",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "amount_manpower_in_deployment_queue",
+   "cn": "检查用于当前任务的人力数",
+   "tags": [
+    "人力",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "amount_research_slots",
+   "cn": "检查研究槽数量",
+   "tags": [
+    "科技",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "amphibious_invasion",
+   "cn": "两栖登陆速度",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "annex_country",
+   "cn": "吞并一个指定国家",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "anti_air_attack",
+   "cn": "海军防空",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "any_allied_country",
+   "cn": "目标任何盟国",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_army_leader",
+   "cn": "检查国家范围内激活的任何陆军指挥官单位",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_claim",
+   "cn": "检查两国间主张（需测试）",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "any_country",
+   "cn": "目标任何国家",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_country_division",
+   "cn": "任意一个部队",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_enemy_country",
+   "cn": "目标任何敌国",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_navy_leader",
+   "cn": "检查国家范围内激活的任何海军指挥官单位",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_neighbor_country",
+   "cn": "目标任何邻国",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_neighbor_state",
+   "cn": "目标任何相邻地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_other_country",
+   "cn": "目标任何他国",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_owned_state",
+   "cn": "目标任何拥有地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_state",
+   "cn": "目标任何地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_unit_leader",
+   "cn": "检查国家范围内激活的任何领导人单位",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "any_war_score",
+   "cn": "检查国家涉及的战争得分",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ap_attack",
+   "cn": "穿甲深度",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "armor",
+   "cn": "装甲",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "armor_value",
+   "cn": "装甲厚度",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_armor_attack_factor",
+   "cn": "坦克攻击",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_armor_defence_factor",
+   "cn": "坦克防御",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_armor_speed_factor",
+   "cn": "修改装甲速度",
+   "tags": [
+    "陆军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_artillery_attack_factor",
+   "cn": "炮兵攻击",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_artillery_defence_factor",
+   "cn": "炮兵防御",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_attack_factor",
+   "cn": "陆军攻击",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_bonus_air_superiority_factor",
+   "cn": "空优",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_chief_cost_factor",
+   "cn": "陆军部长花费",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_core_attack_factor",
+   "cn": "陆军核心攻击",
+   "tags": [
+    "陆军",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_core_defence_factor",
+   "cn": "陆军核心防御",
+   "tags": [
+    "陆军",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_defence_factor",
+   "cn": "陆军防御",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_experience",
+   "cn": "增加陆军经验",
+   "tags": [
+    "陆军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_fuel_consumption_factor",
+   "cn": "陆军燃料消耗",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_infantry_attack_factor",
+   "cn": "步兵攻击",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_infantry_defence_factor",
+   "cn": "步兵防御",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_leader_start_attack_level",
+   "cn": "新将领初始进攻技能等级",
+   "tags": [
+    "陆军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_leader_start_defense_level",
+   "cn": "新将领初始防御技能等级",
+   "tags": [
+    "陆军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_leader_start_level",
+   "cn": "新陆军指挥官初始等级",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_leader_start_logistics_level",
+   "cn": "新将领初始后勤技能等级",
+   "tags": [
+    "陆军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_leader_start_planning_level",
+   "cn": "新将领初始规划技能等级",
+   "tags": [
+    "陆军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_morale",
+   "cn": "部队组织度恢复",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_morale_factor",
+   "cn": "部队组织度恢复（百分比）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_org",
+   "cn": "部队组织度",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_org_factor",
+   "cn": "部队组织度（百分比）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "army_speed_factor",
+   "cn": "陆军师速度",
+   "tags": [
+    "陆军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "artillery_equipment",
+   "cn": "牵引式火炮",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "attack_bonus_against",
+   "cn": "攻击修正",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "attack_skill_level",
+   "cn": "比较领导人的进攻等级",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "attrition",
+   "cn": "部队损耗",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "autonomy_gain",
+   "cn": "贸易自治度增长",
+   "tags": [
+    "经济",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "average_stats",
+   "cn": "比较领导人的平均统计率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "boost_planning",
+   "cn": "加强属于本单位陆军集团/海军领导人的规划（需测试）",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "breakthrough",
+   "cn": "突破",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "breakthrough_factor",
+   "cn": "突破",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "build_cost_ic",
+   "cn": "建造花费",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "can_be_country_leader",
+   "cn": "能成为领导人",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "can_build_railway",
+   "cn": "可以建铁路",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "can_research",
+   "cn": "检查是否可以研究一项技术",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "can_select_trait",
+   "cn": "检查领导人能选择一个特质（需测试）",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "cancel_border_war",
+   "cn": "更改边界战争之间地区",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "capital_scope",
+   "cn": "首都范围",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "cas_damage_reduction",
+   "cn": "近空支援造成伤害降低（受到伤害降低）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "cavalry_attack_factor",
+   "cn": "修改骑兵攻击",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "cavalry_defence_factor",
+   "cn": "修改骑兵防御",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "change_tag_from",
+   "cn": "改变玩家到他国",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "check_variable",
+   "cn": "比较变量数值",
+   "tags": [
+    "变量",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "cic_to_target_factor",
+   "cn": "用于自治权。（用其他方式）该国控制多少民用工厂",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "civilian_factory_use",
+   "cn": "民用工厂运作",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "clamp_temp_variable",
+   "cn": "将临时变量固定在高低两个值或变量之间",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "clamp_variable",
+   "cn": "将变量固定在高低两个值或变量之间",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "clear_global_event_target",
+   "cn": "删除全球目标事件",
+   "tags": [
+    "事件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "clear_global_event_targets",
+   "cn": "删除全部全球目标事件",
+   "tags": [
+    "事件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "clear_variable",
+   "cn": "清除一个变量",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "clr_country_flag",
+   "cn": "删除国家标记",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "clr_global_flag",
+   "cn": "删除全球标记",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "clr_state_flag",
+   "cn": "删除地区标记",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "clr_unit_leader_flag",
+   "cn": "清除单位旗帜",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "combat_width_factor",
+   "cn": "军队宽度",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "command_power",
+   "cn": "指挥点数",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "command_power_daily",
+   "cn": "每日指挥点数",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "command_power_gain",
+   "cn": "每日指挥点数增长",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "command_power_gain_mult",
+   "cn": "最大指挥点数提高乘数（百分比）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "communism_drift",
+   "cn": "每日共产主义新增支持率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "compare_autonomy_progress_ratio",
+   "cn": "检查自治权（比例）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "complete_national_focus",
+   "cn": "完成一个国策",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "compliance_gain",
+   "cn": "服从增益",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "compliance_growth",
+   "cn": "顺从度增长速度",
+   "tags": [
+    "情报",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "compliance_growth_on_our_occupied_states",
+   "cn": "我们被敌人占领地区的顺从度增长速度",
+   "tags": [
+    "情报",
+    "领土",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "compliance_starting_value",
+   "cn": "初始顺从度",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "conscription",
+   "cn": "适役人口",
+   "tags": [
+    "人力",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "conscription_factor",
+   "cn": "适役人口修正",
+   "tags": [
+    "人力",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "consumer_goods_factor",
+   "cn": "生活消费品工厂",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "controls_state",
+   "cn": "控制省份",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "conversion_cost_civ_to_mil_factor",
+   "cn": "民转军花费",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "conversion_cost_mil_to_civ_factor",
+   "cn": "军转民花费",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "convoy_escort_efficiency",
+   "cn": "修改护航效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "convoy_raiding_efficiency_factor",
+   "cn": "袭击运输船任务效率",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "coordination_bonus",
+   "cn": "协同性",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "count_triggers",
+   "cn": "是否因触发限定次数和内容而恢复原数据（触发计数）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "country_event",
+   "cn": "触发事件",
+   "tags": [
+    "事件",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "country_exists",
+   "cn": "国家存在",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "create_corps_commander",
+   "cn": "创建一个陆军上将",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_country_leader",
+   "cn": "创建一个国家领导人（国家元首）",
+   "tags": [
+    "通用",
+    "创建"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_equipment_variant",
+   "cn": "创建一个新装备变体（改进型）",
+   "tags": [
+    "装备"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_faction",
+   "cn": "创建具有指定名称的派系",
+   "tags": [
+    "通用",
+    "创建"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_field_marshal",
+   "cn": "创建一个陆军元帅",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_import",
+   "cn": "创立国家间贸易",
+   "tags": [
+    "经济",
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_navy_leader",
+   "cn": "创建一个海军将领",
+   "tags": [
+    "陆军",
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_production_license",
+   "cn": "创建生产许可",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_unit",
+   "cn": "创建一个新单元",
+   "tags": [
+    "通用",
+    "创建"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_wargoal",
+   "cn": "创建战争目标",
+   "tags": [
+    "通用",
+    "创建"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "custom_effect_tooltip",
+   "cn": "显示自定义提示",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "custom_trigger_tooltip",
+   "cn": "使用自定义作为触发",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "cv_fighter_equipment",
+   "cn": "舰载战斗机",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "damage_building",
+   "cn": "破坏地区建筑物及比例",
+   "tags": [
+    "经济",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "declare_war_on",
+   "cn": "向指定国家宣战",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "decryption_factor",
+   "cn": "解密加成",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "defence",
+   "cn": "防御加成",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "defense",
+   "cn": "防御",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "defense_bonus_against",
+   "cn": "防御修正",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "defense_skill_level",
+   "cn": "比较领导人的防御等级",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "defensive_war_stability_factor",
+   "cn": "战争防御对稳定度修正",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "delete_unit_template_and_units",
+   "cn": "删除模板及其单位",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "demote_leader",
+   "cn": "元帅降级为将军（需测试）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "destroy_ships",
+   "cn": "销毁指定国家的船舶及数量",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "dig_in",
+   "cn": "检查最低级别（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "dig_in_speed",
+   "cn": "堑壕加固速度奖励",
+   "tags": [
+    "陆军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "dig_in_speed_factor",
+   "cn": "堑壕加固速度奖励系数",
+   "tags": [
+    "陆军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "diplomatic_relation",
+   "cn": "设定外交关系",
+   "tags": [
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "dismantle_faction",
+   "cn": "取消当前政党领导国家",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "distance_to",
+   "cn": "检查两地路程距离",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "divide_temp_variable",
+   "cn": "将值或变量与临时变量分离",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "divide_variable",
+   "cn": "将值或变量分离",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "division_has_battalion_in_template",
+   "cn": "检查有对应的营",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "division_has_majority_template",
+   "cn": "检查主要由对应的营构成",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "division_template",
+   "cn": "增加一个模板部门到国家",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "divisions_in_border_state",
+   "cn": "检查当前国家所拥有指定地区的边境线数量",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "divisions_in_state",
+   "cn": "检查地区内“师”数量",
+   "tags": [
+    "陆军",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "drift_defence_factor",
+   "cn": "意识形态抵制力度",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "drop_cosmetic_tag",
+   "cn": "删除国家美化标记",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "economy_cost_factor",
+   "cn": "经济法案花费",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "effect_tooltip",
+   "cn": "只显示效果提示",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "encryption_factor",
+   "cn": "加密加成",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "end_puppet",
+   "cn": "停止傀儡指定国家。如果要释放已经存在的傀儡，请使用此选项。（不再增加傀儡值）",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "enemy_army_bonus_air_superiority_factor",
+   "cn": "修改敌方空中支援效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "enemy_justify_war_goal_time",
+   "cn": "修改他国对本国战争正当化时间",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "enemy_partisan_effect",
+   "cn": "修改敌游击队对本国的影响",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "equipment_bonus",
+   "cn": "装备加成块",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "equipment_capture",
+   "cn": "装备缴获比例增长",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "equipment_capture_factor",
+   "cn": "装备缴获比例修正（加法的百分比）",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "equipment_conversion_speed",
+   "cn": "修改转换设备组度（换装备）",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "every_army_leader",
+   "cn": "目标每个现任陆军指挥官",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_country",
+   "cn": "目标每个国家",
+   "tags": [
+    "条件",
+    "遍历"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_enemy_country",
+   "cn": "目标每个敌国",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_navy_leader",
+   "cn": "目标每个现任海军指挥官",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_neighbor_country",
+   "cn": "目标每个邻国",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_neighbor_state",
+   "cn": "目标每个相邻地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_owned_state",
+   "cn": "目标全部拥有地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_state",
+   "cn": "目标每个地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "every_unit_leader",
+   "cn": "目标每个现任领导人",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "exists",
+   "cn": "检查某国是否存在",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_air",
+   "cn": "每日空军经验增加",
+   "tags": [
+    "空军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_air_factor",
+   "cn": "空军经验获取（百分比）",
+   "tags": [
+    "空军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_army",
+   "cn": "每日陆军经验增加",
+   "tags": [
+    "陆军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_army_factor",
+   "cn": "陆军经验获取（百分比）",
+   "tags": [
+    "陆军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_navy",
+   "cn": "每日海军经验增加",
+   "tags": [
+    "海军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_navy_factor",
+   "cn": "海军经验获取（百分比）",
+   "tags": [
+    "海军",
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_loss_factor",
+   "cn": "有经验的士兵的损失",
+   "tags": [
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "extra_trade_to_target_factor",
+   "cn": "用于自治权。（用其他方式）修改对宗主国额外贸易",
+   "tags": [
+    "经济",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "fastest_unit",
+   "cn": "检查已知速度值是否是战斗中最快速的单位（需测试）",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "fighter_equipment",
+   "cn": "战斗机",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "filewatcher",
+   "cn": "转换文件",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "finalize_border_war",
+   "cn": "完成了两国之间的边境战争，胜利或取消",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "focus_progress",
+   "cn": "某个国策完成进度条件",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "foreign_subversive_activites",
+   "cn": "修改别国对本国的颠覆活动效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "free_building_slots",
+   "cn": "剩余建筑位",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "frontage_full",
+   "cn": "检查全面进攻（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "fuel_gain_factor",
+   "cn": "石油燃料增长率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "fuel_gain_factor_from_states",
+   "cn": "炼油厂燃料增长率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "generate_wargoal_tension",
+   "cn": "制造战争目标的紧张度限制",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "give_guarantee",
+   "cn": "指定国家同意互不侵犯",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "give_military_access",
+   "cn": "指定国家允许军事通行（提示可窥视他国）",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "gives_military_access_to",
+   "cn": "检查是否同意他国军事通行权",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "global_building_slots_factor",
+   "cn": "修改地区建造工厂数量",
+   "tags": [
+    "经济",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "global_every_army_leader",
+   "cn": "目标世界各国军队指挥官（使用every_army_leader也许对国家更好）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "goto_province",
+   "cn": "转到特定地块",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "goto_state",
+   "cn": "转到指定地区",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "ground_attack_factor",
+   "cn": "对地攻击修正",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "guarantee_cost",
+   "cn": "修改保证外国的成本",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "guarantee_tension",
+   "cn": "修改保证外国导致世界紧张水平",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "hard_attack",
+   "cn": "对装甲杀伤",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "hardness",
+   "cn": "检查最低/最高硬度等级（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_ability",
+   "cn": "领导人有无属性能力。检查领导人是否有属性能力",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_active_mission",
+   "cn": "检查国家是否有个有效任务指定ID",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_active_resistance",
+   "cn": "有进行中的抵抗",
+   "tags": [
+    "情报"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_added_tension_amount",
+   "cn": "国家造成的世界紧张程度的变量（1.0＝100%）",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_air_experience",
+   "cn": "检查空军经验",
+   "tags": [
+    "空军",
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_annex_war_goal",
+   "cn": "检查某国对他国开启吞并战争",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_army_experience",
+   "cn": "检查陆军经验",
+   "tags": [
+    "陆军",
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_army_manpower",
+   "cn": "陆军现役兵力",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_army_size",
+   "cn": "检查某种全部或部分陆军师数量",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_attache",
+   "cn": "检查国家是否有他国的附庸",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_attache_from",
+   "cn": "有无指定国家的附庸",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_autonomy_state",
+   "cn": "检查某国的自治等级（integrated_puppet,傀儡等级）",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_available_idea_with_traits",
+   "cn": "检查某国是否有指定特质（需测试）",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_border_war",
+   "cn": "检查国家/地区是否有边境战争",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_border_war_between",
+   "cn": "检查两地区间是否有边境战争（需测试）",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_border_war_with",
+   "cn": "检查国家/地区是否有边界",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_built",
+   "cn": "检查某国是否完成指定建筑物及数量的目标任务（需测试）",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_capitulated",
+   "cn": "已投降",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_carrier_airwings_on_mission",
+   "cn": "检查是否是舰载任务联队",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_character_flag",
+   "cn": "有角色标记",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_civil_war",
+   "cn": "处于内战",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_combat_modifier",
+   "cn": "检查战斗中的战斗修正（需测试）",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_completed_focus",
+   "cn": "已完成国策",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_country_flag",
+   "cn": "有国家标记",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_country_leader",
+   "cn": "有国家领袖",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_decision",
+   "cn": "检查国家是否主动选择决议",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_defensive_war",
+   "cn": "检查是否是防御战争",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_defensive_war_with",
+   "cn": "检查对他国的防御战争",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_deployed_air_force_size",
+   "cn": "部署飞机数量",
+   "tags": [
+    "空军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_equipment",
+   "cn": "装备数量",
+   "tags": [
+    "装备"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_event_target",
+   "cn": "检查当前范围或全局范围是否保存了指定的事件目标。",
+   "tags": [
+    "事件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_flanked_opponent",
+   "cn": "检查是否是次要敌人（需测试）",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_focus_tree",
+   "cn": "检查国家拥有指定国策",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_full_control_of_state",
+   "cn": "完全控制省份",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_global_flag",
+   "cn": "有全球标记",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_government",
+   "cn": "意识形态",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_guaranteed",
+   "cn": "检查是否保障了某国独立",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_id",
+   "cn": "检查ID",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_idea",
+   "cn": "拥有理念",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_idea_with_trait",
+   "cn": "检查具有指定特质的理念",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_ideology",
+   "cn": "有对应子意识形态",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_ideology_group",
+   "cn": "有对应意识形态组",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_manpower",
+   "cn": "人力",
+   "tags": [
+    "人力"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_manpower_for_recruit_change_to",
+   "cn": "检查是否满足国家征兵法",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_max_planning",
+   "cn": "检查在战争中获得的最大计划率",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_military_access_to",
+   "cn": "检查是否对他国开启军事通行权",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_nationality",
+   "cn": "国籍为某国",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_navy_experience",
+   "cn": "检查海军经验",
+   "tags": [
+    "海军",
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_navy_size",
+   "cn": "所有船只的变量",
+   "tags": [
+    "海军",
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_offensive_war",
+   "cn": "检查是否是战争进攻方",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_offensive_war_with",
+   "cn": "检查对某国开战",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_opinion",
+   "cn": "对某国关系",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_opinion_modifier",
+   "cn": "检查与他国的具体决议修改",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_political_power",
+   "cn": "政治点数",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_railway_connection",
+   "cn": "有铁路相连",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_railway_level",
+   "cn": "铁路等级",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_reserves",
+   "cn": "检查战斗准备（需测试）",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_resistance",
+   "cn": "有抵抗",
+   "tags": [
+    "情报"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_resources_amount",
+   "cn": "拥有资源数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_resources_rights",
+   "cn": "拥有资源开发权限",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_stability",
+   "cn": "稳定度",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_start_date",
+   "cn": "检查当前游戏的初始开始日期（需测试）",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_state_category",
+   "cn": "是相应省份类型",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_state_flag",
+   "cn": "有地区标记",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_tech",
+   "cn": "拥有科技",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_tech_bonus",
+   "cn": "检查某一技术或技术领域的研究补偿",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_template_containing_unit",
+   "cn": "检查某国是否有指定模板",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_trait",
+   "cn": "具有特质",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_unit_leader_flag",
+   "cn": "领导人有无设定标识。检查标识的设定和时间",
+   "tags": [
+    "时间"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_variable",
+   "cn": "检查范围中是否有变量",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_volunteers_from",
+   "cn": "检查是否有他国志愿者",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_war",
+   "cn": "处于战争",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_war_support",
+   "cn": "战争支持度",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "has_war_together_with",
+   "cn": "检查两国在同一场战争中",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "has_war_with",
+   "cn": "与某国交战",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "hdr_debug",
+   "cn": "转换调试标题",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "heat_attrition_factor",
+   "cn": "修改炎热损耗",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "heavy_tank_equipment",
+   "cn": "重型坦克",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "hg_attack",
+   "cn": "海军重火炮",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "hidden_effect",
+   "cn": "提示中不显示的效果",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "hidden_trigger",
+   "cn": "内的任何触发都不会显示提示",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "high_command_cost_factor",
+   "cn": "总司令花费",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "hold_election",
+   "cn": "进行选举",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ic_ratio",
+   "cn": "比较两个国家的工业总产能",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "if",
+   "cn": "只有满足“limit”条件才能发生效果",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "improve_relations_maintain_cost_factor",
+   "cn": "修改维持“改善关系”外交成本",
+   "tags": [
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "industrial_capacity_dockyard",
+   "cn": "海军船坞产出",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "industrial_capacity_factory",
+   "cn": "工厂产出",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "industrial_concern_cost_factor",
+   "cn": "工业企业花费",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "industry_air_damage_factor",
+   "cn": "修改工厂受到轰炸损害度",
+   "tags": [
+    "经济",
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "industry_free_repair_factor",
+   "cn": "改变自动维修速度比例值",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "industry_repair_factor",
+   "cn": "改变维修速度比例值",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "infantry_equipment",
+   "cn": "步兵装备",
+   "tags": [
+    "陆军",
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "inherit_technology",
+   "cn": "复制科技",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "instant",
+   "cn": "是否立即生效",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "instant_wargoal",
+   "cn": "允许国家立即重新部署战争目标",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "intel_from_operatives_factor",
+   "cn": "特工情报效率",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "intel_network_gain",
+   "cn": "情报网络增益",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "intel_network_gain_factor",
+   "cn": "情报网络增益效果",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "intelligence_agency_defense",
+   "cn": "防御情报机构",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "invasion_preparation",
+   "cn": "登陆准备时间",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_advisor",
+   "cn": "是顾问",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_ai",
+   "cn": "是AI",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_air_chief",
+   "cn": "是空军部长",
+   "tags": [
+    "空军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_army_chief",
+   "cn": "是陆军部长",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_army_leader",
+   "cn": "是陆军将领",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_assigned",
+   "cn": "检查现任领导人是否被派去指挥军队",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_attacker",
+   "cn": "检查战斗中是否是攻击者",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_border_conflict",
+   "cn": "检查是否是边境冲突地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_border_war",
+   "cn": "检查是否有人员或指挥官参与边境战争",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_capital",
+   "cn": "是首都",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_character_slot",
+   "cn": "是对应槽位角色",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_claimed_by",
+   "cn": "被某国宣称",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_coastal",
+   "cn": "检查是否是沿海地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_controlled_by",
+   "cn": "被SOV控制",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_core_of",
+   "cn": "是某国核心",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_corps_commander",
+   "cn": "是陆军上将",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_defender",
+   "cn": "检查战斗中是否是防御者",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_demilitarized_zone",
+   "cn": "是非军事区",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_exiled_leader",
+   "cn": "是流亡将领",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_faction_leader",
+   "cn": "检查领导人是否是任何派别（有无选举）",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_female",
+   "cn": "是女性",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_field_marshal",
+   "cn": "是陆军元帅",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_fighting_air_units",
+   "cn": "检查空军是否战斗",
+   "tags": [
+    "空军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_fighting_in_terrain",
+   "cn": "检查战斗地形",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_fully_controlled_by",
+   "cn": "被某国完全控制",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_guaranteed_by",
+   "cn": "检查是否被某国保障独立",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_high_command",
+   "cn": "是总司令",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_historical_focus_on",
+   "cn": "历史国策模式",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_in_faction",
+   "cn": "检查是否有其他派别成员",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_in_faction_with",
+   "cn": "与某国同阵营",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_in_home_area",
+   "cn": "检查是否连接首都",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_ironman",
+   "cn": "检查当前的游戏是否是铁人模式",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_leading_army",
+   "cn": "正在领导军队",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_leading_army_group",
+   "cn": "正在领导集团军群",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_leading_volunteer_group",
+   "cn": "正在领导志愿军",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_leading_volunteer_group_with_original_country",
+   "cn": "在原国家领导志愿军",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_lend_leasing",
+   "cn": "检查是否租借装备给某国",
+   "tags": [
+    "外交",
+    "装备"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_major",
+   "cn": "是主要国家",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_navy_chief",
+   "cn": "是海军部长",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_navy_leader",
+   "cn": "是海军将领",
+   "tags": [
+    "陆军",
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_neighbor_of",
+   "cn": "检查某国的指定邻国",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_on_continent",
+   "cn": "检查是否在指定大洲",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_operative",
+   "cn": "是特工",
+   "tags": [
+    "情报"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_operative_captured",
+   "cn": "特工被捕",
+   "tags": [
+    "情报"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_owned_and_controlled_by",
+   "cn": "被某国拥有且控制",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_owned_by",
+   "cn": "被某国拥有",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_political_advisor",
+   "cn": "是政治顾问",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_puppet",
+   "cn": "检查某国是否是傀儡国（自治傀儡）",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_puppet_of",
+   "cn": "检查某国是否被他国傀儡（自治傀儡）",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_staging_coup",
+   "cn": "检查国家是否发生政变",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_subject",
+   "cn": "是附庸",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_subject_of",
+   "cn": "是某国附庸",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_theorist",
+   "cn": "是理论家",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_unit_leader",
+   "cn": "是军事将领",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "is_winning",
+   "cn": "检查战斗是否获胜",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "join_faction_tension",
+   "cn": "加入阵营紧张度",
+   "tags": [
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "justify_war_goal_time",
+   "cn": "正当化战争目标所需时间",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "kill_country_leader",
+   "cn": "彻底删除一个国家领导人（去世了）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "land_doctrine_cost_factor",
+   "cn": "陆军学说花费",
+   "tags": [
+    "陆军",
+    "科技",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "land_doctrine_level",
+   "cn": "检查陆军学说研究等级（需测试）",
+   "tags": [
+    "陆军",
+    "科技",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "land_equipment_upgrade_xp_cost",
+   "cn": "创建对XP成本效率比的变量（陆军装备升级成本）",
+   "tags": [
+    "陆军",
+    "变量",
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "land_night_attack",
+   "cn": "夜战攻击",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "land_reinforce_rate",
+   "cn": "增援率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "leave_faction",
+   "cn": "使目标脱离派别",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "legitimacy_daily",
+   "cn": "每日提高国家合法性",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "legitimacy_gain_factor",
+   "cn": "合法性增长率",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "lend_lease_tension",
+   "cn": "修改租借导致世界紧张水平",
+   "tags": [
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "less_combat_width_than_opponent",
+   "cn": "检查战斗宽度（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "lg_attack",
+   "cn": "海军轻火炮",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_anti_tank_eq_cost_factor",
+   "cn": "如果你是授权的设备将改变成本（反坦克）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_anti_tank_eq_production_speed_factor",
+   "cn": "如果你是授权的设备将改变产量（反坦克）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_anti_tank_eq_tech_difference_speed_factor",
+   "cn": "如果你是授权的设备将提高技术研究的速度（反坦克）",
+   "tags": [
+    "科技",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_artillery_eq_cost_factor",
+   "cn": "如果你是授权的设备将改变成本（炮兵部队）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_artillery_eq_production_speed_factor",
+   "cn": "如果你是授权的设备将改变产量（炮兵部队）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_artillery_eq_tech_difference_speed_factor",
+   "cn": "如果你是授权的设备将提高技术研究的速度（炮兵部队）",
+   "tags": [
+    "陆军",
+    "科技",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_infantry_eq_cost_factor",
+   "cn": "如果你是授权的设备将改变成本（步兵装备）",
+   "tags": [
+    "陆军",
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_infantry_eq_production_speed_factor",
+   "cn": "如果你是授权的设备将改变产量（步兵装备）",
+   "tags": [
+    "陆军",
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_infantry_eq_tech_difference_speed_factor",
+   "cn": "如果你是授权的设备将提高技术研究的速度（步兵装备）",
+   "tags": [
+    "陆军",
+    "科技",
+    "装备",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_light_tank_eq_cost_factor",
+   "cn": "如果你是授权的设备将改变成本（轻坦克）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_light_tank_eq_production_speed_factor",
+   "cn": "如果你是授权的设备将改变产量（轻坦克）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_light_tank_eq_tech_difference_speed_factor",
+   "cn": "如果你是授权的设备将提高技术研究的速度（轻坦克）",
+   "tags": [
+    "科技",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_production_speed",
+   "cn": "更改购买许可设备的生产速度",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_purchase_cost",
+   "cn": "更改所有购买许可的成本",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "license_tech_difference_speed",
+   "cn": "根据技术水平差异修改生产速度惩罚",
+   "tags": [
+    "经济",
+    "科技",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "light_tank_equipment",
+   "cn": "轻型坦克",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "limit",
+   "cn": "限制定义的范围",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "line_change_production_efficiency_factor",
+   "cn": "生产效率保持",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "load_focus_tree",
+   "cn": "设置一个国家使用的国策，保留了完成的共享国策",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "load_oob",
+   "cn": "载入一个第三方文本",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "local_building_slots_factor",
+   "cn": "地区最大工业值",
+   "tags": [
+    "经济",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "local_resources_factor",
+   "cn": "战略资源获取率",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "logistics_skill_level",
+   "cn": "比较领导人的后勤等级",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "master_ideology_drift",
+   "cn": "每日改变傀儡的意识形态。将输入统治国的意识形态",
+   "tags": [
+    "政治",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "materiel_manufacturer_cost_factor",
+   "cn": "军需品设计花费",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "max_command_power",
+   "cn": "最大指挥点数提高",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "max_command_power_mult",
+   "cn": "最大指挥点数提高乘数（百分比）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "max_dig_in",
+   "cn": "最大堑壕",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "max_planning",
+   "cn": "计划上限",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "maximum_speed",
+   "cn": "最大速度",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "mechanized_attack_factor",
+   "cn": "机械化进攻",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "mechanized_defence_factor",
+   "cn": "机械化防御",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "mechanized_equipment",
+   "cn": "机械化装备",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "medium_tank_equipment",
+   "cn": "中型坦克",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "mic_to_target_factor",
+   "cn": "用于自治权。（用其他方式）该国控制多少军用工厂",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "military_leader_cost_factor",
+   "cn": "指挥官花费（百分比）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "min_export",
+   "cn": "可出口资源",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "minimum_training_level",
+   "cn": "修改部队部署前所需的训练量。-0.2表示即时部署",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "mobilization_laws_cost_factor",
+   "cn": "征兵法案花费",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "mobilization_speed",
+   "cn": "动员速度",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "modern_tank_equipment",
+   "cn": "现代坦克",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "modify_building_resources",
+   "cn": "修改建筑对特定国家的资源输出数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "modify_country_flag",
+   "cn": "修改可变标记",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "modify_timed_idea",
+   "cn": "修改理念时效（通过添加时间修改理念时效）",
+   "tags": [
+    "时间"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "modify_unit_leader_flag",
+   "cn": "修改单位旗帜。仅修改已存在单位",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "monthly_population",
+   "cn": "每月人口（百分比）",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "motorized_attack_factor",
+   "cn": "摩托化步兵攻击",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "motorized_defence_factor",
+   "cn": "摩托化步兵防御",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "motorized_equipment",
+   "cn": "卡车",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "multiply_temp_variable",
+   "cn": "将值或变量与临时变量合并（相乘）",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "multiply_variable",
+   "cn": "将值或变量合并（相乘）",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "nav_bomber_equipment",
+   "cn": "海军轰炸机",
+   "tags": [
+    "海军",
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_coordination",
+   "cn": "舰队协同性",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_critical_score_chance_factor",
+   "cn": "打出致命一击的几率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_detection",
+   "cn": "对海探测",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_doctrine_cost_factor",
+   "cn": "海军学说花费",
+   "tags": [
+    "海军",
+    "科技",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_equipment_upgrade_xp_cost",
+   "cn": "创建对XP成本效率比的变量（海军装备升级成本）",
+   "tags": [
+    "海军",
+    "变量",
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_has_potf_in_combat_attack",
+   "cn": "与舰队荣耀并肩作战时攻击力",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_hit_chance",
+   "cn": "修改海军命中率",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_invasion_capacity",
+   "cn": "登陆作战上限",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_invasion_prep_speed",
+   "cn": "入侵准备速度",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_manufacturer_cost_factor",
+   "cn": "海军制造商花费",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_morale_factor",
+   "cn": "海军组织度恢复",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_retreat_chance",
+   "cn": "修改撤退命令几率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_retreat_speed",
+   "cn": "修改撤退舰队速度",
+   "tags": [
+    "海军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_speed_factor",
+   "cn": "海军速度",
+   "tags": [
+    "海军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_strike_agility_factor",
+   "cn": "海军机动",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_strike_attack",
+   "cn": "空军对海攻击",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_strike_attack_factor",
+   "cn": "对海攻击",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_strike_targetting_factor",
+   "cn": "修改空对舰瞄准",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_torpedo_range_factor",
+   "cn": "修改鱼雷射程",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_anti_air_attack_factor",
+   "cn": "海军对空攻击",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_capital_ship_attack_factor",
+   "cn": "主力舰攻击",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_capital_ship_defence_factor",
+   "cn": "修改主力舰防御",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_carrier_air_agility_factor",
+   "cn": "修改航母舰载机空中机动",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_carrier_air_attack_factor",
+   "cn": "修改航母舰载机空中攻击",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_carrier_air_targetting_factor",
+   "cn": "修改航母舰载机空中瞄准",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_chief_cost_factor",
+   "cn": "海军部长花费",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_experience",
+   "cn": "Adds navy experi经验ence",
+   "tags": [
+    "经验",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_fuel_consumption_factor",
+   "cn": "海军燃料消耗",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_leader_start_attack_level",
+   "cn": "海军将领起始攻击等级",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_leader_start_coordination_level",
+   "cn": "海军将领起始协同等级",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_leader_start_defense_level",
+   "cn": "海军将领起始防御等级",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_leader_start_level",
+   "cn": "海军将领起始级别",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_leader_start_maneuvering_level",
+   "cn": "海军将领起始机动等级",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_max_range_factor",
+   "cn": "海军最大航程参数",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_org",
+   "cn": "海军组织度",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_org_factor",
+   "cn": "海军组织度（百分比）",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_refit_ic_cost",
+   "cn": "海军改装成本效率比",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_refit_speed",
+   "cn": "海军改装效率比",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_screen_attack_factor",
+   "cn": "屏卫舰攻击",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_screen_defence_factor",
+   "cn": "屏卫舰防御",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_submarine_attack_factor",
+   "cn": "潜艇攻击",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_submarine_defence_factor",
+   "cn": "修改潜艇防御",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_submarine_detection_factor",
+   "cn": "修改对潜探测效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "news_event",
+   "cn": "触发新闻事件",
+   "tags": [
+    "事件",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "night",
+   "cn": "检查夜间是否战斗",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "no_supply_grace",
+   "cn": "携行补给（小时数）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "non_core_manpower",
+   "cn": "非核心人力",
+   "tags": [
+    "领土",
+    "人力",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "non_damaged_building_level",
+   "cn": "未受损建筑等级",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "not_already_hired_except_as",
+   "cn": "尚未被其他部门雇佣",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "nuclear_production_factor",
+   "cn": "按指定百分比更改核弹产量",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_divisions",
+   "cn": "检查“陆军师”的数量",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_available_civilian_factories",
+   "cn": "检查闲置民用工厂数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_available_military_factories",
+   "cn": "检查闲置军工厂数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_available_naval_factories",
+   "cn": "检查闲置造船厂数量",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_civilian_factories",
+   "cn": "检查某国的民用工厂数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_civilian_factories_available_for_projects",
+   "cn": "检查可用于新项目（闲置）的民用工厂数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_controlled_states",
+   "cn": "检查控制地区数量",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_factories",
+   "cn": "检查某国的内部工厂总数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_military_factories",
+   "cn": "检查某国的军工厂的数量",
+   "tags": [
+    "经济"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_naval_factories",
+   "cn": "检查某国的海军造船厂的数量",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_nukes",
+   "cn": "检查核弹数量",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_of_subjects",
+   "cn": "检查仆从国数字",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_owned_neighbour_states",
+   "cn": "相邻某国地区数",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "num_tech_sharing_groups",
+   "cn": "检查同阵营技术共享数量",
+   "tags": [
+    "科技",
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "num_units",
+   "cn": "检查领导人所指挥的单位数量",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "offence",
+   "cn": "进攻加成",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "offensive_war_stability_factor",
+   "cn": "战争进攻对稳定度修正",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "operative_slot",
+   "cn": "操作槽位",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "opinion_gain_monthly_factor",
+   "cn": "改善关系",
+   "tags": [
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "opinion_gain_monthly_same_ideology_factor",
+   "cn": "修改相同意识形态每月变化",
+   "tags": [
+    "政治",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "org_loss_when_moving",
+   "cn": "陆军移动组织度损失",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "original_tag",
+   "cn": "原本国家",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "out_of_supply_factor",
+   "cn": "补给耗尽惩罚",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "own_operative_detection_chance_factor",
+   "cn": "检测己方特工几率",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "owns_state",
+   "cn": "拥有省份",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "partisan_effect",
+   "cn": "修改自己的支持者对敌国的影响",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "phase",
+   "cn": "检查战斗阶段（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "planning_skill_level",
+   "cn": "比较领导人的计划等级",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "planning_speed",
+   "cn": "计划速度",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "political_advisor_cost_factor",
+   "cn": "政治顾问花费",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "political_power_daily",
+   "cn": "每日政治点数",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "political_power_factor",
+   "cn": "政治点数（百分比）",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "political_power_gain",
+   "cn": "每日政治点数增长",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "political_power_growth",
+   "cn": "政治点数增长",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "positioning",
+   "cn": "阵位",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "prices",
+   "cn": "调价信息",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "print_variables",
+   "cn": "将范围内所有变量和临时变量打印到一个文件",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "production_factory_efficiency_gain_factor",
+   "cn": "生产效率增长",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_factory_max_efficiency_factor",
+   "cn": "生产效率上限",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_factory_start_efficiency_factor",
+   "cn": "基础生产效率",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_oil_factor",
+   "cn": "改变石油产量。并入local_resources_factor。其他资源不可用",
+   "tags": [
+    "经济",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_air_base_factor",
+   "cn": "机场建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_anti_air_building_factor",
+   "cn": "防空设备建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_arms_factory_factor",
+   "cn": "军用工厂建造速度",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_buildings_factor",
+   "cn": "建造速度",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_bunker_factor",
+   "cn": "碉堡建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_coastal_bunker_factor",
+   "cn": "海岸碉堡建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_dockyard_factor",
+   "cn": "海军船坞建造速度",
+   "tags": [
+    "经济",
+    "海军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_industrial_complex_factor",
+   "cn": "民用工厂建造速度",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_infrastructure_factor",
+   "cn": "基础设施建造速度",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_naval_base_factor",
+   "cn": "码头建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_nuclear_reactor_factor",
+   "cn": "核工业建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_radar_station_factor",
+   "cn": "雷达站建造速度加成",
+   "tags": [
+    "经济",
+    "空军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_rocket_site_factor",
+   "cn": "火箭发射场建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "production_speed_synthetic_refinery_factor",
+   "cn": "合成炼油厂建造速度加成",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "promote_leader",
+   "cn": "升将军为元帅（需测试）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "puppet",
+   "cn": "傀儡指定国家",
+   "tags": [
+    "外交"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "random",
+   "cn": "出现效果随机率",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_army_leader",
+   "cn": "目标一个随机现任陆军指挥官",
+   "tags": [
+    "陆军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_country",
+   "cn": "目标一个随机国家",
+   "tags": [
+    "条件",
+    "随机"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_enemy_country",
+   "cn": "目标一个随机敌国",
+   "tags": [
+    "条件",
+    "随机"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_list",
+   "cn": "根据几率选择效果",
+   "tags": [
+    "条件",
+    "随机"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_navy_leader",
+   "cn": "目标一个随机现任海军指挥官",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_neighbor_country",
+   "cn": "目标一个随机邻国",
+   "tags": [
+    "条件",
+    "随机"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_neighbor_state",
+   "cn": "目标一个随机相邻地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_owned_controlled_state",
+   "cn": "目标一个随机拥有和占领区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_owned_state",
+   "cn": "目标一个随机拥有者",
+   "tags": [
+    "条件",
+    "随机"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_state",
+   "cn": "目标一个随机地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "random_unit_leader",
+   "cn": "目标一个随机现任领导人",
+   "tags": [
+    "条件",
+    "随机"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "randomize_weather",
+   "cn": "随机天气（需测试）",
+   "tags": [
+    "时间"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "recall_attache",
+   "cn": "召回目标范围国家内的武官",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "recon_advantage",
+   "cn": "检查在战斗中的侦查优势",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "recon_factor",
+   "cn": "侦查",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "refit_ic_cost",
+   "cn": "舰艇改装花费",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "refit_speed",
+   "cn": "舰船改造速度",
+   "tags": [
+    "海军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "release",
+   "cn": "恢复指定国家（吞并后恢复）",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "release_puppet",
+   "cn": "释放指定国家",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "reliability",
+   "cn": "可靠性",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "remove_claim_by",
+   "cn": "删除地区声索国",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "remove_core_of",
+   "cn": "删除地区某国核心",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "remove_country_leader_trait",
+   "cn": "删除当前的国家领导人的一个特质",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_from_faction",
+   "cn": "删除指定盟友（从派系删除一个国家）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "remove_from_tech_sharing_group",
+   "cn": "删除科技共享内容",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_ideas",
+   "cn": "移除理念(民族精神)",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_ideas_with_trait",
+   "cn": "移除指定特质的理念",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_mission",
+   "cn": "删除任务而不执行完整或超时效果",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_opinion_modifier",
+   "cn": "删除一个意见修改到一个国家",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_relation_modifier",
+   "cn": "删除不可变修改在目标范围之间",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_state_claim",
+   "cn": "删除指定地区的声索权（失去地区）",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "remove_state_core",
+   "cn": "删除指定地区的核心",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "remove_targeted_decision",
+   "cn": "删除指定决议或任务",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "remove_unit_leader",
+   "cn": "删除一个指挥官",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "remove_unit_leader_trait",
+   "cn": "删除当前的指挥者一个特质（需测试）",
+   "tags": [
+    "经验"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "rendertype",
+   "cn": "使用报告末端内容",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "repair_speed_arms_factory_factor",
+   "cn": "军用工厂修复速度",
+   "tags": [
+    "经济",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "repair_speed_factor",
+   "cn": "舰船修理速度",
+   "tags": [
+    "海军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "replace_unit_leader_trait",
+   "cn": "增加领导人特性（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "required_garrison_factor",
+   "cn": "驻军需求",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "research_speed_factor",
+   "cn": "科研速度",
+   "tags": [
+    "科技",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "research_time_factor",
+   "cn": "研究时间",
+   "tags": [
+    "科技",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "reserves",
+   "cn": "检查外汇储备（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "reset_province_name",
+   "cn": "重置一个省名",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "reset_state_name",
+   "cn": "重置地区名",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_damage_to_garrison",
+   "cn": "驻军抵抗伤害",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_growth",
+   "cn": "抵抗增长速度",
+   "tags": [
+    "情报",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_growth_on_our_occupied_states",
+   "cn": "我们被敌人占领地区的抵抗增长速度",
+   "tags": [
+    "情报",
+    "领土",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_target",
+   "cn": "抵抗目标",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_target_on_our_occupied_states",
+   "cn": "我们被敌人占领地区的抵抗目标",
+   "tags": [
+    "情报",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_tick_auto",
+   "cn": "修改所有占领状态下的抵抗力增长",
+   "tags": [
+    "情报",
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "retire",
+   "cn": "目标领导人退休（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "retire_country_leader",
+   "cn": "删除一个国家领导人，同政党另一候选人取代他",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "reverse_add_opinion_modifier",
+   "cn": "向目标增加意见修改",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "rocket_artillery_equipment",
+   "cn": "牵引式火箭炮",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "root_out_resistance_effectiveness_factor",
+   "cn": "根除抵抗力的有效效率",
+   "tags": [
+    "情报",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "round_variable",
+   "cn": "绕过一个变量",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "save_event_target_as",
+   "cn": "为某事物保持目标事件",
+   "tags": [
+    "事件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "save_global_event_target_as",
+   "cn": "为某事物保持全球目标事件",
+   "tags": [
+    "事件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "screening_efficiency",
+   "cn": "屏卫效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "send_equipment",
+   "cn": "赠送装备给一个国家",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "send_volunteer_divisions_required",
+   "cn": "派遣志愿军需要的部队数量",
+   "tags": [
+    "陆军",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "send_volunteer_factor",
+   "cn": "志愿军部队数上限（百分比）",
+   "tags": [
+    "陆军",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "send_volunteer_size",
+   "cn": "志愿军部队数上限",
+   "tags": [
+    "陆军",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "send_volunteers_tension",
+   "cn": "修改派遣志愿者导致世界紧张水平",
+   "tags": [
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_autonomy",
+   "cn": "设定目标自治级别",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_border_war",
+   "cn": "开始边境战争（除非你确切知道如何使用，否则不好用。）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_border_war_data",
+   "cn": "更新边界战争属性（设置边界战争资料数据）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_building_level",
+   "cn": "设定指定地区建筑物及等级",
+   "tags": [
+    "经济",
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_capital",
+   "cn": "迁都到指定地区",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_cosmetic_tag",
+   "cn": "设定国家美化标记",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_country_flag",
+   "cn": "设定国家标记",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_country_leader_ideology",
+   "cn": "改变当前国家领导人的意识形态（需测试）",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_demilitarized_zone",
+   "cn": "设置非军事区",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_division_template_lock",
+   "cn": "设置分区模板锁定状态",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_equipment_fraction",
+   "cn": "把装备按比例给一个国家",
+   "tags": [
+    "装备"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_global_flag",
+   "cn": "设定全球标记",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_major",
+   "cn": "成为专业国家",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_national_unity",
+   "cn": "设定国家凝聚力",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_nationality",
+   "cn": "设置全部当前范围内可以拥有的国家（设置国籍）",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_party_name",
+   "cn": "改变一个国家的政党名称",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_political_party",
+   "cn": "设定政党及声望比例",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_political_power",
+   "cn": "设置政治权利值",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_politics",
+   "cn": "改变国家政体和选举与否",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_province_controller",
+   "cn": "设定一个省的占领者",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_province_name",
+   "cn": "改变一个省名",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_research_slots",
+   "cn": "设定研究槽数",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_rule",
+   "cn": "设定一个国家规则",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_stability",
+   "cn": "设置国家稳定性",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_state_controller",
+   "cn": "设定一个地区的占领国",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_state_flag",
+   "cn": "设定地区标记",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_state_name",
+   "cn": "改变地区名",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_state_owner",
+   "cn": "设定一个地区的所有国",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_technology",
+   "cn": "设定国家科技等级",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_temp_variable",
+   "cn": "设置临时变量为其他值或变量",
+   "tags": [
+    "变量"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_truce",
+   "cn": "设置与指定国家的停战天数",
+   "tags": [
+    "时间"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "set_unit_leader_flag",
+   "cn": "设置单位标识",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_variable",
+   "cn": "创建一个可变的任务",
+   "tags": [
+    "通用",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "set_war_support",
+   "cn": "设置战争支持度",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ships_at_battle_start",
+   "cn": "修改最早接战舰队数量",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ships_in_area",
+   "cn": "检查一个区域的船只数量",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "ships_in_state_ports",
+   "cn": "检查一个省的船只数量",
+   "tags": [
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "show_ideas_tooltip",
+   "cn": "显示理念提示",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "skill",
+   "cn": "检查指挥官等级（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "skill_advantage",
+   "cn": "比较指挥官等级（需测试）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "soft_attack",
+   "cn": "对人员杀伤",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "sortie_efficiency",
+   "cn": "出击效率",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "sound_effect",
+   "cn": "播放音乐",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "special_forces_attack_factor",
+   "cn": "特种部队攻击",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "special_forces_cap",
+   "cn": "特种部队上限乘数",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "special_forces_defence_factor",
+   "cn": "特种部队防御",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "special_forces_min",
+   "cn": "特种部队最低容量",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "special_forces_no_supply_grace",
+   "cn": "特种部队补给时间",
+   "tags": [
+    "陆军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "spotting_chance",
+   "cn": "索敌速度修正",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "srgb",
+   "cn": "转换音效",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "stability_factor",
+   "cn": "稳定度",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "stability_weekly",
+   "cn": "每周稳定度增长",
+   "tags": [
+    "政治",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "start_border_war",
+   "cn": "开始两国间的边境战争",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "start_civil_war",
+   "cn": "内战",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "state_and_terrain_strategic_value",
+   "cn": "检查地区战略数量（需测试）",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "state_event",
+   "cn": "触发事件状态",
+   "tags": [
+    "事件",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "state_id",
+   "cn": "目标指定地区",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "state_population",
+   "cn": "检查地区人口",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "state_strategic_value",
+   "cn": "检查地区战略数量（需测试）",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "stockpile_ratio",
+   "cn": "比较库存原型装备与使用中的。数字 2 表示训练后或训练中的储备双倍",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "strat_bomber_equipment",
+   "cn": "战略轰炸机",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "strategic_bomb_visibility",
+   "cn": "战略轰炸可见度",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "strength_ratio",
+   "cn": "检查军队实力与国家的关系（人力数比例相关）",
+   "tags": [
+    "外交",
+    "人力"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "strike_force_movement_org_loss",
+   "cn": "打击舰队组织度损失",
+   "tags": [
+    "陆军",
+    "海军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "sub_retreat_speed",
+   "cn": "撤退时的潜艇速度",
+   "tags": [
+    "海军",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "subjects_autonomy_gain",
+   "cn": "改变按科目获得自治度（每日）",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "subtract_from_temp_variable",
+   "cn": "减少值或变量到临时变量",
+   "tags": [
+    "变量",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "subtract_from_variable",
+   "cn": "减少值或变量到另一个",
+   "tags": [
+    "变量",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "subversive_activites_upkeep",
+   "cn": "颠覆活动代价",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "super_heavy_tank_equipment",
+   "cn": "超重坦克",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "supply_consumption_factor",
+   "cn": "补给消耗",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "supply_units",
+   "cn": "给指挥官可控制单位（师数）",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "support_equipment",
+   "cn": "支援装备",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "surrender_limit",
+   "cn": "投降界限",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "surrender_progress",
+   "cn": "投降进度",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "swap_ideas",
+   "cn": "交换决议，显示差异",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "tac_bomber_equipment",
+   "cn": "战术轰炸机",
+   "tags": [
+    "空军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "tag",
+   "cn": "对哪个国家的战斗修正",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "tag_color",
+   "cn": "设定国家颜色",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "tank_manufacturer_cost_factor",
+   "cn": "装甲制造商花费",
+   "tags": [
+    "陆军",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "targeted_legitimacy_daily",
+   "cn": "与合法性相同但标记了范围",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "targeted_modifier",
+   "cn": "目标修正块",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "temperature",
+   "cn": "检查交战省份的气温（需测试）",
+   "tags": [
+    "领土",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "terrain_penalty_reduction",
+   "cn": "地形惩罚",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "theorist_cost_factor",
+   "cn": "理论家花费",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "threat",
+   "cn": "全球紧张度",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "trade_cost_for_target_factor",
+   "cn": "用于自治权。（用其他方式）控制各国间贸易所用工厂",
+   "tags": [
+    "经济",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "trade_laws_cost_factor",
+   "cn": "贸易法案花费",
+   "tags": [
+    "经济",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "trade_opinion_factor",
+   "cn": "贸易协定关系修正",
+   "tags": [
+    "经济",
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "training_time_air_factor",
+   "cn": "减少/增加空中训练时间",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "training_time_army_factor",
+   "cn": "训练时间",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "training_time_factor",
+   "cn": "军队训练时间（对比：training_time_army_factor）",
+   "tags": [
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "transfer_navy",
+   "cn": "转移海军到目标国家",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "transfer_ship",
+   "cn": "转移舰队到别国",
+   "tags": [
+    "海军"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "transfer_state",
+   "cn": "设定一个地区的所有和占领国",
+   "tags": [
+    "领土"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "tweakergui",
+   "cn": "增加装备",
+   "tags": [
+    "装备",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "unit_leader_event",
+   "cn": "触发本国领导人事件",
+   "tags": [
+    "事件",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "unlock_decision_category_tooltip",
+   "cn": "定位类别名称显示工具提示并解锁（解锁类别并提示）",
+   "tags": [
+    "科技"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "unlock_decision_tooltip",
+   "cn": "展示 决议说明",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "unlock_national_focus",
+   "cn": "解锁一个国策",
+   "tags": [
+    "科技",
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "war_support_factor",
+   "cn": "战争支持度",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "war_support_weekly",
+   "cn": "每周战争支持度增长",
+   "tags": [
+    "政治",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "weekly_manpower",
+   "cn": "每周增加人力资源",
+   "tags": [
+    "经济",
+    "人力",
+    "时间",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "white_peace",
+   "cn": "创造国家间和平",
+   "tags": [
+    "外交",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "winter_attrition_factor",
+   "cn": "修改冬季损耗",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "add_ai_strategy",
+   "cn": "添加AI战略倾向",
+   "tags": [
+    "AI",
+    "增改"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "ai_strategy",
+   "cn": "AI战略块",
+   "tags": [
+    "AI"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "create_division_template",
+   "cn": "创建师编制模板",
+   "tags": [
+    "陆军",
+    "创建"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "else",
+   "cn": "否则分支(else)",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "else_if",
+   "cn": "否则如果(else_if)",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "completion_reward",
+   "cn": "国策完成奖励块",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "available",
+   "cn": "可用条件块",
+   "tags": [
+    "国策",
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "bypass",
+   "cn": "跳过条件块",
+   "tags": [
+    "国策",
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "prerequisite",
+   "cn": "前置国策块",
+   "tags": [
+    "国策",
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "mutually_exclusive",
+   "cn": "互斥国策块",
+   "tags": [
+    "国策",
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "allow_branch",
+   "cn": "允许分支条件块",
+   "tags": [
+    "国策",
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "search_filters",
+   "cn": "国策搜索标签块",
+   "tags": [
+    "国策"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "ai_will_do",
+   "cn": "AI执行权重块",
+   "tags": [
+    "AI"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "modifier",
+   "cn": "修正块(modifier)",
+   "tags": [
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "research_bonus",
+   "cn": "科研加成块",
+   "tags": [
+    "科技",
+    "修正"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "rule",
+   "cn": "规则块(rule)",
+   "tags": [
+    "政治"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "on_add",
+   "cn": "获得时效果块(on_add)",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "on_remove",
+   "cn": "移除时效果块(on_remove)",
+   "tags": [
+    "通用"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "do_effect",
+   "cn": "生效条件块(do_effect)",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "cancel",
+   "cn": "取消条件块(cancel)",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "allowed_civil_war",
+   "cn": "内战继承条件块",
+   "tags": [
+    "条件"
+   ],
+   "source": "common_code",
+   "node_type": "block"
+  },
+  {
+   "key": "days",
+   "cn": "天数",
+   "tags": [
+    "时间"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "hours",
+   "cn": "小时数",
+   "tags": [
+    "时间"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  },
+  {
+   "key": "cost",
+   "cn": "花费/成本",
+   "tags": [
+    "时间"
+   ],
+   "source": "common_code",
+   "node_type": "value"
+  }
+ ]
+}

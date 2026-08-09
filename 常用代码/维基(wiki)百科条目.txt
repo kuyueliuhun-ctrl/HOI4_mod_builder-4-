@@ -1,0 +1,6104 @@
+																																						
+#####################################################################################################################################################
+##########          Modifiers（修改）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> La Résistance 抵抗组织 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# operative_slot
+	# 操作槽位
+		# Spy vacancy
+			# 间谍招募名额
+				# operative_slot = 5
+
+# intel_network_gain_factor
+	# 情报网络增益效果
+		# Intelligence network growth
+			# 情报网人员增长率
+				# intel_network_gain_factor = 0.5
+
+# resistance_target
+	# 抵抗力形成目标
+		# Target of resistance
+			# 抵抗力形成目标
+				# resistance_target = -0.1
+
+# compliance_gain
+	# 服从增益
+		# Daily compliance growth
+			# 每日服从增长率
+				# compliance_gain = 0.3
+
+# intelligence_agency_defense
+	# 防御情报机构
+		# Antispyware defense
+			# 反间谍防御
+				# intelligence_agency_defense = 1
+
+# intel_from_operatives_factor
+	# 特工情报效率
+		# Intelligence bonus from spies
+			# 间谍的情报奖励
+				# intel_from_operatives_factor = 0.2
+
+# own_operative_detection_chance_factor
+	# 检测己方特工几率
+		# Probability of our agents being found
+			# 我方特工被发现几率
+				# own_operative_detection_chance_factor = -0.7
+
+# root_out_resistance_effectiveness_factor
+	# 根除抵抗力的有效效率
+		# Unknown
+			# 不明确
+				# root_out_resistance_effectiveness_factor = 0.1
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> La Resistance modifiers 抵抗组织 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# legitimacy_gain_factor
+	# 合法性增长率
+		# that applies to legitimacy change as a factor
+			# 一个适用于合法性的变量
+				# legitimacy_gain_factor = 0.1
+					# Used mostly for governments in exile.
+						# 主要用于流亡政府
+
+# navy_leader_start_level
+	# 海军将领起始级别
+		# changes starting level of leaders, similar to army leaders
+			# 改变指挥官起始级别，适用于军队指挥官
+				# navy_leader_start_level = 1
+					# level based
+						# 基于级别
+
+# navy_leader_start_attack_level
+	# 海军将领起始攻击等级
+		# changes starting level of leaders attack wise, similar to army leaders
+			# 改变指挥官起始攻击等级，适用于军队指挥官
+				# navy_leader_start_attack_level = 1
+					# level based
+						# 基于级别
+
+# navy_leader_start_defense_level
+	# 海军将领起始防御等级
+		# changes starting level of leaders defense wise, similar to army leaders
+			# 改变指挥官起始防御等级，适用于军队指挥官
+				# navy_leader_start_defense_level = 1
+					# level based
+						# 基于级别
+
+# navy_leader_start_maneuvering_level
+	# 海军将领起始机动等级
+		# changes starting level of admirals maneuvering wise
+			# 改变指挥官起始机动等级
+				# navy_leader_start_maneuvering_level = 1
+					# level based
+						# 基于级别
+
+# navy_leader_start_coordination_level
+	# 海军将领起始协同等级
+		# changes starting level of admirals coordination wise
+			# 改变指挥官起始协同等级
+				# navy_leader_start_coordination_level = 1
+					# level based
+						# 基于级别
+
+# intel_network_gain
+	# 情报网络增益
+		# modifies how much intel is gained
+			# 修改获得情报数量
+				# intel_network_gain = 0.1
+					# percentage based
+						# 基于百分比
+
+# operative_slot
+	# 操作槽位
+		# Increases the max number of operatives by the given value.
+			# 在基础数值上增加最大特工数量
+				# operative_slot = 1
+
+# resistance_damage_to_garrison
+	# 驻军抵抗伤害
+		# Reduces/increases damage to the garrisons of the current scope.
+			# 减少/增加当前范围内驻军的伤害。
+				# resistance_damage_to_garrison = -0.1
+					# Percentual (0.10 being 10%)
+						# 百分比（0.10为10%）
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> New Man the Guns 新炮手就位 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# legitimacy_daily
+	# Increase country legitimacy per day.
+		# 每日提高国家合法性
+			# legitimacy_daily = 0.1
+				# Flat Gain
+					# 稳定增加
+						# Used mostly for governments in exile.
+							# 主要用于流亡政府
+
+# targeted_legitimacy_daily
+	# Same as legitimacy_daily but with a scope for TAG.
+		# 与合法性相同但标记了范围
+			# targeted_legitimacy_daily = { USA = 0.1 }
+				# Flat Gain
+					# 稳定增加
+						# Used mostly for governments in exile.
+							# 主要用于流亡政府
+
+# training_time_air_factor
+	# Reduces/increases air training time
+		# 减少/增加空中训练时间
+			# training_time_air_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Used for efficiency or similar effects in the airforce.
+							# 用于空军效率或类似效果
+
+# master_ideology_drift
+	# Change in the puppets ideology per day. Will drift in the masters current ruling ideology.
+		# 每日改变傀儡的意识形态。将输入统治国的意识形态
+			# master_ideology_drift = 0.1
+				# Flat gain.
+					# 稳定增加
+						# Does not require TfV.
+							# 不需要TFV
+
+# license_infantry_eq_tech_difference_speed_factor
+	# Increase in tech research speed if you are licensing that equipment.
+		# 如果你是授权的设备将提高技术研究的速度（步兵装备）
+			# license_infantry_eq_tech_difference_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_artillery_eq_tech_difference_speed_factor
+	# Increase in tech research speed if you are licensing that equipment.
+		# 如果你是授权的设备将提高技术研究的速度（炮兵部队）
+			# license_artillery_eq_tech_difference_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_light_tank_eq_tech_difference_speed_factor
+	# Increase in tech research speed if you are licensing that equipment.
+		# 如果你是授权的设备将提高技术研究的速度（轻坦克）
+			# license_light_tank_eq_tech_difference_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_anti_tank_eq_tech_difference_speed_factor
+	# Increase in tech research speed if you are licensing that equipment.
+		# 如果你是授权的设备将提高技术研究的速度（反坦克）
+			# license_anti_tank_eq_tech_difference_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_infantry_eq_production_speed_factor
+	# Change in output of the specific equipment if you are licensing that equipment.
+		# 如果你是授权的设备将改变产量（步兵装备）
+			# license_infantry_eq_production_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_artillery_eq_production_speed_factor
+	# Change in output of the specific equipment if you are licensing that equipment.
+		# 如果你是授权的设备将改变产量（炮兵部队）
+			# license_artillery_eq_production_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_light_tank_eq_production_speed_factor
+	# Change in output of the specific equipment if you are licensing that equipment.
+		# 如果你是授权的设备将改变产量（轻坦克）
+			# license_light_tank_eq_production_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_anti_tank_eq_production_speed_factor
+	# Change in output of the specific equipment if you are licensing that equipment.
+		# 如果你是授权的设备将改变产量（反坦克）
+			# license_anti_tank_eq_production_speed_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_infantry_eq_cost_factor
+	# Change in cost if you are licensing that equipment.
+		# 如果你是授权的设备将改变成本（步兵装备）
+			# license_infantry_eq_cost_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_artillery_eq_cost_factor
+	# Change in cost if you are licensing that equipment.
+		# 如果你是授权的设备将改变成本（炮兵部队）
+			# license_artillery_eq_cost_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_light_tank_eq_cost_factor
+	# Change in cost if you are licensing that equipment.
+		# 如果你是授权的设备将改变成本（轻坦克）
+			# license_light_tank_eq_cost_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# license_anti_tank_eq_cost_factor
+	# Change in cost if you are licensing that equipment.
+		# 如果你是授权的设备将改变成本（反坦克）
+			# license_anti_tank_eq_cost_factor= 0.10
+				# Percentual (0.10 being 10%)
+					# 百分比（0.10为10%）
+						# Requires TfV or DoD
+							# 需要TFV或DOD
+
+# weekly_manpower
+	# Adds x to your manpower pool per week.
+		# 每周增加人力资源
+			# weekly_manpower = 1000
+				# Flat amount of manpower per week.
+					# 每周固定增加人力
+
+# refit_speed
+	# Percentage change to refit speed.
+		# 改变百分比速率（改装效率比）
+			# refit_speed = 0.1
+				# Percentual (0.1 being 10%)
+					# 百分比（0.10为10%）
+
+# navy_refit_speed
+	# Percentage change to a refit of navy groups.
+		# 海军改装效率比
+			# navy_refit_speed= 0.4
+				# Percentual (0.4 being 40%)
+					# 百分比（0.40为40%）
+
+# refit_ic_cost
+	# Percentage change to the cost of refitting.
+		# 改装成本效率比
+			# refit_ic_cost = 0.4
+				# Percentual (0.4 being 40%)
+					# 百分比（0.40为40%）
+
+# navy_refit_ic_cost
+	# Percentage change to a refit of navy groups.
+		# 海军改装成本效率比
+			# navy_refit_ic_cost = 0.4
+				# Percentual (0.4 being 40%)
+					# 百分比（0.40为40%）
+
+# naval_equipment_upgrade_xp_cost
+	# Percentage change to the the xp cost when creating a variant.
+		# 创建对XP成本效率比的变量（海军装备升级成本）
+			# naval_equipment_upgrade_xp_cost = 0.4
+				# Percentual (0.4 being 40%)
+					# 百分比（0.40为40%）
+
+# land_equipment_upgrade_xp_cost
+	# Percentage change to the the xp cost when creating a variant.
+		# 创建对XP成本效率比的变量（陆军装备升级成本）
+			# land_equipment_upgrade_xp_cost = 0.4
+				# Percentual (0.4 being 40%)
+					# 百分比（0.40为40%）
+
+# air_equipment_upgrade_xp_cost
+	# Percentage change to the the xp cost when creating a variant.
+		# 创建对XP成本效率比的变量（空军装备升级成本）
+			# air_equipment_upgrade_xp_cost = 0.4
+				# Percentual (0.4 being 40%)
+					# 百分比（0.40为40%）
+
+# repair_speed_factor
+	# Percentage change repair speed.
+		# 维修速度效率比
+			# repair_speed_factor = 0.4
+				# Percentual (0.4 being 40%)
+					# 百分比（0.40为40%）
+
+# fuel_gain_factor
+	# Percentage increase in fuel from oil
+		# 石油燃料增长率
+			# fuel_gain_factor = 0.2
+				# Percentual (0.2 being 20%)
+					# 百分比（0.20为20%）
+
+# fuel_gain_factor_from_states
+	# Percentage increase in fuel from refineries
+		# 炼油厂燃料增长率
+			# fuel_gain_factor_from_states = 0.1
+				# Percentual (0.1 being 10%)
+					# 百分比（0.10为10%）
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 新MOD修改 勇虎 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# stability_factor 
+	# Bonus to total stability
+		# 稳定度增加值
+			# stability_factor = 0.10
+
+# stability_weekly
+	# Gain in Stability per week
+		# 稳定度增长率（每周）
+			# stability_weekly = 0.01
+
+# war_support_factor
+	# Bonus to total war support
+		# 战争支持度增加值
+			# war_support_factor = 0.10
+
+# war_support_weekly
+	# Gain in War support per week
+		# 战争支持度增长率（每周）
+			# war_support_weekly = 0.01
+
+# cic_to_target_factor
+	# Used for Autonomy.(Can be used in other ways) Determines how many % of CIV's go to designated target.
+		# 用于自治权。（用其他方式）该国控制多少民用工厂
+			# cic_to_target_factor = 0.10
+
+# mic_to_target_factor
+	# Used for Autonomy.(Can be used in other ways) Determines how many % of MIL's go to designated target.
+		# 用于自治权。（用其他方式）该国控制多少军用工厂
+			# mic_to_target_factor = 0.10
+
+# extra_trade_to_target_factor
+	# Used for Autonomy.(Can be used in other ways) Modifies how much extra resources the overlord gains for free.
+		# 用于自治权。（用其他方式）修改对宗主国额外贸易
+			# extra_trade_to_target_factor = 1.0
+
+# trade_cost_for_target_factor
+	# Used for Autonomy.(Can be used in other ways) Makes trade cheaper/more expensive
+		# 用于自治权。（用其他方式）控制各国间贸易所用工厂
+			# trade_cost_for_target_factor = 0.5
+
+# command_power_daily （ command_power_gain ）
+	# Adds so many command power per day.
+		# 增加指挥权（每日）
+			# command_power_daily = 2
+
+# targeted_modifier
+	# Modifier targeted for one country.
+		# 修改某国属性
+			# targeted_modifier = { tag = GER attack_bonus_against = 0.1 }
+
+# attack_bonus_against
+	# Percentage Attack Bonus against one country
+		# 对该国进攻加成
+			# attack_bonus_against = 0.1
+
+# defense_bonus_against
+	# Percentage Defense Bonus against one country
+		# 对该国防御加成
+			# defense_bonus_against = 0.1
+
+# special_forces_cap
+	# Increases ratio of Special Forces to Regulars
+		# 增加特种部队比例
+			# special_forces_cap = 0.02
+
+# special_forces_min
+	# Increases base number of Special Force brigades allowed
+		# 增加特种部队（营）人数上限
+			# special_forces_min = 100
+
+# civilian_factory_use
+	# Reduces number of available civilian factories, used mostly for decisions
+		# 减少现有民用工厂的数量，主要用于决议
+			# civilian_factory_use = 3
+
+# mobilization_speed
+	# Percentage increase to mobilization speed
+		# 提高动员速度的百分比
+			# mobilization_speed = 0.1
+
+# defensive_war_stability_factor
+	# Percentage decrease to impact of defensive war on stability
+		# 防御战争对稳定影响的百分比下降
+			# defensive_war_stability_factor = 0.4
+
+# offensive_war_stability_factor
+	# Percentage decrease to impact of offensive war on stability
+		# 进攻战争对稳定影响的百分比下降
+			# offensive_war_stability_factor = 0.4
+
+# surrender_limit
+	# Percentage increase of the amount of VPs needed to take for own country to capitulate
+		# 本国投降所需VPS数量的百分比增加
+			# surrender_limit = 0.4
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 国家修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# unity_factor[NO LONGER IN USE]
+	# Bonus to total national unity[NO LONGER USED, REPLACE THIS WITH stability_factor and/or war_support_factor]
+		# 国家团结增加值[不再使用，以stability_factor和/或war_support_factor取代 ]
+			# unity_factor = 0.10
+
+# unity_weekly[NO LONGER IN USE]
+	# Modifies weekly unity gained[NO LONGER USED, REPLACE THIS WITH  and/or ]
+		# 国家团结增长率（每周）[不再使用，以stability_weekly和/或war_support_weekly取代 ]
+			# unity_weekly = 0.001
+
+# IDEOLOGY_drift
+	# Modifies the drift towards the specified ideology
+		# 修改特定意识形态倾向
+			# fascism_drift = 0.10
+
+# drift_defence_factor
+	# Modifies the ideology drift defence
+		# 修改意识形态变化抵制力度
+			# drift_defence_factor = 0.25	
+
+# political_power_gain
+	# Bonus to the daily political power gain
+		# 政治权利增长率（每日）
+			# political_power_gain = 0.5
+
+# political_power_factor
+	# Modifies the political power gained daily
+		# 政治权利增加值（每日）
+			# political_power_factor = 0.25
+
+# political_advisor_cost_factor
+	# Modifies the cost of employing a new political advisor
+		# 修改新政治顾问成本
+			# political_advisor_cost_factor = 0.25
+
+# trade_laws_cost_factor
+	# Modifies the cost of modifying the trade law of the country
+		# 修改国家贸易法成本
+			# trade_laws_cost_factor = 0.25
+
+# mobilization_laws_cost_factor
+	# Modifies the cost of modifying the conscription law of the country
+		# 修改国家征兵法成本
+			# mobilization_laws_cost_factor = 0.25
+
+# economy_cost_factor
+	# Modifies the cost of modifying the economy of the country
+		# 修改国家经济法成本
+			# economy_cost_factor = 0.25
+
+# foreign_subversive_activites
+	# Modifies efficiency of subversive activities of OTHER countries on OWN country
+		# 修改别国对本国的颠覆活动效率
+			# foreign_subversive_activites = -0.50
+
+# subversive_activites_upkeep
+	# Modifies the cost of OWN subversive activities in foreign countries
+		# 修改国外颠覆活动成本
+			# subversive_activites_upkeep = -0.1
+
+# lend_lease_tension
+	# Modifies the world tension level required for sending lend lease
+		# 修改租借导致世界紧张水平
+			# lend_lease_tension = -0.20
+
+# send_volunteers_tension
+	# Modifies the world tension required for sending volunteers
+		# 修改派遣志愿者导致世界紧张水平
+			# send_volunteers_tension = -0.20
+
+# send_volunteer_divisions_required
+	# Modifies the amount of divisions required for sending volunteers
+		# 修改派遣志愿者所需师数下限
+			# send_volunteer_divisions_required = -0.25
+
+# send_volunteer_size
+	# Bonus to the maximum number of divisions that can be sent as volunteers
+		# 增加可以派遣志愿者师数上限
+			# send_volunteer_size = 1
+
+# trade_opinion_factor
+	# Modifies the likeliness of other countries accepting trade deals
+		# 修改他国接受贸易协议的可能性（贸易关系修正）
+			# trade_opinion_factor = 0.25
+
+# join_faction_tension
+	# Modifies the world tension level required to join factions
+		# 修改加入派系所需的世界紧张水平
+			# join_faction_tension = -0.20
+
+# justify_war_goal_time
+	# Modifies the time required for justifying a war goal
+		# 修改战争目标正当化所需时间
+			# justify_war_goal_time = -0.25
+
+# generate_wargoal_tension
+	# Modifies the world tension level required to generate wargoals
+		# 修改战争目标导致世界紧张水平
+			# generate_wargoal_tension = -0.4
+
+# IDEOLOGY_acceptance
+	# Changes an ideology's acceptance by the specified value
+		# 改变某一意识形态的比例值
+			# democratic_acceptance = 85
+
+# guarantee_tension
+	# Modifies the world tension level required to guarantee a foreign country
+		# 修改保证外国导致世界紧张水平
+			# guarantee_tension = -0.5
+
+# guarantee_cost
+	# Modifies the cost of guaranteeing a foreign country
+		# 修改保证外国的成本
+			# guarantee_cost = -0.5
+
+# license_purchase_cost
+	# Changes purchase costs for all licenses
+		#更改所有购买许可的成本
+			# license_purchase_cost = -0.5
+
+# license_EQUIPMENT_purchase_cost
+	# Changes purchase costs for licenses
+		# 改变购买许可的成本
+			# license_armor_purchase_cost = -0.5
+
+# license_production_speed
+	# Changes production speed of bought licensed equipment
+		# 更改购买许可设备的生产速度
+			# license_production_speed = -0.5
+
+# license_tech_difference_speed
+	# Modifies production speed penalty from tech level difference
+		#根据技术水平差异修改生产速度惩罚
+			# license_tech_difference_speed = -0.5
+
+# improve_relations_maintain_cost_factor
+	# Modifies the cost of maintaining "Improve relations" diplomatic actions
+		# 修改维持“改善关系”外交成本
+			# improve_relations_maintain_cost_factor = -0.75
+
+# enemy_justify_war_goal_time
+	# Modifies the time required for OTHER countries to justify war goal against OWN country
+		# 修改他国对本国战争正当化时间
+			# enemy_justify_war_goal_time = 0.1
+
+# autonomy_gain
+	# Bonus to autonomy gained per day
+		# 改变获得自治度（每日）
+			# autonomy_gain = 1
+
+# subjects_autonomy_gain
+	# Bonus to autonomy gained by subjects per day
+		# 改变按科目获得自治度（每日）
+			# subjects_autonomy_gain = 1
+
+# resistance_tick_auto
+	# Modifies resistance growth in all occupied states
+		# 修改所有占领状态下的抵抗力增长
+			# resistance_tick_auto = -2
+
+# opinion_gain_monthly_factor
+	# Modifies the opinion gain from improving relations
+		# 修改改善关系增益效果
+			# opinion_gain_monthly_factor = 0.15
+
+# opinion_gain_monthly_same_ideology_factor
+	# Modifies the monthly opinion gain for being of the same ideology
+		# 修改相同意识形态每月变化
+			# opinion_gain_monthly_same_ideology_factor = 0.5
+
+# military_leader_cost_factor
+	# Modifies the cost of recruiting new generals
+		# 修改招募新将领成本
+			# military_leader_cost_factor = -0.50
+
+# army_leader_start_level
+	# Bonus to the starting level of new generals
+		# 改变新将领初始等级
+			# army_leader_start_level = 1
+
+# army_leader_start_attack_level
+	# Bonus to the starting attack level of new generals
+		# 新将领的起始攻击等级奖励
+			# army_leader_start_attack_level= 1
+
+# army_leader_start_planning_level
+	# Bonus to the starting planning level of new generals
+		# 新将领的起始计划等级奖励
+			# army_leader_start_planning_level= 1
+
+# army_leader_start_defense_level
+	# Bonus to the starting defense level of new generals
+		# 新将领的起始防御等级奖励
+			# army_leader_start_defense_level= 1
+
+# army_leader_start_logistics_level
+	# Bonus to the starting logistics level of new generals
+		# 新将领的起始后勤等级奖励
+			# army_leader_start_logistics_level= 1
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> AI 修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# ai_focus_defense_factor
+	# Modifies the AI defense focus
+		# 修改AI能防御性
+			# ai_focus_defense_factor = 0.5
+
+# ai_focus_aggressive_factor 
+	# Modifies the AI aggressivity focus
+		# 修改AI侵略性
+			# ai_focus_aggressive_factor = 0.5
+
+# ai_get_ally_desire_factor
+	# Bonus to likeliness of AI to get allies
+		# 改变AI加入盟国的可能性
+			# ai_get_ally_desire_factor = 100
+
+# ai_call_ally_desire_factor
+	# Modifies the AI's desire to call allies into wars
+		# 修改AI召唤盟国加入战争的意愿
+			# ai_call_ally_desire_factor = -40
+
+# ai_join_ally_desire_factor
+	# Modifies the AI's desire to join allies in wars
+		# 修改AI加入盟国战争的意愿
+			# ai_join_ally_desire_factor = -30
+
+# ai_badass_factor
+	# Modifiers the AI's threat perception of others. 0.01 = 1% threat perception
+		# 修改AI对他人的威胁感知。0.01=1%威胁感知
+			# ai_badass_factor = 0.01
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 一般陆军修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# conscription_factor
+	# Conscription % bonus (applied AFTER recruitable population is calculated)
+		# 征兵加成（后被人口计算的应用）
+			# conscription_factor = 0.1
+
+# conscription
+	# Conscription bonus (increases recruitable population by specified %)
+		# 征兵加成（增加被指定为人口）
+			# conscription = 0.01
+
+# non_core_manpower
+	# A multiplier on the percentage of manpower in non-cores. Base in non-cores is 2%, 0.02.
+		# 非核心人力百分比的乘数。非核心中的基数为2%
+			# non_core_manpower = 0.02
+
+# army_core_attack_factor
+	# Bonus to division attack on core territory
+		# 核心领土单位攻击加成
+			# army_core_attack_factor = 0.1
+
+# army_core_defence_factor
+	# Bonus to division defence on core territory
+		# 核心领土单位防御加成
+			# army_core_defence_factor = 0.1
+
+# training_time_army_factor
+	# Changes the time it takes to train new divisions by the specified percentage (compare to: training_time_factor)
+		# 陆军训练时间（对比：training_time_factor）
+			# training_time_army_factor = -0.1
+
+# training_time_factor
+	# Changes the time it takes to train new divisions by the specified percentage (compare to: training_time_army_factor)
+		# 军队训练时间（对比：training_time_army_factor）
+			# training_time_factor = -0.1
+
+# planning_speed
+	# Bonus to planning speed of armies in %
+		# 军队计划速度加成比
+			# planning_speed = 0.10
+
+# max_planning
+	# Bonus to maximum planning level of armies in %
+		# 军队计划最高加成比
+			# max_planning = 0.25
+
+# army_org_Factor
+	# Modifies the maximum organization level of all troops (percentage)
+		# 修改所有部队最高组织水平（百分比）
+			# army_org_Factor = 0.05
+
+# army_org
+	# Bonus to maximum organization level of all troops (flat number)
+		# 改变所有部队最高组织水平加成（单位数）
+			# army_org = 5
+
+# recon_factor
+	# Bonus to reconnaissance of all troops
+		# 所有部队侦查加成
+			# recon_factor = 0.05
+
+# army_morale_factor
+	# Bonus to division recovery rate
+		# 地区恢复加成
+			# army_morale_factor = 0.1
+
+# partisan_effect
+	# Modifies the effect of own partisans on enemy countries
+		# 修改自己的支持者对敌国的影响
+			# partisan_effect = 0.1
+
+# enemy_partisan_effect
+	# Modifies the effect of enemy partisans on own country
+		# 修改敌游击队对本国的影响
+			# enemy_partisan_effect = -0.1
+
+# decryption_factor
+	# Bonus to decryption
+		# 解密加成
+			# decryption_factor = 0.2
+
+# encryption_factor
+	# Bonus to encryption
+		# 加密加成
+			# encryption_factor = 0.2
+
+# amphibious_invasion
+	# Bonus to speed of amphibious invasions
+		# 两栖入侵速度加成
+			# amphibious_invasion = 0.10
+
+# invasion_preparation
+	# Modifies the preparation time for amphibious invasions
+		# 修改两栖入侵准备时间
+			# invasion_preparation = -0.3
+
+# land_reinforce_rate
+	# Modifies the rate at which divisions are reinforced
+		# 修改地区单位增援率
+			# land_reinforce_rate = 0.3
+
+# defence
+	# Bonus % to defense
+		# 防御加成
+			# defence = 0.1
+
+# offence
+	# Bonus % to offence
+		# 进攻加成
+			# offence = 0.1
+
+# army_defence_factor
+	# Bonus to division defence factor
+		# 陆军防御加成
+			# army_defence_factor = 0.1
+
+# army_attack_factor
+	# Bonus to division offence factor
+		# 陆军攻击加成
+			# army_attack_factor = 0.1
+
+# army_speed_factor
+	# Bonus to division speed factor
+		# 陆军速度加成
+			# army_speed_factor = 0.05
+
+# attrition
+	# Modifier to overall army attrition
+		# 修改陆军损耗
+			# attrition = -0.1
+
+# heat_attrition_factor
+	# Modifies the heat attrition of armies
+		# 修改炎热损耗
+			# heat_attrition_factor = -0.5
+
+# winter_attrition_factor
+	# Modifies the winter attrition of armies
+		# 修改冬季损耗
+			# winter_attrition_factor = -0.5
+
+# acclimatization_cold_climate_gain_factor
+	# Modifies the speed of army cold acclimatization
+		# 修改军队冰冻适应的速度
+			# acclimatization_cold_climate_gain_factor = 0.1
+
+# acclimatization_hot_climate_gain_factor
+	# Modifies the speed of army hot acclimatization
+		# 修改军队炎热适应的速度
+			# acclimatization_hot_climate_gain_factor = 0.1
+
+# terrain_penalty_reduction
+	# Reduces army terrain penalty 
+	# (only functions as a leader/general trait, not as a national idea)
+		# 减少陆军地形惩罚
+		# （仅作为领导者/一般特征发挥作用，而不是作为国家理念发挥作用）
+			# terrain_penalty_reduction = 0.5
+
+# max_dig_in
+	# Bonus to max entrenchment
+		# 堑壕上限
+			# max_dig_in = 1
+
+# dig_in_speed
+	# Bonus to entrenchment speed
+		# 堑壕加固速度奖励
+			# dig_in_speed = 0.25
+
+# dig_in_speed_factor
+	# Bonus to entrenchment speed factor
+		# 堑壕加固速度奖励系数
+			# dig_in_speed_factor = 0.25
+
+# supply_consumption_factor
+	# Modifies amount of supplies consumed
+		# 修改补给使用数量比例
+			# supply_consumption_factor = -0.20
+
+# out_of_supply_factor
+	# Modifies the penalty for being out of supply
+		# 修改无补给时惩罚比例
+			# out_of_supply_factor = -0.5
+
+# experience_gain_army
+	# Bonus to daily army experience gain (flat number)
+		# 增加陆军经验值（每日）（数字）
+			# experience_gain_army = 0.05
+
+# experience_gain_army_factor
+	# Modifies the amount of army experience gained (percentage)
+		# 修改陆军经验获得效率（百分比）
+			# experience_gain_army_factor = -0.1
+
+# experience_loss_factor
+	# Modifies the amount of experience lost when units suffer damage, -1.0 means no loss.
+		# 修改单位受到伤害时所损失的经验量，-1.0表示没有损失
+			# experience_loss_factor = -0.1
+
+# minimum_training_level
+	# Modifies the amount of training a unit needs before it can be deployed. -0.2 means instant deployment.
+		# 修改部队部署前所需的训练量。-0.2表示即时部署
+			# minimum_training_level = -0.1
+
+# no_supply_grace
+	# How many additional hours a unit can go without supply before it begins suffering penalties
+		# 一个单位在遭受惩罚之前，还可以再多呆几个小时没有补给
+			# no_supply_grace = 48
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 具体陆军修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# army_armor_speed_factor
+	# Modifies the speed of all armor units in the army
+		# 修改装甲速度
+			# army_armor_speed_factor = 0.05
+
+# army_armor_attack_factor
+	# Modifies the attack of all armor units in the army
+		# 修改装甲攻击
+			# army_armor_attack_factor = 0.1
+
+# army_armor_defence_factor
+	# Modifies the defence of all armor units in the army
+		# 修改装甲防御
+			# army_armor_defence_factor = 0.05
+
+# army_artillery_attack_factor
+	# Modifies the attack of all artillery units in the army
+		# 修改炮兵攻击
+			# army_artillery_attack_factor = 0.15
+
+# army_artillery_defence_factor
+	# Modifies the defence of all artillery units in the army
+		# 修改炮兵防御
+			# army_artillery_defence_factor = 0.05
+
+# army_infantry_attack_factor
+	# Modifies the attack of all infantry units in the army
+		# 修改步兵攻击
+			# army_infantry_attack_factor = 0.05
+
+# army_infantry_defence_factor
+	# Modifies the defence of all infantry units in the army
+		# 修改步兵防御
+			# army_infantry_defence_factor = 0.1
+
+# special_forces_attack_factor
+	# Modifies the attack of all special forces units in the army
+		# 修改特种攻击
+			# special_forces_attack_factor = 0.1
+
+# special_forces_defence_factor
+	# Modifies the defence of all special forces units in the army
+		# 修改特种防御
+			# special_forces_defence_factor = 0.1
+
+# cavalry_attack_factor
+	# Modifies the attack of all cavalry units in the army
+		# 修改骑兵攻击
+			# cavalry_attack_factor = 0.05
+
+# cavalry_defence_factor
+	# Modifies the defence of all cavalry units in the army
+		# 修改骑兵防御
+			# cavalry_defence_factor = 0.05
+
+# mechanized_attack_factor
+	# Modifies the attack of all mechanized units in the army
+		# 修改机械化攻击
+			# mechanized_attack_factor = 0.05
+
+# mechanized_defence_factor
+	# Modifies the defence of all mechanized units in the army
+		# 修改机械化防御
+			# mechanized_defence_factor = 0.05
+
+# motorized_attack_factor
+	# Modifies the attack of all motorized units in the army
+		# 修改摩托化步兵攻击
+			# motorized_attack_factor = 0.05
+
+# motorized_defence_factor
+	# Modifies the defence of all motorized units in the army
+		# 修改摩托化步兵防御
+			# motorized_defence_factor = 0.05
+
+# air_paradrop_attack_factor
+	# Modifies the attack of paradropped troops
+		# 修改空降部队攻击
+			# air_paradrop_attack_factor = 0.01
+
+# air_paradrop_defence_factor
+	# Modifies the defence of paradropped troops
+		# 修改空降部队防御
+			# air_paradrop_defence_factor = 0.03
+
+# air_paradrop_agility_factor
+	# Modifies the agility of paradropped troops (Exists and localizes but does not seem to do anything at all.)
+		# 修改空降部队机动（类似无效）
+			# air_paradrop_agility_factor = 0.03
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 一般空军修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# air_ace_generation_chance_factor
+	# Modifies the chance of generating aces
+		# 修改王牌飞机员产生率
+			# air_ace_generation_chance_factor = 0.10
+
+# enemy_army_bonus_air_superiority_factor
+	# Modifies the bonus for enemies from air superiority
+		# 修改敌方空中支援效率
+			# enemy_army_bonus_air_superiority_factor = -0.05
+
+# army_bonus_air_superiority_factor
+	# Modifies the bonus to land combat from having air superiority
+		# 修改空中优势效率
+			# army_bonus_air_superiority_factor = 0.05
+
+# air_accidents_factor
+	# Modifies the chance of air accidents
+		# 修改空军事故概率
+			# air_accidents_factor = -0.05
+
+# air_night_penalty
+	# Modifies the penalty for nighttime air operations
+		# 修改夜间行动惩罚
+			# air_night_penalty = -0.1
+
+# air_weather_penalty
+	# Modifies the penalty for bad weather for air operations
+		# 修改不良天气惩罚
+			# air_weather_penalty = -0.1
+
+# experience_gain_air
+	# Bonus to daily air experience gain (flat number)
+		# 增加空军经验值（每日）（数字）
+			# experience_gain_air = 0.05
+
+# experience_gain_air_factor
+	# Modifies the amount of air experience gained (percentage)
+		#修改空军经验获得效率（百分比）
+			# experience_gain_air_factor = 0.1
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 具体空军修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# naval_strike_attack_factor
+	# Modifies the attack factor for naval strikes of air wings
+		# 修改空对舰攻击
+			# naval_strike_attack_factor = 0.02
+
+# naval_strike_targetting_factor
+	# Modifies the targetting efficiency for naval strikes of air wings
+		# 修改空对舰瞄准
+			# naval_strike_targetting_factor = 0.02
+
+# naval_strike_agility_factor
+	# Modifies the agility factor for naval strikes of air wings
+		# 修改空对舰机动
+			# naval_strike_agility_factor = 0.02
+
+# air_interception_attack_factor
+	# Modifies the attack factor for interception missions of air wings
+		# 修改空中拦截任务攻击
+			# air_interception_attack_factor = 0.02
+
+# air_interception_defence_factor
+	# Modifies the defence factor for interception missions of air wings
+		# 修改空中拦截任务防御
+			# air_interception_defence_factor = 0.02
+
+# air_interception_agility_factor
+	# Modifies the agility factor for interception missions of air wings
+		# 修改空中拦截任务机动
+			# air_interception_agility_factor = 0.02
+
+# air_air_superiority_attack_factor
+	# Modifies the attack factor for air superiority missions of air wings
+		# 修改夺取制空权任务攻击
+			# air_air_superiority_attack_factor = 0.02
+
+# air_air_superiority_defence_factor
+	# Modifies the defence factor for air superiority missions of air wings
+		# 修改夺取制空权任务防御
+			# air_air_superiority_defence_factor = 0.02
+
+# air_air_superiority_agility_factor
+	# Modifies the agility factor for air superiority missions of air wings
+		# 修改夺取制空权任务机动
+			# air_air_superiority_agility_factor = 0.02
+
+# air_close_air_support_attack_factor
+	# Modifies the attack factor for close air support missions of air wings
+		# 修改密接支援任务攻击（CAS）
+			# air_close_air_support_attack_factor = 0.02
+
+# air_close_air_support_defence_factor
+	# Modifies the defence factor for close air support missions of air wings
+		# 修改密接支援任务防御（CAS）
+			# air_close_air_support_defence_factor = 0.02
+
+# air_close_air_support_agility_factor
+	# Modifies the agility factor for close air support missions of air wings
+		# 修改密接支援任务机动（CAS）
+			# air_close_air_support_agility_factor = 0.02
+
+# air_strategic_bomber_attack_factor
+	# Modifies the attack factor for strategic bombing missions of air wings
+		# 修改轰炸任务攻击
+			# air_strategic_bomber_attack_factor = 0.01
+
+# air_strategic_bomber_defence_factor
+	# Modifies the defence factor for strategic bombing missions of air wings
+		# 修改轰炸任务防御
+			# air_strategic_bomber_defence_factor = 0.01
+
+# air_strategic_bomber_agility_factor
+	# Modifies the agility factor for strategic bombing missions of air wings
+		# 修改轰炸任务机动
+			# air_strategic_bomber_agility_factor = 0.01
+
+# air_strategic_bomber_bombing_factor
+	# Modifies the bombing factor for strategic bombing missions of air wings
+		# 修改战略轰炸效率
+			# air_strategic_bomber_bombing_factor = 0.03
+
+# air_cas_present_factor
+	# Modifies the efficiency of tactical bombing missions
+		# 修改地面支援效率
+			# air_cas_present_factor = 0.1
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 一般海军修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# convoy_escort_efficiency
+	# Modifies the efficiency of convoy escorting
+		# 修改护航效率
+			# convoy_escort_efficiency = 0.25
+
+# naval_retreat_chance
+	# Modifies the chance of a successful naval retreat
+		# 修改撤退命令几率
+			# naval_retreat_chance = 0.2
+
+# naval_retreat_speed
+	# Modifies the speed of naval retreats
+		# 修改撤退舰队速度
+			# naval_retreat_speed = 0.25
+
+# ships_at_battle_start
+	# Modifies the number of ships in the first contact
+		# 修改最早接战舰队数量
+			# ships_at_battle_start = 0.25
+
+# spotting_chance
+	# Modifies the chance to spot enemy ships
+		# 修改发现敌舰概率
+			# spotting_chance = 0.1
+
+# navy_anti_air_attack_factor
+	# Modifies the anti air attack of naval units
+		# 修改舰队空攻击
+			# navy_anti_air_attack_factor = 0.1
+
+# navy_capital_ship_defence_factor
+	# Modifies the defence of capital ships in the navy
+		# 修改主力舰防御
+			# navy_capital_ship_defence_factor = 0.1
+
+# navy_carrier_air_targetting_factor
+	# Modifies the targeting efficiency of air units on by carriers
+		# 修改航母舰载机空中瞄准
+			# navy_carrier_air_targetting_factor = 0.1
+
+# sortie_efficiency
+	# Modifies sortie efficiency of carriers
+		# 修改航母舰载机出击效率
+			# sortie_efficiency = 0.1
+
+# naval_hit_chance
+	# Modifies the overall naval hit chance
+		# 修改海军命中率
+			# naval_hit_chance = 0.05
+
+# naval_coordination
+	# Modifies the overall naval coordination
+		# 修改海军协同率
+			# naval_coordination = 0.01
+
+# convoy_raiding_efficiency_factor
+	# Modifies the efficience of commerce raiding
+		# 修改袭击运输船任务效率
+			# convoy_raiding_efficiency_factor = 0.1
+
+# naval_speed_factor
+	# Modifies the speed of naval units
+		# 修改海军航速
+			# naval_speed_factor = 0.1
+
+# navy_submarine_detection_factor
+	# Modifies the chance of detecting enemy submarines
+		# 修改对潜探测效率
+			# navy_submarine_detection_factor = 0.1
+
+# navy_max_range_factor
+	# Modifies the maximum range of navies
+		# 修改海军最大航程
+			# navy_max_range_factor = 0.05
+
+# experience_gain_navy
+	# Bonus to daily navy experience gain (flat number)
+		# 增加空军经验值（每日）（数字）
+			# experience_gain_navy = 0.05
+
+# experience_gain_navy_factor
+	# Modifies the amount of navy experience gained (percentage)
+		# 修改海军经验获得效率（百分比）
+			# experience_gain_navy_factor = 0.1
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 具体海军修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# navy_carrier_air_attack_factor
+	# Modifies the attack of planes of carriers
+		# 修改航母舰载机空中攻击
+			# navy_carrier_air_attack_factor = 0.03
+
+# navy_carrier_air_targetting_factor
+	# Modifies the defence of planes of carriers
+		# 修改航母舰载机空中瞄准
+			# navy_carrier_air_targetting_factor 0.03
+
+# navy_carrier_air_agility_factor
+	# Modifies the agility of planes of carriers
+		# 修改航母舰载机空中机动
+			# navy_carrier_air_agility_factor = 0.04
+
+# navy_capital_ship_attack_factor
+	# Modifies the attack of capital ships
+		# 修改主力舰攻击
+			# navy_capital_ship_attack_factor = 0.05
+
+# navy_capital_ship_defence_factor
+	# Modifies the defence of capital ships
+		# 修改主力舰防御
+			# navy_capital_ship_defence_factor = 0.05
+
+# navy_submarine_attack_factor
+	# Modifies the attack of all submarine units in the navy
+		# 修改潜艇攻击
+			# navy_submarine_attack_factor = 0.2
+
+# navy_submarine_defence_factor
+	# Modifies the defence of all submarine units in the navy
+		# 修改潜艇防御
+			# navy_submarine_defence_factor = 0.2
+
+# navy_screen_attack_factor
+	# Modifies the attack of screen ships
+		# 修改屏卫舰攻击
+			# navy_screen_attack_factor = 0.05
+
+# navy_screen_defence_factor
+	# Modifies the defence of screen ships
+		# 修改屏卫舰防御
+			# navy_screen_defence_factor = 0.05
+
+# naval_torpedo_range_factor
+	# Modifies the range of torpedoes
+		# 修改鱼雷射程
+			# naval_torpedo_range_factor = 1
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 一般工业修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# production_factory_max_efficiency_factor
+	# Bonus to max factory efficiency
+		# 增加生产效率上限值
+			# production_factory_max_efficiency_factor = 0.1
+
+# line_change_production_efficiency_factor
+	# Bonus to production efficiency retention
+		# 增加生产效率保持度
+			# line_change_production_efficiency_factor = 0.2
+
+# production_speed_buildings_factor
+	# Bonus to speed of overall construction
+		# 增加建筑建造速度
+			# production_speed_buildings_factor = 0.1
+
+# conversion_cost_civ_to_mil_factor
+	# Modifies the cost of converting civilian factories to military
+		# 修改民工转军工的消耗率（mil_to_civ：军转民）
+			# conversion_cost_civ_to_mil_factor = -0.2
+
+# industrial_capacity_factory
+	# Overall production boost for military factories
+		# 军工厂产出量
+			# industrial_capacity_factory = 0.1
+
+# industrial_capacity_dockyard
+	# Overall production boost for dockyards
+		# 造船厂产出量
+			# industrial_capacity_dockyard = 0.2
+
+# consumer_goods_factor
+	# Modifies the factor of factories occupied with producing consumer goods
+		# 修改生活消费品占用工厂比率
+			# consumer_goods_factor = 0.05
+
+# production_factory_efficiency_gain_factor
+	# Modifies the production efficiency gain factor
+		# 修改生产效率增长率
+			# production_factory_efficiency_gain_factor = 0.05
+
+# production_factory_start_efficiency_factor
+	# Modifies the starting production efficiency of factories
+		# 修改初始生产效率
+			# production_factory_start_efficiency_factor = 0.05
+
+# local_resources_factor
+	# Modifies the resource gain efficiency
+		# 修改战略资源获取量
+			# local_resources_factor = 0.10
+
+# production_oil_factor
+	# Changes oil production by the specified percentage.
+	# Stacks and adds up with local_resources_factor.
+	# There are no factors such as this available for the other resources.
+		# 改变石油产量。并入local_resources_factor。其他资源不可用
+			# production_oil_factor = 0.1
+
+# equipment_conversion_speed
+	# Modifies the speed of converting equipment
+		# 修改转换设备组度（换装备）
+			# equipment_conversion_speed = 0.05
+
+# min_export
+	# Modifies the % of goods that need to be exported
+		# 修改可以出口资源
+			# min_export = -0.05
+
+# global_building_slots_factor
+	# Modifies the amount of factories that can be built in a state
+		# 修改地区建造工厂数量
+			# global_building_slots_factor = 0.10
+
+# industry_air_damage_factor
+	# Modifies the vulnerability of factories to bombs
+		# 修改工厂受到轰炸损害度
+			# industry_air_damage_factor = -0.1
+
+# industry_free_repair_factor
+	# Changes free repair speed by the specified percentage
+		# 改变自动维修速度比例值
+			# industry_free_repair_factor = 1
+
+# industry_repair_factor
+	# Changes repair speed by the specified percentage
+		# 改变维修速度比例值
+			# industry_repair_factor = 0.5
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 具体工业修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# production_speed_arms_factory_factor
+	# Bonus to speed of constructing military factories
+		# 军用工厂建造速度加成
+			# production_speed_arms_factory_factor = 0.1
+
+# production_speed_industrial_complex_factor
+	# Bonus to speed of constructing civilian factories
+		# 民用工厂建造速度加成
+			# production_speed_industrial_complex_factor = 0.1
+
+# production_speed_bunker_factor
+	# Bonus to speed of constructing land forts
+		# 碉堡建造速度加成
+			# production_speed_bunker_factor = 0.3
+
+# production_speed_coastal_bunker_factor
+	# Bonus to speed of constructing coastal forts
+		# 海岸碉堡建造速度加成
+			# production_speed_coastal_bunker_factor = 0.3
+
+# production_speed_anti_air_building_factor
+	# Bonus to speed of constructing anti air guns
+		# 防空设备建造速度加成
+			# production_speed_anti_air_building_factor = 0.3
+
+# production_speed_dockyard_factor
+	# Bonus to speed of constructing dockyards
+		# 造船厂建造速度加成
+			# production_speed_dockyard_factor = 0.2
+
+# production_speed_naval_base_factor
+	# Bonus to speed of constructing naval bases
+		# 码头建造速度加成
+			# production_speed_naval_base_factor = 0.2
+
+# production_speed_air_base_factor
+	# Bonus to speed of constructing air bases
+		# 机场建造速度加成
+			# production_speed_air_base_factor = 0.15
+
+# production_speed_rocket_site_factor
+	# Bonus to speed of constructing rocket sites
+		# 火箭发射场建造速度加成
+			# production_speed_rocket_site_factor = 0.15
+
+# production_speed_radar_station_factor
+	# Bonus to speed of constructing radar stations
+		# 雷达站建造速度加成
+			# production_speed_radar_station_factor = 0.15
+
+# production_speed_infrastructure_factor
+	# Bonus to speed of constructing infrastructure
+		# 基础设施建造速度加成
+			# production_speed_infrastructure_factor = 0.2
+
+# production_speed_nuclear_reactor_factor
+	# Bonus to speed of constructing nuclear reactors
+		# 核工业建造速度加成
+			# production_speed_nuclear_reactor_factor = 0.25
+
+# production_speed_synthetic_refinery_factor
+	# Bonus to speed of constructing synthetic refineries
+		# 合成炼油厂建造速度加成
+			# production_speed_synthetic_refinery_factor = 0.1
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 研究修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# research_time_factor
+	# Overall research speed bonus
+		# 研究时间
+			# research_time_factor = -0.05
+
+# Research time reductions
+	# When researching specific technologies or technology categories,
+	# research_bonus is used along with the category you want to have a % reduced research time in.
+	#。在研究具体的技术或技术类，与research_bonus一起使用，减少某一研究时间的比例。
+	# research_bonus = { air_doctrine = 0.08 }
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 其他修改 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# MONTHLY_POPULATION
+	# Changes monthly population growth by the specified percentage
+		# 按指定百分比改变每月人口增长率
+			# MONTHLY_POPULATION = 0.5
+
+# nuclear_production_factor
+	# Changes nuke production by the specified percentage
+		# 按指定百分比更改核弹产量
+			# nuclear_production_factor = 0.1
+
+#####################################################################################################################################################
+#########          Equipment modding（装备修改）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Equipment（装备） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# {common/units/equipment/*.txt}
+	# 文件路径
+
+# Archetype equipment follows the following format:
+	# 原型装备遵循以下格式：
+<pre>
+	equipments = {
+		<equipment> = {
+			year = <int>					# Limits the equipment from appearing before the specified year. Optional
+												# 限制设备生产年份。可选
+			picture = <name>				# GFX reference used to define equipment picture in land-lease
+												# 所参照的图片
+			is_archetype = yes				# Specifies an entry as an archetype entry. All non-archetype entries inherit
+												# 指定为原型条目。继承所有非原型条目
+			is_buildable = no				# Prevents this equipment from being built.
+												# 阻止制造装备
+			active = yes					# Determines if this equipment is available without unlocking from a technology.
+												# 确定使用此装备，而不需要解锁技术。
+			type = <type>					# Internal type: what kind of unit can use this equipment
+												# 类型：什么类型的单元可以使用此设备？
+			group_by = <group>				# How the equipment is grouped in the production screen
+												# 显示装备归类在生产界面上
+			interface_category = <type>		# Which category the equipment appears in the production screen
+												# 在生产界面上显示装备类别
+		# Resources used to build this equipment
+			# 用于建造此设备的资源
+			resources = {
+				<resource> = <amount>
+			}
+		
+		# Modifiers the equipment uses
+			#装备修改语句
+			<modifiers> 
+		}
+	}
+</pre>
+
+# Regular equipment follows the following format:
+	# 常规装备遵循以下格式
+<pre>
+	equipments = {
+		<equipment> = {
+			year = <int>					# Limits the equipment from appearing before the specified year. Optional
+												# 限制设备生产年份。可选
+			active = yes					# Determines if this equipment is available without unlocking from a technology.
+												# 确定使用此装备，而不需要解锁技术。
+			archetype = <equipment>			# Which archetype equipment this equipment inherits from.
+												# 继承哪个原始装备。
+			parent = <equipment>			# Which equipment is parent to this equipment (i.e. which does it supercede)
+												# 哪个装备是源自这件装备。（也就是代替）
+			priority = <int>				# Priority for usage over other equipment.
+												# 优先于其他设备使用。（使用优先级）
+			visual_level = <int>			# Image priority in production screen
+												#生产界面中的优先级
+		# Resources used to build this equipment
+			# 用于建造此设备的资源
+			resources = {
+				<resource> = <amount>
+			}
+			
+		# Modifiers the equipment uses
+			# 装备修改语句
+			<modifiers> 
+		}
+	}
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Internal Types（类型） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* infantry			* 步兵
+* support			* 支援
+* artillery			* 炮兵
+* anti_tank			* 反坦克
+* anti_air			* 防空
+* armor				* 装甲
+* fighter			* 战斗机
+* cas				* 对地支援
+* naval_bomber		* 海军轰炸
+* interceptor		* 拦截（截击）
+* suicide			* 自杀
+* tactical_bomber	* 战术轰炸
+* strategic_bomber	* 战略轰炸
+* air_transport		* 空中运输
+* missile			* 飞弹
+* submarine			* 潜艇
+* screen_ship		* 屏卫舰
+* capital_ship		* 主力舰
+* carrier			* 航空母舰
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Group By types（类型组） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* archetype		* 原型
+* type			* 类型
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Interface Categories（连接类别） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* interface_category_land			* 陆军界面
+* interface_category_armor			* 装甲界面
+* interface_category_capital_ships	* 主力舰界面
+* interface_category_screen_ships	* 屏卫舰界面
+* interface_category_other_ships	* 其他船只界面
+* interface_category_air			* 空军界面
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Stats（规定） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Equipment uses modifiers to determine which stats it confers to its assigned unit.
+	# 设备使用修改语句来确定赋予分配给单位哪些属性。
+
+# Typically an equipment will include the following:
+	# 通常装备将包括以下内容：
+
+<pre>
+	build_cost_ic = <float>
+	lend_lease_cost = <float>
+	reliability = <float>
+	maximum_speed = <float>
+	defense = <float>
+	breakthrough = <float>
+	hardness = <float>
+	armor_value = <float>
+	soft_attack = <float>
+	hard_attack = <float>
+	ap_attack = <float>
+	air_attack = <float>
+</pre>
+
+# Note that the default ''maximum_speed'' is 4, so you don't need to include it when you want equipment to confer the default ''maximum_speed''.
+	# 注意，默认的'maximum_speed”是4，所以你不需要它时，装备没有“'maximum_speed”语句。
+
+# 装备和单位修改语句通用
+
+#####################################################################################################################################################
+#########          Unit modding（单位修改）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Unit Categories（单位类别） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# {common/unit_tags/00_categories.txt}
+	# 文件路径
+
+# Each unit is assigned a category that is used in technologies to apply effects to groups of units at once.
+	# 每个单位的技术类别应用效果都被分配在同一组单位中
+
+# The following example from a technology grants bonuses to all units with the ''category_all_infantry'' category:
+	# 下面的示例从“category_all_infantry”对所有单位的技术补偿效果类别：
+<pre>
+	category_all_infantry = {
+		hard_attack = 0.25
+		ap_attack = 1
+	}
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Units（单位） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# {path|common/units/*.txt}
+	#文件路径
+
+# Units follow the following format:
+	# 单位遵循以下格式：
+<pre>
+	sub_units = {
+		<unit name> = {
+			sprite = <entity>			# Refers to <name>_entity in a gfx/entities/.*.asset file - Controls the unit used on the map
+											# 指的是<name>_entity可控制地图上单位信息文件gfx/entities/.*.asset
+		# Controls the map icon category used for the unit
+			# 控制该单元使用的映射图标类别
+			map_icon_category = <type>
+			
+			priority = <int>			# Controls which icon is used if multiple subunits of the same type exist
+											# 如果存在相同类型的多个子单元，则使用哪个图标
+			ai_priority = <int>
+			
+			active = yes / no			# Whether the unit is usable without explicit unlocking in technology
+											# 是否通过技术解锁该单元
+			cavalry = yes				# Used to define subunit as cavalry
+											# 用于定义子单位为骑兵部队
+			special_forces = yes		# Used to define subunit as special forces
+											# 用于定义子单位为特种部队
+			marines = yes				# Used to define subunit as marine
+											# 用于定义子单位为海军陆战队
+			mountaineers = yes			# Used to define subunit as mountaineers
+											# 用于定义子单位为山地部队
+			transport = <equipment>		# Sets the speed of subunit via equipment. Used for motorized/mechanized
+											# 用于定义子单位为摩托化/机械化部队。速度通过装备设定
+			
+		# How the unit is grouped division-wise, i.e. appearing in the Support tab. Not used for air or naval units
+			# 单元如何划分分组，即出现在支持选项卡中。不用于空军或海军单位
+			group = <group> 
+			
+		# Internal types
+			#类型
+			type = {
+				<type>
+			}
+			
+		# Categories the unit belongs to.
+			# 属于本单位的类别。
+			categories = {
+				<categories>
+			}
+			
+		# Equipment that is required for this unit. Used when active = no
+			# 本单位所需的装备。在运动时使用=否
+			essential = {
+				<equipment>
+			}
+			
+		# Equipment needed to produce this unit. Unit won't be available until the nation has this equipment
+			# 生产该单位所需的装备。除非国家有这种装备，否则单位将不能使用。
+			need = {
+				<equipment>
+			}
+			
+		# Modifiers control the stats of the unit. More detail under the Stats section.
+			# 单位统计信息修改语句。部分统计后更多细节
+			<modifiers>
+			
+		# Modifiers that occur only in specific terrain
+			# 仅发生在特定地形中的修改语句
+			<terrain> = {
+				<modifiers>
+			}
+		}
+	}
+</pre>
+
+# You cannot add new internal, group or map icon types.
+	# 不能添加新的内部、组或映射图标类型。
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Internal Types（类型） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* infantry			* 步兵
+* support			* 支援
+* artillery			* 炮兵
+* anti_tank			* 反坦克
+* anti_air			* 防空
+* armor				* 装甲
+* fighter			* 战斗机
+* cas				* 对地支援
+* naval_bomber		* 海军轰炸
+* interceptor		* 拦截（截击）
+* suicide			* 自杀
+* tactical_bomber	* 战术轰炸
+* strategic_bomber	* 战略轰炸
+* air_transport		* 空中运输
+* missile			* 飞弹
+* submarine			* 潜艇
+* screen_ship		* 屏卫舰
+* capital_ship		* 主力舰
+* carrier			* 航空母舰
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Group Types（类型组） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* infantry		* 步兵
+* support		* 支援
+* mobile		* 机动
+* armor			* 装甲
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Map Icon Types（地图图标类型） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+* infantry		* 步兵
+* armored		* 装甲
+* other			* 其他
+* ship			* 舰船
+* transport		* 运输
+* uboat			* 潜艇
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Stats（规定） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Units use modifiers to determine which stats they have and what special actions they may take.
+	# 单位使用修改语句来限定有哪些属性和执行特殊行动。
+
+# Typically air units will not use any modifiers, whilst naval units use only ''supply_consumption'' and ''max_organisation''.
+	# 通常空中单位不使用海军部队使用的任何修改语句“supply_consumption”和“max_organisation”。
+
+# Land units almost always use the following:
+	# 路上单位几乎使用下面的：
+<pre>
+	manpower = <int>
+	max_strength = <int>
+	training_time = <int>
+	weight = <float>
+	default_morale = <float>
+	max_organisation = <int>    
+	combat_width = <int>        
+	supply_consumption = <float>
+</pre>
+
+# For ''max_organisation'', vanilla uses the following values:
+	# 关于“max_organisation”组织度，基本使用以下值：
+
+	* infantry support: 20
+	* armor: 10
+	* armor support: 0
+	* ship: 40
+	* cavalry: 70
+
+# For ''combat_width'', vanilla uses the following values:
+	# 关于“combat_width”战斗宽度，基本使用以下值：
+
+	* infantry: 0
+	* artillery: 0
+	* armor support: 1
+	* armor: 2
+
+# 装备和单位修改语句通用
+
+#####################################################################################################################################################
+#########          Equipment and Unit modding（装备和单位修改）
+#####################################################################################################################################################
+
+# The following list is all the valid modifiers for use in equipment and units:
+	# 以下列表是装备和单位中使用的所有有效修改语句：
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Base（基础语句） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	max_organisation = 20		# Organisation - Organisation indicates combat readiness and how organized a unit is. A unit with no organisation can't fight or move effectively.
+									# 组织度-组织度表示战备和组织方式。没有组织度的单位不能有效地战斗或行动。
+	reliability = 0.9			# Reliability - The lower the reliability, the more likely the equipment will suffer random failure
+									# 可靠性-可靠性越低，设备就越容易发生随机故障
+	weight = 0.1				# Weight - How much the unit will weigh. Heavier units will require more transports to ship and perform invasions effectively.
+									# 重量-单位重量多少。较重的单位将需要更多的运输船和有效地执行入侵。
+	maximum_speed = 4			# Max Speed - How quickly this unit can traverse terrain under optimal circumtances, in kilometres per hour
+									# 最高速度多快这个单位可以穿越地形下的最优条件，以公里每小时
+	supply_consumption = 0.02	# Supply use - How much supply a unit consumes per day
+									#补给使用率-一个单位每天消耗多少补给
+	default_morale = 0.3		# Recovery Rate - How much extra organisation can be regained hourly when not in combat
+									# 恢复率-非战斗中可以每小时额外恢复组织的多少
+	combat_width = 0.5				# 战斗宽度（不用改）
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Costs（成本） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	lend_lease_cost = 1		# Space taken up in convoy
+								# 海运时间成本
+	build_cost_ic = 0.4		# Production Cost - How much factory output this piece of equipment needs
+								# 生产成本-这件设备需要多少资源量
+	manpower = 300			# Manpower - Cost in manpower to produce
+								# 人力成本-人工生产成本
+	training_time = 120		# Training time - Time in days to train this unit
+								# 训练时间-每日训练单位数量
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Offensive（进攻类） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	attack = 0.1		# Firepower - Amount of damage done per attack
+							# 火力-每次攻击所造成的伤害
+	soft_attack = -0.1	# Soft Attack - How many attacks the unit can make versus enemies with low hardness
+							# 软攻-对低硬度敌人单位能制造多少攻击力
+	hard_attack = -0.5	# Hard Attack - How many attacks the unit can make versus enemies with high hardness
+							# 硬攻-对高硬度敌人单位能制造多少攻击力
+	air_attack = 1		# Air Attack - How much damage we can do against airplanes. High Air Attack also helps to counter enemy Air Superiority effects
+							# 防空-我们能对飞机造成多大的损失？。高空攻击也有助于对抗敌人空中优势的影响
+	ap_attack = 1		# Piercing - Having equal or greater Piercing to the targets Armor value allows you to do more damage.
+							# 穿甲-对目标护甲值有同等或更大的穿透力，可以造成更多的伤害。
+	breakthrough = 0.5	# Breakthrough - How many enemy attacks a unit can attempt to avoid while on the offensive, effectively allowing it to stay on the offense longer.
+							# 突破-在进攻时避免多个敌人单位进攻，有效地使其延长进攻时间。
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Defensive（防御类） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	defense = 0.1		# Defense - How many enemy attacks a unit can avoid whilst on the defensive, effectively allowing it to stay on the defensive longer.
+							# 防御-在防御时避免多个敌人单位进攻，有效地使其延长进攻时间。
+	max_strength = 2	# HP - Strength represents how much damage this unit can suffer before it is destroyed
+							# 最大强度（HP）-代表人力被消灭前所承受的伤害
+	armor_value = 0		# Armor - Armor that is higher than the opponents Piercing value reduces damage taken and allows more attacks to occur
+							# 装甲-高于对手穿透值减少伤害，并顶住更多攻击
+	hardness = 0.5		# Hardness - Represents how much of your divsion is made up of armoured vehicles. High Hardness = High Hard Attacks, Low Soft Attack
+							# 硬度-代表你有多少数值是由装甲载具提供。高硬度=高硬攻击，低软攻
+	entrenchment = 5	# Entrenchment - The ability to make proper defensive entrenchments before a hostile attack
+							#战壕-对敌人攻击作出适当的防御工事的能力
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Unique（特殊类） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	movement = 0.1					# Movement - Changes the unit's speed
+										# 移动-改变单位的速度
+	experience_loss_factor = 0.1	# Exp. Loss - How much experience is lost in a division when they take casualities and have to replace them
+										# 经验损失度-损失一个“师”需要修改多少经验
+	casualty_trickleback = 0.2		# Trickleback - The proportion of losses in combat that can be saved and returned to the manpower pool
+										#伤亡恢复率 -可以保存和恢复的在战斗中损失的人力资源比例
+	suppression_factor = 0.1		# Suppression bonus - Ability to supress local resistance
+										# 镇压效率-镇压地区抵抗的能力
+	reliability_factor = 0.05		# Reliability - Applies to an equipment type's reliability and reduces the chance of breakdowns and accidents
+										# 可靠性-适用于装备类型的可靠性和减少故障和事故的机会
+	recon = 1						# Reconnaissance - Increases the chance that this unit can pick better tactics in battle
+										# 侦察-增加了这个单位可以在战斗中选择更好的战术的机会
+	initiative = 0.2				# Initiative - The higher the initiative, the quicker it can reinforce into battle, and the quick is completes its planning
+										# 主动-主动性越高，能更快地加强到战斗中，快速完成计划
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Boolean（布轮代数） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	can_be_parachuted = yes		# May be parachuted into battle
+									# 可以空降到战场
+	can_license = no			# Can be licesed
+									# 能被许可
+	is_convertable = yes		# Can be converted
+									# 能被转换
+	carrier_capable = yes		# Is usable in carriers (air only)
+									# 能否舰载（仅供飞机）
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Navy-specific（海军特性） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	naval_speed = 28			# Max Speed - maximum speed in kilometres per hour of the ship, higher means faster in combat too
+									# 最高航速-舰船最高时速是公里，战斗中也意味着更快
+	fire_range = 32				# Fire Range - The range of the ship's main guns
+									# 火力范围-船的主炮射程
+	torpedo_attack = 1			# Torpedo attack - How much damage we can do when using the ship's torpedos
+									# 鱼雷攻击-我们船上的鱼雷使用时有多少伤害
+	anti_air_attack = 5			# Anti-air - How much anti-air firepower the ship carries for shooting down enemy planes
+									# 防空-有多少火力击落敌机
+	shore_bombardment = 8		# Shore Bombard - A unit's ability to do shore bombardment to help out in land battles neighbouring its sea province when on Hold mission
+									# 对岸炮击-在执行任务时对海岸附近作战单位轰炸的能力
+	evasion = 15				# Evasion - Ability for ships to evade enemy fire through maneuvering. Evasion is checked against enemy evasion, so high evasion improves hits against high evasion targets
+									# 规避-船舶通过机动规避敌方火力的能力。规避敌人的闪避能力，所以高闪避提高了对高闪避目标的命中率。
+	surface_detection = 12		# Surface detection - Ability to detect surface vessels
+									# 水面侦测-探测水面舰艇的能力
+	sub_detection = 5			# Sub detection - Ability to detect submarines
+									# 反潜侦测-探测潜艇的能力
+	surface_visibility = 25		# Surface Visibility - How hard to find this ship is
+									# 表面能见度-找到这艘船有多难
+	sub_visibility = 20			# Sub Visibility - How easy it is to detect this submarine
+									# 潜艇能见度-探测这艘潜艇是多容易
+	naval_range = 3000			# Naval Range - max distance in kilometres the ship can travel from it's nearest Naval Base
+									# 海军航程-从最近港口驶出的最大距离
+	port_capacity_usage = 1		# Port capacity usage - How much room the ship requires in port
+									# 港口占用量-船在港口需要多少空间
+	search_and_destroy_coordination = 0.1		# 协调搜索破坏率
+	
+	convoy_raiding_coordination = 0.1			# 协调护航突袭率
+</pre>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Air-specific（空军特性） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+<pre>
+	air_attack = 50						# Air Attack - amount of damage done against other planes
+											# 空中攻击-对其他飞机造成的伤害（空战）
+	air_defence = 50					# Air Defence - how many hits a plane takes before being shot down
+											# 空中防卫-被击落前打下多少飞机
+	air_range = 500						# Range - How far away missions the plane can perform
+											# 飞行距离-飞机能执行的最远任务
+	air_agility = 10					# Agility - How agile a plane is. Agility effects how easy it is to hit another plane, and avoid being hit
+											# 空中灵活度-飞机有多敏捷。敏捷的效果是很容易击中另一架飞机，并避免被击中
+	air_bombing = 300					# Strategic Bombing - how good the plane is at bombing
+											# 战略轰炸-飞机轰炸很好
+	air_superiority = 1					# Air Superiority - How much the plane helps the overall air superiority of a strategic area
+											# 空中优势-飞机对战略地区的总体空中优势帮助程度
+	naval_strike_attack = 1.5			# Naval Attack - how much damage the plane does against ships
+											# 对舰攻击-飞机对船只造成的伤害程度
+	naval_strike_targetting = 0.5		# Naval Targeting - how likely the plane is to hit a ship
+											# 对舰瞄准-飞机对舰命中率效果
+	carrier_size = 0.05							# 航母机库容量
+	
+	default_carrier_composition_weight = 1		# 着重布置无任务运输单位
+</pre>
+
+#####################################################################################################################################################
+#########          Commands（指令）          （附带版本号码）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 新MOD修改 勇虎 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# set_variable
+	# Create a variable and assignment
+		# 创建一个可变的任务
+			# set_variable = { var = <name> value = <number> } # 1.5
+
+# promote_leader
+	# Promotes general to field marshal
+		# 升将军为元帅（需测试）
+			# Needs to be tested # 1.5
+
+# leave_faction
+	# Leaves the faction that the target is a part of.
+		# 使目标脱离派别
+			# leave_faction = { target = RAJ } # 1.5
+
+# set_stability
+	# Sets the stability to the country in scope
+		# 设置国家稳定性
+			# set_stability = 0.8# 1.5
+
+# add_war_support
+	# Adds the war support to the country in scope.
+		# 增加战争支持度
+			# add_war_support = 5 # 1.5
+
+# set_war_support
+	# Sets the war support to the country in scope.
+		# 设置战争支持度
+			# set_war_support = 0.8 # 1.5
+
+# transfer_navy
+	# Transfers the entire navy of scope country to target country.
+		# 转移海军到目标国家
+			# GER = { transfer_navy = ENG } # 1.5
+
+# destroy_ships
+	# Destroys ships of specified country and amount
+		# 销毁指定国家的船舶及数量
+			# ENG={ destroy_ships = { type=light_cruiser count=all #or number } } # 1.5
+
+# set_unit_leader_flag
+	# Set unit leader flag
+		# 设置单位标识
+			# set_unit_leader_flag = leader_blind # 1.5
+
+# modify_unit_leader_flag
+	# Modify unit leader flag. Only modifies if flag already exists.
+		# 修改单位旗帜。仅修改已存在单位
+			# modify_unit_leader_flag = { flag = <name> value = <number> } # 1.5
+
+# clr_unit_leader_flag
+	# Clear unit leader flag
+		# 清除单位旗帜
+			# clr_unit_leader_flag = leader_blind # 1.5
+
+# set_nationality
+	# Sets the country that owns current scope general
+		# 设置全部当前范围内可以拥有的国家（设置国籍）
+			# global_every_army_leader = {
+				limit = {
+					OWNER = { tag = ROOT }
+					has_trait = JAP_samurai_lineage
+				}
+				set_nationality = PREV
+			}
+				# 1.5
+
+# demote_leader
+	# Demotes field marshal to general
+		# 元帅降级为将军（需测试）
+			# Needs to be tested # 1.5
+
+# retire
+	# Retires scope unit leader
+		# 目标领导人退休（需测试）
+			# Needs to be tested # 1.5
+
+# add_command_power
+	# Adds command power to country.
+		# 增加国家指挥点数
+			# add_command_power = 50 # 1.5
+
+# unlock_decision_tooltip
+	# Show what a decision does
+		# 展示 决议说明
+			# unlock_decision_tooltip = { some_decision_here some_other_decision_here }# 1.5
+
+# add_temporary_buff_to_units
+	# Add buffs to units that are belongs to the army group/navy of this unit leader
+		# 增加属于本单位陆军集团/海军领导人的效果（加BUFF）
+			# add_temporary_buff_to_units = {
+				combat_offense = 0.25
+				combat_breakthrough = 0.25
+				org_damage_multiplier = -1.0
+				str_damage_multiplier = 0.25
+				war_support_reduction_on_damage = 0.2
+				cannot_retreat_while_attacking = 1.0
+				days = 7
+				tooltip = ABILITY_FORCE_ATTACK_TOOLTIP
+			}
+				# 1.5
+
+# boost_planning
+	# Boost planning of units that are belongs to the army group/navy of this unit leader
+		# 加强属于本单位陆军集团/海军领导人的规划（需测试）
+			# Needs to be tested # 1.5
+
+# add_region_efficiency
+	# Add efficiency factor to strategic region for from country
+		# 增加从国家战略区域获得效率
+			# add_region_efficiency = 0.1 # 1.5
+
+# modify_building_resources
+	# Modifies how many resources a building outputs for scope country only.
+		# 修改建筑对特定国家的资源输出数量
+			# GER = {  modify_building_resources = { building = synthetic_refinery resource = rubber amount = 2 } }# 1.5
+
+# add_to_variable
+	# Adds a value or a variable to another one
+		# 增加值或变量到另一个
+			# add_to_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5
+
+# subtract_from_variable
+	# Subtracts a value or a variable to another one
+		# 减少值或变量到另一个
+			# subtract_from_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5
+
+# multiply_variable
+	# Multiplies a variable to a value or another variable
+		# 将值或变量合并（相乘）
+			# multiply_variable = { var = af_to_move value = global.CHI_industrial_evacuations_amount_factor } # 1.5
+
+# divide_variable
+	# Divides a variable to a value or another variable
+		# 将值或变量分离
+			# divide_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5
+
+# clear_variable
+	# Clears a variable
+		# 清除一个变量
+			# clear_variable = num_dogs # 1.5
+
+# add_attack
+	# Adds attack skill to a unit leader
+		# 增加领导人攻击能力
+			# add_attack = 1 # 1.5
+
+# add_defense
+	# Adds defense skill to a unit leader
+		# 增加领导人防御能力
+			# add_defense = 1 # 1.5
+
+# add_planning
+	# Adds planning skill to a unit leader
+		# 增加领导人计划能力
+			# add_planning = 1 # 1.5
+
+# add_logistics
+	# Adds logistics skill to a unit leader
+		# 增加领导人后勤能力
+			# add_logistics = 1 # 1.5
+
+# unlock_decision_category_tooltip
+	# Localizes name of category and displays tooltip that shows it will be unlocked
+		# 定位类别名称显示工具提示并解锁（解锁类别并提示）
+			# unlock_decision_category_tooltip = CHI_integrate_the_warlords # 1.5
+
+# activate_mission_tooltip
+	# Shows mission will activate and name. Activation needs to be handled manually, effect is just an easier way to display name of mission.
+		# 显示将激活任务名称。手动激活，显示任务名称简单效果
+			# unlock_mission_tooltip = some_mission_here # 1.5
+
+# load_focus_tree
+	# Sets what focus tree a country uses, retains finished shared focuses
+		# 设置一个国家使用的国策，保留了完成的共享国策
+			# load_focus_tree = china_nationalist_focus # 1.5
+
+# add_offsite_building
+	# Add an offsite building to a country
+		# 将异地建筑增加到一个国家
+			# add_offsite_building = { type = arms_factory level = 1 } # 1.5
+
+# replace_unit_leader_trait
+	# Add trait to unit leader
+		# 增加领导人特性（需测试）
+			# Needs to be tested # 1.5
+
+# add_max_trait
+	# Adds a max assignable trait slot for a general
+		# 增加最大可分配特性槽位给上将（需测试）
+			# Needs to be tested # 1.5
+
+# add_skill_level
+	# Adds a skill level to a unit leader
+		# 增加领导人技能等级
+			# add_skill_level = 1 # 1.5
+
+# add_to_temp_variable
+	# Adds a value or a variable to a temp variable
+		# 增加值或变量到临时变量
+			# add_to_temp_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5
+
+# subtract_from_temp_variable
+	# Subtracts a value or a variable to a temp variable
+		# 减少值或变量到临时变量
+			# subtract_from_temp_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5
+
+# multiply_temp_variable
+	# Multiplies a temp variable to a value or another variable
+		# 将值或变量与临时变量合并（相乘）
+			# multiply_temp_variable = { var = af_to_move value = global.CHI_industrial_evacuations_amount_factor } # 1.5
+
+# divide_temp_variable
+	# Divides a temp variable to a value or another variable
+		# 将值或变量与临时变量分离
+			# divide_temp_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT }	# 1.5
+
+# set_temp_variable
+	# Sets a temp variable to a value or another variable
+		# 设置临时变量为其他值或变量
+			# set_temp_variable = { var = ic_level value = industrial_complex_level } # 1.5
+
+# add_timed_unit_leader_trait
+	# Add a timed trait to unit leader
+		# 增加临时变量给领导人
+			# add_timed_unit_leader_trait = { trait = sick days = 30 } # 1.5
+
+# clamp_variable
+	# Clamps a variable a variable between two a values or another variable
+		# 将变量固定在高低两个值或变量之间
+			# clamp_variable = { var = num_dogs min = 0 max = num_cats } # 1.5
+
+# clamp_temp_variable
+	# Clamps a temp variable a variable between two a values or another variables
+		# 将临时变量固定在高低两个值或变量之间
+			# clamp_temp_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT }# 1.5
+
+# start_border_war
+	# Start a border war between two states
+		# 开始两国间的边境战争
+			# start_border_war = {
+				change_state_after_war = no
+				attacker = {
+					state = 527
+					num_provinces = 4
+					on_win = japan_border_conflict.2
+					on_lose = japan_border_conflict.3
+					on_cancel = japan_border_conflict.4
+				}
+				defender = {
+					state = 408
+					num_provinces = 4
+					on_win = japan_border_conflict.3
+					on_lose = japan_border_conflict.2
+					on_cancel = japan_border_conflict.4
+				}
+			}
+				# 1.5
+
+# set_border_war_data
+	# Update border war properties
+		# 更新边界战争属性（设置边界战争资料数据）
+			# set_border_war_data = { attacker = 527 defender = 408 defender_modifier = 0.15 combat_width = 100 } # 1.5
+
+# cancel_border_war
+	# Cancel border war between two states
+		# 更改边界战争之间地区
+			# cancel_border_war = { defender = 408 attacker = 527 } # 1.5
+
+# set_division_template_lock
+	# Set lock status for a division template
+		# 设置分区模板锁定状态
+			# set_division_template_lock = { division_template = <name> is_locked = <bool (default:true)> } # 1.5
+
+# delete_unit_template_and_units
+	# Delete a template and its units
+		# 删除模板及其单位
+			# delete_unit_template_and_units = { division_template = <name> } # 1.5
+
+# print_variables
+	# Prints all variables in scope and temp variables to a file
+		# 将范围内所有变量和临时变量打印到一个文件
+			# print_variables = { file = log_file text = header_text append = yes print_global = yes var_list = { a b c } #optional } # 1.5
+
+# activate_mission
+	# Activates mission, ignoring its normal trigger conditions. Cannot activate a mission that is already active. 
+		# 激活任务，忽略正常触发条件。无法激活已经激活的任务
+			# activate_mission = some_mission_here # 1.5
+
+# remove_mission
+	# Removes mission without running complete or timeout effects.
+		# 删除任务而不执行完整或超时效果
+			# remove_mission = some_mission_here # 1.5
+
+# recall_attache
+	# Scope country recalls attache from target country
+		# 召回目标范围国家内的武官
+			# GER = { recall_attache = CHI } # 1.5
+
+# add_stability
+	# Adds stability.
+		# 增加稳定性
+			# add_stability = 0.05 # 1.5
+
+# remove_mission
+	# Removes a mission.
+		# 删除一个任务
+			# remove_mission = GER_clowns_running_wild # 1.5
+
+# activate_targeted_decision
+	# Activates targeted decisions or mission, ignoring its normal trigger conditions, cooldown and fire only once. Cannot activate if active in interface.
+		# 激活指定决议或任务，忽视正常触发条件，只有一次冷却和触发。如已在界面中激活则不能激活。
+			# activate_targeted_decision = { target = TAG decision = decision_id_here } # 1.5
+
+# remove_targeted_decision
+	# Removes targeted decisions or mission.
+		# 删除指定决议或任务
+			# remove_targeted_decision = { target = TAG decision = decision_id_here } # 1.5
+
+# modify_timed_idea
+	# Modify by adding an amount of days to a timed idea.
+		# 修改理念时效（通过添加时间修改理念时效）
+			# modify_timed_idea = { idea = my_idea_id days = 5 } # 1.5
+
+# activate_decision
+	# Activates specified decision for scope country
+		# 激活指定国家 决议
+			# activate_decision = GER_more_clowns# 1.5
+
+# set_truce
+	# Sets a truce between scope country and target for days duration.
+		# 设置与指定国家的停战天数
+			# set_truce = { target = GER days = 90 } # 1.5
+
+# round_variable
+	# Rounds a variable
+		# 绕过一个变量
+			# round_variable = num_dogs # 1.5
+
+# unit_leader_event
+	# Fires a unit leader event for owner country
+		# 触发本国领导人事件
+			# unit_leader_event = { id = generic.17 } # 1.5
+
+# finalize_border_war
+	# Finalizes border war between two states, wins or cancels it
+		# 完成了两国之间的边境战争，胜利或取消
+			# finalize_border_war = { attacker_win = yes attacker = 527 defender = 408 } # 1.5
+
+# supply_units
+	# Give supply to units being controlled by this leader.
+		# 给指挥官可控制单位（师数）
+			# supply_units = 24 # 1.5
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Diplomatic and Political Commands（外交与政治指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# add_relation_modifier
+	# Adds a static modifier between current scope and target
+		# 增加不可变修改在目标范围之间
+			# add_relation_modifier = { target = GER modifier = ROM_military_modernization } # 1.4
+
+# remove_relation_modifier
+	# Removes a static modifier between current scope and target
+		# 删除不可变修改在目标范围之间
+			# remove_relation_modifier = ROM_military_modernization # 1.4
+
+# add_political_power
+	# Adds political power to a country. If negative, removes political power.
+		# 给国家增加政治权力。如是负数，就删除政治权力。
+			# add_political_power = 50 # 1.0
+
+# add_opinion_modifier
+	# Adds an opinion modifier to a country
+		# 增加一个意见修改到一个国家
+			# add_opinion_modifier = { target = ENG modifier = tizard_refused } # 1.0
+
+# remove_opinion_modifier
+	# Removes an opinion modifer from a country
+		# 删除一个意见修改到一个国家
+			# remove_opinion_modifier = { target = ENG modifier = tizard_refused } # 1.0
+
+# set_political_party
+	# Sets the properties of a political party
+		# 设定政党及声望比例
+			# set_political_party = { ideology = democratic popularity = 0.5 } # 1.0
+
+# set_politics
+	# Changes the politics of a country
+		# 改变国家政体和选举与否
+			# set_politics = { ruling_party = fascism elections_allowed = no } # 1.0
+
+# set_political_power
+	# Sets political power to a certain value
+		# 设置政治权利值
+			# set_political_power = 100 # 1.0
+
+# create_faction
+	# Creates a faction with a specified name
+		# 创建具有指定名称的派系
+			# create_faction = "french_entente_alliance" # 1.0
+
+# annex_country
+	# Annexes a specified country
+		# 吞并一个指定国家
+			# annex_country = { target = EST } # 1.0
+
+# dismantle_faction
+	# Dismantles the faction led by the current country
+		# 取消当前政党领导国家
+			# dismantle_faction = yes # 1.0
+
+# add_to_faction
+	# Adds a country to a faction
+		# 增加指定盟友（增加一个国家到派系）
+			# add_to_faction = ITA # 1.0
+
+# remove_from_faction
+	# Removes a country from a faction
+		# 删除指定盟友（从派系删除一个国家）
+			# remove_from_faction = ITA # 1.0
+
+# give_guarantee
+	# Guarantees specified country
+		# 指定国家同意互不侵犯
+			# give_guarantee = POL # 1.0
+
+# give_military_access
+	# Specified country gives military access (bugged tooltip)
+		# 指定国家允许军事通行（提示可窥视他国）
+			# give_military_access = GER # 1.0
+
+# declare_war_on
+	# Declares war on a specified country
+		# 向指定国家宣战
+			# declare_war_on = { target = POL type = annex_everything } # 1.0
+ 
+# add_national_unity
+	# Adds national unity (Obsolete as of 1.5.0)
+		# 增加国家凝聚力（1.5.0版本后过时）
+			# add_national_unity = 0.02 # 1.0
+
+# add_scaled_political_power
+	# Adds political power scaled by the difference between ICs of receiver and another country
+		# 将增加国家凝聚力差值发送给他国（需测试）
+			# ''Needs to be tested'' # 1.0
+
+# hold_election
+	# Holds elections
+		# 进行选举
+			# hold_election = TAG # 1.0
+
+# add_popularity
+	# Adds popularity to an ideology
+		# 增加意识形态的声望
+			# add_popularity = { ideology = fascism popularity = 0.1 } # 1.0
+
+# start_civil_war
+	# Starts a civil war with the given ideology
+		# 以特定意识形态发动内战
+			# start_civil_war = { ideology = fascism size = 0.5 } # 1.0
+
+# create_wargoal
+	# Creates a wargoal
+		# 创建战争目标
+			# create_wargoal = { type = annex_everything target = EST } # 1.0	 
+
+# set_national_unity
+	# Sets the national unity of a country
+		# 设定国家凝聚力
+			# set_national_unity = 0.80 # 1.0
+
+# add_threat
+	# Adds country threat (Only useful for the AI, dont use unless you know what you are doing)
+		# 增加国家威胁（只对AI有用，不要使用，除非你知道你在做什么）
+			# add_threat = 2 # 1.0
+
+# add_named_threat
+	# Adds country threat (^Same)
+		# 增加国家威胁（只对AI有用，不要使用，除非你知道你在做什么）
+			# add_named_threat = { threat = 2 name = germany.4.t } # 1.0
+
+# set_rule
+	# Sets a rule to a country
+		# 设定一个国家规则
+			# set_rule = { can_create_factions = yes } # 1.0
+
+# diplomatic_relation
+	# Set up diplomatic relations between two countries
+		# 设定外交关系
+			# diplomatic_relation = { country = SOV relation = non_aggression_pact } # 1.0
+
+# create_import
+	# Creates trade between countries
+		# 创立国家间贸易
+			# create_import = { resource = steel amount = 20 exporter = SWE } # 1.0
+
+# set_major
+	# Makes a country a major
+		# 成为专业国家
+			# set_major = yes # 1.0
+ 
+# set_party_name
+	# Changes a party name of a country
+		# 改变一个国家的政党名称
+			# set_party_name = {
+				ideology = democratic
+				long_name = USA_republican_party
+				name = USA_republican_party
+			}
+				# 1.0
+
+# reverse_add_opinion_modifier
+	# Add opinion modifiers to target
+		# 向目标增加意见修改
+			# reverse_add_opinion_modifier = { target = BUL modifier = GER_treaty_of_craiova_other } # 1.0
+
+# add_to_war
+	# Adds country to a war
+		# 加入国家战争
+			# add_to_war = { targeted_alliance = CHI enemy = JAP } # 1.0
+
+# change_tag_from
+	# Changes player to other country
+		# 改变玩家到他国
+			# change_tag_from = GER # 1.0
+
+# white_peace
+	# Creates a white peace between countries
+		# 创造国家间和平
+			# white_peace = ETH # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Puppet and Autonomy Commands（傀儡和自制指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# add_autonomy_ratio
+	# Adds autonomy (with custom name)	
+		# 添加自治率（使用自定义名称）
+			# add_autonomy_ratio = { value = 0.1 localization = LOC_STRING_HERE } # 1.3
+
+# set_autonomy
+	# Sets the autonomy level of a target
+		# 设定目标自治级别
+			# set_autonomy = { target = RAJ autonomy_state = autonomy_free } # 1.3
+
+# release
+	# Releases a specified country from your country
+		# 恢复指定国家（吞并后恢复）
+			# release = CRO # 1.0
+
+# puppet
+	# Puppets the specified country
+		# 傀儡指定国家
+			# puppet = LIB # 1.0
+
+# release_puppet
+	# Releases a specified country
+		# 释放指定国家
+			# release_puppet = LIB # 1.0
+
+# end_puppet
+	# Ends puppetry over the specified country. Use this if you want to release a already existing puppet.
+		# 停止傀儡指定国家。如果要释放已经存在的傀儡，请使用此选项。（不再增加傀儡值）
+			# end_puppet = CRO # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Leader Commands（领袖与指挥官） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# create_country_leader
+	# Creates a country leader (head of state)
+		# 创建一个国家领导人（国家元首）
+			# create_country_leader = {
+				name = "Peter II"
+				desc = "POLITICS_PETER_II_DESC"
+				picture = "Portrait_Yugoslavia_Peter_II.dds"
+				expire = "1965.1.1"
+				ideology = despotism
+				traits = { ... }
+			}
+				# 1.0
+
+# set_country_leader_ideology
+	# Changes the ideology of the current country leader
+		# 改变当前国家领导人的意识形态（需测试）
+			# ''Needs to be tested'' # 1.0
+
+# add_country_leader_trait
+	# Add a trait to the current country leader
+		# 增加当前的国家领导人的一个特质
+			# add_country_leader_trait = warmonger # 1.0
+
+# remove_country_leader_trait
+	# Removes a trait from the current country leader
+		# 删除当前的国家领导人的一个特质
+			# remove_country_leader_trait = stout_defender # 1.0
+
+# create_navy_leader
+	# Creates a naval leader for a country
+		# 创建一个海军将领
+			# create_navy_leader = {
+				name = "Boaty McBoatface"
+				gfx = "GFX_BoatfacesFace"
+				traits = { ... }
+				skill = 3
+			}
+				# 1.0
+
+# create_field_marshal
+	# Creates a field marshal
+		# 创建一个陆军元帅
+			# create_field_marshal = {
+				name = "Dude McCoolDude"
+				picture = "GFX_CoolDudesFace.dds"
+				traits = { ... }
+				skill = 3
+			}
+				# 1.0
+
+# create_corps_commander
+	# Creates a corps commander
+		# 创建一个陆军上将
+			# create_corps_commander = {
+				name = "Dude McCoolDude"
+				picture = "GFX_CoolDudesFace.dds"
+				traits = { ... }
+				skill = 3
+			}
+				# 1.0
+
+# remove_unit_leader_trait
+	# Removes a trait from a unit leader
+		# 删除当前的指挥者一个特质（需测试）
+			# ''Needs to be tested'' # 1.0
+
+# add_unit_leader_trait
+	# Add a trait to a unit leader
+		# 增加当前的指挥者一个特质（需测试）
+			# ''Needs to be tested'' # 1.0
+
+# keep_unit_leaders
+	# Flags unit leaders to be kept during a civil war.
+		# 确保在内战中属于本国的指挥官
+			# keep_unit_leaders = { UNIT_LEADER_ID } # 1.0
+
+# remove_unit_leader
+	# Removes a unit leader
+		# 删除一个指挥官
+			# remove_unit_leader = leader_id # 1.0
+
+# retire_country_leader
+	# Removes a country leader and replaces him with another candidate from the same party
+		# 删除一个国家领导人，同政党另一候选人取代他
+			# retire_country_leader = yes # 1.0
+
+# kill_country_leader
+	# Removes a country leader completely
+		# 彻底删除一个国家领导人（去世了）
+			# kill_country_leader = yes # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Army Commands（军事指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# add_manpower
+	# Adds manpower to a state or country
+		# 增加人力到地区或国家
+			# add_manpower = 8000 # 1.0
+
+# create_unit
+	# Creates a new unit
+		# 创建一个新单元
+			# create_unit = { division = name = "COOL_NAME" division_template = "COOL_TEMPLATE" starting_experience_factor = 1.0 } # 1.3
+
+# division_template
+	# Adds a division template to a country
+		# 增加一个模板部门到国家
+			# division_template = { name = "Cool Name" regiments = { infantry = { No = 0 Yes = 0 } infantry = { No = 1 Yes = 0 } } } # 1.0
+
+# load_oob
+	# Loads an OOB file
+		# 载入一个第三方文本
+			# load_oob = SOV_reinforcements # 1.0
+
+# army_experience
+	# Adds army experience
+		# 增加陆军经验
+			# army_experience = 10 # 1.0
+
+# navy_experience
+	# Adds navy experi经验ence
+		# 增加海军
+			# navy_experience = 10 # 1.0
+
+# air_experience
+	# Adds air experience
+		# 增加空军经验
+			# air_experience = 10 # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Equipment Commands（装备指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# create_equipment_variant
+	# Creates a new equipment variant
+		# 创建一个新装备变体（改进型）
+			# create_equipment_variant = {
+				name = "Montecuccoli Class"
+				type = light_cruiser_1
+				upgrades = {
+					ship_reliability_upgrade = 3
+					ship_engine_upgrade = 3
+					ship_gun_upgrade = 3
+					ship_anti_air_upgrade = 3
+				}
+			}
+				# 1.0
+ 
+# add_equipment_production
+	# Add equipment production
+		# 增加装备生产
+			# add_equipment_production = {
+				equipment = {
+					type = light_cruiser_1
+					creator = "ITA"
+					version_name = "Montecuccoli Class"
+				}
+				requested_factories = 1
+				progress = 0.95
+				amount = 1
+			}
+				# 1.0
+
+# add_ace
+	# Adds an air ace
+		# 增加飞行员
+			# add_ace = { name = "Amelia" surname = "Earhart" callsign = "Revenant" type = fighter_genius is_female = yes } # 1.0
+
+# add_equipment_to_stockpile
+	# Adds equipment to stockpile of the country in question
+		# 增加国家储备中的装备数量
+			# add_equipment_to_stockpile = { type = convoy_1 amount = 50 producer = <TAG> } # 1.0
+
+# send_equipment
+	# Sends equipment to a country
+		# 赠送装备给一个国家
+			# send_equipment = { target = FIN type = infantry_equipment amount = 500 } # 1.0
+
+# set_equipment_fraction
+	# Gives a fraction of your equipment to another country
+		# 把装备按比例给一个国家
+			# set_equipment_fraction = 0.35 # 1.0
+
+# create_production_license
+	# Creates production license
+		# 创建生产许可
+			# create_production_license = { target = HUN cost_factor = 1.0 equipment = { type = light_tank_equipment_2 version = 0 } # 1.4
+
+# transfer_ship
+	# Transfer of the ship to another country
+		# 转移舰队到别国
+			# ENG = { transfer_ship = { prefer_name = "HMS Achilles" type = light_cruiser target = NZL } # 1.4
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> National Focus Commands（国策指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# unlock_national_focus
+	# Unlocks a national focus for a country
+		# 解锁一个国策
+			# unlock_national_focus = focus_id # 1.0
+
+# complete_national_focus
+	# Completes a national focus
+		# 完成一个国策
+			# complete_national_focus = focus_id # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Ideas Commands（理念指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# add_ideas
+	# Adds idea(s) to a country
+		# 增加决议
+			# add_ideas = ENG_king_edward # 1.0
+
+# add_timed_idea
+	# Adds a time limited idea to a country
+		# 增加临时决议
+			# add_timed_idea = { idea = idea_id days = 50 } # 1.0
+
+# swap_ideas
+	# Swaps two ideas, showing the difference
+		# 交换决议，显示差异
+			# swap_ideas = { remove_idea = REM_IDEA_ID add_idea = ADD_IDEA_ID } # 1.3
+
+# remove_ideas
+	# Removes idea(s) from a country
+		# 删除决议
+			# remove_ideas = ENG_king_edward # 1.0
+
+# remove_ideas_with_trait
+	# Removes ideas with specific traits
+		# 删除决议从指定特质中
+			# remove_ideas_with_trait = motorized_equipment_manufacturer # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Event Commands（事件指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# country_event
+	# Fires an event
+		# 触发事件
+			# country_event = { days = 1 id = finland.1 } # 1.0
+
+# state_event
+	# Fires a state event
+		# 触发事件状态
+			# state_event = stateevent.1 # 1.0
+
+# news_event
+	# Triggers a news event
+		# 触发新闻事件
+			# news_event = news_event.251 # 1.0
+
+# save_event_target_as
+	# Save an event target as something
+		# 为某事物保持目标事件
+			# save_event_target_as = war_target # 1.0
+
+# save_global_event_target_as
+	# Save a global event target as something
+		# 为某事物保持全球目标事件
+			# save_global_event_target_as = war_target # 1.0
+
+# clear_global_event_target
+	# Removes a global event target
+		# 删除全球目标事件
+			# clear_global_event_target = war_target # 1.0
+
+# clear_global_event_targets
+	# Removes all global event targets
+		# 删除全部全球目标事件
+			# clear_global_event_targets = war_target # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Flag Commands（标记指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# set_state_flag
+	# Sets a state flag
+		# 设定地区标记
+			# 353 = { set_state_flag = test_flag } # 1.0
+
+# clr_state_flag
+	# Removes a state flag
+		# 删除地区标记
+			# 353 = { clr_state_flag = test_flag } # 1.0
+
+# set_country_flag
+	# Sets a country flag
+		# 设定国家标记
+			# set_country_flag = anschluss OR set_country_flag = { flag = GER_drunk_scientists days = 120 value = 1 } # 1.0
+
+# modify_country_flag
+	# Modifies a variable flag
+		# 修改可变标记
+			# modify_country_flag = { flag = GER_drunk_scientists value = 1 } # 1.3
+
+# clr_country_flag
+	# Removes a country flag
+		# 删除国家标记
+			# clr_country_flag = anschluss # 1.0
+
+# set_global_flag
+	# Sets a global flag
+		# 设定全球标记
+			# set_global_flag = spanish_civil_war # 1.0
+
+# clr_global_flag
+	# Removes a global flag
+		# 删除全球标记
+			# clr_global_flag = spanish_civil_war # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> State and Province Commands（国家和地区指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# set_state_name
+	# Changes the name of a state
+		# 改变地区名
+			# 32 = { set_state_name = "Funland" } # 1.3
+
+# reset_state_name
+	# Resets state name to original
+		# 重置地区名
+			# 32 = { reset_state_name = yes } # 1.3
+
+# set_province_name
+	# Changes the name of a province
+		# 改变一个省名
+			# set_province_name = { id = 325 name = "Funville" } # 1.3
+
+# reset_province_name
+	# Resets province name to original
+		# 重置一个省名
+			# reset_province_name = 325 # 1.3
+
+# add_state_core
+	# Adds cores on a specified state
+		# 增加指定地区的核心
+			# add_state_core = 345 # 1.0
+
+# remove_state_core
+	# Removes cores from a state
+		# 删除指定地区的核心
+			# remove_state_core = 345 # 1.0
+
+# set_capital
+	# Moves capital to specified state
+		# 迁都到指定地区
+			# set_capital = 345 # 1.0
+
+# add_state_claim
+	# Add claims on a state
+		# 增加指定地区的声索权（夺取地区）
+			# add_state_claim = 363 # 1.0
+
+# remove_state_claim
+	# Removes claims on a state
+		# 删除指定地区的声索权（失去地区）
+			# remove_state_claim = 363 # 1.0
+
+# set_state_owner
+	# Sets the owner of a state
+		# 设定一个地区的所有国
+			# USA = { set_state_owner = 353 } # 1.0
+
+# set_state_controller
+	# Sets the controller of a state
+		# 设定一个地区的占领国
+			# USA = { set_state_controller = 353 } # 1.0
+
+# transfer_state
+	# Sets the owner and controller of a state
+		# 设定一个地区的所有和占领国
+			# USA = { transfer_state = 353 } # 1.0
+
+# add_claim_by
+	# Add state claim by a country
+		# 增加地区声索国
+			# any_owned_state = { add_claim_by = SOV } # 1.0
+
+# remove_claim_by
+	# Removes state claim from a country
+		# 删除地区声索国
+			# any_owned_state = { remove_claim_by = SOV } # 1.0
+
+# add_core_of
+	# Adds cores of a country to a state
+		# 增加地区某国核心
+			# any_owned_state = { add_core_of = SOV } # 1.0
+
+# remove_core_of
+	# Removes cores of a country from a state
+		# 删除地区某国核心
+			# any_owned_state = { remove_core_of = SOV } # 1.0
+
+# set_demilitarized_zone
+	# Sets a state as a demilitarized zone
+		# 设置非军事区
+			# any_owned_state = { set_demilitarized_zone = yes } # 1.0
+
+# set_border_war
+	# Starts a border war (Do not use unless you know exactly how, works bad.)
+		# 开始边境战争（除非你确切知道如何使用，否则不好用。）
+			# 605 = { set_border_war = yes } # 1.0
+
+# set_province_controller
+	# Set controller of a province
+		# 设定一个省的占领者
+			# TAG = { set_province_controller = province_id }  # 1.0
+
+# goto_province
+	# Goes to specified province
+		# 转到特定地块
+			# goto_province = 11302 # 1.0
+
+# goto_state
+	# Goes to specified state
+		# 转到指定地区
+			# goto_state = 150 # 1.0
+
+# add_extra_state_shared_building_slots
+	# Add extra building slots to a state
+		# 增加地区额外建筑位置
+			# random_owned_state = { add_extra_state_shared_building_slots = 2 } # 1.0
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Buildings and Industrial Commands（建筑和工业指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# set_building_level
+	# Sets specific level of a building construction for amount of levels in specified state or province
+		# 设定指定地区建筑物及等级
+			# 69 = { set_building_level = { type = bunker level = 3 province = { all_provinces = yes limit_to_border = yes level < 3	} } # 1.4
+
+# damage_building
+	# Damages a building in state
+		# 破坏地区建筑物及比例
+			# damage_building = { type = industrial_complex damage = 0.6 } # 1.3
+
+# remove_building # Removes
+	# a specified building from a specified state or province
+		# 指定建筑物到指定地区
+			# 219 = { remove_building = { type = arms_factory level = 5 } } # 1.0
+
+# add_building_construction
+	# Starts a building construction within a state or a province
+		# 开启地区内地块工程
+			# 18 = { add_building_construction = { type = bunker province = 5291 level = 2 instant_build = yes } } # 1.0
+
+# add_resource
+	# Adds resource production to a state
+		# 增加地区资源
+			# add_resource = { type = oil amount = 8 state = 662 } # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Research Commands（研究指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# add_research_slot
+	# Adds set number of research slots
+		# 增设研究槽数
+			# add_research_slot = 2 # 1.0
+
+# set_research_slots
+	# Sets the number of research slots
+		# 设定研究槽数
+			# set_research_slots = 4 # 1.0
+
+# add_tech_bonus
+	# Adds a limited tech bonus
+		# 增加研究效率
+			# add_tech_bonus = { bonus = 0.5 uses = 2 category = radar_tech } # 1.0
+
+# add_to_tech_sharing_group
+	# Adds a country to a tech sharing group
+		# 增加科技共享内容
+			# add_to_tech_sharing_group = tizard_mission # 1.3
+
+# remove_from_tech_sharing_group
+	# Removes a country from a tech sharing group
+		# 删除科技共享内容
+			# remove_from_tech_sharing_group = tizard_mission # 1.3
+
+# set_technology
+	# Set technology level of a country
+		# 设定国家科技等级
+			# set_technology = { suicide_craft = 1 } # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Miscellaneous Commands（其他指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# set_cosmetic_tag
+	# Sets a cosmetic TAG for a country
+		# 设定国家美化标记
+			# set_cosmetic_tag = SAF_SOV_communism # 1.3
+ 
+# drop_cosmetic_tag
+	# Removes a cosmetic TAG for a country
+		# 删除国家美化标记
+			# drop_cosmetic_tag = yes # 1.3
+
+# random
+	# Random effect with a probability
+		# 出现效果随机率
+			# random = { 50 = { add_political_power = 50 } } # 1.0
+
+# random_list
+	# Chooses an effect randomly from a list based on their probabilities
+		# 根据几率选择效果
+			# random_list = { 70 = { add_political_power = 200 } 30 = { add_political_power = -100 } } # 1.0
+
+# sound_effect
+	# Plays a sound effect
+		# 播放音乐
+			# sound_effect = sound_effect_name # 1.0
+
+# randomize_weather
+	# Randomizes weather
+		# 随机天气（需测试）
+			# ''Needs to be tested'' # 1.0
+
+# break
+	# Break execution of effects
+		# 随机终止效果（需测试）
+			# ''Needs to be tested'' # 1.0
+
+# tdebug
+	# Adds additional information to tooltips for states and provinces, such as the state ID and province ID.
+		# 增加了额外的信息，为国家和省的提示，如国家和省身份ID。
+			# tdebug # 1.0
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Additional Commands（额外指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+（可用于事件和国策的附加命令）
+
+# limit
+	# Defines the limits of a scope
+		# 限制定义的范围
+			# any_neighbor_country = { limit = { has_war = yes } }
+
+# hidden_trigger
+	# Any triggers inside will not be shown as a tooltip
+		# 内的任何触发都不会显示提示
+			# hidden_trigger = { ... }
+
+# custom_trigger_tooltip
+	# Works as a trigger with a custom tooltip
+		# 使用自定义作为触发
+			# custom_trigger_tooltip = { tooltip = my_tooltip ...LIST OF TRIGGERS... }
+
+# custom_effect_tooltip
+	# Shows a custom tooltip
+		# 显示自定义提示
+			# custom_effect_tooltip = nationalists_chosen
+
+# hidden_effect
+	# Effects not shown in the tooltip
+		# 提示中不显示的效果
+			# hidden_effect = { USA = { country_event = USA.10 } }
+ 
+# if
+	# Effects that happen only if conditions defined by ''limit'' are met
+		# 只有满足“limit”条件才能发生效果
+			# if = { limit = { tag = GER } }
+
+# effect_tooltip
+	# Shows just the tooltip of the effects
+		#只显示效果提示
+			# effect_tooltip = { ... }
+
+# show_ideas_tooltip
+	# Show what an idea does
+		# 显示某个理念
+			# show_ideas_tooltip = idea_id
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Diplomatic Relations（外交关系） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+命令中的许多都是可能不那么明显的附加选项。一个例子是diplomatic_relations命令。
+
+# diplomatic_relation = { country = SOV relation = guarantee active = no }
+
+#####################################################################################################################################################
+#########          Event modding（事件修改）
+#####################################################################################################################################################
+
+# A regular event must contain the following:
+	# 常规事件必须包含以下内容：
+# A unique id
+	# 一个唯一的ID
+# A title
+	# 一个标题
+# A description
+	# 一个描述
+# A picture
+	# 一个图片
+# A trigger and "mean time to happen"
+	# 一个触发条件和“预定发生时间”
+# Alternatively, it can be marked as "is_triggered_only = yes", meaning it is only triggered by a command.
+	# 或者，它可以表示为“is_triggered_only =yes”意思是只能指令触发。
+# One or more options for the player or AI to pick.
+	# 玩家或AI选择的一个或多个选项
+# Optional: localisation
+	# 选项：本地化（语言）文本
+
+# A news event must contain the following:
+	# 一个新闻事件必须包含以下内容：
+# A unique id
+	# 一个唯一的ID
+# A picture
+	# 一个图片
+# A trigger and "mean time to happen"
+	# 一个触发条件和“预定发生时间”
+# Alternatively, it can be marked as "is_triggered_only = yes", meaning it is only triggered by a command.
+	# 或者，它可以表示为“is_triggered_only =yes”意思是只能指令触发。
+# One or more options for the player or AI to pick.
+	# 玩家或AI选择的一个或多个选项
+# Optional: localisation
+	# 选项：本地化（语言）文本
+
+以下是一个常规事件示例：
+
+country_event = {
+	id = nuke_dropped.0							# The unique id. nuke_dropped is the namespace, which can be used for better organization.
+													# 唯一的ID。nuke_dropped是命名空间，可用于更好的组织。
+	title = nuke_dropped.0.t					# The localisable text that appears as a header
+													# localisable文本显示那是一个标题头
+	desc = nuke_dropped.0.d						# The localisable main text body that appears
+													# localisable文本显示主要内容
+	picture = GFX_report_event_election_vote	# Image displayed alongside the text.
+													# 显示在文本旁边的图像。
+	is_triggered_only = yes						# Optional : if set to "yes" the event will only occur by command
+													# 选项：如果设定为“是”，则事件只由指令激活。
+	hidden = yes								# Optional : if set to "yes" no one will see the event
+													# 选项：如果设定为“是”，没人会看到事件。
+	fire_only_once = yes						# Optional : if set to "yes" the event will never occur more than once
+													# 选项：如果设定为“是”，事件将不会超过一次。
+	immediate = {								# Optional : all the following will occur once the event occurs
+		if = {										# 选项：事件发生后，以下都会发生
+			limit = {
+				tag = ITA
+				has_government = fascism
+				FROM = { state = 378 }
+			}
+			set_country_flag = duce_nukedem_flag
+		}
+		news_event = { id = nuke_dropped.1 days = 1 }
+	}
+	
+	option = {									# This is an example of an option that has no function
+													# 这个示例没有函数的选项
+		name = dummy_nuke_option.1.a			# The localisable text that appears on the button.
+													# localisable文本显示在按钮上。
+	}
+	option = {									# This is an example of an option that has a function
+													# 这个示例没有函数的选项
+		name = dummy_nuke_option.1.b			# The localisable text that appears on the button.
+													# localisable文本显示在按钮上。
+		add_political_power = 100
+	}
+}
+
+以下是一个新闻事件示例：
+
+news_event = {
+	id = nuke_dropped.0							# The unique id. nuke_dropped is the namespace, which can be used for better organization, and is used in localisation.
+													# 唯一ID。nuke_dropped是命名空间，可用于更好的组织，并用于本地化（语言）文本。
+	picture = GFX_news_event_nuke				# Image displayed alongside the text.
+													# 显示在文本旁边的图像。
+	major = yes									# Optional : if set to "yes" every country in the world will see this event
+													# 选项：如果设定为“是”，世界上每个国家都会看到这个事件。
+	is_triggered_only = yes						# Optional : if set to "yes" the event will only occur by command
+													# 选项：如果设定为“是”，则事件只由指令激活。
+	hidden = yes								# Optional : if set to "yes" no one will see the event
+													# 选项：如果设定为“是”，没人会看到事件。
+	fire_only_once = yes						# Optional : if set to "yes" the event will never occur more than once
+													# 选项：如果设定为“是”，事件将不会超过一次。
+	immediate = {								# Optional : all the following will occur once the event occurs
+		if = {										# 选项：事件发生后，以下都会发生
+			limit = {
+				tag = ITA
+				has_government = fascism
+				FROM = { state = 378 }
+			}
+			set_country_flag = duce_nukedem_flag
+		}
+		news_event = { id = nuke_dropped.1 days = 1 }
+	}
+	
+	option = {									# This is an example of an option that has no function
+													# 这个示例没有函数的选项
+		name = dummy_nuke_option.1.a			# The localisable text that appears on the button.
+													# localisable文本显示在按钮上。
+	}
+	option = {									# This is an example of an option that has a function ( usually not done on a news event )
+													# 这个示例没有函数的选项（通常不在新闻事件中）
+		name = dummy_nuke_option.1.b			# The localisable text that appears on the button.
+													# localisable文本显示在按钮上。
+		add_political_power = 100
+	}
+}
+
+# The two types of events are news_event and country_event.
+# news_event is generally used to notify players about stuff.
+# country_event is generally used to make the player/ai decide something.
+# The Meantime to Happen, usually referred to as MTTH,
+# states the average time it will take for the event to occur
+	# 这两种类型的事件news_event和country_event。
+	# news_event通常用来通知全员有关的东西。
+	# country_event一般是用来让玩家与AI决定某事。
+	# 同时发生的，通常称为MTTH，
+	# 说明事件发生的平均时间。
+
+	mean_time_to_happen = {
+		days = 500
+		modifier = {
+			factor = 0.4						# If true multiply 500 by 0.4 = 200
+													# 如果成立则500乘以0.4等于200
+			NOT = { country_exists = SOV }
+		}
+		modifier = {
+			factor = 0.4						# If true multiply 200 by 0.4 = 40
+													# 如果成立则200乘以0.4等于40
+			NOT = { country_exists = ENG }
+		}
+		modifier = {
+			factor = 0.1						# If true multiply 40 by 0.1 = 4
+													# 如果成立则40乘以0.1等于4
+			NOT = { country_exists = ENG }
+			NOT = { country_exists = SOV }
+		}
+	}
+
+# The Trigger block is what is required for the event to fire. The event console command ignores this block.
+	# 触发限制是触发事件所需要的。事件控制指令忽略此限制。
+
+	trigger = {
+		country_exists = USA
+	}
+
+# It is possible to have multiple descriptions for the same event.
+# For this, you need a "text" (the description name) and a trigger - these can NOT be the same as the other description. For example:
+	# 对同一事件可以有多个描述。
+	# 为此，您需要一个“文本”（描述名称）和一个触发条件，它们不能与其他描述相同。例如:
+
+	desc = {									# This is the first description, it will be used if the ace pilot is promoted in any country except the major ones (listed below).
+													# 这是第一个描述，除了在主要国家以外使用被提升的王牌飞行员（以下列出）
+		text = ace_promoted.1.d					# this is the localisable text name, which needs to be unique.
+													# 这是localisable文本名称，需要唯一的。
+		trigger = {								#this is needed trigger.
+													# 这是必要的触发条件。
+			NOT = { tag = GER }					#This means that the description will not trigger if the pilot is promoted in Germany, Italy, France, Japan, the United States, the United Kingdom or the Soviet Union.
+			NOT = { tag = ITA }						# 这意味着，如果飞行员在德国、意大利、法国、日本、美国、英国或苏联被使用，就不会触发这一描述。
+			NOT = { tag = FRA }
+			NOT = { tag = JAP }
+			NOT = { tag = USA }
+			NOT = { tag = ENG }
+			NOT = { tag = SOV }
+		}
+	}
+	desc = {									#This is the second description, it will be used if the ace pilot is promoted in any major country (of the ones listed below).
+													# 这是第二个描述，如果王牌飞行员在任何主要国家（以下列出的国家）被提拔，它将被使用。
+		text = ace_promoted.1.d_major
+		trigger = {
+			OR = {
+				tag = GER						#This means that the description will only trigger if the pilot is promoted in Germany, Italy, France, Japan, the United States, the United Kingdom or the Soviet Union.
+				tag = ITA							# 这意味着，如果飞行员在德国、意大利、法国、日本、美国、英国或苏联被推广，只会引发描述。
+				tag = FRA
+				tag = JAP
+				tag = USA
+				tag = ENG
+				tag = SOV
+			}
+		}
+	}
+
+#####################################################################################################################################################
+#########          Decision modding（决议修改）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Decision path（决议路径） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# 决议路径{common/decisions}，决议类型路径{common/decisions/categories}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Creating a category（创建类型） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# All decisions need to sit inside a category - this can house multiple decisions, and can have it's own picture and description.
+# A basic category is as follows - throughout the page we will use the example of creating a category about looking for new resource.
+	# 所有的决议都需要安排进同一个类别内-这可以容纳多个决议，并且可拥有自己的图片和描述。
+	# 基本类型如下：在整个页面中，将用创建新资源的类型作示例。
+
+# To create a category you need to add a file in decisions/categories, this can be in {{path|custom=1|00_decision_categories.txt}}, or a different file.
+# The category entry is as follows:
+	# 创建一个类型，你需要添加决议/类型文件，这可以在{path|custom=1|00_decision_categories.txt}，或一个不同的文件。
+	# 类型条目如下所示：
+
+	find_resources = {
+		icon = generic_prospect_for_resources
+	}
+
+# This is the simplest type of category, and will appear always no matter what.
+# You can also add conditions such as available and visible like in normal decisions if you want the category to appear under specific circumstances.
+# For example:
+	# 这是最简单的类别，无论发生什么都会出现。
+	# 你如果在标准 决议中添加可用和可见等条件就能使类别在特定情况下出现。
+	# 例如：
+
+	find_resources = {
+		icon = generic_prospect_for_resources
+		available = { 
+		num_of_civilian_factories > 3
+	}
+ }
+# This will make the decision category only appear if you have more than 3 civilian factories regardless of whether the decisions inside meet their requirements.
+	# 只要你拥有超过3个民用工厂无论是否满足内部决议要求决议类型都会显现。
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Creating a decision（创建决议） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# Decisions need to sit nestled inside a category - let's take our category of prospecting resources and give the country a decision to improve rural infrastructure:
+	# 决议需要安置在一个类型内-来创建一个探矿资源类型和改善农村基础设施的决议
+
+	find_resources = {
+		develop_infrastructure = {
+			
+		}
+	}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Decision effects（决议效果） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# Decisions have effects using ''complete_effect''. This is nestled inside the decision, and defines what will happen when the decision is ''selected''.
+# Let's give our option to improve rural infrastructure the effect of actually improving infrastructure in a random state for the cost of 500 manpower:
+	# 决议使用“complete_effect”拥有效果。这安置金决议，并定义了“selected”选中决议后将发生什么。
+	# 以500人力为代价选择改善农村基础设施的随机状态（改善基础设施）：
+
+	find_resources = {
+		develop_infrastructure = {
+			complete_effect = {
+				random_owned_state = {
+					add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				}
+				add_manpower = -500
+			}
+		}
+	}
+
+# For more information on ''random_owned_state'', see [[scopes]], and for more information on ''add_building_construction'' and ''add_manpower'', see [[commands]]
+	# 关于“random_owned_state”的信息参考[ [scopes]范围 ]，和“add_building_construction”和“add_manpower”的更多信息参考[ [commands]指令 ]
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Decision availability（决议可用性） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# You will want to make some decisions available only under certain circumstances.
+# For example, our decision to develop infrastructure should only be available if the country has more than 500 manpower to spend.
+# This can be achieved by a ''available'' block, as follows:
+	# 你想在某一情况下做出些决议。
+	# 例如，是否要在人力超过500时花费人力来发展基础设施
+	# 这可以通过“available”许可限制来实现，比如：
+
+	find_resources = {
+		develop_infrastructure = {
+			available = {
+				has_manpower > 500
+			}
+			complete_effect = {
+				random_owned_state = {
+					add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				}
+				add_manpower = -500
+			}
+		}
+	}
+
+# For more information on ''has_manpower'' and other conditions, see [[conditions]]
+	# 关于“has_manpower”和其他条件的更多信息参考[ [conditions]条件 ]
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Decision cost（决议成本） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# You may also want your decision to cost political power to begin. Let us give our decision the cost of 50 political power:
+	# 你也可以一开始就让决议花费政治力。让我们给决议花费50政治力：
+
+	find_resources = {
+		develop_infrastructure = {
+			cost = 50
+			available = {
+				has_manpower > 500
+			}
+			complete_effect = {
+				random_owned_state = {
+					add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				}
+				add_manpower = -500
+			}
+		}
+	}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Decision visibility（决议可见性） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# A decision may not always need to be visible on the decision tab, to avoid cluttering it up.
+# In order to avoid clutter we only want the decision to appear if the player has more than 0 manpower, as follows:
+	# 一个决议可能并不总是需要在决议列表中可见，以避免混乱。
+	# 为了避免混乱，我们想玩家只在拥有超过0人力的情况下做出决定，比如：
+
+	find_resources = {
+		develop_infrastructure = {
+			visible = {
+				has_manpower > 0
+			}
+			cost = 50
+			available = {
+				has_manpower > 500
+			}
+			complete_effect = {
+				random_owned_state = {
+					add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				}
+				add_manpower = -500
+			}
+		}
+	}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Stay a while, come back again（停留时间，再次重复） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# You may wish for your decision to remain in the category for a short while after it has been completed, or you may wish for it to return after a short time.
+# Equally you might wish for your decision to only be used once. These can all be achieved as follows:
+	# 你或许希望你的决议在完成后暂时保留在类型中，或者你希望它在短时间内返回。
+	#同样你可能希望你的决定只被使用一次。这些都可以通过以下实现：
+
+	days_remove = 5			# Stays for 5 days before being removed
+								# 被删除前停留5天
+	days_re_enable = 5		# Will show up in the interface and can be selected again after 5 days
+								# 将出现在界面中5天后可再次选择
+	fire_only_once = yes	# Will not re-enable after being removed
+								# 删除后不会重新启用
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Removal effects（删除效果） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# After a decision has run its course (i.e. the ''days_remove'' you have set the decision to), you may want an effect to happen.
+# Taking the example of our infrastructure decision, we want to return the manpower after 10 days:
+	# 在一个决议结束之后（即你将决定“'days_remove”），你可能要发生的效果。
+	# 以我们的基础设施决议为例，我们想在10天后归还人力：
+
+	find_resources = {
+		develop_infrastructure = {
+			visible = {
+				has_manpower > 0
+			}
+			cost = 50
+			available = {
+				has_manpower > 500
+			}
+			complete_effect = {
+				random_owned_state = {
+					add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				}
+				add_manpower = -500
+			}  
+			days_remove = 10
+			remove_effect = {
+				add_manpower = 500
+			}
+		}
+	}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Decision modifiers（决议修改） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Using decisions you can have a modifier acting for only a certain amount of time.
+# Using a ''modifier'' block does this for as long as the decision is active (set using the ''days_remove'' statement).
+# Our current decision is getting a bit busy now, so here's a new one that gives a 10% resource production bonus for 200 days when activated,
+# for the cost of 100 political power and can only be used once:
+	# 你在使用限定时间的决议时能用修改语句。
+	# 不只是记记决议使用“modifier”修改语句限制（用“days_remove”表明）
+	# 我们当前决议忙碌，如此这里有了当激活200天时提供10%的资源生产效果的新决议
+	# 花费100的政治力量且只能使用一次：
+
+	find_resources = {
+		resource_spree = {
+			cost = 100
+			fire_only_once = yes
+			modifier = {
+				local_resources_factor = 0.1
+			}
+			days_remove = 200
+		}
+	}
+
+# For more on ''local_resource_factor'', see [[modifiers]]
+	# 更多“local_resource_factor”详见[ [modifiers]修改 ]
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Targeted decisions（决议针对性） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Sometimes you want one decision to target multiple tags - rather than writing the same decision multiple times to target each country,you can instead use a targeted decision.
+# In targeted decisions, ''FROM'' refers to (confusingly) the target of the decision, rather than the sender.
+# Here's a new decision giving a country the ability to give Germany,
+# the USA and Japan an infrastructure in a random state at the cost of 50 political power and 500 manpower for the sender:
+	# 有时候你想要一个决议锁定多个标记-而不是多次写一个决议锁定每个国家，可以使用有针对性的决议。
+	# 在有针对性的决议，“FROM”是指（confusingly 混合）目标决议，而非发送。
+	# 这有一个以50的政治力量和500的人力为成本赋予德国，美国和日本基础设施随机状态能力的新决议。
+
+	find_resources = {
+		help_others = {
+			target_trigger = {
+				FROM = {
+					OR = {
+						tag = GER
+						tag = USA
+						tag = JAP
+					}
+				}
+			}
+			cost = 50
+			fire_only_once = yes
+			complete_effect = {
+				FROM = {
+					random_owned_state = {
+						add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+					}
+				}
+				add_manpower = -500
+			}
+		}
+	}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Activating targeted decisions（激活目标决议） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Since target_trigger is checked for every country it can have quite a heavy effect on performance.
+# If you simply want to add a targeted decision against a specific country from a focus you can do it by using an effect.
+	# 因为target_trigger是检查每个国家会对性能产生相当大的影响。
+	# 如果添加一个针对特定国家国策的特定决议可以通过使用效果来决定。
+
+	# activate_targeted_decision = { target = TAG decision = decision_to_activate }
+		# 
+
+# Note: FROM can be used here in place of a tag
+	# 注意：FROM可以代替标签
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Notes on testing（测试记录） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Target triggers may not be evaluated immediately.
+# When testing triggers, give the game some time to reprocess / evaluate it, rather than erroneously assuming a coding error right away.
+# This explicitly includes after unlocking the visible/available triggers through another action (decision made, national focus completed, etc.).
+	# 触发目标可能不会立即被评估。
+	# 触发测试时，给游戏一段时间后/评估它，而不是错误地假设一个编码错误。
+	# 这显式包括在通过触发另一个可见/可用打开动作之后（作出决定、完成国策等）。
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Missions（任务） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Missions follow the same basic principle as decisions.
+# These also sit inside a category - for missions we will build up a new category and a new mission, this time about Polish conquest of Berlin.
+# Here is our complete mission inside a category - don't worry if it goes over your head, we'll break it down piece by piece:
+	# 任务遵循与决议相同的基本原则。
+	# 这些也属于一个类型-我们将建立一个新的类别和一个新任务，这次是关于波兰征服柏林。
+	# 这里是我们在一个类型内的完整任务-不要担心它能否越过你的头，我们会渐渐地打破它：
+
+	polish_conquest = {							# This is our category
+													# 这是类型
+		conquer_berlin = {						# This is our mission id
+													# 这是任务ID
+			allowed = { tag = POL }				# This mission is only allowed for Poland. Other countries will not be able to see it or activate it.
+													# 这次任务只允许在波兰进行。其他国家将无法看到或激活它。
+			available = {						# Available here means as much as goal because:
+													# 这里是可用目标的意思因为：
+				controls_state = 64				# we can only finish this mission if we control state 65 (Berlin)
+													# 我们只有控制地区64（柏林）才能完成这项任务
+			}
+			activation = {						# The mission appears and starts counting down under these circumstances:
+													# 在这种情况下任务出现并开始计数：
+				has_war_with = GER				# War with Germany
+													# 与德国的战争
+			}
+			is_good = yes						# This mission is color coded to be a positive thing (not a crisis)
+													# 这任务是个积极地彩色编码（不是危机）
+			days_mission_timeout = 100			# How many days before the mission fails?
+													# 多少天后任务失败？
+			timeout_effect = {					# What happens when we fail the mission?
+													# 失败后会发生什么？
+				add_political_power = -50		# Lose 50 PP
+													# 失去50政治力
+			}
+			complete_effect = {					# What happens when we activate the mission i.e. mission success?
+													# 激活任务胜利后会发生什么？
+				add_political_power = 50		# Gain 50 PP
+													# 得到50政治力
+			}
+		}
+	}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Localising categories, decisions and missions（本地语言类型，决议和任务） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Both categories and decisions are localised in a similar way to focus trees. To localise our category and decision, we will have a localisation file as such:
+	# 这两个类型和决议都以类似于国策的本地语言。把类型和决议本地语言化。我们将有一个本地语言化等文件：
+
+	find_resources:0 "Find Resources"
+		# “查找资源”
+	find_resources_desc:0 "To increase the military might of our nation, we must find more natural resources within our borders to exploit"
+		# “为了增加我们国家的军事实力，我们必须在边界开采更多找到的自然资源。”
+
+	develop_infrastructure:0 "Develop Infrastructure"
+		# “发展基础设施”
+	develop_infrastructure_desc:0 "In order to access our natural resources more effectively, we must develop rural infrastructure!"
+		# “为了更有效地利用我们的自然资源，我们必须发展农村基础设施！”
+
+	resource_spree:0 "Resource Spree"
+		# “资源狂欢”
+	resource_spree_desc:0 "We should go on a resource spree to increase production for a short time"
+		# “我们应该在短时间内增加产量进行资源狂欢”
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Localising targeted decisions（本地语言目标决议） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# We can use From to localise for our targeted country in targeted decisions, for example:
+	# 我们能通过本地语言针对目标国家的决议。例如：
+
+	# help_others:0 "Help [From.GetName] with their infrastructure"
+		# “协助[From.GetName]的基础设施”
+	# help_others_desc:0 "We should send some help to [From.GetName] for their rural infrastructure"
+		# 我们应该帮助[From.GetName]的农村基础设施建设
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Complete examples（完整样板） >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# Below are all the final versions of decisions and missions in this wiki page, in one category:
+	# 以下是wiki页面中所有决议和任务的最终版本，在同一类型内：
+
+	find_resources = {
+		develop_infrastructure = {
+			visible = {
+				has_manpower > 0
+			}
+			cost = 50
+			available = {
+				has_manpower > 500
+			}
+			complete_effect = {
+				random_owned_state = {
+					add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+				}
+				add_manpower = -500
+			}
+			days_remove = 10
+			remove_effect = {
+				add_manpower = 500
+			}
+		}
+		
+		resource_spree = {
+			cost = 100
+			fire_only_once = yes
+			modifier = {
+				local_resources_factor = 0.1
+			}
+			days_remove = 200
+		}
+		
+		help_others = {
+			target_trigger = {
+				OR = {
+					tag = GER
+					tag = USA
+					tag = JAP
+				}
+			}
+			cost = 50
+			fire_only_once = yes
+			complete_effect = {
+				FROM = {
+					random_owned_state = {
+						add_building_construction = { type = infrastructure level = 2 instant_build = yes }
+					}
+					add_manpower = -500
+				}
+			}
+		}
+	}
+
+#####################################################################################################################################################
+#########          Conditions（条件）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Examples（实例） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+例如，下面的命令将导致游戏中的每个国家举行选举：
+
+<pre>
+	every_country = {
+		hold_election = yes
+}
+</pre>
+
+# while this block will cause an election in every country with a democratic government:
+	# 而这个限制将导致每个国家都会民主政府选举
+
+<pre>
+	every_country = {
+		limit = {
+			has_government = democratic
+		}
+		hold_election = yes
+	}
+</pre>
+
+# While this simply shortens the list of entities affected, limits are also often used to narrow a random select:
+	# 虽然仅缩减受影响的群体，但是通常也缩小了随机选择的界限
+
+<pre>
+	random_country = {
+		limit = {
+			NOT = { has_war = yes }
+		}
+		# Do effect
+			# 效果
+	}
+</pre>
+
+这将选择一个没有战争的随机国家。
+（注意：不是<code>NOT = { has_war = yes }</code>当然也可能只是说<code>has_war = no</code>。
+这实际上是“''better '，但这种方式能够展示如何做一个简单的否定，与任何其他情况，并不是所有的都是反像这样简单的）。
+
+限制本身也可以使用作用域，但不是所有命令块中有效的作用域在条件作用域中也是有效的。
+例如<code>every_country</code>可以使用的命令，但条件<code>any_country</code>必须代替。
+如果至少有一个有民主政府的国家存在，该法典将导致在每个国家举行选举：
+
+<pre>
+	if = {
+		limit = {
+			any_country = {
+				has_government = democratic
+			}
+		}
+		every_country = {
+			hold_election = yes
+		}
+	}
+</pre>
+
+请注意在本例中使用<code>if</code>。简单地放在一个正常的命令作用域中会限制命令应用到的实体，但是命令总是被执行。
+另一方面，如<code>limit</code>代码确定了命令是否执行：如果<code>if</code>计算为<code>true</code>，则执行命令。否则，它们将被忽略。
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Operators（运行） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+虽然使用单一条件可以侥幸成功，但通常真正需要的是检查一组复杂的条件，这些条件必须存在于任何特定场景中才能应用。
+基本上，当问“战争的主题是什么？”很简单，通常你需要一个过滤器，比如“A与B打赢”，或者“A是C阵营，还是和B失去一场战争”？或者可能是“C与B联合，与A作战”？
+
+为此，有一组简单但功能强大的工具，作为普通逻辑语法的一部分：
+
+# AND
+# All conditions contained within must be true
+	# 所包含的所有条件必须是真实的。
+
+		AND = {
+			ai_irrationality > 50
+			has_war = yes
+		}
+
+# OR
+# At least one of the following conditions must be true
+	# 至少下列条件之一必须是真实的
+
+		OR = {
+			is_coastal = yes
+			free_building_slots > 5
+		}
+
+# NOT
+# Reverses the logic result of its content. That is, if the content is "True", then the result of the NOT is "False" and vice versa.
+	# 颠倒内容的逻辑结果。也就是说，如果内容为“true”，则“不”的结果是“false”，反之亦然。
+
+		NOT = {
+			has_global_flag = fall_of_france
+		}
+
+如果没有使用这些代码，则假定<code>AND</code>；显式的<code>AND</code>作用域最常用于<code>OR</code>范围内，或者解释其他难以读取的代码。
+
+更棒的是，你可以把它们嵌套在一起，以建立一个难以理解的灵活性的真正复杂的条件。
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> The Conditions（条件） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+这是目前已知的所有条件的列表。条件往往只适用于特定的[[Scopes]]，因为只有一个国家可以在战争中只有美国有机场，等等。
+运用常识，随时更新你用过的东西
+
+# check_variable
+	# Compares a variable to a number
+		# 比较变量数值
+			# Anywhere
+					# check_variable = { ai_random > temp } # 1.5.0
+
+# is_capital
+	# Is scope state a capital
+		# 拥有范围地区（地区所有资本）
+			# State
+					# 9 = { is_capital = yes }# 1.5.0 
+
+# political_power_daily
+	# Checks if daily political power increase is more or less that specified value
+		# 检查是否增减每日政治权利获得值
+			# Country
+					# political_power_daily > 1.5# 1.5.0 
+
+# count_triggers
+	# Returns true if the specified number of sub-triggers return true
+		# 是否因触发限定次数和内容而恢复原数据（触发计数）
+			# ???
+					# count_triggers = { amount = 2 <trigger> <trigger> <trigger> } # 1.5.0 
+
+# has_stability
+	# check value of stability 0-1
+		# 检查稳定值 0-1 %
+			# Country
+					# has_stability < 0.6 # 1.5.0 
+
+# has_war_support
+	# Check value of war_support 0-1
+		# 检查战争支持率 0-1 %
+			# Country
+					# has_war_support < 0.6 # 1.5.0 
+
+# is_assigned
+	# Checks if the current unit leader is assigned to command an army/navy
+		# 检查现任领导人是否被派去指挥军队
+			# Unit Leader
+					# is_assigned = yes # 1.5.0 
+
+# num_units
+	# Check number of units commanded by the unit leader
+		# 检查领导人所指挥的单位数量
+			# Unit Leader
+					# num_units > 2 # 1.5.0 
+
+# is_field_marshal
+	# Checks if the current unit leader is a field marshall
+		# 检查当前领导人是否是一名元帅
+			# Unit Leader
+					# is_field_marshal = yes # 1.5.0 
+
+# has_unit_leader_flag
+	#  Has unit leader flag been set. Check flag val date set and days since set.
+		# 领导人有无设定标识。检查标识的设定和时间
+			# Unit Leader
+					# has_unit_leader_flag = test_flag # 1.5.0 
+
+# has_decision
+	# Check if country has active selected decision
+		# 检查国家是否主动选择决议
+			# Country
+					# has_decision = PRC_uprising # 1.5.0 
+
+# command_power
+	# Checks if available command power is more or less that specified value
+		# 检查是否增减可获得的指挥点数的指定数值
+			# Country
+					# command_power > 1.5 # 1.5.0 
+
+# command_power_daily
+	# Checks if daily command power increase is more or less that specified value
+		# 检查是否增减每日增加的指挥点数的指定数值
+			# Country
+					# command_power_daily > 1.5 # 1.5.0 
+
+# is_fully_controlled_by
+	# Checks if state is fully controlled by specified tag
+		# 检查指定标签是否安全控制一个地区
+			# State
+					# is_fully_controlled_by = ROOT # 1.5.0 
+
+# has_ability
+	# Does unit leader have the ability. Checks if a unit leader has the ability.
+		# 领导人有无属性能力。检查领导人是否有属性能力
+			# Unit Leader
+					# has_ability = force_attack # 1.5.0 
+
+# has_variable
+	# Checks if a variable exists in a scope
+		# 检查范围中是否有变量
+			# Anywhere
+					# has_variable = chance_ruling_party # 1.5.0 
+
+# has_id
+	# Check unit leader has specified ID. Don't localize this. Tooltip only for debug.
+		# 检查领导人有无指定ID。不要本地化。提示仅用于调试。
+			# Unit Leader
+					# any_army_leader = { has_id = 600 } # 1.5.0 
+
+# can_select_trait
+	# check if leader can select a trait
+		# 检查领导人能选择一个特质（需测试）
+			# Unit Leader
+					# Needs to be tested # 1.5.0 
+
+# add_to_temp_variable
+	# Adds a value or a variable to a temporary variable
+		# 增加值或变量到临时变量中
+			# Anywhere
+					# add_to_temp_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5.0 
+
+# subtract_from_temp_variable
+	# Subtracts a value or a variable to a temporary variable
+		# 从临时变量中减去值或变量
+			# Anywhere
+					# subtract_from_temp_variable = { var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5.0 
+
+# multiply_temp_variable
+	# Multiplies a temporary variable by a value or another variable
+		# 将值或变量与临时变量合并（相乘）
+			# Anywhere
+					# multiply_temp_variable = { var = af_to_move value = global.CHI_industrial_evacuations_amount_factor } # 1.5.0 
+
+# divide_temp_variable
+	# Divides a temporary variable by a value or another variable
+		# 将值或变量从临时变量除去（相除）
+			# Anywhere
+					# divide_temp_variable = {  var = num_dogs value = 42 tooltip = loc_str_id_with_LEFT_and_RIGHT } # 1.5.0 
+
+# set_temp_variable
+	# Sets a temporary variable to a value or another variable
+		# 设定临时变量为其他值或变量
+			# Anywhere
+					# set_temp_variable = { var = ic_level value = industrial_complex_level } # 1.5.0 
+
+# clamp_temp_variable
+	# Clamps a temp variable between two values/variables
+		# 在两个值/变量之间插入一个临时变量
+			# Anywhere
+					# clamp_temp_variable = { var = chance_opinion_of_us min = -1 max = 1  } # 1.5.0 
+
+# num_of_civilian_factories_available_for_projects
+	# Check amount of civilian factories available for a new project to use
+		# 检查可用于新项目（闲置）的民用工厂数量
+			# Country
+					# enable = { num_of_civilian_factories_available_for_projects > 15 } # 1.5.0 
+
+# has_event_target
+	# Checks if current scope or global scope has the specified event target saved
+		# 检查当前范围或全局范围是否保存了指定的事件目标。
+			# ???
+					# visible = { has_event_target = scope_CHI } # 1.5.0 
+
+# political_power_growth
+	# Check the value of political power daily growth.
+		# 检查政治权利每日增长值
+			# Country
+					# political_power_growth > 0 # 1.5.0 
+
+# has_border_war
+	# Checks if a there is any border wars for country/state
+		# 检查国家/地区是否有边境战争
+			# Country/State
+					# available = { 527 = { has_border_war = no } } # 1.5.0 
+
+# is_border_war
+	# Checks if the combatant or leader has a border war
+		# 检查是否有人员或指挥官参与边境战争
+			# ???
+					# allowed = { is_border_war = no } # 1.5.0 
+
+# has_border_war_between
+	# Checks if a there is a border war between two states
+		# 检查两地区间是否有边境战争（需测试）
+			# Country/State
+					# Needs to be tested # 1.5.0 
+
+# has_border_war_with
+	# Checks if a there is a border against a state/country
+		# 检查国家/地区是否有边界
+			# Country/State
+					# visible = { has_border_war_with = FROM } # 1.5.0 
+
+# average_stats
+	# Compares the average stats for a unit leader.
+		# 比较领导人的平均统计率
+			# Unit Leader
+					# average_stats > 10 # 1.5.0 
+
+# attack_skill_level
+	# Compares attack skill level of a unit leader.
+		# 比较领导人的进攻等级
+			# Unit Leader
+					# attack_skill_level > 5 # 1.5.0 
+
+# defense_skill_level
+	# Compares defense skill level of a unit leader.
+		# 比较领导人的防御等级
+			# Unit Leader
+					# defense_skill_level > 5 # 1.5.0 
+
+# logistics_skill_level
+	# Compares logistics skill level of a unit leader.
+		# 比较领导人的后勤等级
+			# Unit Leader
+					# logistics_skill_level > 5 # 1.5.0 
+
+# planning_skill_level
+	# Compares planning skill level of a unit leader.
+		# 比较领导人的计划等级
+			# Unit Leader
+					# planning_skill_level > 5 # 1.5.0 
+
+# is_leading_army_group
+	# Checks if the current unit leader is leading an army group (not single army)
+		# 检查当前领导人是否正在指挥一个军团（不是单独军队）
+			# Unit Leader
+					# is_leading_army_group = yes # 1.5.0 
+
+# is_leading_army
+	# Checks if the current unit leader is leading a single army
+		# 检查当前领导人是否正在指挥一个独立军队
+			# Unit Leader
+					# is_leading_army = yes # 1.5.0 
+
+# print_variables
+	# Prints all variables in scope and temp variables to a file
+		# 将范围内变量和临时变量中的所有变量打印到文件中
+			# Anywhere
+					# print_variables = {
+						file = log_file
+						text = header_text
+						append = yes
+						print_global = yes
+						var_list = { a b c }	# optional
+					}								# 可选择的
+						# 1.5.0 
+
+# has_active_mission
+	# Check if country has an active mission with specified ID.
+		# 检查国家是否有个有效任务指定ID
+			# Country
+					# has_active_mission = my_test_mission # 1.5.0 
+
+# has_attache
+	# Check if country has an attaché from any other country
+		# 检查国家是否有他国的附庸
+			# Country
+					# has_attache = yes # 1.5.0 
+
+# has_attache_from
+	# Has attaché from specified country
+		# 有无指定国家的附庸
+			# Country
+					# any_enemy_country = { has_attache_from = IRE } # 1.5.0 
+
+# amount_manpower_in_deployment_queue
+	# Checks for amount manpower currently in deployment view.
+		# 检查用于当前任务的人力数
+			# Country
+					# amount_manpower_in_training > 10 # 1.5.0 
+
+# divisions_in_border_state
+	# Checks for amount of divisions in specified state owned by current country.
+		# 检查当前国家所拥有指定地区的边境线数量
+			# Country
+					# divisions_in_border_state = { state = 527 border_state = 408 size > 0 } # 1.5.0 
+
+# stockpile_ratio
+	# Compares the ratio of equipment archetype in stockpile vs used. a value of 2 means we have double in stockpile of what is fielded or in training.
+		# 比较库存原型装备与使用中的。数字 2 表示训练后或训练中的储备双倍
+			# Country
+					# stockpile_ratio = { archetype = infantry_equipment ratio < 4 } # 1.5.0 
+
+# state_strategic_value
+	# Checks for state strategic value
+		# 检查地区战略数量（需测试）
+			# State
+					# Needs to be tested # 1.5.0 
+
+# state_and_terrain_strategic_value
+	# Checks for state strategic value
+		# 检查地区战略数量（需测试）
+			# State
+					# Needs to be tested # 1.5.0 
+
+# amount_research_slots
+	# Checks the number of research slots
+		# 检查研究槽数量
+			# Country
+					# amount_research_slots < 5 # 1.3.3
+
+# num_divisions
+	# Checks the number of divisions
+		# 检查“陆军师”的数量
+			# Country
+					# num_divisions > 10 # 1.3.3
+
+# has_focus_tree
+	# Checks if a country has a specific focus tree
+		# 检查国家拥有指定国策
+			# Country
+					# has_focus_tree = <id> # 1.3.3
+
+# is_staging_coup
+	# Checks if a country is staging a coup
+		# 检查国家是否发生政变
+			# Country
+					# is_staging_coup = yes # 1.3.3
+
+# has_full_control_of_state
+	# Checks if country controls every province of a state
+		# 检查国家是否控制他国的某个省
+			# Country
+					# GER = { has_full_control_of_state = 55 } # 1.3.3
+
+# has_army_experience
+	# Checks the amount of army xp
+		# 检查陆军经验
+			# Country
+					# has_army_experience > 5 # 1.3.3
+
+# has_air_experience
+	# Checks the amount of air xp
+		# 检查空军经验
+			# Country
+					# has_air_experience > 5 # 1.3.3
+
+# has_navy_experience
+	# Checks the amount of navy xp
+		# 检查海军经验
+			# Country
+					# has_navy_experience > 5 # 1.3.3
+
+# has_country_leader
+	# Checks for a specific country leader
+		# 检查指定国家领导人
+			# Country
+					# has_country_leader = { id = 17 ruling_only = yes name = "Boaty McBoatface" } # 1.3.3
+
+# has_tech_bonus
+	# Checks for a bonus for a single tech or a tech category
+		# 检查某一技术或技术领域的研究补偿
+			# Country
+					# has_tech_bonus = { technology = early_fighter category = industry } # 1.3.3
+
+# has_resources_amount
+	# Checks the amount of resources in a state
+		# 检查地区资源数量
+			# Country
+					# has_resources_amount = { resource = chromium amount > 5 state = 31 } # 1.3.3
+
+# num_of_subjects
+	# Checks the number of subjects
+		# 检查仆从国数字
+			# Country
+					# num_of_subjects > 0 # 1.3
+
+# num_tech_sharing_groups
+	# Checks the amount of tech sharing a groups a country is in
+		# 检查同阵营技术共享数量
+			# Country
+					# num_of_tech_sharing_groups > 1 # 1.3
+ 
+# compare_autonomy_progress_ratio
+	# Checks the autonomy progress
+		# 检查自治权（比例）
+			# Country
+					# compare_autonomy_progress_ratio > 0.6 # 1.3
+
+# ai_irrationality
+	# Checks AI irrationality value
+		# 检查不合理 AI 数字
+			# AI
+					# ai_irrationality < 20 # 1.0
+
+# ai_liberate_desire
+	# Checks how willing the AI is to liberate another country
+		# 检查 AI 是如何解放另一个国家的（需测试）
+			# AI
+					# Needs to be tested # 1.0
+
+# always
+	# Always returns specified value
+		# 总是返回指定数值
+			# Anywhere
+					# always = no # 1.0
+
+# any_claim
+	# Checks for claims between two countries
+		# 检查两国间主张（需测试）
+			# Country
+					# Needs to be tested # 1.0
+
+# any_war_score
+	# Checks for war score in any ongoing war involving the country
+		# 检查国家涉及的战争得分
+			# Country
+					# any_war_score > 50 # 1.0
+
+# armor
+	# Checks for the average armor level of a combatant
+		# 检查战斗人员的平均护甲等级（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# can_research
+	# Checks if a country can research a technology
+		# 检查是否可以研究一项技术
+			# Country
+					# can_research = basic_medium_tank # 1.0
+
+# controls_state
+	# Checks if a country controls a state
+		# 检查某国是否控制某个地区
+			# Country
+					# GER = { controls_state = 332 } # 1.0
+
+# country_exists
+	# Checks if a specified country exists
+		# 检查是否存在指定国家
+			# Anywhere
+					# country_exists = YUG # 1.0
+
+# date >, date <
+	# Check for the current in-game date
+		# 检查当前游戏日期
+			# Anywhere
+					# date > 1937.1.1 # 1.0
+
+# dig_in
+	# Checks for lowest dig-in level
+		# 检查最低级别（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# distance_to
+	# Checks distance between two states
+		# 检查两地路程距离
+			# State
+					# capital_scope = { distance_to = { target = FROM value < 100 } } # 1.0
+
+# divisions_in_state
+	# Checks for the amount of division in state
+		# 检查地区内“师”数量
+			# State
+					# divisions_in_state = { state = 605 size > 0 } # 1.0
+
+# exists
+	# Checks if a country exists
+		# 检查某国是否存在
+			# Anywhere
+					# GER = { exists = yes } # 1.0
+
+# fastest_unit
+	# Checks if the fastest unit in combat has a certain speed value
+		# 检查已知速度值是否是战斗中最快速的单位（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# focus_progress
+	# Checks for the progress on a national focus
+		# 检查某个国策进度
+			# Country
+					# focus_progress = { focus = focus_id progress > 0.5 } # 1.0
+
+# free_building_slots
+	# Checks for the amount of free building slots
+		# 检查可用建筑槽数量
+			# State
+					# any_owned_state = { free_building_slots = { building = industrial_complex size > 0 include_locked = yes } } # 1.0
+
+# frontage_full
+	# Checks for full frontage in combat
+		# 检查全面进攻（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# gives_military_access_to
+	# Checks if a country is giving military access to another country
+		# 检查是否同意他国军事通行权
+			# Country
+					# gives_military_access_to = GER # 1.0
+
+# hardness
+	# Checks lowest/highest hardness level in combat
+		# 检查最低/最高硬度等级（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# has_added_tension_amount
+	# Variable for how much world tension a country has caused ( 1.0 = 100% )
+		# 国家造成的世界紧张程度的变量（1.0＝100%）
+			# Country
+					# has_added_tension_amount > 0.1 # 1.0
+
+# has_annex_war_goal
+	# Checks if a country has the annex wargoal towards another country
+		# 检查某国对他国开启吞并战争
+			# Country
+					# has_annex_war_goal = POL # 1.0
+
+# has_army_manpower
+	# Variable for the amount of manpower a country has deployed in divisions
+		# 某国在地区部署人力数量的变量
+			# Country
+					# has_army_manpower = { size > 549999 } # 1.0
+
+# has_army_size
+	# Checks the amount of all or certain division
+		# 检查某种全部或部分陆军师数量
+			# Country
+					# has_army_size = { type = infantry size > 75 } # 1.0
+
+# has_autonomy_state
+	# Checks the autonomy level of a country (integrated_puppet, dominion, etc)
+		# 检查某国的自治等级（integrated_puppet,傀儡等级）
+			# Country
+					# has_autonomy_state = autonomy_satellite # 1.3.3
+
+# has_available_idea_with_traits
+	# Checks if a country has ideas with specified traits available
+		# 检查某国是否有指定特质（需测试）
+			# Country
+					# Needs to be tested # 1.0
+
+# has_built
+	# Checks if a country has built a certain number of specified buildings after taking a goal
+		# 检查某国是否完成指定建筑物及数量的目标任务（需测试）
+			# Country
+					# Needs to be tested # 1.0
+
+# has_capitulated
+	# Checks if a country has capitulated
+		# 检查某国是否投降
+			# 检查Country
+					# NOR = { has_capitulated = yes } # 1.0
+
+# has_carrier_airwings_on_mission
+	# Checks if carrier airwings are on a mission
+		# 检查是否是舰载任务联队
+			# ???
+					# has_carrier_airwings_on_mission = yes # 1.0
+
+# has_civil_war
+	# Checks if a country is a participant in a civil war
+		# 检查是否是内战参与者
+			# Country
+					# SPR = { has_civil_war = yes } # 1.0
+
+# has_combat_modifier
+	# Checks for a combat modifier in combat
+		# 检查战斗中的战斗修正（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# has_completed_focus
+	# Checks if a national focus has been completed
+		# 检查某国是否完成指定国策
+			# Country
+					# GER = { has_completed_focus = GER_anschluss } # 1.0
+
+# has_country_flag
+	# Checks for a country flag
+		# 检查国家标记
+			# Country
+					# ENG = { has_country_flag = chamberlain_resigned } # 1.0
+
+# has_defensive_war
+	# Checks if in a defensive war
+		# 检查是否是防御战争
+			# Country
+					# CHI = { has_defensive_war = yes } # 1.0
+
+# has_defensive_war_with
+	# Checks for a defensive war against a country
+		# 检查对他国的防御战争
+			# Country
+					# CHI = { has_defensive_war_with = JAP } # 1.0
+
+# has_deployed_air_force_size
+	# Variable for a country's amount of deployed planes
+		# 国家部署飞机数量的变量
+			# Country
+					# ENG = { has_deployed_air_force_size > 100 } # 1.0
+
+# has_equipment
+	# Checks for the amount of equipment
+		# 检查装备数量
+			# Country
+					# has_equipment = { infantry_equipment > 500 } # 1.0
+
+# has_flanked_opponent
+	# Check if flanking an enemy
+		# 检查是否是次要敌人（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# has_global_flag
+	# Checks if a global flag is active
+		# 检查全球标记是否激活
+			# Anywhere
+					# has_global_flag = fall_of_france # 1.0
+
+# has_government
+	# Checks a country's current ideology
+		# 检查某国当前的意识形态
+			# Country
+					# USA = { has_government = communism } # 1.0
+
+# has_guaranteed
+	# Checks if a country has guaranteed another country
+		# 检查某国与他国是否签订互不侵犯条约
+			# Country
+					# FRA = { has_guaranteed = POL } # 1.0
+
+# has_idea
+	# Checks for a specified idea
+		# 检查指定理念
+			# Country
+					# has_idea = idea_id # 1.0
+
+# has_idea_with_trait
+	# Checks for an idea with a specified trait
+		# 检查具有指定特质的理念
+			# 检查Country
+					# SOV = { has_idea_with_trait = communist_revolutionary } # 1.0
+
+# has_manpower
+	# Checks the amount of manpower
+		# 检查人力数量
+			# Country
+					# has_manpower > 10000 # 1.0
+
+# has_manpower_for_recruit_change_to
+	# Checks if country has enough manpower to change recruitment laws
+		# 检查是否满足国家征兵法
+			# Country
+					# has_manpower_for_recruit_change_to = { value = 0.01 group = mobilization_laws } # 1.0
+
+# has_max_planning
+	# Checks for maximum planning bonus in combat
+		# 检查在战争中获得的最大计划率
+			# Combat
+					# has_max_planning = yes # 1.0
+
+# has_military_access_to
+	# Checks if a country has military access to another country
+		# 检查是否对他国开启军事通行权
+			# Country
+					# has_military_access_to = ITA # 1.0
+
+# has_navy_size
+	# Variable for the amount of ships a nation has
+		# 所有船只的变量
+			# Country
+					# has_navy_size = { size > 10 } # 1.0
+
+# has_offensive_war
+	# Checks if in an offensive war
+		# 检查是否是战争进攻方
+			# Country
+					# has_offensive_war = yes # 1.0
+
+# has_offensive_war_with
+	# Checks for a offensive war against a country
+		#检查对某国开战
+			# Country
+					# has_offensive_war_with = SOV # 1.0
+
+# has_opinion
+	# Checks for the current opinion towards another country
+		# 检查对他国的当前决议
+			# Country
+					# has_opinion = { target = SOV value < -50 } # 1.0
+
+# has_opinion_modifier
+	# Checks for a specific opinion modifier with another country
+		#检查与他国的具体决议修改
+			# Country
+					# SOV = { has_opinion_modifier = unprovoked_aggression } # 1.0
+
+# has_political_power
+	# Checks the amount of political power
+		# 检查政治权力的数量
+			# Country
+					# has_political_power > 100 # 1.0
+
+# has_reserves
+	# Checks for reserves in combat
+		#检查战斗准备（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# has_start_date
+	# Checks the initial start date of the current game
+		# 检查当前游戏的初始开始日期（需测试）
+			# Anywhere
+					# Needs to be tested # 1.0
+
+# has_state_flag
+	# Checks for a state flag
+		# 检查是否有地区标记
+			# State
+					# 713 = { has_state_flag = GER_second_ljubljana_award_GER_demand } # 1.0
+
+# has_tech
+	# Checks if a country has a specified tech
+		#检查国家是否有指定技术
+			# Country
+					# SOV = { has_tech = basic_medium_tank } # 1.0
+
+# has_template_containing_unit
+	# Checks if country has a template with specified units
+		# 检查某国是否有指定模板
+			# Country
+					# FRA = { has_template_containing_unit = light_armor } # 1.0
+
+# has_trait
+	# Checks if a leader has a trait
+		# 检查检查领导人是否拥有特质（需测试）
+			# Leader
+					# Needs to be tested # 1.0
+
+# has_volunteers_from
+	# Checks if a country has volunteer from another country
+		# 检查是否有他国志愿者
+			# Country
+					# SPR = { has_volunteers_from = GER } # 1.0
+
+# has_war
+	# Checks if a country is at war
+		# 检查国家是否在战争中
+			# Country
+					# has_war = yes # 1.0
+
+# has_war_together_with
+	# Checks if two countries are on the same side in a war
+		# 检查两国在同一场战争中
+			# Country
+					# GER = { has_war_together_with = ITA } # 1.0
+
+# has_war_with
+	# Checks if at war with specified country
+		# 检查是否与指定国家交战
+			# Country
+					# GER = { has_war_with = FRA } # 1.0
+
+# ic_ratio
+	# Compares the total industrial capacity of two countries
+		# 比较两个国家的工业总产能
+			# Country
+					# ic_ratio = { tag = ITA ratio > 0.4 } # 1.0
+
+# is_ai
+	# Checks if a country is run by AI
+		# 检查是否是AI控制国家
+			# Country
+					# is_ai = yes # 1.0
+
+# is_amphibious_invasion
+	# Checks if combat is an amphibious invasion
+		检查是否是两栖攻击
+			# Combat
+					# is_amphibious_invasion = yes # 1.0
+
+# is_attacker
+	# Checks if attacker in combat
+		# 检查战斗中是否是攻击者
+			# Combat
+					# is_attacker = yes # 1.0
+
+# is_border_conflict
+	# Checks if a state is in border conflict
+		# 检查是否是边境冲突地区
+			# State
+					# any_owned_state = { is_border_conflict = yes } # 1.0
+
+# is_claimed_by
+	# Checks if state is claimed by a country
+		# 检查某国是否声索地区
+			# State
+					# any_owned_state = { is_claimed_by = GER } # 1.0
+
+# is_coastal
+	# Checks if a state is coastal
+		# 检查是否是沿海地区
+			# State
+					# any_owned_state = { is_coastal = yes } # 1.0
+
+# is_controlled_by
+	# Checks if a state is controlled by a country
+		# 检查某国是否控制地区
+			# State
+					# 332 = { is_controlled_by = GER } # 1.0
+
+# is_core_of
+	# Checks if state is a core of a country
+		# 检查某国是否拥有核心
+			# Country
+					# any_owned_state = { is_core_of = CHI } # 1.0
+
+# is_defender
+	# Checks if a defender in combat
+		# 检查战斗中是否是防御者
+			# Combat
+					# is_defender = yes # 1.0
+
+# is_demilitarized_zone
+	# Checks if a state is demilitarized
+		# 检查地区是否非军事化
+			# State
+					# any_owned_state = { is_demilitarized_zone = yes } # 1.0
+
+# is_faction_leader
+	# Checks if a country is a leader of any faction
+		# 检查领导人是否是任何派别（有无选举）
+			# Country
+					# is_faction_leader = yes # 1.0
+
+# is_fighting_air_units
+	# Checks if fighting air units
+		# 检查空军是否战斗
+			# ???
+					# is_fighting_air_units = yes # 1.0
+
+# is_fighting_in_terrain
+	# Checks the terrain of combat
+		# 检查战斗地形
+			# Combat
+					# is_fighting_in_terrain = marsh # 1.0
+
+# is_guaranteed_by
+	# Checks if guaranteed by a specified country
+		# 检查指定与某国签订否互不侵犯条约
+			# Country
+					# is_guaranteed_by = USA # 1.0
+
+# is_historical_focus_on
+	# Checks if game is set on historical
+		# 检查是否是真实历史
+			# Anywhere
+					# is_historical_focus_on = yes # ?
+
+# is_in_faction
+	# Checks if member of any faction
+		# 检查是否有其他派别成员
+			# Country
+					# is_in_faction = yes # 1.0
+
+# is_in_faction_with
+	# Checks if in the same faction with a country
+		# 检查与某国是否同一阵营
+			# Country
+					# is_in_faction_with = GER # 1.0
+
+# is_in_home_area
+	# Checks if a state is connected to the capital
+		# 检查是否连接首都
+			# State
+					# any_owned_state = { is_in_home_area = yes } # 1.0
+
+# is_ironman
+	# Checks if current game is in Ironman mode
+		# 检查当前的游戏是否是铁人模式
+			# Anywhere
+					# is_ironman = yes # 1.0
+
+# is_lend_leasing
+	# Checks if giving lend lease to a country
+		# 检查是否租借装备给某国
+			# Country
+					# is_lend_leasing = SPR # 1.0
+
+# is_major
+	# Checks if a country is a major
+		# 检查是否是主要国家
+			# Country
+					# is_major = yes # 1.0
+
+# is_neighbor_of
+	# Checks if neighbors with a specified country
+		# 检查某国的指定邻国
+			# Country
+					# is_neighbor_of = GER # 1.0
+
+# is_on_continent
+	# Checks the continent of a state
+		# 检查一个地区所属大洲
+			# State
+					# any_owned_state = { is_on_continent = africa } # 1.0
+
+# is_owned_by
+	# Checks if a state is owned by a country
+		# 检查国家是否拥有该地区
+			# State
+					# 332 = { is_owned_by = GER } # 1.0
+
+# is_puppet
+	# Checks if a country is a puppet (puppet specified in autonomy levels)
+		# 检查某国是否是傀儡国（自治傀儡）
+			# Country
+					# is_puppet = yes # 1.0
+
+# is_puppet_of
+	# Checks if a county is a puppet of a specified country (puppet specified in autonomy levels)
+		# 检查某国是否被他国傀儡（自治傀儡）
+			# Country
+					# is_puppet_of = ENG # 1.0
+
+# is_subject
+	# Checks if a country is a subject
+		# 检查某国是否是仆从国
+			# Country
+					# RAJ = { is_subject = yes } # 1.3
+
+# is_subject_of
+	# Checks if a country is a subject of a specified country
+		# 检查某国是否仆从于他国
+			# Country
+					# RAJ = { is_subject_of = ENG } # 1.3
+
+# is_winning
+	# Checks if winning in combat
+		# 检查战斗是否获胜
+			# Combat
+					# is_winning = yes # 1.0
+
+# land_doctrine_level
+	# Checks researched land doctrine level
+		# 检查陆军学说研究等级（需测试）
+			# Country
+					# Needs to be tested # 1.0
+
+# less_combat_width_than_opponent
+	# Checks for combat width in combat
+		# 检查战斗宽度（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# night
+	# Checks if combat is at night
+		# 检查夜间是否战斗
+			# Combat
+					# night = yes # 1.0
+
+# num_of_available_civilian_factories
+	# Checks the amount of unused civilian factories
+		# 检查闲置民用工厂数量
+			# Country
+					# num_of_available_civilian_factories > 1 # 1.0
+
+# num_of_available_military_factories
+	# Check the amount of unused military factories
+		# 检查闲置军工厂数量
+			# Country
+					# num_of_available_military_factories > 1 # 1.0
+
+# num_of_available_naval_factories
+	# Checks the amount of unused naval dockyards
+		# 检查闲置造船厂数量
+			# Country
+					# num_of_available_naval_factories > 1 # 1.0
+
+# num_of_civilian_factories
+	# Checks the amount of civilian factories in a country
+		# 检查某国的民用工厂数量
+			# Country
+					# num_of_civilian_factories > 10 # 1.0
+
+# num_of_controlled_states
+	# Checks the number of controlled states
+		# 检查控制地区数量
+			# Country
+					# num_of_controlled_states > 10 # 1.0
+
+# num_of_factories
+	# Checks the total amount of factories
+		# 检查某国的内部工厂总数量
+			# Country
+					# num_of_factories > 50 # 1.0
+
+# num_of_military_factories
+	# Checks the amount of military factories in a country
+		# 检查某国的军工厂的数量
+			# Country
+					# num_of_military_factories > 10 # 1.0
+
+# num_of_naval_factories
+	# Checks the amount of naval dockyards in a country
+		# 检查某国的海军造船厂的数量
+			# Country
+					# num_of_naval_factories > 10 # 1.0
+
+# 'buildingtype'
+	# Checks the amount of a buildingtype in a state
+		# 检查一个地区建筑物数量
+			# State
+					# dockyard > 10 # 1.0
+
+# num_of_nukes
+	# Checks the amount of nukes
+		# 检查核弹数量
+			# Country
+					# num_of_nukes > 1 # 1.0
+
+# original_tag
+	# Checks the original tag of a country (for civil wars)
+		# 检查某国的原始标记（用于内战）
+			# Country
+					# original_tag = SPR # 1.0
+
+# owns_state
+	# Checks if a country owns a state
+		# 检查某国是否拥有地区
+			# Country
+					# GER = { owns_state = 332 } # 1.0
+
+# phase
+	# Checks for a combat phase
+		# 检查战斗阶段（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# recon_advantage
+	# Checks for recon advantage in combat
+		# 检查在战斗中的侦查优势
+			# Combat
+					# recon_advantage = yes # 1.0
+
+# region/area
+	# Checks if a state is part of a specified strategic region
+		# 检查一个区域是否是特定战略区域
+			# State
+					# any_state = { region = 34 } # 1.0
+
+# reserves
+	# Checks the amount of reserves
+		# 检查外汇储备（需测试）
+			# ??? #
+					Needs to be tested # 1.0
+
+# ships_in_area
+	# Checks the amount of ships in an area
+		# 检查一个区域的船只数量
+			# Area
+					# ships_in_area = { area = 168 size > 1 } # 1.0
+
+# ships_in_state_ports
+	# Checks the number of ships in a state's provinces
+		# 检查一个省的船只数量
+			# State
+					# any_owned_state = { ships_in_state_ports > 10 } # 1.0
+
+# skill
+	# Checks leaders skill level
+		# 检查指挥官等级（需测试）
+			# Leader
+					# Needs to be tested # 1.0
+
+# skill_advantage
+	# Compares skill levels of commanders
+		# 比较指挥官等级（需测试）
+			# Combat
+					# Needs to be tested # 1.0
+
+# state_population
+	# Checks the states population
+		# 检查地区人口
+			# State
+					# any_owned_state = { state_population = 40000 } # 1.0
+
+# strength_ratio
+	# Checks the relation of army strengths with a country
+		# 检查军队实力与国家的关系（人力数比例相关）
+			# Country
+					# strength_ratio = { tag = SOV ratio > 0.8 } # 1.0
+
+# surrender_progress
+	# Checks the surrender progress
+		# 检查使其投降的进程
+			# Country
+					# surrender_progress > 0.7 # 1.0
+
+# tag
+	# Checks the tag of the country
+		检查国家标记
+			# Country
+					# tag = FRA # 1.0
+
+# temperature
+	# Checks for the temperature of a combat province
+		# 检查交战省份的气温（需测试）
+			# Province
+					# Needs to be tested # 1.0
+
+# threat
+	# Checks global threat value
+		# 检查全球紧张度
+			# Anywhere
+					# threat < 0.5 # 1.0
+
+# ideology > No
+	# Checks popularity of an ideology
+		# 检查意识形态声望
+			# Country
+					# communism > 0.5 # 1.0
+
+#####################################################################################################################################################
+#########          Scopes（范围）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Scope-change types（范围变更类型） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#There are different types of scope change operators.
+	不同类型的范围变更操作符
+
+	* Condition: Conditional scopes do return a Boolean value like other conditions
+		* 条件：与其他条件一样的布尔数值将返回条件作用范围
+	* Command: Command scopes do execute commands on the new scope
+		* 指令：指令作用将在新范围内执行
+	* Both: These operators can be used as both of the above.
+		* 二者：以上两种运算符都可使用
+
+# Most of the general scope change operators have four different forms.
+	# 在多数一般变化范围内有四种不同的执行方式
+
+# all_<name>
+	# Conditional, all must meet the subconditions
+		# 所有 都必须满足附加条件的执行
+
+# any_<name>
+	# Conditional, at least one must meet the subconditions
+		# 任何 至少满足一个附加条件的执行
+
+# every_<name>
+	# Command, executed on every subscope
+		# 每个 对每个子范围执行
+
+# random_<name>
+	# Command, executed on one random subscope
+		# 随机 在一个子范围内执行
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> List of Scopes（范围目录） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+请注意以下事项：
+:If a scope has trigger set to 'Yes', then you may test it against a condition.
+	：如果一个范围触发设置“是”，然后你可以对条件进行测试。
+	
+:If a scope has effect set to 'Yes', then you may run a command on it.
+	：如果一个效果影响设置“是”，然后你可以运行命令。
+
+
+# Scope-Description-Example
+# 范围-类型-举例
+	# Trigger
+	# 触发
+		# Effect
+		# 效果
+			# From Scope # To Scope # Game Version
+			# 范围起始 # 范围结束 # 版本号
+
+# all_unit_leader
+	# Check if all unit leaders owned by the current country scope meet the trigger.
+		# 检查国家范围内激活的所有领导人单位
+			# all_unit_leader = { ... }
+					# Yes # No # Country # Unit Leader # 1.5
+
+# any_unit_leader
+	# Check if any unit leader meets the trigger.
+		# 检查国家范围内激活的任何领导人单位
+			# any_unit_leader = { ... }
+					# Yes # No # Country # Unit Leader # 1.5
+
+# all_army_leader
+	# Check if all army unit leaders owned by the current country scope meet the trigger
+		# 检查国家范围内激活的所有陆军指挥官单位
+			# all_unit_leader = { ... }
+					# Yes # No # Country # Unit Leader # 1.5
+
+# any_army_leader
+	# Check if any army unit leader owned by the current country scope meets the trigger
+		# 检查国家范围内激活的任何陆军指挥官单位
+			# all_unit_leader = { ... }
+					# Yes # No # Country # Unit Leader # 1.5
+
+# all_navy_leader
+	# Check if all navy unit leaders owned by the current country scope meet the trigger
+		# 检查国家范围内激活的所有海军指挥官单位
+			# all_navy_leader = { ... }
+					# Yes # No # Country # Unit Leader # 1.5
+
+# any_navy_leader
+	# Check if any navy unit leader owned by the current country scope meets the trigger.
+		# 检查国家范围内激活的任何海军指挥官单位
+			# all_navy_leader = { ... }
+					# Yes # No # Country # Unit Leader# 1.5
+
+# random_unit_leader
+	# Targets a random unit leader owned by the current country scope
+		# 目标一个随机现任领导人
+			# random_unit_leader = { ... }
+					# No # Yes # Country # Unit Leader # 1.5
+
+# every_unit_leader
+	# Targets every unit leader owned by the current country scope scope
+		# 目标每个现任领导人
+			# every_unit_leader = { ... }
+					# No # Yes # Country # Unit Leader # 1.5
+
+# random_army_leader
+	# Targets a random army unit leader owned by the current country scope
+		# 目标一个随机现任陆军指挥官
+			# random_army_leader = { ... }
+					# No # Yes # Country # Unit Leader # 1.5
+
+# every_army_leader
+	# Targets every army unit leader owned by the current country scope
+		# 目标每个现任陆军指挥官
+			# every_army_leader = { ... }
+					No # Yes # Country # Unit Leader # 1.5
+
+# random_navy_leader
+	# Targets a random naval unit leader owned by the current country scope
+		# 目标一个随机现任海军指挥官
+			# random_navy_leader = { ... }
+					# No # Yes # Country # Unit Leader # 1.5
+
+# every_navy_leader
+	# Targets every naval unit leader owned by the current country scope
+		# 目标每个现任海军指挥官
+			# every_navy_leader = { ... }
+					# No # Yes # Country # Unit Leader # 1.5
+
+# global_every_army_leader
+	# Targets every army leader for every country in the world (Better to use every_army_leader if you know the country)
+		# 目标世界各国军队指挥官（使用every_army_leader也许对国家更好）
+			# global_every_army_leader = { ... }
+					# No # Yes # Country # Unit Leader # 1.5
+
+# random_owned_controlled_state
+	# Targets a random owned and controlled state
+		# 目标一个随机拥有和占领区
+			# random_owned_controlled_state = { }
+					# Yes # Yes # Country # State # 1.3
+
+# OVERLORD
+	# Targets the overlord of a subject
+		# 目标科技强国
+			# RAJ = { OVERLORD = { ... } }
+					# Yes # Yes # Country # Country # 1.3
+
+# state_id
+	# Targets a specific state
+		# 目标指定地区
+			# 145 = { ... }
+					# Yes # Yes # Anywhere # State # 1.0
+
+# any_neighbor_country
+	# Targets any neighboring country
+		# 目标任何邻国
+			# any_neighbor_country = { ... }
+					# Yes # No # Country # Country # 1.0
+
+# TAG
+	# Targets a specific country
+		# 目标指定国家
+			# FRA = { ... }
+					# Yes # Yes # Anywhere # Country # 1.0
+
+# any_country
+	# Targets any country
+		# 目标任何国家
+			# any_country = { ... }
+					# Yes # No # Anywhere # Country # 1.0
+
+# any_other_country
+	# Targets any other country
+		# 目标任何他国
+			# any_other_country = { ... }
+					# Yes # Yes # Anywhere # Country # 1.0
+
+# any_enemy_country
+	# Targets any enemy country
+		# 目标任何敌国
+			# any_enemy_country = { ... }
+					# Yes # No # Country # Country # 1.0
+
+# all_neighbor_country
+	# Targets all neighboring countries
+		# 目标所有邻国
+			# all_neighbor_country = { ... }
+					# Yes # Yes # Country # Country/ies # 1.0
+ 
+# all_country
+	# Targets all countries
+		#目标所有国家
+			# all_country = { ... }
+					# Yes # Yes # Anywhere # Country/ies # 1.0
+
+# all_enemy_country
+	# Targets all enemy countries
+		# 目标所有敌国
+			# all_enemy_country = { ... }
+					# Yes # Yes # Country # Country/ies # 1.0
+
+# any_state
+	# Targets any state
+		# 目标任何地区
+			# any_state = { ... }
+					# Yes # No # Anywhere # State # 1.0
+
+# any_owned_state
+	# Targets any owned state
+		# 目标任何拥有地区
+			# any_owned_state = { ... }
+					# Yes # No # Country # State # 1.0
+
+# any_neighbor_state
+	# Targets any neighboring state
+		# 目标任何相邻地区
+			# any_neighbor_state = { ... }
+					# Yes # No # State # State # 1.0
+
+# any_allied_country
+	# Targets any allied country
+		# 目标任何盟国
+			# any_allied_country = { ... }
+					# Yes # No # Country # Country # 1.0
+
+# all_state
+	# Targets all state
+		# 目标所有地区
+			# all_state = { ... }
+					# Yes # Yes # Anywhere # State/s # 1.0
+
+# every_owned_state
+	# Targets all owned states
+		#目标全部拥有地区
+			# every_owned_state = { ... }
+					# Yes # Yes # Country # State/s # 1.0
+
+# all_neighbor_state
+	# Targets all neighboring states
+		# 目标所有相邻地区
+			# all_neighbor_state = { ... }
+					# Yes # Yes # State # State/s # 1.0
+
+# all_allied_country
+	# Targets all allied countries
+		# 目标所有盟国
+			# all_allied_country = { ... }
+					# Yes # Yes # Country # Country/ies # 1.0
+
+# every_country
+	# Targets every country
+		# 目标每个国家
+			# every_country = { ... }
+					# No # Yes # Anywhere # Country/ies # 1.0
+
+# random_country
+	# Targets a random country
+		# 目标一个随机国家
+			# random_country = { ... }
+					# No # Yes # Anywhere # Country  # 1.0
+
+# every_neighbor_country
+	# Targets every neighboring country
+		# 目标每个邻国
+			# every_neighbor_country = { ... }
+					# Yes # Yes # Country # Country/ies # 1.0
+
+# random_neighbor_country
+	# Targets a random neighboring country
+		# 目标一个随机邻国
+			# random_neighbor_country = { ... }
+					# No # Yes # Country # Country/ies # 1.0
+
+# every_enemy_country
+	# Targets every enemy country
+		# 目标每个敌国
+			# every_enemy_country = { ... }
+					# Yes # Yes # Country # Country/ies # 1.0
+
+# random_enemy_country
+	# Targets a random enemy country
+		# 目标一个随机敌国
+			# random_enemy_country = { ... }
+					# No # Yes # Country # Country # 1.0
+
+# random_state
+	# Targets a random state
+		# 目标一个随机地区
+			# random_state = { ... }
+					# No # Yes # Anywhere # State # 1.0
+
+# random_owned_state
+	# Targets a random owned state
+		# 目标一个随机拥有者
+			# random_owned_state = { ... }
+					# No # Yes # Country # State # 1.0
+
+# random_neighbor_state
+	# Targets a random neighboring state
+		# 目标一个随机相邻地区
+			# random_neighbor_state = { ... }
+					# No # Yes # State # State # 1.0
+
+# every_state
+	# Targets every state
+		# 目标每个地区
+			# every_state = { ... }
+					# No # Yes # State # State/s # 1.0
+
+# every_owned_state
+	# Targets every owned state
+		# 目标每个拥有者
+			# every_owned_state = { ... }
+					# No # Yes # Country # State/s # 1.0
+ 
+# every_neighbor_state
+	# Targets every neighboring state
+		# 目标每个相邻地区
+			# every_neighbor_state = { ... }
+					# No # Yes # State # State/s # 1.0
+
+# capital_scope
+	# Targets the capital
+		# 目标首都
+			# capital_scope = { ... }
+					# Yes # Yes # Country # State # 1.0
+
+#####################################################################################################################################################
+#########          指令列表（就多余翻译）
+#####################################################################################################################################################
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 控制台指令 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# gain_xp [<amount>]
+	# Adds experience to selected Leader/General
+		# 增加选定的将领/元帅的经验
+			# gain_xp 696969 (level capped at 9)
+
+# cp [<amount>]
+	# Adds Command Power
+		# 增加指挥点数
+			# cp 100 (capped at 100)
+
+# st [<amount>]
+	# Adds Stability
+		# 增加稳定性
+			# st 100 (capped at 100)
+
+# ws [<amount>]
+	# Adds War Support
+		# 增加战争支持度
+			# ws 100 (capped at 100)
+
+# add_equipment(ae) [<equipment amount>] [<equipment name>]
+	# Adds equipment
+		# 增加装备
+			# Equipment uses the basic name so 'ae 1000 Infantry_Equipment_1'. Does not support Naval equipment.
+				# 装备要用基础名称“ae 1000 Infantry_Equipment_1”。不支持海军装备。
+
+# add_latest_equipment(ale) [<equipment amount>]
+	# Gives player amount of latest equipment variants
+		# 给与玩家最新设备的数量。
+
+# whitepeace(wp) [<country tags>]
+	# White peace with the specified countries.
+		# 与指定国家的和平。
+
+# teleport(tp) Activates the Teleportation tool
+	# Can teleport units where ever you tell them to go
+		# 你能告诉他们去哪里吗？（瞬移 启动隐形心灵传送工具）
+
+# allowdiplo(adiplo,nocb)
+	# Allows to use all diplomatic actions for no matter the rules. (Can declare war without justification)
+		# 允许无论规则使用所有外交行动。（无正当理由宣战）
+			# This is likely the most effective way of wanting to start a war '''without''' needing to wait for the justification.
+			# If your not wanting to use this because you feel you only want instant justification and not the extra options it comes with then use this (instant_wargoal).
+				# 这可能是最有效的方式想发动战争“without”没有需要等待的理由。
+				# 如果你不想使用这个是因为你觉得你只需要即时的理由并没有额外的选项，它使用这个（instant_wargoal）。
+
+# debug_nuking
+	# Allows to nuke every province without checking any conditions.
+		# 允许无视条件的情况下对每个省份进行核武器攻击。
+
+# instantconstruction(ic)
+	# Toggles instant construction cheat.
+		# 即可建造完成
+			# This cheat will apply to AI as well, so be wary when enabling. Ships are also constructed instantly.
+				# 这种作弊也适用于AI，所以在启用时要小心。船舶也可以立即建造。
+
+# event [event id] [<Target Country Tag>]
+	# Executes an event
+		# 执行一个事件
+			# event political.3 for communist coup 6 for democratic 9 for fascist
+
+# research [<slot id> or "all"]
+	# Researches a technology from research slot or all.
+		# 完成研究槽号或全部
+			# Research all will instant research all technologies
+				# 研究全部将完成所有科技
+
+# research_on_icon_click
+	# Research a technology when clicking on technology tree icon
+		# 完成当前科技树选择项目
+			# Will Allow you to research an item without its prerequisite
+				# 允许你研究一个没有前提的项目。
+
+# annex [<Target Country Tag>]
+	# Begin annex/annexes the specified tag
+		# 开启附庸/指定附庸的标签
+			# annex USA or annex d01 or annex all
+
+# winwars
+	# Gives max war score in all wars for the country
+		# 在所有战争中为国家提供最大的战争得分（胜利）
+
+# manpower [<Amount>]
+	# Adds manpower to player
+		# 给玩家人力
+			# Give in the exact number, so manpower 100 will give you 100 men
+				# 给个确切数字，所以manpower 100讲给你100人力
+
+# add_opinion [<Country tag>]
+	# Add opinion to/from tag
+		# 增加意见到标签
+
+# tag [<Country tag>]
+	# Switch tag to another country
+		# 切换标签到另一个国家
+
+# observe(spectator)
+	# Switches to play no country at all, and no longer shows messages or pauses the game.
+	# However,it also interferes with AI performance and is not a good indication of what the AI will do if observe mode is not used.
+		# 切换到任何非玩家国家，不再显示信息或暂停游戏。
+		# 然而，它也会干扰人工智能的性能并且如果不使用观察模式就不能很好地指示AI做什么。
+
+# tdebug
+	# Toggles Debug info
+		# 切换调试信息
+			# Helpful for finding nation tags and ID's
+				# 有助于查找国家标签和ID
+
+# spawn [<SubUnit Type>] [<Province ID>] [<Amount>]
+	# Spawns a unit in a province
+		# 生成一个单位到一个省份
+			# This command does not work, when entered into the console, units do not spawn;
+			# the console instead returns a message saying "Command available only for developers".
+			# To fix this, go to your Steam library and change the Launch Options to "-debug" prior to launching, and then launch  the game in debug mode.
+				# 此指令不起作用，进入控制台时，单位不会生成；
+				# 控制台返回一条消息，称“命令只供开发人员使用”。
+				# 要解决这个问题，请转到Steam库，在启动前将启动选项更改为“-debug 调试”，然后在调试模式下启动游戏。
+
+# occupationpaint(op)
+	# Toggles occupation painting. If used with country tag occupies all of their owned, not controlled, land, e.g., op JAP.
+		# 转换占领标识。如果使用国家标签占领他们所有的，不控制，例如，OP JAP。
+
+# setowner [country tag] [state id]
+	# Sets state owner
+		# 设定地区拥有者
+
+# setcontroller [country tag] [province id]
+	# Sets province controller
+		# 设定省份控制者
+
+# xp [XP amount]
+	# Gives Army, navy and air experience to player
+		# 为玩家提供陆军、海军和空军经验
+			# Can be used once per day
+				# 可以每天使用一次。
+
+# pp(fuhrer_mana,political_power) [PP amount]
+	# Gives political power to player
+		# 赋予玩家政治权力
+
+# civilwar [<ideology>] [<target country tag>]
+	# Spawns a civil war
+		# 生成内战
+			# civilwar fascism ENG :
+
+	# Valid ideologies "communism" "democratic" "neutrality""fascism"
+		# 有效意识形态“共产”“民主”“中立”“法西斯”
+
+add_party_popularity <ideology group> <value>
+	# Adds party popularity
+		# 增加政党声望
+			# ideology group has shortcuts d f n c for vanilla HOI groups.
+				# 基本HOI集合（四种主义）有意识形态集合的快捷路径
+
+#set_ruling_party <ideology group>
+	# Sets ruling party
+		# 设定执政党
+			# ideology group has shortcuts d f n c for vanilla HOI groups.
+				#基本HOI集合（四种主义）有意识形态集合的快捷路径
+
+# help [command name]
+	# Print out all console commands or a specific command description.
+		# 打印出所有控制台指令或特定指令说明。
+
+# Focus.AutoComplete(fa)
+	# Allows national focuses to be instantly finished
+		# 允许国策立即完成
+			# Affects AI
+				# 针对AI
+
+# Focus.NoChecks
+	# Ignores focus requirements
+		# 无视国策先决条件
+			# Affects AI
+				# 针对AI
+
+# Focus.IgnorePrerequisites
+	# Ignores focus prerequisates
+		# 无视国策先决条件（随意选择国策）
+			# Allows you to start a focus in the middle of the tree
+				# 允许您在国策树的中间开始一个焦点。
+
+# Decision.NoChecks
+	# Ignores decision requirements
+		# 无视决议条件
+			# also disables cost
+				# 同时成本无效
+
+# instant_prepare
+	# Instantly prepares naval invasions
+		# 立即准备海军入侵
+			# Displays message "Command only available for developers" To fix this,
+			# go to your Steam library and change the Launch Options to "-debug" prior to launching, and then launch the game in debug mode
+				# 显示“Command only available for developers只为开发人员提供的命令”来修复此问题，
+				# 转到Steam库，在启动前将启动选项更改为“调试”，然后在调试模式下启动游戏。
+
+# nu [number]
+	# Adds the specified amount of National Unity
+		# 增加指定数量的国家凝聚力
+
+# nuke [number]
+	# Adds nukes
+		#增加核弹
+			# Add 100 or 1000
+
+# yesman
+	# AI will accept all diplomatic offers
+		# AI将接受所有外交提议。
+
+# add_core <province_id>
+	# Adds cores
+		# 增加核心
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> All commands（全部指令） <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# rendertype
+	# Reports what render backend is used
+		# 使用报告末端内容
+
+# tweakergui
+	# Spawns a tweaker GUI
+		GUI衍生工具
+
+# add_equipment(ae) [<equipment amount>] [<equipment name>]
+	# Adds equipment
+		# 增加装备
+			# add_equipment 200 Sonderkraftfahrzeug 251/20 : See "equipment_l_english.yml" for full list of names
+				# 装备名称：关于全名详见“equipment_l_english.yml”
+
+# add_ideas [<idea name>]
+	# Adds ideas with <id> to the country
+		# 给国家增加观念的ID
+			# See ideas within the respective country-file under .\common\ideas
+				# 详见各国家文件中的观念{common\ideas}
+
+	（以下同时也是控制台指令）
+
+# add_latest_equipment(ale) [<equipment amount>]
+	# Gives player amount of latest equipment variants
+		# 给予玩家新装备的数量
+
+# reload [file name]
+	# Reloads assets
+		# 恢复资产
+	* reload loc (reloads localisation files)
+		* 恢复代码（恢复定位文件）
+	* reload focus (reloads focuses)
+		* 恢复国策（恢复策略）
+	* reload landcombat.gui (reloads land combat interface)
+		* 恢复陆上战斗界面
+
+# time
+	# What time is it?
+		# 啥时候了？
+
+# reloadfx [Arguments: map/mapname/postfx or *.fx filename]
+	# Reloads the shader
+		# 恢复着色器
+
+# particle_editor
+	# Spawns a particle editor
+		# 生成一个子编辑
+
+# whitepeace(wp) [<country tags>]
+	# White peace with the specified countries.
+		# 与指定国家的和平。
+
+# testtool(test)
+	# Testing tool.
+		# 测试工具。
+
+# analyzetheatres(anth)
+	# Analyze theatres for errors.
+		# 分析战区错误。
+
+# massconquer(massc)
+	# Mass conquer tool.
+		# 大规模胜利工具。
+
+# deleteallunits(delall)
+	# Delete all armies and fleets of the specified countries.
+		# 删除指定国家的所有军队和舰队。
+			# deleteallunits SPR
+
+# aircombat(airc) [<scenario name>] [<result name>] [<province id>] [<state id with airbase>] [<state id with airbase>] [<equipment type>] [<equipment type>] [<equipment creator country>] [<equipment creator country>]
+	# Spawns an air combat in desired location.
+		# 在预定位置生成一次空战
+
+# teleport(tp) [<province_id>]
+	# Teleports selected armies or ships to the specified province
+		# 将选定的部队或舰艇送到指定的省份
+
+# theatersrebuild(trebuild)
+	# Rebuilds all theatres in the world. All orders will be cleaned.
+		# 恢复世界上所有的战区，所有的命令将被清理。
+
+# fronts
+	# Toggle visibility of the foreign fronts
+		# 转换外国前线的能见度
+
+# aidump
+	# Dump AI front data to log file, needs to have a unit selected
+		# 将AI前端数据转储到日志文件，需要选择一个单元
+
+# traderoutes
+	# Toggle visibility of trade routes
+		# 转换贸易路线能见度
+
+# debug_tactics
+	# Toggle visibility of debug tooltip for tactics
+		# 转换策略调试说明的可见性
+
+# allowdiplo(adiplo,nocb)
+	# Allows to use all diplomatic actions for no matter the rules.
+		# 允许无视规定开展所有外交行动。
+
+# debug_nuking
+	# Allows to nuke every province without checking any conditions.
+		# 允许无视何条件的情况下对每个省份进行核武器攻击。
+
+# reloadsupply(relsup)
+	# Reinitializes the supply systems.
+		# 恢复供应系统
+
+# deltat [<speed factor>]
+	# control animation speeds
+		# 控制动画速度
+
+# building_health(bhealth) [<building type>] [<state or prov id>] [<building level>] [<health to add>]
+	# Changes specified building health
+		# 改变建筑耐力
+
+# instantconstruction(ic)
+	# Toggles instant construction cheat.
+		# 转换当前施工作弊。
+
+# nomapicons
+	# Toggles map icons.
+		# 转换地图图标。
+
+# nopausetext
+	# Toggles the pausebanner for nicer screenshots.
+		# 转换优质暂停截图
+
+# nextsong
+	# Changes the currently playing soundtrack.
+		# 更改当前播放的音轨。
+
+# combatsound
+	# How often does the combat view give a random sound? 0-50
+		# 战斗视图多长时间发出一次随机的声音？0-50
+
+# morehumans(humans) [num]
+	# Adds more humans
+		# 增加更多人口
+
+# window(wnd) [Arguments: open/close] [window gui name]
+	# Opens or closes the specified window
+		# 打开或关闭指定窗口
+
+# reloadinterface
+	# Reloads the entire interface
+		# 恢复整个界面
+
+# reloadtechnologies
+	# Reloads the technology database
+		# 恢复技术数据库
+
+# updateequipments
+	# Updates the equipment database
+		# 更新设备数据库
+
+# updatesubunits
+	# Updates the subunit database
+		# 更新子单元数据库
+
+# reloadoob [<Target Country Tag>]
+	# Reloads OOBs
+		# 恢复载入容量
+
+# update_loc [localization tag]
+	# Updates the localization tag file
+		# 更新本地语言标记文件
+
+# poll
+	# Polls valid Events
+		# 调查有效事件
+
+# pause_in_hours
+	# Pauses the game after No hours have passed after command is called
+		# 在命令被调用后数小时后暂停游戏。
+
+# event [event id] [<Target Country Tag>]
+	# Executes an event
+		# 执行一个事件
+			# event political.3 for communist coup
+
+# research [<slot id> or "all"]
+	# Researches a technology from research slot or all.
+		# 完成研究槽内所有技术
+
+# research_on_icon_click
+	# Research a technology when clicking on technology tree icon
+		# 完成点击在科技树上图标的研究
+
+# add_autonomy [<Target Country Tag>] [num]
+	# Changes a country's autonomy level
+		# 改变一国的自治水平
+			# add_autonomy PHI -200
+
+# annex [<Target Country Tag>]
+	# Begin annex/annexes the specified tag
+		开始附庸/指定附庸的标签
+			# annex USA or annex d01
+
+# winwars
+	# Gives max war score in all wars for the country
+		# 在所有战争中为国家提供最大的战争得分
+
+# testevent [<Event ID>] [<Character ID>]
+	# Tests an event without triggering it
+		# 测试一个事件而不触发它
+
+# manpower [<Amount>]
+	# Adds manpower to player
+		# 增加玩家人力
+
+# add_opinion [<Country tag>]
+	# Add opinion to/from tag
+		# 从标签中添加意见
+
+# tag [<Country tag>]
+	# Switch tag to another country
+		# 切换标签到另一个国家
+
+# resign
+	# Resign from the game
+		# 退出游戏
+
+# add_interest [<Country tag>]
+	# Add specified country tag to your interest
+		# 为您的利益增加指定的国家标签
+
+# remove_interest [<Country tag>]
+	# Removes specified country tag from your interest
+		# 为您的利益删除指定的国家标签
+
+# add_diplo
+	# Adds diplomatic entroute
+		# 增加外交渠道
+
+# PrintSynchStuff
+	# Prints random count and seed
+		# 打印随机计数和源头
+
+# SetRandomCount
+	# Sets the randomcount to 0 or arg
+		# 随机设定0或争议数
+
+# observe(spectator)
+	# Switches to play no country at all, and no longer shows messages or pauses the game.
+	# However, it also interferes with AI performance and is not a good indication of what the AI will do if observe mode is not used.
+		# 切换到任何非玩家国家，不再显示信息或暂停游戏。
+		# 然而，它也会干扰人工智能的性能并且如果不使用观察模式就不能很好地指示AI做什么。
+
+# ai
+	# Toggles the AI on or off
+		# 转换AI开关
+
+# human_ai
+	# Toggles AI for Human countries
+		# 转换人工智能
+
+# ai_invasion
+	# Toggles AI AI naval invasions
+		# 转换AI海军入侵
+
+# ai_accept(yesman)
+	# Toggles AI always accept diplomacy
+		# 转换AI总是接受外交
+
+# fow(debug_fow) [<Province ID> OPTIONAL]
+	# Turns off fog of war in a province or in general
+		# 关闭一个省或一般的战争迷雾
+
+# collision(debug_collision)
+	# Toggles debug display of normals/bounding boxes/collision
+		# 转换一般/绑定/抵触的调试显示
+
+# savegame
+	# Creates a savefile.
+		# 创建一个文件。
+
+# savecheck
+	# Makes a save file (Test_01), loads the save file, makes a new savegame (Test_02). Those save files should look the same.
+		# 使得一个保存文件（test_01），加载保存文件，使一个新的存档（test_02）。那些保存文件应该看起来一样。
+
+# IP
+	# Shows your IP
+		# 显示你的IP
+
+# requestgamestate
+	# Requests the gamestate from host
+		# 要求主机游戏状态
+
+# nudge
+	# Go to the nudge tool
+		# 转到推送工具
+
+# mapmode [Mapmode type (int)]
+	# Change mapmode.
+		# 改变地图
+
+# fullscreen
+	# Toggles fullscreen
+		# 转换全屏
+
+# prices
+	# Price Info
+		# 调价信息
+
+# add_core [<State ID>] [<Country Tag>]
+	# Add core
+		# 增加核心
+
+# remove_core [<State ID>] [<Country Tag>]
+	# Remove core. Note:Does not Work
+		# 删除核心。注：没用
+
+# debug_zoom
+	# Zooms in the game
+		# 游戏中的镜头
+
+# debug_types
+	# Will print the data type for all dynamic reference objects. Can only be used if using RTTI.
+		# 将为所有动态引用对象打印数据类型。只能用于使用RTTI。
+
+# debug_show_event_ID
+	# Shows event ID
+		# 显示事件ID
+
+# debug_commands
+	# Printing commandcount to message.log
+		# 打印命令数到信息.日志
+
+# debug_events
+	# Start Counting events
+		# 开始计数的事件
+
+# debug_dumpevents
+	# Dump Event data to game log
+		# 将事件数据转储到游戏日志
+
+# debug_diploactions
+	# Start Counting diplomatic actions
+		# 开始清点外交行动
+
+# debug_dumpdiploactions
+	# Dump diplomatic action data to game log
+		# 将外交行动数据转储到游戏日志
+
+# debug_assert
+	# Toggles asserts on/off
+		# 转换声称开/关
+
+# debug_smooth
+	# Toggle framesmoothing
+		# 转换帧平滑
+
+# debug_nomouse
+	# Toggles mouse scrollwheel on/off
+		# 转换鼠标滚轮开/关
+
+# debug_terrain
+	# Toggles Terrain on/off
+		# 转换地形开/关
+
+# debug_cities
+	# Toggles Cities painting mode on/off
+		# 转换城市模型开/关
+
+# debug_water
+	# Toggles Water on/off
+		# 转换水面开/关
+
+# debug_fronts
+	# Toggles interpolated fronts debug
+		# 转换插入值调试
+
+# debug_off_front_snap(dbg_fsnap)
+	# Toggles offensive fronts snapping debug
+		# 转换前端攻击性调试
+
+# debug_borders
+	# Toggles Borders on/off
+		# 转换边界开/关
+
+# debug_trees
+	# Toggles Trees on/off
+		# 转换树木开/关
+
+# debug_rivers
+	# Toggles Rivers on/off
+		# 转换河流开/关
+
+# debug_postfx
+	# Toggles PostFX on/off
+		# 转换动态模糊开/关
+
+# debug_sky
+	# Toggles Sky on/off
+		# 转换天空开/关
+
+# debug_bloom
+	# Toggles Bloom on/off
+		# 转换布轮代数开/关
+
+# debug_tooltip
+	# Toggles Tooltips on/off
+		# 转换提示开/关
+
+# flagsoutput [<path>]
+	# Creates texture atlas files from memory.
+		# 从内存地图文件集创建纹理
+
+# cityreload
+	# Reloads the cities
+		#重新载入城市
+
+# error
+	# Show errors in log
+		# 在日志中显示错误
+
+# version
+	# Show current game version
+		# 显示当前游戏版本
+
+# debug_nogui
+	# Toggles GUI on/off
+		# 转换GUI开/关
+
+# debug_volume [<Volume Delta>]
+	# Modifies music volume
+		# 修改音乐音量
+
+# debug_lockcamera
+	# Toggles Camera locked on/off
+		# 转换相机开/关
+
+# debug_lines
+	# Toggles Debuglines
+		# 转换调试线路
+
+# debug_entities
+	# Toggles Debug entities
+		# 转换调试单位
+
+# debug_info
+	# Toggles Debug info
+		# 转换调试信息
+
+# debug_particle
+	# Toggles Particles Debug info
+		# 转换粒子调试信息
+
+# debug_ai_budget [CountryTag]
+	# Show ai budget data
+		# 显示AI预算数据
+
+# debug_textures
+	# Writes Texture info to application debug log
+		# 将纹理信息写入应用程序调试日志
+
+# debug_texture
+	# draws textures like bloom
+		# 绘制布轮代数纹理
+
+# debug_wireframe
+	# Toggles forced wireframe on/off
+		# 转换强制开/关
+
+# debug_achievements_clear
+	# Clear all achievements and user stats
+		# 清除所有成就和用户统计数据
+
+# moveunit [<Unit ID>] [<Province ID>]
+	# Moves a unit to a province
+		# 转移一个单位到一个省份
+
+# spawnactor [<Actorname>] [<Province ID>] [<Animation> OPTIONAL]
+	# Spawns an actor with an optional animation
+		# 生成一个角色动画
+
+# spawn [<SubUnit Type>] [<Province ID>] [<Amount>]
+	# Spawns a unit in a province
+		# 省份中生成一个单位
+
+# guibounds(gui)
+	# Toggles GUI bounds debug
+		# 转换GUI调试界限
+
+# cameraclamp
+	# Toggles the camera clamping
+		# 转换锁定视角
+
+# provtooltipdebug(tdebug)
+	# Toggles the debug info in province tooltip
+		# 转换省份提示中的调试信息
+
+# reloadweather [<randomseed>]
+	# Reload and regenerate weather
+		# 重新加载和再生天气
+
+# weather
+	# Toggle weather simulation
+		# 转换天气模式
+
+# debug_air_vs_land(dbg_cas)
+	# Toggle debug mode for air vs land combat.
+		# 转换空中与陆上战斗的调试方式
+
+# mapnames
+	# Toggle map names
+		# 转换地图名称
+
+# gbreload
+	# Reloads gradient borders
+		# 重新加载变化率边界
+			# only for developers
+				# 只限于开发者
+
+# gbpaint [layer] [channel]
+	# Toggles gradient border painting
+		# 转换梯形图边界
+
+# occupationpaint(op)
+	# Toggles occupation painting
+		# 转换占用图色
+
+# setowner [country tag] [state id]
+	# Sets state owner
+		# 设定地区拥有者
+
+# setcontroller [country tag] [province id]
+	# Sets province controller
+		# 设定省控制者
+
+# profilelog
+	# Prints out the profiling informations into time.log
+		# 展示time.log信息
+
+# run
+	# Runs the specified file with list of commands
+		# 使用命令列表运行指定的文件。
+
+# oos
+	# Out of Synch
+		# 不同步
+
+# debug_crash(crash)
+	# Crash!
+		# 崩溃！
+
+# sleep(wait) [time in sec]
+	# Sleep
+		# 休眠
+
+# goto_province [province id]
+	# Centers to province
+		# 省区状态
+
+# goto_state [state id]
+	# Centers to state
+		# 国家状态
+
+# trigger_docs(effect_docs)
+	# Print docs for triggers and effects
+		# 显示触发条件和效果
+
+# xp [XP amount]
+	# Gives Army, navy and air experience to player
+		# 为玩家提供陆军、海军和空军经验
+
+# threat [Threat amount]
+	# Adds or show threat level of player
+		# 增加或显示玩家的威胁等级
+			# If one does "threat 999999999" it will reset the world tension to 0
+				# 如果一个“威胁999999999”，它将重置世界紧张局势为0。
+
+# pp(fuhrer_mana,political_power) [PP amount]
+	# Gives political power to player
+		# 给玩家政治权力
+
+# 3dstats
+	# Toggles 3D Stats
+		# 转换3D区域
+
+# hdr
+	# Toggles hdr
+		# 转换标题
+
+# hdr_debug
+	# Toggles hdr debugging
+		# 转换调试标题
+
+# srgb
+	# Toggles sRGB
+		# 转换音效
+
+# bloom
+	# Toggles bloom
+		# 转换亮度
+
+# PostEffectVolumes.Default [posteffect_values name]
+	# Toggles default posteffect values
+		#转换特效
+
+# night
+	# Toggles night
+		# 转换是否夜间
+			# *as of 1.01 this does not seem to work (filed under developer-only command)
+			# This command can be emulated via the day/night loop option at the bottom right toolbar (shortcut key 'N')
+				# *截至1.01，这似乎不起作用（只在开发人员命令下提交）
+				# 此命令可以通过右下工具栏（快捷键“N”）的“日/夜循环”选项进行模拟。
+
+# filewatcher
+	# Toggles filewatcher
+		# 转换文件
+
+# civilwar [<ideology>] [<target country tag>]
+	# Spawns a civil war
+		# 生成内战
+			# civilwar fascism ENG :
+				
+	# Valid ideologies "communism" "democratic" "fascism" "neutrality"
+		#有效意识形态 “共产主义” “民主主义” “法西斯主义” “中立主义”
+
+add_party_popularity <ideology group> <value>
+	# Adds party popularity
+		# 增加政党声望
+
+set_ruling_party <ideology group>
+	# Sets ruling party
+		# 设定执政党
+
+# createlean
+	# Create LEAN textures
+		#创建质感纹理
+
+# helplog
+	# Print out all console commands to game.log file.
+		# 展示所有的控制台命令game.log文件。
+
+# help [command name]
+	# Print out all console commands or a specific command description.
+		# 展示所有控制台命令或特定命令说明。
+
+# helphelp
+	# Double Rainbow help.
+		#双求助（卵用）
+
+# hsv
+	# Converts RGB to HSV
+		# 转变色彩模型
+
+# tag_color
+	# Test setting a country's color
+		# 设定一个国家的颜色
+
+# browser [url]
+	# Show browser window
+		# 窗口化显示
+
+# browser_base_url [url]
+	# Set browser base url
+		# 设定读取基本语言
+
+# aiview
+	# Enable AI debug info
+		# 启用 AI 调试信息
+
+# Focus.AutoComplete
+	# Allows national focuses to be instantly finished
+		# 允许国策立即完成
+			# Affects AI
+				# 影响AI
+
+# Focus.NoChecks
+	# Ignores focus requirements
+		# 忽略重点（国家）策略
+			# Affects AI
+				# 影响AI
+
+# instant_prepare
+	# Instantly prepares naval invasions
+		# 立即准备海军入侵
+			# Developer Only
+				# 仅限开发者
+
+# nu [number]
+	# Adds the specified amount of National Unity
+		# 增加指定数量的国家凝聚力
+
+# pp [number]
+	# Adds the specified amount of Political Power
+		# 增加指定数量的政治权力
+			# Not specifying the amount of political power will give the player 1000 political power.
+				# 不指定政治权力的数额将给予玩家1000的政治权力。
+
+# nuke [number]
+	# Adds nuke
+		# 增加核武器
+
+# airealism
+	# Enable realistic AI
+		# 使用真实 AI
+
+# instant_wargoal
+	# Will allow instant justificatiion of war goals on countries
+		# 允许国家立即重新部署战争目标
+
+# set_country_flag [<Country Flag>]
+	# Adds a country flag to currently played nation.
+		# 增加一个国家标记到当前国家
+			# Does not work if you put another nations tag in the command such as "set_country_flag flag AUS".
+			# The console will give a message confirming the command, but in my testing no flag is set.
+				# 如果你不把另一个国家的标签在命令如"set_country_flag flag AUS"
+				# 控制台将发出确认命令的消息，但在测试中没有设置标志。
+

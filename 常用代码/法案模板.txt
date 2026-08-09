@@ -1,0 +1,27 @@
+#位置：common/ideas/_法案名字（记得加下划线捏）
+ideas = {
+	法案名字（如兵役法案，贸易法案等） = {
+		law = yes
+		use_list_view = yes
+        法案1（如榨干他们，封闭经济等） = {
+			removal_cost = -1
+			modifier = {
+		    	#效果
+		    }
+		    allowed_to_remove = {
+		    }
+			cancel_if_invalid = no
+		}
+		法案2（如志愿兵役，自由贸易等） = {
+			removal_cost = -1
+			modifier = {
+		    	#效果
+		    }
+		    allowed_to_remove = {
+		    }
+			cancel_if_invalid = no
+		}
+		#以此类推
+		#注意：记得在00_idea(位置：common/idea_tag)里加上“slot = 法案名字”哦
+	}
+}
