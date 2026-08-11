@@ -1,0 +1,23 @@
+﻿	country_event = {
+		option = {
+			name = 
+			set_temp_variable = {
+				value = 
+				var = 
+			}
+		}
+		id = 
+		desc = 
+		title = 
+		is_triggered_only = yes
+		picture = 
+		immediate = {
+			hidden_effect = {
+				log = 
+			}
+		}
+		fire_only_once = yes
+		trigger = {
+			tag = 
+		}
+	}

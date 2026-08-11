@@ -432,7 +432,18 @@ class MyWindow(QMainWindow):
                 self.renderer.draw_graph(focus_data, file_path)  # 在场景中绘制国策树
                 self.custom_view._current_file_path = file_path
             else:
-                print("非国策文件，执行其他解析逻辑...")
+                # 初始部队文件（history/units）→ 专用编制+地图放置编辑器
+                norm = os.path.normpath(file_path).replace("\\", "/")
+                if "/history/units/" in norm or norm.endswith("/history/units"):
+                    from initial_oob_editor import InitialOobEditor
+                    editor = InitialOobEditor(
+                        file_path,
+                        hoi4_path=self.settings.get("HOI4_path", ""),
+                        mod_path=self.settings.get("mod_path", ""),
+                        parent=self)
+                    editor.show()
+                else:
+                    print("非国策文件，执行其他解析逻辑...")
 
         except Exception as e:
             print(f"读取或解析文件时发生错误: {e}")
@@ -505,6 +516,24 @@ class MyWindow(QMainWindow):
 
     def _on_workbench_generic_file(self, file_path, entity_id=None):
         """工作台：打开其他内容文件（复用树形编辑器），可选定位实体。"""
+        # 初始部队文件（history/units）→ 专用编制+地图放置编辑器
+        mod = self.settings.get("mod_path", "")
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/history/units/" in norm or norm.endswith("/history/units"):
+                from initial_oob_editor import InitialOobEditor
+                editor = InitialOobEditor(
+                    file_path,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
+                    mod_path=mod,
+                    parent=self)
+                editor.show()
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"初始部队编辑器打开失败: {e}")
+            return
         try:
             with open(file_path, 'r', encoding='utf-8-sig') as f:
                 content = f.read()

@@ -204,13 +204,23 @@ class TemplateScheduler:
         except Exception:
             return {}
 
-    def _iter_system_dirs(self):
-        """迭代 系统模板 下的模板目录。
+    @staticmethod
+    def _classify_system_usage(filename):
+        """根据文件名推断系统模板用途：基础* = file，项目* = node，其余 both。"""
+        if filename.startswith("基础") or "基础" in filename:
+            return "file"
+        if filename.startswith("项目") or "项目" in filename:
+            return "node"
+        return "both"
 
-        目录结构：templates/系统模板/<中文类型名>/基础模版（file）
-                   templates/系统模板/<中文类型名>/项目模版（node）
+    def _iter_system_dirs(self):
+        """迭代 系统模板 下的模板文件。
+
+        目录结构（扁平）：templates/系统模板/<中文类型名>/基础模板.txt（file）
+                          templates/系统模板/<中文类型名>/项目模板.txt（node）
+        兼容旧结构：templates/系统模板/<中文类型名>/基础模版/ 与 项目模版/ 子目录。
         Yields:
-            (目录路径, 模板类型key, 用途, 中文类型标签)
+            (文件路径, 模板类型key, 用途, 中文类型标签)
         """
         root = os.path.join(self.templates_dir, "系统模板")
         if not os.path.isdir(root):
@@ -221,10 +231,20 @@ class TemplateScheduler:
             if not os.path.isdir(cat_dir):
                 continue
             ttype = type_map.get(cat_name, cat_name)
+            # 扁平结构：直接放在类型目录下的文件
+            for filename in sorted(os.listdir(cat_dir)):
+                filepath = os.path.join(cat_dir, filename)
+                if not os.path.isfile(filepath):
+                    continue
+                yield filepath, ttype, self._classify_system_usage(filename), cat_name
+            # 兼容旧子目录结构
             for sub, usage in (("基础模版", "file"), ("项目模版", "node")):
                 sub_dir = os.path.join(cat_dir, sub)
                 if os.path.isdir(sub_dir):
-                    yield sub_dir, ttype, usage, cat_name
+                    for filename in sorted(os.listdir(sub_dir)):
+                        filepath = os.path.join(sub_dir, filename)
+                        if os.path.isfile(filepath):
+                            yield filepath, ttype, usage, cat_name
 
     def search_templates(self, keyword: str = "", template_type: str = "",
                          usage: str = "") -> List[dict]:
@@ -298,35 +318,32 @@ class TemplateScheduler:
                     "usage": self.get_template_usage(filepath),
                 })
 
-        # 扫描系统模板目录（templates/系统模板/<中文类型>/基础模版|项目模版）
-        for search_dir, det_type, det_usage, cat_label in self._iter_system_dirs():
+        # 扫描系统模板目录（templates/系统模板/<中文类型>/）
+        for filepath, det_type, det_usage, cat_label in self._iter_system_dirs():
             if template_type and det_type != template_type:
                 continue
-            for filename in os.listdir(search_dir):
-                filepath = os.path.join(search_dir, filename)
-                if os.path.isdir(filepath):
-                    continue
-                if keyword_lower and keyword_lower not in filename.lower():
-                    continue
-                if usage and det_usage != usage:
-                    continue
-                real_path = os.path.realpath(filepath)
-                if real_path in seen:
-                    continue
-                seen.add(real_path)
+            filename = os.path.basename(filepath)
+            if keyword_lower and keyword_lower not in filename.lower():
+                continue
+            if usage and det_usage != usage:
+                continue
+            real_path = os.path.realpath(filepath)
+            if real_path in seen:
+                continue
+            seen.add(real_path)
 
-                name_without_ext = os.path.splitext(filename)[0]
-                if name_without_ext.startswith("_"):
-                    name_without_ext = name_without_ext[1:]
+            name_without_ext = os.path.splitext(filename)[0]
+            if name_without_ext.startswith("_"):
+                name_without_ext = name_without_ext[1:]
 
-                results.append({
-                    "name": name_without_ext,
-                    "filename": filename,
-                    "filepath": filepath,
-                    "type": det_type,
-                    "type_label": cat_label,
-                    "usage": det_usage,
-                })
+            results.append({
+                "name": name_without_ext,
+                "filename": filename,
+                "filepath": filepath,
+                "type": det_type,
+                "type_label": cat_label,
+                "usage": det_usage,
+            })
 
         return results
 

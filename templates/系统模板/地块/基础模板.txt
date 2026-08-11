@@ -1,0 +1,21 @@
+﻿state = {
+	history = {
+		add_core_of = 
+		buildings = {
+			
+		}
+		owner = 
+		victory_points = {
+			
+		}
+	}
+	id = 
+	manpower = 
+	name = 
+	provinces = {
+		
+	}
+	state_category = 
+	buildings_max_level_factor = 1.000
+	local_supplies = 0.000
+}

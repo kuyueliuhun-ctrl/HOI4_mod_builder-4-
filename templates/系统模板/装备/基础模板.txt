@@ -1,0 +1,20 @@
+﻿equipments = {
+	PRC_Gundam_equipment = {
+		year = 
+		archetype = 
+		build_cost_ic = 
+		priority = 
+		resources = {
+			steel = 
+			rubber = 1
+			aluminium = 
+		}
+		parent = 
+		reliability = 
+		maximum_speed = 
+		visual_level = 
+		breakthrough = 
+		defense = 
+		soft_attack = 
+	}
+}

@@ -1,0 +1,74 @@
+﻿	ALB_retake_territory = {
+		complete_effect = {
+			log = 
+			hidden_effect = {
+				add_to_variable = {
+					
+				}
+				add_command_power = -20
+				launch_nuke = {
+					
+				}
+			}
+			set_temp_variable = {
+				value = 
+				var = 
+			}
+			effect_tooltip = {
+				swap_ideas = {
+					
+				}
+			}
+			remove_campaign_slot = yes
+			ATW_add_suspicion = yes
+		}
+		visible = {
+			has_completed_focus = 
+			hidden_trigger = {
+				has_completed_focus = 
+			}
+		}
+		available = {
+			has_campaign_slot = yes
+			NOT = {
+				1 = 
+				num_of_nukes = 
+				has_country_flag = war_justification_flag
+				has_idea = APA_lower_popular_support_idea
+				country_exists = 
+			}
+		}
+		icon = 
+		ai_will_do = {
+			base = 
+		}
+		cost = 
+		days_remove = 
+		remove_effect = {
+			hidden_effect = {
+				add_to_variable = {
+					
+				}
+			}
+			effect_tooltip = {
+				swap_ideas = {
+					
+				}
+			}
+			log = 
+			add_campaign_slot = yes
+			set_temp_variable = {
+				value = 
+				var = 
+			}
+		}
+		allowed = {
+			original_tag = 
+			tag = APA
+		}
+		fire_only_once = yes
+		modifier = {
+			
+		}
+		days_re_enable = 
+	}

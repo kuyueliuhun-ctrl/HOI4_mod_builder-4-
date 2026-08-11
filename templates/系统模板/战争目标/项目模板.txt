@@ -1,0 +1,20 @@
+﻿	take_state = {
+		threat = 2
+		allowed = {
+			always = no
+		}
+		take_states = {
+			is_controlled_by = PREV
+			is_owned_by = PREV
+		}
+		generate_base_cost = 200
+		generate_per_state_cost = 50
+		available = {
+			
+		}
+		take_states_cost = -20
+		expire = 
+		take_states_limit = 5
+		war_name = 
+		puppet_cost = -50
+	}

@@ -1,0 +1,26 @@
+﻿news_event = {
+	id = 
+	option = {
+		name = 
+		trigger = {
+			
+		}
+		hidden_effect = {
+			
+		}
+		if = {
+			
+		}
+	}
+	desc = 
+	is_triggered_only = yes
+	picture = 
+	title = 
+	major = yes
+	immediate = {
+		hidden_effect = {
+			
+		}
+	}
+	hours = 6
+}

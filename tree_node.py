@@ -1,5 +1,9 @@
 import re
 
+# 无空格日期字符串字段：裸写会被引擎按数字截断解析（如 1939.1.1 → 1939.1），
+# 序列化时强制加双引号
+DATE_QUOTED_KEYS = {"expire", "date", "created"}
+
 
 class TreeNode:
     """递归树节点：用于表示 Paradox 游戏引擎 PDX 脚本结构化数据中的一个节点。
@@ -81,6 +85,9 @@ class TreeNode:
             if self.raw_lines:
                 return "\n".join(tabs + line if i == 0 else line for i, line in enumerate(self.raw_lines))
             v = self.value
+            # 日期类字段：无空格裸写会被引擎按数字截断解析，强制加双引号
+            if self.key in DATE_QUOTED_KEYS and v and not v.startswith('"'):
+                v = f'"{v}"'
             # 如果值包含空格且未加引号，自动加双引号
             if " " in v and not v.startswith('"') and not v.startswith("{"):
                 v = f'"{v}"'

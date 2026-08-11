@@ -1,0 +1,46 @@
+﻿ROOT_inherit_current_scope_wars_effect = {
+	else_if = {
+		limit = {
+			
+		}
+		swap_ideas = {
+			
+		}
+	}
+	if = {
+		limit = {
+			
+		}
+		swap_ideas = {
+			
+		}
+		else_if = {
+			
+		}
+	}
+	set_variable = {
+		value = 
+		var = 
+	}
+	custom_effect_tooltip = 
+	add_to_variable = {
+		value = 
+		var = 
+	}
+	hidden_effect = {
+		remove_dynamic_modifier = {
+			
+		}
+		add_ideas = 
+		if = {
+			
+		}
+		remove_gov_types = yes
+		remove_economy_types = yes
+	}
+	multiply_variable = {
+		value = 
+		var = 
+	}
+	clear_variable = 
+}

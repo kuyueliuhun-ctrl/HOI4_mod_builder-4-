@@ -1,0 +1,22 @@
+﻿guiTypes = {
+	instantTextBoxType = {
+		name = 
+		position = {
+			x = 
+			y = 
+		}
+		format = 
+		text = 
+		font = 
+		maxWidth = 500
+		maxHeight = 
+		fixedsize = yes
+		borderSize = {
+			x = 0
+			y = 0
+		}
+		clicksound = click_ok
+		quadTextureSprite = 
+		buttonFont = 
+	}
+}

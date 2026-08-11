@@ -1,0 +1,15 @@
+﻿	buttonType = {
+		name = 
+		position = {
+			x = 
+			y = 
+		}
+		clicksound = click_ok
+		quadTextureSprite = 
+		buttonFont = 
+		buttonText = 
+		pdx_tooltip = 
+		spriteType = 
+		scale = 
+		oversound = ui_menu_over
+	}

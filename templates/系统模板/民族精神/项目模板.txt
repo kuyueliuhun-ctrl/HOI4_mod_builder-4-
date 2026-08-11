@@ -1,0 +1,63 @@
+﻿	test_one_economic_action = {
+		modifier = {
+			business_value_factor = 
+			personal_value_factor = 
+			income_growth_factor = 
+			expense_growth_factor = 
+			personal_expense_factor = 
+		}
+		allowed = {
+			always = no
+		}
+		picture = 
+		removal_cost = -1
+		level = 
+		cost = 100
+		available = {
+			if = {
+				limit = {
+					
+				}
+				always = no
+				NOT = {
+					
+				}
+			}
+			NOT = {
+				has_idea = 
+				has_war_support = 
+				has_global_flag = SOV_first_nato_war_victory
+			}
+		}
+		allowed_to_remove = {
+			development = yes
+			always = no
+			hidden_trigger = {
+				OR = {
+					
+				}
+				always = no
+			}
+		}
+		ai_will_do = {
+			modifier = {
+				factor = 20
+				check_variable = {
+					
+				}
+				NOT = {
+					
+				}
+				OR = {
+					
+				}
+				has_war = yes
+			}
+			base = 
+		}
+		visible = {
+			has_completed_focus = 
+			tag = 
+			has_idea = 
+		}
+	}

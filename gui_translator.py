@@ -33,7 +33,7 @@ def scan_gfx_folder(base_path, gfx_map):
 
     block_pattern = re.compile(r'SpriteType\s*=\s*\{(.*?)\}', re.DOTALL | re.IGNORECASE)
     name_pattern = re.compile(r'name\s*=\s*"([^"]+)"')
-    tex_pattern = re.compile(r'texturefile\s*=\s*"([^"]+)"')
+    tex_pattern = re.compile(r'texturefile\s*=\s*"([^"]+)"', re.IGNORECASE)
 
     for filename in os.listdir(interface_dir):
         if not filename.lower().endswith(".gfx"):

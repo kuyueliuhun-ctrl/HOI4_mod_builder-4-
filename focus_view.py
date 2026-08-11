@@ -1120,19 +1120,45 @@ class FocusView(QGraphicsView):
         menu.exec(event.globalPos())
 
     def _open_entity_tree_editor(self, file_path, entity):
-        """打开树形编辑器并定位到指定实体。"""
+        """打开树形编辑器：仅编辑该实体块（如同国策），无块范围时回退整文件+定位。"""
         from generic_tree_editor import GenericTreeEditor
-        from tree_node import tree_from_pdx_text
+        from tree_node import TreeNode, tree_from_pdx_text
         try:
             with open(file_path, 'r', encoding='utf-8-sig') as f:
                 content = f.read()
             file_lines = content.splitlines()
-            root = tree_from_pdx_text(content)
+
+            root = None
+            block_range = None
+            whole_file = False
+            if isinstance(entity, dict):
+                ent_range = entity.get("range")
+                if ent_range and len(ent_range) == 2 and ent_range[0] >= 0:
+                    start_char = ent_range[0]
+                    end_char = self._entity_block_end(content, start_char)
+                    if end_char > start_char:
+                        entity_text = content[start_char:end_char]
+                        parsed = tree_from_pdx_text(entity_text)
+                        if len(parsed.children) == 1 and parsed.children[0].node_type == "block":
+                            # 根节点使用包装容器，其下唯一的子节点为该实体块（与国策编辑一致）
+                            wrapper = TreeNode("block", "(entity)")
+                            wrapper.add_child(parsed.children[0])
+                            root = wrapper
+                            block_range = (
+                                content[:start_char].count('\n') + 1,
+                                content[:end_char].count('\n') + 1,
+                            )
+            if root is None or block_range is None:
+                # 回退：整文件编辑并定位实体
+                root = tree_from_pdx_text(content)
+                block_range = (1, len(file_lines) + 1)
+                whole_file = True
+
             editor = GenericTreeEditor(
                 root_node=root,
                 file_path=file_path,
                 file_lines=file_lines,
-                block_range=(1, len(file_lines) + 1),
+                block_range=block_range,
                 translator=_get_translator(),
                 custom_statement_path=CUSTOM_STATEMENT_PATH,
                 loc_manager=_get_loc_manager(),
@@ -1143,9 +1169,44 @@ class FocusView(QGraphicsView):
             )
             editor.tree_saved.connect(self.redraw)
             editor.show()
-            self._locate_entity(editor, entity["name"])
+            if whole_file and isinstance(entity, dict):
+                self._locate_entity(editor, entity.get("name", ""))
         except Exception as e:
             QMessageBox.critical(self, "错误", f"无法打开树形编辑器: {e}")
+
+    @staticmethod
+    def _entity_block_end(content, start_char):
+        """返回实体块起始字符对应的平衡右括号结束位置（含 }），未找到返回 -1。
+
+        扫描时跳过双引号字符串与 # 注释，避免花括号被误配对。
+        """
+        i = content.find("{", start_char)
+        if i < 0:
+            return -1
+        depth = 0
+        in_str = False
+        n = len(content)
+        while i < n:
+            c = content[i]
+            if in_str:
+                if c == '"':
+                    in_str = False
+                i += 1
+                continue
+            if c == '"':
+                in_str = True
+            elif c == "#":
+                while i < n and content[i] != "\n":
+                    i += 1
+                continue
+            elif c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    return i + 1
+            i += 1
+        return -1
 
     @staticmethod
     def _locate_entity(editor, entity_id):

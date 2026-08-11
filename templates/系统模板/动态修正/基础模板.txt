@@ -1,0 +1,17 @@
+﻿sabotaged_resources = {
+	icon = 
+	enable = {
+		always = yes
+		tag = 
+	}
+	political_power_gain = 
+	stability_factor = 
+	war_support_factor = 
+	army_defence_factor = 
+	society_development_monthly = 
+	poverty_development_monthly = 
+	industrial_capacity_factory = 
+	production_speed_buildings_factor = 
+	army_attack_factor = 
+	industrial_capacity_dockyard = 
+}

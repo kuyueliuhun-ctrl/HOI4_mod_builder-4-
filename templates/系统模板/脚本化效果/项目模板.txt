@@ -1,0 +1,64 @@
+﻿	ROOT_inherit_current_scope_wars_effect = {
+		else_if = {
+			limit = {
+				has_idea = 
+			}
+			swap_ideas = {
+				add_idea = 
+				remove_idea = 
+			}
+		}
+		if = {
+			limit = {
+				has_idea = 
+				check_variable = {
+					
+				}
+			}
+			swap_ideas = {
+				add_idea = 
+				remove_idea = 
+			}
+			else_if = {
+				limit = {
+					
+				}
+				multiply_temp_variable = {
+					
+				}
+			}
+		}
+		set_variable = {
+			value = 
+			var = 
+		}
+		custom_effect_tooltip = 
+		add_to_variable = {
+			value = 
+			var = 
+		}
+		hidden_effect = {
+			remove_dynamic_modifier = {
+				modifier = 
+			}
+			add_ideas = 
+			if = {
+				limit = {
+					
+				}
+				add_opinion_modifier = {
+					
+				}
+				remove_opinion_modifier = {
+					
+				}
+			}
+			remove_gov_types = yes
+			remove_economy_types = yes
+		}
+		multiply_variable = {
+			value = 
+			var = 
+		}
+		clear_variable = 
+	}

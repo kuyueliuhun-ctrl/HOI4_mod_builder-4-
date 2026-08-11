@@ -1,0 +1,26 @@
+﻿	armor_generic = {
+		role = 
+		upgrade_prio = {
+			factor = 
+			modifier = {
+				factor = 
+			}
+		}
+		available_for = {
+			APA = 
+		}
+		blocked_for = {
+			APA = 
+			HRL = 
+			SOV = 
+			USA = 
+			USB = 
+			NSM = 
+			PRC = 
+			UKR = 
+			BRN = 
+			PTF = 
+			ENG = 
+			POL = 
+		}
+	}

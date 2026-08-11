@@ -1,0 +1,22 @@
+﻿	NATO_ensure_nato_victory = {
+		ai_strategy = {
+			type = 
+			value = 
+			id = 
+		}
+		enable = {
+			has_global_flag = 
+			tag = 
+			date = 
+			has_war = yes
+		}
+		allowed = {
+			original_tag = 
+			tag = APA
+		}
+		abort_when_not_enabled = yes
+		abort = {
+			has_war = no
+			always = no
+		}
+	}

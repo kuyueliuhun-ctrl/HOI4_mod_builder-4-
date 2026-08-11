@@ -1,0 +1,43 @@
+﻿	new_strategic_destruction = {
+		ai_will_do = {
+			base = 1
+		}
+		available = {
+			always = yes
+		}
+		description = 
+		effect = {
+			else = {
+				add_to_variable = {
+					
+				}
+			}
+			if = {
+				limit = {
+					
+				}
+				set_variable = {
+					
+				}
+			}
+		}
+		folder = 
+		icon = 
+		milestones = {
+			effect = {
+				else = {
+					
+				}
+				if = {
+					
+				}
+			}
+		}
+		name = 
+		tracks = {
+			
+		}
+		xp_cost = 100
+		xp_type = 
+		enable_tactic = 
+	}

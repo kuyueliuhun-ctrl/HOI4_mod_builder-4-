@@ -25,7 +25,7 @@ from PyQt6.QtCore import Qt, QPoint, QSize, pyqtSignal, QEvent
 from PyQt6.QtGui import QFontMetrics, QKeySequence, QShortcut
 
 from tree_model import FocusTreeModel
-from tree_node import TreeNode
+from tree_node import TreeNode, DATE_QUOTED_KEYS
 from node_edit_dialog import NodeEditDialog
 from custom_statement_dialog import CustomStatementDialog
 from translation_editor import get_translation_editor
@@ -1063,6 +1063,9 @@ class GenericTreeEditor(QDialog):
                 # 值中不能包含换行，避免破坏单行键值对结构
                 if "\n" in v or "\r" in v:
                     v = " ".join(v.split())
+                # 日期类字段：无空格裸写会被引擎按数字截断解析，强制加双引号
+                if child.key in DATE_QUOTED_KEYS and v and not v.startswith('"'):
+                    v = f'"{v}"'
                 # 值中包含空格且未加引号/花括号包围时加引号
                 if " " in v and not v.startswith('"') and not v.startswith("{"):
                     v = f'"{v}"'

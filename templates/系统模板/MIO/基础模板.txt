@@ -1,0 +1,113 @@
+﻿generic_infantry_tank_organization = {
+	trait = {
+		icon = 
+		name = 
+		position = {
+			
+		}
+		token = 
+		relative_position_id = 
+		equipment_bonus = {
+			
+		}
+		all_parents = {
+			
+		}
+		limit_to_equipment_type = {
+			
+		}
+		mutually_exclusive = {
+			
+		}
+		any_parent = {
+			
+		}
+		production_bonus = {
+			
+		}
+	}
+	allowed = {
+		has_dlc = 
+		tag = 
+		NOT = {
+			
+		}
+		OR = {
+			
+		}
+		always = no
+	}
+	icon = 
+	include = 
+	tree_header_text = {
+		text = 
+		x = 
+	}
+	available = {
+		FROM = {
+			
+		}
+		owner = {
+			
+		}
+	}
+	initial_trait = {
+		name = 
+		equipment_bonus = {
+			
+		}
+		organization_modifier = {
+			
+		}
+		production_bonus = {
+			
+		}
+		limit_to_equipment_type = {
+			
+		}
+	}
+	equipment_type = {
+		mio_cat_eq_all_medium_plane = 
+		infantry_equipment = 
+		mio_cat_eq_all_small_plane = 
+		transport_plane_equipment = 
+	}
+	research_categories = {
+		
+	}
+	add_trait = {
+		icon = 
+		name = 
+		position = {
+			
+		}
+		token = 
+		ai_will_do = {
+			
+		}
+		equipment_bonus = {
+			
+		}
+		relative_position_id = 
+		special_trait_background = yes
+		all_parents = {
+			
+		}
+		production_bonus = {
+			
+		}
+		available = {
+			
+		}
+		limit_to_equipment_type = {
+			
+		}
+	}
+	override_trait = {
+		position = {
+			
+		}
+		relative_position_id = 
+		token = 
+	}
+}

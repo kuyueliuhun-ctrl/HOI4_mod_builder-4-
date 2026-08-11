@@ -1,0 +1,14 @@
+﻿	intelligence_agency = {
+		available = {
+			original_tag = 
+			always = yes
+		}
+		default = {
+			tag = 
+			always = yes
+		}
+		names = {
+			
+		}
+		picture = 
+	}

@@ -1,0 +1,32 @@
+﻿sub_units = {
+	attack_helicopter = {
+		active = yes
+		priority = 
+		sprite = 
+		type = {
+			infantry = 
+			armor = 
+			cas = 
+			artillery = 
+		}
+		need = {
+			
+		}
+		categories = {
+			category_army = 
+			category_front_line = 
+			category_all_armor = 
+			category_line_artillery = 
+			category_artillery = 
+			category_fighter = 
+			category_support_battalions = 
+			category_tanks = 
+		}
+		land_air_wing_size = 100
+		map_icon_category = 
+		supply_consumption = 
+		max_organisation = 
+		weight = 
+		ai_priority = 
+	}
+}

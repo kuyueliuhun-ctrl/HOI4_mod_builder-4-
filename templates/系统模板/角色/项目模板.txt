@@ -1,0 +1,33 @@
+﻿	A24_Nick_Offerman = {
+		portraits = {
+			civilian = {
+				large = 
+			}
+			army = {
+				large = 
+				small = 
+			}
+		}
+		country_leader = {
+			ideology = 
+			expire = 1.1.1.1
+			id = -1
+			traits = {
+				hos_expert_minuteman = 
+			}
+			desc = 
+		}
+		can_be_captured = no
+		corps_commander = {
+			skill = 
+			attack_skill = 
+			defense_skill = 
+			logistics_skill = 2
+			planning_skill = 1
+			traits = {
+				trait_reckless = 
+				trait_APA_jacobin = 
+				infantry_officer = 
+			}
+		}
+	}

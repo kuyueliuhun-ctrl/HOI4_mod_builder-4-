@@ -1,0 +1,31 @@
+focus = {
+		id = 
+		icon = 
+		relative_position_id = 
+		prerequisite = {  } 
+		mutually_exclusive = {  }
+		x = 
+		y = 
+
+		cost = 
+
+		ai_will_do = { 
+			base = 1
+			modifier = {
+				
+				add/factor = 
+			}
+		}
+		available = {
+			
+		}
+		bypass = {
+			
+		}
+		
+		search_filters = {  }
+
+		completion_reward = {	
+			
+		}
+	}

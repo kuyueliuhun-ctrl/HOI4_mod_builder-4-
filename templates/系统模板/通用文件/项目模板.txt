@@ -1,0 +1,6 @@
+﻿	block_key = {
+		value_key = 
+		child_block = {
+			inner_key = 
+		}
+	}

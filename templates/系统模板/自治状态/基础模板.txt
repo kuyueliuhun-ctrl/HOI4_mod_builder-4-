@@ -1,0 +1,49 @@
+﻿autonomy_state = {
+	ai_overlord_wants_garrison = {
+		always = no
+	}
+	ai_overlord_wants_lower = {
+		factor = 0
+	}
+	ai_subject_wants_higher = {
+		factor = 
+	}
+	can_lose_level = {
+		hidden_trigger = {
+			
+		}
+	}
+	id = 
+	min_freedom_level = 
+	modifier = {
+		autonomy_manpower_share = 
+		extra_trade_to_overlord_factor = 
+		overlord_trade_cost_factor = 
+		can_master_build_for_us = 1
+		cic_to_overlord_factor = 
+		mic_to_overlord_factor = 
+		conscription_factor = 0.5
+		political_power_gain = 0.02
+		research_sharing_per_country_bonus_factor = -0.5
+	}
+	rule = {
+		can_decline_call_to_war = no
+		can_not_declare_war = yes
+		units_deployed_to_overlord = yes
+		can_send_volunteers = yes
+	}
+	allowed = {
+		OVERLORD = {
+			
+		}
+		can_use_autonomy_system = 
+		has_dlc = Together for Victory
+	}
+	is_puppet = yes
+	can_take_level = {
+		hidden_trigger = {
+			
+		}
+	}
+	use_overlord_color = yes
+}

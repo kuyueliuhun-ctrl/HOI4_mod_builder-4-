@@ -1,0 +1,11 @@
+﻿	bookmark = {
+		date = 2020.1.1.1
+		default = 
+		desc = FIRE_NAME_DESC
+		effect = {
+			randomize_weather = 22345
+		}
+		name = 
+		picture = GFX_select_date_2020
+		sort_unplayed_first = no
+	}

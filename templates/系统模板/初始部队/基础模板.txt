@@ -1,0 +1,61 @@
+﻿units = {
+	division = {
+		division_template = 
+		location = 
+		name = 
+		start_experience_factor = 0.1
+	}
+}
+division_template = {
+	name = 
+	regiments = {
+		motorized = {
+			
+		}
+		mechanized = {
+			
+		}
+		militia = {
+			
+		}
+		artillery_brigade = {
+			
+		}
+		infantry = {
+			
+		}
+		light_mechanized = {
+			
+		}
+		modern_armor = {
+			
+		}
+		special_forces = {
+			
+		}
+		light_armor = {
+			
+		}
+		modern_sp_artillery_brigade = {
+			
+		}
+		mot_militia = {
+			
+		}
+	}
+	support = {
+		engineer = {
+			
+		}
+		mbt_company = {
+			
+		}
+		apc_company = {
+			
+		}
+		spaa_company = {
+			
+		}
+	}
+	priority = 2
+}

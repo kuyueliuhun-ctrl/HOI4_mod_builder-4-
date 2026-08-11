@@ -1,0 +1,10 @@
+﻿# ============ 通用 PDX 脚本文件 ============
+# 可编辑任意 PDX 脚本结构（键值对 / 块）
+key = value
+
+sample_block = {
+	inner_key = 
+	nested_block = {
+		deep_key = 
+	}
+}

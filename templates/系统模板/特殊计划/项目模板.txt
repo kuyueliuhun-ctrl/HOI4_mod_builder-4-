@@ -1,0 +1,88 @@
+﻿	sp_air_bouncing_bomb = {
+		project_tags = 
+		complexity = 
+		generic_prototype_rewards = {
+			sp_naval_generic_reward_major_progress_1 = 
+			sp_naval_generic_reward_major_progress_2 = 
+			sp_naval_generic_reward_major_progress_3 = 
+			sp_naval_generic_reward_navy_xp_1 = 
+			sp_naval_generic_reward_navy_xp_2 = 
+			sp_naval_generic_reward_navy_xp_3 = 
+			sp_naval_generic_reward_scientist_xp_1 = 
+			sp_naval_generic_reward_scientist_xp_2 = 
+			sp_naval_generic_reward_scientist_xp_3 = 
+			sp_naval_generic_reward_test_failure_1 = 
+			sp_naval_generic_reward_test_failure_2 = 
+			sp_naval_generic_reward_test_failure_3 = 
+		}
+		project_output = {
+			country_effects = {
+				custom_effect_tooltip = {
+					
+				}
+				if = {
+					
+				}
+				else = {
+					
+				}
+			}
+			enable_equipments = {
+				limit = {
+					
+				}
+			}
+			enable_equipment_modules = {
+				limit = {
+					
+				}
+			}
+			enable_subunits = {
+				
+			}
+			facility_state_effects = {
+				
+			}
+		}
+		prototype_time = sp_time.prototype.medium
+		specialization = 
+		resource_cost = {
+			resources = {
+				steel = 
+				chromium = 
+				tungsten = 
+				aluminium = 
+			}
+		}
+		available = {
+			FROM = {
+				else = {
+					
+				}
+				if = {
+					
+				}
+				has_tech = 
+			}
+		}
+		unique_prototype_rewards = {
+			
+		}
+		allowed = {
+			has_dlc = Gotterdammerung
+		}
+		breakthrough_cost = {
+			specialization_naval = 1
+			specialization_air = 
+			specialization_land = 1
+		}
+		ai_will_do = {
+			base = 1
+			modifier = {
+				factor = 
+				ROOT = {
+					
+				}
+			}
+		}
+	}

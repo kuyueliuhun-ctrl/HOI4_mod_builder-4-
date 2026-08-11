@@ -1,0 +1,6 @@
+﻿	oligarch_influence_monthly = {
+		category = country
+		color_type = neutral
+		precision = 
+		value_type = percentage
+	}

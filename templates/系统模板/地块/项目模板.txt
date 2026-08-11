@@ -1,0 +1,29 @@
+﻿	state = {
+		history = {
+			add_core_of = 
+			buildings = {
+				infrastructure = 
+				air_base = 1
+				industrial_complex = 
+				dockyard = 1
+				nuclear_reactor = 1
+				power_plant = 
+			}
+			owner = 
+			victory_points = {
+				2 = 
+				20 = 
+				1 = 
+				3 = 
+			}
+		}
+		id = 
+		manpower = 
+		name = 
+		provinces = {
+			
+		}
+		state_category = 
+		buildings_max_level_factor = 1.000
+		local_supplies = 0.000
+	}

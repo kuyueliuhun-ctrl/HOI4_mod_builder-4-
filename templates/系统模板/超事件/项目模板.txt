@@ -1,0 +1,37 @@
+﻿	news_event = {
+		id = 
+		option = {
+			name = 
+			trigger = {
+				NOT = {
+					
+				}
+				is_ally_with = 
+				tag = ATW
+			}
+			hidden_effect = {
+				AST = {
+					
+				}
+			}
+			if = {
+				limit = {
+					
+				}
+				scoped_play_song = one_minute_of_silence
+				scoped_sound_effect = TFR_se_the_last_war
+				set_country_flag = ATW_the_final_solution_super
+			}
+		}
+		desc = 
+		is_triggered_only = yes
+		picture = 
+		title = 
+		major = yes
+		immediate = {
+			hidden_effect = {
+				log = 
+			}
+		}
+		hours = 6
+	}

@@ -1,5 +1,6 @@
 """主入口模块，启动 PyQt6 应用并加载主窗口。"""
 import sys
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QApplication
 from main_window import MyWindow
 import traceback
@@ -11,6 +12,7 @@ def excepthook(exc_type, exc_value, exc_tb):
 if __name__ == "__main__":
     sys.excepthook = excepthook                     # 注册全局异常钩子，便于调试
     app = QApplication(sys.argv)                    # 创建 Qt 应用实例
+    app.setFont(QFont("Microsoft YaHei", 10))       # 显式设置字体，避免回退到 DirectWrite 不支持的旧式字体
     win = MyWindow()                                # 创建主窗口
     win.show()                                      # 显示主窗口
     sys.exit(app.exec())                            # 进入 Qt 事件循环

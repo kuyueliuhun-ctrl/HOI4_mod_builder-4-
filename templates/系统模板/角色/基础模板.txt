@@ -1,0 +1,32 @@
+﻿characters = {
+	A24_Nick_Offerman = {
+		portraits = {
+			civilian = {
+				
+			}
+			army = {
+				
+			}
+		}
+		country_leader = {
+			ideology = 
+			expire = 1.1.1.1
+			id = -1
+			traits = {
+				
+			}
+			desc = 
+		}
+		can_be_captured = no
+		corps_commander = {
+			skill = 
+			attack_skill = 
+			defense_skill = 
+			logistics_skill = 2
+			planning_skill = 1
+			traits = {
+				
+			}
+		}
+	}
+}

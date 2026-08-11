@@ -114,12 +114,40 @@ class FocusProcessor:
         return refs
 
     def _calculate_absolute_positions(self):
-        """将国策的 x/y（绝对网格坐标）转换为像素坐标。
+        """将国策坐标转换为像素坐标。
 
-        注：relative_position_id 仅表示与母国策的关联，不参与位置计算。
-        创建/移动国策时写入的都是绝对 x/y，若再叠加母国策坐标会产生
-        二次偏移（子国策被错放到与母国策同一行）。
+        HOI4 焦点定位语义：
+        - 无 relative_position_id 的焦点：x/y 为绝对网格坐标（缺省 0）
+        - 有 relative_position_id 的焦点：x/y 为相对其引用焦点的偏移，
+          引用焦点自身也可能带 relative_position_id，需沿链递归解析
+        - 引用目标不存在或引用成环时，退化为绝对坐标处理
         """
-        for node in self.focus_data.values():
-            node['abs_x'] = (node['basic']['x'] + 0.5) * self.GRID_X
-            node['abs_y'] = (node['basic']['y'] + 0.5) * self.GRID_Y
+        grid = {}
+        pending = dict(self.focus_data)
+        while pending:
+            progress = False
+            for fid in list(pending):
+                node = pending[fid]
+                rel = node['draw'].get('relative_position_id')
+                dx, dy = node['basic']['x'], node['basic']['y']
+                if not rel:
+                    grid[fid] = (dx, dy)
+                    del pending[fid]
+                    progress = True
+                elif rel in grid:
+                    px, py = grid[rel]
+                    grid[fid] = (px + dx, py + dy)
+                    del pending[fid]
+                    progress = True
+                elif rel not in self.focus_data:
+                    grid[fid] = (dx, dy)
+                    del pending[fid]
+                    progress = True
+            if not progress:
+                for fid, node in pending.items():
+                    grid[fid] = (node['basic']['x'], node['basic']['y'])
+                break
+        for fid, node in self.focus_data.items():
+            gx, gy = grid.get(fid, (node['basic']['x'], node['basic']['y']))
+            node['abs_x'] = (gx + 0.5) * self.GRID_X
+            node['abs_y'] = (gy + 0.5) * self.GRID_Y

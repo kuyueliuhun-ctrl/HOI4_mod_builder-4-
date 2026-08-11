@@ -1,0 +1,44 @@
+﻿ideas = {
+	test_one_economic_action = {
+		modifier = {
+			business_value_factor = 
+			personal_value_factor = 
+			income_growth_factor = 
+			expense_growth_factor = 
+			personal_expense_factor = 
+		}
+		allowed = {
+			always = no
+		}
+		picture = 
+		removal_cost = -1
+		level = 
+		cost = 100
+		available = {
+			if = {
+				
+			}
+			NOT = {
+				
+			}
+		}
+		allowed_to_remove = {
+			development = yes
+			always = no
+			hidden_trigger = {
+				
+			}
+		}
+		ai_will_do = {
+			modifier = {
+				
+			}
+			base = 
+		}
+		visible = {
+			has_completed_focus = 
+			tag = 
+			has_idea = 
+		}
+	}
+}

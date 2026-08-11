@@ -1,0 +1,58 @@
+﻿decision_category = {
+	ALB_retake_territory = {
+		complete_effect = {
+			log = 
+			hidden_effect = {
+				
+			}
+			set_temp_variable = {
+				
+			}
+			effect_tooltip = {
+				
+			}
+			remove_campaign_slot = yes
+			ATW_add_suspicion = yes
+		}
+		visible = {
+			has_completed_focus = 
+			hidden_trigger = {
+				
+			}
+		}
+		available = {
+			has_campaign_slot = yes
+			NOT = {
+				
+			}
+		}
+		icon = 
+		ai_will_do = {
+			base = 
+		}
+		cost = 
+		days_remove = 
+		remove_effect = {
+			hidden_effect = {
+				
+			}
+			effect_tooltip = {
+				
+			}
+			log = 
+			add_campaign_slot = yes
+			set_temp_variable = {
+				
+			}
+		}
+		allowed = {
+			original_tag = 
+			tag = APA
+		}
+		fire_only_once = yes
+		modifier = {
+			
+		}
+		days_re_enable = 
+	}
+}

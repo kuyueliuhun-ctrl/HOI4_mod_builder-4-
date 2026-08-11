@@ -40,9 +40,7 @@ CONTENT_TYPES = [
     ("mio", "MIO", "🏭", ["common/military_industrial_organizations"], None, ".txt"),
     ("equipment", "装备", "🎯", ["common/units/equipment"], "equipment", ".txt"),
     ("unit", "兵种", "🪖", ["common/units"], "unit", ".txt"),
-    ("division_template", "师模板", "🎖️", ["history/units"], None, ".txt"),
     ("initial_oob", "初始部队", "🚁", ["history/units"], None, ".txt"),
-    ("naval_oob", "海空军OOB", "⛴️", ["history/units"], None, ".txt"),
     ("special_project", "特殊计划", "🧪", ["common/special_projects"], None, ".txt"),
     ("doctrine", "军事学说", "📚", ["common/doctrines"], None, ".txt"),
     ("intelligence", "情报机构", "🕵️", ["common/intelligence_agencies"], None, ".txt"),
@@ -355,9 +353,7 @@ class WorkbenchDock(QDockWidget):
         "mio":               [("keys", ["mio", "military_industrial_organization"]), ("top",)],
         "equipment":         [("wrap", [("equipments", 1), ("equipment", 1)]), ("top",)],
         "unit":              [("wrap", [("sub_units", 1)]), ("top",)],
-        "division_template": [("keys", ["division_template"]), ("top",)],
-        "initial_oob":       [("top",)],
-        "naval_oob":         [("top",)],
+        "initial_oob":       [("keys", ["division_template"]), ("top",)],
         "special_project":   [("keys", ["special_project"]), ("top",)],
         "doctrine":          [("top",)],
         "intelligence":      [("wrap", [("intelligence_agencies", 1)]),
@@ -373,13 +369,14 @@ class WorkbenchDock(QDockWidget):
     }
 
     @classmethod
-    def _count_entities(cls, file_path, content_type="generic"):
+    def _count_entities(cls, file_path, content_type="generic", content=None):
         """按内容类型统计文件中的实体数量（注释/引号已剥离，格式无关）。"""
-        try:
-            with open(file_path, "r", encoding="utf-8-sig", errors="ignore") as f:
-                content = f.read()
-        except Exception:
-            return 0
+        if content is None:
+            try:
+                with open(file_path, "r", encoding="utf-8-sig", errors="ignore") as f:
+                    content = f.read()
+            except Exception:
+                return 0
         from tree_node import _strip_comments
         blocks = cls._scan_blocks(_strip_comments(content))
 
@@ -662,17 +659,82 @@ class WorkbenchDock(QDockWidget):
             self.file_list.addItem(item)
 
     def _add_file_item(self, fp, name):
-        """添加单个文件卡片项。"""
-        count = self._count_entities(fp, self._current_type)
+        """添加单个文件卡片项（文件名 + 实体数 + 关联国家 tag）。"""
+        content = self._read_file(fp)
+        count = self._count_entities(fp, self._current_type, content)
         rel = os.path.relpath(fp, self.mod_path) if self.mod_path else fp
         is_icon = self._current_type in ICON_RULES
         item_text = f"{name}\n实体数: {count}"
+        tags = self._detect_country_tags(fp, content)
+        if tags:
+            shown = ', '.join(tags[:8])
+            if len(tags) > 8:
+                shown += "…"
+            item_text += f"\n国家: {shown}"
         item = QListWidgetItem(item_text)
         item.setData(Qt.ItemDataRole.UserRole, fp)
         item.setData(Qt.ItemDataRole.UserRole + 1, None)
         item.setData(Qt.ItemDataRole.UserRole + 2, {"is_icon": is_icon})
         item.setToolTip(rel)
         self.file_list.addItem(item)
+
+    @staticmethod
+    def _detect_country_tags(file_path, content):
+        """检测文件关联的国家 tag，返回去重后的列表；无则返回空列表。
+
+        检测来源（按优先级）：
+          1. history/countries 文件名前缀（"A24 - Civil War.txt" → A24）
+          2. common/countries 文件名为裸 tag（"14K.txt" → 14K）
+          3. 文件名末尾大写标记（TFR_characters_A24.txt / TFR_ideas_APA.txt → A24/APA）
+          4. common/country_tags 顶层 TAG = "..." 赋值（该文件夹专属）
+          5. 内容模式：country = TAG / ideas = { TAG = {
+        """
+        import re
+        rel = (file_path or "").replace("\\", "/")
+        base = os.path.basename(file_path or "")
+        stem = os.path.splitext(base)[0]
+        # 国家 tag：2-4 位大写字母/数字，至少含一个字母
+        tag = r'((?=[A-Z0-9]*[A-Z])[A-Z0-9]{2,4})'
+
+        # 1) history/countries：文件名前缀即 tag
+        if "/history/countries/" in rel:
+            m = re.match(tag + r'\b', stem)
+            if m:
+                return [m.group(1)]
+
+        # 2) common/countries：文件名为裸 tag
+        if "/common/countries/" in rel:
+            m = re.fullmatch(tag, stem)
+            if m:
+                return [m.group(1)]
+
+        # 3) 文件名末尾大写标记
+        m = re.search(r'_' + tag + r'$', stem)
+        if m:
+            return [m.group(1)]
+
+        if not content:
+            return []
+
+        tags = []
+        # 4) country_tags：顶层 TAG = "..." 赋值
+        if "/common/country_tags/" in rel:
+            for m in re.finditer(r'^\s*' + tag + r'\s*=', content, re.M):
+                tags.append(m.group(1))
+            return tags
+        # 5) 内容模式
+        for m in re.finditer(r'\bcountry\s*=\s*' + tag + r'\b', content):
+            tags.append(m.group(1))
+        for m in re.finditer(r'\bideas\s*=\s*\{\s*' + tag + r'\s*=\s*\{', content):
+            tags.append(m.group(1))
+
+        seen = set()
+        result = []
+        for t in tags:
+            if t not in seen:
+                seen.add(t)
+                result.append(t)
+        return result
 
     @staticmethod
     def _read_file(fp):

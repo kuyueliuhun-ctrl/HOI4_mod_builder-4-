@@ -1,0 +1,155 @@
+﻿	generic_infantry_tank_organization = {
+		trait = {
+			icon = 
+			name = 
+			position = {
+				x = 
+				y = 
+			}
+			token = 
+			relative_position_id = 
+			equipment_bonus = {
+				build_cost_ic = 0.05
+			}
+			all_parents = {
+				
+			}
+			limit_to_equipment_type = {
+				mio_cat_eq_all_medium_plane = 
+			}
+			mutually_exclusive = {
+				
+			}
+			any_parent = {
+				
+			}
+			production_bonus = {
+				production_capacity_factor = 
+				production_efficiency_gain_factor = 
+				production_resource_need_factor = 
+				production_efficiency_cap_factor = 
+			}
+		}
+		allowed = {
+			has_dlc = 
+			tag = 
+			NOT = {
+				tag = 
+				USA_is_civil_war_faction = yes
+			}
+			OR = {
+				tag = 
+				USA_is_civil_war_faction = yes
+			}
+			always = no
+		}
+		icon = 
+		include = 
+		tree_header_text = {
+			text = 
+			x = 
+		}
+		available = {
+			FROM = {
+				controls_state = 
+				NOT = {
+					
+				}
+				has_completed_focus = APA_sieze_the_means_of_production
+				has_country_flag = FPR_revolutionary_arms_unlocked_flag
+			}
+			owner = {
+				controls_state = 
+			}
+		}
+		initial_trait = {
+			name = 
+			equipment_bonus = {
+				armor_value = 0.05
+				max_strength = 
+				maximum_speed = 
+				reliability = 
+				air_agility = 
+				air_ground_attack = 0.05
+				build_cost_ic = 
+				defense = 
+				soft_attack = 
+			}
+			organization_modifier = {
+				military_industrial_organization_research_bonus = 0.05
+			}
+			production_bonus = {
+				production_capacity_factor = 0.05
+				production_cost_factor = -0.05
+				production_efficiency_cap_factor = 0.03
+			}
+			limit_to_equipment_type = {
+				mio_cat_eq_all_medium_plane = 
+				armor = 
+				capital_ship = 
+				mio_cat_eq_all_small_plane = 
+				screen_ship = 
+				ship_hull_submarine = 
+			}
+		}
+		equipment_type = {
+			mio_cat_eq_all_medium_plane = 
+			infantry_equipment = 
+			mio_cat_eq_all_small_plane = 
+			transport_plane_equipment = 
+		}
+		research_categories = {
+			
+		}
+		add_trait = {
+			icon = 
+			name = 
+			position = {
+				x = 0
+				y = 
+			}
+			token = 
+			ai_will_do = {
+				base = 2
+			}
+			equipment_bonus = {
+				build_cost_ic = 
+				reliability = 
+				anti_air_attack = 
+				air_agility = 
+				maximum_speed = 
+				soft_attack = 
+				surface_detection = 
+			}
+			relative_position_id = 
+			special_trait_background = yes
+			all_parents = {
+				PRC_mio_203mm_Howitzer = 
+			}
+			production_bonus = {
+				production_resource_need_factor = 
+				production_capacity_factor = 
+			}
+			available = {
+				PRC = {
+					
+				}
+				owner = {
+					
+				}
+			}
+			limit_to_equipment_type = {
+				modern_tank_artillery_chassis = 
+				artillery_equipment = 
+				mio_cat_eq_all_carrier = 
+			}
+		}
+		override_trait = {
+			position = {
+				x = 
+				y = 2
+			}
+			relative_position_id = 
+			token = 
+		}
+	}
