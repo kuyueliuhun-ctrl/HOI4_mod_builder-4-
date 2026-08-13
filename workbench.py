@@ -1100,13 +1100,6 @@ class WorkbenchDock(QDockWidget):
         from template_scheduler import get_template_scheduler
         scheduler = get_template_scheduler()
         replacements = {}
-        enabled_vars = scheduler.get_enabled_variables(template_path)
-        if enabled_vars:
-            from template_manager_dialog import TemplateApplyDialog
-            vdlg = TemplateApplyDialog(enabled_vars, parent=self)
-            if vdlg.exec() != QDialog.DialogCode.Accepted:
-                return
-            replacements = vdlg.get_values()
         if scheduler.apply_template(template_path, path, replacements):
             self._refresh_files()
             QMessageBox.information(self, "成功",

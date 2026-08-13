@@ -115,7 +115,7 @@ class NodeSearchDialog(QDialog):
                     ttype = term.get("node_type", "value")
                     tname = self.NODE_TYPE_NAMES.get(ttype, ttype)
                     tags = "、".join(term.get("tags", []))
-                    label = f"⚡ {key}（{tname}）"
+                    label = f"{key}（{tname}）"
                     if cn and cn != key:
                         label += f" -- {cn}"
                     if tags:

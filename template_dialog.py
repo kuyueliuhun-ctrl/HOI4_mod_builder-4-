@@ -179,15 +179,7 @@ class TemplateDialog(QDialog):
             QMessageBox.warning(self, "错误", "无法读取模板内容")
             return
 
-        # 模板变量填写：模板启用了占位符变量时，弹出填写对话框
-        enabled_vars = self.scheduler.get_enabled_variables(filepath)
-        if enabled_vars:
-            from template_manager_dialog import TemplateApplyDialog
-            apply_dlg = TemplateApplyDialog(enabled_vars, parent=self)
-            if apply_dlg.exec() != QDialog.DialogCode.Accepted:
-                return
-            content = self.scheduler.apply_template_variables(
-                content, apply_dlg.get_values())
+        # 直接使用模板内容（变量填写功能已移除）
         self._applied_content = content
 
         nodes = parse_pdx_text_to_nodes(content.strip())

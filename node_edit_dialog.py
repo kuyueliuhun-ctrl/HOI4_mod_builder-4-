@@ -258,7 +258,7 @@ class NodeEditDialog(QDialog):
 
         使用翻译器的 search 方法进行模糊搜索，
         结果同时匹配中文和英文，最多显示 50 条。
-        自定义语句用 📌 前缀标识；词条用 ⚡ 前缀；模板用 📄 前缀。
+        自定义语句用 📌 前缀标识；词条显示类型；模板用 📄 前缀。
 
         Args:
             text (str): 搜索关键词
@@ -281,7 +281,7 @@ class NodeEditDialog(QDialog):
                 prefix = "📌"
             elif source == "term":
                 ttype = "块" if r.get("type") == "block" else "值"
-                prefix = f"⚡{ttype}"
+                prefix = f"{ttype}"
             elif source == "template":
                 prefix = "📄"
             else:
@@ -293,8 +293,7 @@ class NodeEditDialog(QDialog):
     def _on_key_selected(self, item):
         """键名搜索结果被选中时，填入键名输入框
 
-        词条/普通命令直接填入键名；模板则解析模板内容，
-        将第一个块/值节点作为键名填入（并保留整块内容供高级模式使用）。
+        词条/普通命令直接填入键名；模板则解析模板内容，直接将整个模板块作为结果节点。
         """
         data = item.data(Qt.ItemDataRole.UserRole)
         if not data:
@@ -307,17 +306,13 @@ class NodeEditDialog(QDialog):
             try:
                 node = tree_from_pdx_text(content)
                 if node.children:
-                    first = node.children[0]
-                    self.key_edit.setText(first.key)
-                    self._last_template_node = node
-                    QMessageBox.information(
-                        self, "模板已载入",
-                        f"模板「{data['key']}」已载入，可点击「高级: 直接编辑」查看完整内容。"
-                    )
-                else:
-                    self.key_edit.setText(data["key"])
+                    # 直接将模板第一个块/值节点作为结果，无需再手动填入键名
+                    self.result_node = node.children[0].clone()
+                    self.accept()
+                    return
             except Exception:
-                self.key_edit.setText(data["key"])
+                pass
+            self.key_edit.setText(data["key"])
             # 刷新搜索结果（保持列表可见）
             self._on_key_search(self.key_search_edit.text())
             return

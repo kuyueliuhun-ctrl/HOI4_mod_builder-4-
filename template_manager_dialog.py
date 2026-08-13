@@ -1,11 +1,9 @@
 """模板管理对话框模块
 
-提供 TemplateManagerDialog 及配套对话框：
+提供 TemplateManagerDialog：
 - 左侧：模板文件列表（支持搜索）
 - 右侧：树形编辑器（基于 TreeNode + FocusTreeModel）编辑模板内容
-- 模板操作：新建/删除/保存模板
-- 变量功能：扫描模板中的占位符（__变量名__），
-  设置每个变量的中文说明与是否启用（使用时弹出填写框）
+- 模板操作：新建/删除/保存模板（保存到当前选中的模板文件）
 """
 
 import os
@@ -13,9 +11,7 @@ import os
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QListWidget, QListWidgetItem, QTreeView,
-    QMessageBox, QComboBox, QFormLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QCheckBox, QTextEdit, QInputDialog,
-    QSplitter, QWidget, QAbstractItemView
+    QMessageBox, QInputDialog, QSplitter, QWidget, QAbstractItemView
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -80,8 +76,6 @@ class TemplateManagerDialog(QDialog):
         self.name_label = QLabel("未选择模板")
         info_row.addWidget(self.name_label)
         info_row.addStretch()
-        self.var_label = QLabel()
-        info_row.addWidget(self.var_label)
         right.addLayout(info_row)
 
         # 节点操作按钮
@@ -109,7 +103,6 @@ class TemplateManagerDialog(QDialog):
         tpl_btn_row = QHBoxLayout()
         for text, slot in [
             ("📄 新建模板", self._on_new_template),
-            ("🧹 变量设置", self._on_variable_settings),
             ("💾 保存模板", self._on_save_template),
             ("🗑 删除模板", self._on_delete_template),
         ]:
@@ -142,17 +135,11 @@ class TemplateManagerDialog(QDialog):
     # ────────────── 模板列表 ──────────────
 
     def _load_template_list(self):
-        """按关键词加载模板列表（名称 / 类型 / 变量名匹配）。"""
+        """按关键词加载模板列表（名称 / 类型匹配），不含系统模板。"""
         keyword = self.search_edit.text().strip()
         self.template_list.blockSignals(True)
         self.template_list.clear()
-        for tmpl in self.scheduler.search_templates(keyword):
-            content = self.scheduler.get_template_content(tmpl["filepath"]) or ""
-            if keyword and keyword not in content:
-                vars_found = [v for v in self.scheduler.scan_template_variables(content)
-                              if keyword.lower() in v.lower()]
-                if not vars_found:
-                    continue
+        for tmpl in self.scheduler.search_templates(keyword, include_system=False):
             item = QListWidgetItem(f"[{tmpl['type_label']}] {tmpl['name']}")
             item.setData(Qt.ItemDataRole.UserRole, tmpl)
             self.template_list.addItem(item)
@@ -188,16 +175,7 @@ class TemplateManagerDialog(QDialog):
         self.model = FocusTreeModel(root, translator=None)
         self.tree_view.setModel(self.model)
         self.tree_view.expandAll()
-        self._update_var_label(filepath)
 
-    def _update_var_label(self, filepath):
-        """显示当前模板的变量数量。"""
-        variables = self.scheduler.get_template_variables(filepath)
-        enabled = [v for v in variables if v.get("enabled")]
-        if variables:
-            self.var_label.setText(f"变量 {len(enabled)}/{len(variables)} 启用")
-        else:
-            self.var_label.setText("无变量")
 
     def _current_node(self):
         """获取当前选中的树节点。"""
@@ -207,32 +185,62 @@ class TemplateManagerDialog(QDialog):
         return self.model.node_from_index(index)
 
     def _on_add_node(self):
-        """添加子节点（简单对话框：类型/键名/值）。"""
+        """添加子节点：调用树形编辑器的节点编辑窗口。"""
         if self.model is None:
             QMessageBox.warning(self, "提示", "请先选择一个模板")
             return
         parent = self._current_node()
         if parent is None:
             parent = self.model.root_node
-        node = _NodeEditDialog(parent=self).get_result()
-        if node is None:
-            return
-        index = self.model.index_from_node(parent)
-        self.model.add_node(node, index)
-        self.tree_view.expandAll()
+        from node_edit_dialog import NodeEditDialog
+        dlg = NodeEditDialog(None, parent=self)
+        dlg.setWindowTitle("添加节点")
+
+        def on_ok():
+            node = dlg.get_node()
+            if node is None:
+                dlg.deleteLater()
+                return
+            index = self.model.index_from_node(parent)
+            self.model.add_node(node, index)
+            self.tree_view.expandAll()
+            dlg.deleteLater()
+
+        dlg.accepted.connect(on_ok)
+        dlg.show()
 
     def _on_edit_node(self):
-        """编辑选中节点的键名/值/类型。"""
+        """编辑选中节点的键名/值/类型（调用树形编辑器的节点编辑窗口）。"""
         if self.model is None:
             return
         node = self._current_node()
         if node is None or node == self.model.root_node:
             QMessageBox.warning(self, "提示", "请先选择一个节点")
             return
-        dlg = _NodeEditDialog(node=node, parent=self)
-        node = dlg.get_result()
-        if node is not None:
-            self._load_tree_from_file(self.current_filepath)
+        from node_edit_dialog import NodeEditDialog
+        dlg = NodeEditDialog(None, node=node, parent=self)
+
+        def on_ok():
+            result = dlg.get_node()
+            if result is not None:
+                # 用结果节点替换原节点（保留子节点结构），并刷新视图
+                self._replace_node(node, result)
+                self.model.layoutChanged.emit()
+            dlg.deleteLater()
+
+        dlg.accepted.connect(on_ok)
+        dlg.show()
+
+    @staticmethod
+    def _replace_node(node, result):
+        """用新节点数据原地替换原节点属性（保持节点引用，避免索引失效）。"""
+        node.key = result.key
+        node.value = result.value
+        node.node_type = result.node_type
+        node.children = result.children
+        node.raw_lines = []
+        for child in node.children:
+            child.parent = node
 
     def _on_delete_node(self):
         """删除选中的节点（根节点不可删除）。"""
@@ -281,7 +289,7 @@ class TemplateManagerDialog(QDialog):
         return "\n\n".join(parts)
 
     def _on_new_template(self):
-        """新建模板：输入名称与类型，创建后自动弹出变量选择。"""
+        """新建模板：输入名称与类型并创建空模板文件。"""
         name, ok = QInputDialog.getText(self, "新建模板", "模板名称:")
         if not ok or not (name or "").strip():
             return
@@ -293,7 +301,6 @@ class TemplateManagerDialog(QDialog):
             return
         ttype = type_keys[type_labels.index(type_choice)]
 
-        # 创建空模板文件，再提示变量选择
         path = self.scheduler.create_template(name.strip(), "", ttype)
         if not path:
             QMessageBox.warning(self, "错误", "创建模板失败")
@@ -307,13 +314,10 @@ class TemplateManagerDialog(QDialog):
                 self.template_list.setCurrentItem(item)
                 break
         self._load_tree_from_file(path)
-        self._open_variable_dialog()
-        QMessageBox.information(self, "成功", f"模板已创建：\n{path}\n\n"
-                                              f"提示：在模板内容中填入 __变量名__ 占位符后，\n"
-                                              f"点击「变量设置」选择使用时需要填写的变量。")
+        QMessageBox.information(self, "成功", f"模板已创建：\n{path}")
 
     def _on_save_template(self):
-        """保存当前树编辑内容到模板文件。"""
+        """保存当前树编辑内容到当前选中的模板文件。"""
         if not self.current_filepath:
             QMessageBox.warning(self, "提示", "请先选择一个模板")
             return
@@ -325,9 +329,6 @@ class TemplateManagerDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "错误", f"保存失败: {e}")
             return
-        # 保存后自动刷新变量配置（新出现的变量默认启用）
-        self.scheduler.get_template_variables(self.current_filepath)
-        self._update_var_label(self.current_filepath)
         QMessageBox.information(self, "成功", "模板已保存")
 
     def _on_delete_template(self):
@@ -347,195 +348,3 @@ class TemplateManagerDialog(QDialog):
         self.current_filepath = None
         self._load_template_list()
         self.templates_changed.emit()
-
-    # ────────────── 变量功能 ──────────────
-
-    def _on_variable_settings(self):
-        """打开变量设置对话框（扫描占位符，勾选启用，填写说明）。"""
-        if not self.current_filepath:
-            QMessageBox.warning(self, "提示", "请先选择一个模板")
-            return
-        self._open_variable_dialog()
-
-    def _open_variable_dialog(self):
-        """弹出变量设置对话框并在确认后保存配置。"""
-        dlg = TemplateVariableDialog(self.scheduler, self.current_filepath, parent=self)
-        dlg.accepted.connect(self._update_var_label)
-        dlg.accepted.connect(lambda: self._update_var_label(self.current_filepath))
-        dlg.show()
-
-
-class TemplateVariableDialog(QDialog):
-    """模板变量设置对话框 - 非模态
-
-    扫描模板内容中的 __变量名__ 占位符，
-    为每个变量设置中文说明并勾选"使用时需要填入"。
-    """
-
-    def __init__(self, scheduler, filepath, parent=None):
-        super().__init__(parent)
-        self.scheduler = scheduler
-        self.filepath = filepath
-
-        self.setWindowTitle(f"模板变量设置 - {os.path.basename(filepath)}")
-        self.setMinimumSize(520, 400)
-        self.setWindowModality(Qt.WindowModality.NonModal)
-
-        layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("扫描到的占位符变量（勾选后，使用模板时提示填入）："))
-
-        self.table = QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["使用时填入", "变量名", "中文说明"])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        layout.addWidget(self.table)
-
-        self._variables = self.scheduler.get_template_variables(filepath)
-        self.table.setRowCount(len(self._variables))
-        for row, var in enumerate(self._variables):
-            check = QCheckBox()
-            check.setChecked(bool(var.get("enabled", True)))
-            self.table.setCellWidget(row, 0, check)
-            self.table.setItem(row, 1, QTableWidgetItem(var.get("name", "")))
-            label_item = QTableWidgetItem(var.get("label", ""))
-            self.table.setItem(row, 2, label_item)
-
-        btn_row = QHBoxLayout()
-        btn_row.addStretch()
-        cancel_btn = QPushButton("取消")
-        cancel_btn.clicked.connect(self.close)
-        ok_btn = QPushButton("确定")
-        ok_btn.clicked.connect(self._on_ok)
-        btn_row.addWidget(cancel_btn)
-        btn_row.addWidget(ok_btn)
-        layout.addLayout(btn_row)
-
-        self.status_label = QLabel()
-        layout.addWidget(self.status_label)
-        self.status_label.setText(f"共 {len(self._variables)} 个变量"
-                                  if self._variables else "未发现变量（在模板内容中使用 __变量名__）")
-
-    def _on_ok(self):
-        """收集表格内容并保存变量配置。"""
-        variables = []
-        for row in range(self.table.rowCount()):
-            check = self.table.cellWidget(row, 0)
-            name_item = self.table.item(row, 1)
-            label_item = self.table.item(row, 2)
-            name = name_item.text().strip() if name_item else ""
-            if not name:
-                continue
-            variables.append({
-                "name": name,
-                "label": label_item.text().strip() if label_item else "",
-                "enabled": bool(check.isChecked()) if check else True,
-            })
-        if self.scheduler.set_template_variables(self.filepath, variables):
-            self.status_label.setText("已保存")
-            self.accept()
-        else:
-            QMessageBox.warning(self, "错误", "保存变量配置失败")
-
-
-class TemplateApplyDialog(QDialog):
-    """模板变量填写对话框 - 使用模板时弹出
-
-    展示模板中启用的变量，用户填写值后返回 {占位符: 值}。
-    """
-
-    def __init__(self, variables, parent=None):
-        """Args:
-            variables: [{"name", "label"}, ...]（已启用变量）
-        """
-        super().__init__(parent)
-        self.variables = variables
-        self._values = {}
-
-        self.setWindowTitle("填写模板变量")
-        self.setMinimumWidth(420)
-        self.setWindowModality(Qt.WindowModality.NonModal)
-
-        layout = QFormLayout(self)
-        self._edits = {}
-        for var in variables:
-            name = var.get("name", "")
-            label = var.get("label") or name.strip("_")
-            edit = QLineEdit()
-            edit.setPlaceholderText(name)
-            layout.addRow(f"{label}:", edit)
-            self._edits[name] = edit
-
-        btn_row = QHBoxLayout()
-        btn_row.addStretch()
-        cancel_btn = QPushButton("取消")
-        cancel_btn.clicked.connect(self.close)
-        ok_btn = QPushButton("确定")
-        ok_btn.clicked.connect(self._on_ok)
-        btn_row.addWidget(cancel_btn)
-        btn_row.addWidget(ok_btn)
-        layout.addRow(btn_row)
-
-    def _on_ok(self):
-        for name, edit in self._edits.items():
-            self._values[name] = edit.text().strip()
-        self.accept()
-
-    def get_values(self) -> dict:
-        """获取填写的变量值 {占位符: 值}。"""
-        return self._values
-
-
-class _NodeEditDialog(QDialog):
-    """简单节点编辑对话框：类型 / 键名 / 值。"""
-
-    def __init__(self, node=None, parent=None):
-        super().__init__(parent)
-        self.node = node
-        self._result = None
-
-        self.setWindowTitle("编辑节点" if node else "添加节点")
-        self.setMinimumWidth(380)
-        self.setWindowModality(Qt.WindowModality.NonModal)
-
-        layout = QFormLayout(self)
-        self.type_combo = QComboBox()
-        self.type_combo.addItems(["值节点 (value)", "块节点 (block)"])
-        layout.addRow("类型:", self.type_combo)
-        self.key_edit = QLineEdit()
-        layout.addRow("键名:", self.key_edit)
-        self.value_edit = QLineEdit()
-        layout.addRow("值:", self.value_edit)
-
-        if node:
-            self.type_combo.setCurrentIndex(1 if node.node_type == "block" else 0)
-            self.key_edit.setText(node.key)
-            self.value_edit.setText(node.value)
-
-        btn_row = QHBoxLayout()
-        btn_row.addStretch()
-        cancel_btn = QPushButton("取消")
-        cancel_btn.clicked.connect(self.close)
-        ok_btn = QPushButton("确定")
-        ok_btn.clicked.connect(self._on_ok)
-        btn_row.addWidget(cancel_btn)
-        btn_row.addWidget(ok_btn)
-        layout.addRow(btn_row)
-
-    def _on_ok(self):
-        node_type = "block" if self.type_combo.currentIndex() == 1 else "value"
-        key = self.key_edit.text().strip()
-        value = self.value_edit.text().strip()
-        if node_type == "block":
-            self._result = TreeNode("block", key or "(block)")
-        else:
-            self._result = TreeNode("value", key, value)
-        self.accept()
-
-    def get_result(self):
-        """返回编辑后的节点，取消时为 None。"""
-        if not self._result:
-            return None
-        return self._result

@@ -248,13 +248,14 @@ class TemplateScheduler:
                             yield filepath, ttype, usage, cat_name
 
     def search_templates(self, keyword: str = "", template_type: str = "",
-                         usage: str = "") -> List[dict]:
+                         usage: str = "", include_system: bool = True) -> List[dict]:
         """
         搜索模板（按文件名模糊匹配）
         Args:
             keyword: 搜索关键字（匹配文件名，不区分大小写）
             template_type: 限定模板类型，空字符串表示搜索所有类型
             usage: 限定模板用途（file/node/both），空字符串表示不限
+            include_system: 是否包含 系统模板 文件夹中的内容（默认包含）
         Returns:
             匹配的模板信息列表 [{name, filename, filepath, type, type_label, usage}, ...]
         """
@@ -324,31 +325,32 @@ class TemplateScheduler:
                 })
 
         # 扫描系统模板目录（templates/系统模板/<中文类型>/）
-        for filepath, det_type, det_usage, cat_label in self._iter_system_dirs():
-            if template_type and det_type != template_type:
-                continue
-            filename = os.path.basename(filepath)
-            if keyword_lower and keyword_lower not in filename.lower():
-                continue
-            if usage and det_usage != usage:
-                continue
-            real_path = os.path.realpath(filepath)
-            if real_path in seen:
-                continue
-            seen.add(real_path)
+        if include_system:
+            for filepath, det_type, det_usage, cat_label in self._iter_system_dirs():
+                if template_type and det_type != template_type:
+                    continue
+                filename = os.path.basename(filepath)
+                if keyword_lower and keyword_lower not in filename.lower():
+                    continue
+                if usage and det_usage != usage:
+                    continue
+                real_path = os.path.realpath(filepath)
+                if real_path in seen:
+                    continue
+                seen.add(real_path)
 
-            name_without_ext = os.path.splitext(filename)[0]
-            if name_without_ext.startswith("_"):
-                name_without_ext = name_without_ext[1:]
+                name_without_ext = os.path.splitext(filename)[0]
+                if name_without_ext.startswith("_"):
+                    name_without_ext = name_without_ext[1:]
 
-            results.append({
-                "name": name_without_ext,
-                "filename": filename,
-                "filepath": filepath,
-                "type": det_type,
-                "type_label": cat_label,
-                "usage": det_usage,
-            })
+                results.append({
+                    "name": name_without_ext,
+                    "filename": filename,
+                    "filepath": filepath,
+                    "type": det_type,
+                    "type_label": cat_label,
+                    "usage": det_usage,
+                })
 
         return results
 

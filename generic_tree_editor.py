@@ -124,6 +124,11 @@ class MultilineItemDelegate(QStyledItemDelegate):
             editor.setText(text)
 
     def setModelData(self, editor, model, index):
+        if getattr(self, "_pre_edit_callback", None):
+            try:
+                self._pre_edit_callback()
+            except Exception:
+                pass
         if isinstance(editor, QTextEdit):
             text = editor.toPlainText()
         else:
@@ -200,6 +205,10 @@ class GenericTreeEditor(QDialog):
         self.translation_editor = None
         # 收集到的固定字段ID列表（如 focus_id 等，用于翻译编辑）
         self._fixed_field_ids = []
+
+        # Ctrl+Z 撤销栈（存储节点树深拷贝快照）
+        self._undo_stack = []
+        self._undo_limit = 200
 
         # 设置窗口基本属性
         self.setWindowTitle(title)
@@ -405,11 +414,8 @@ class GenericTreeEditor(QDialog):
         # 设置编辑器引用和固定字段ID（用于翻译节点显示）
         self.model.set_editor_refs(self.translation_editor, self._fixed_field_ids)
         self.tree_view.setModel(self.model)
-        # 行数较少（不超过200行）时默认展开所有节点，超过200行时收缩所有节点
-        if self.file_lines and len(self.file_lines) > 200:
-            self.tree_view.collapseAll()
-        else:
-            self.tree_view.expandAll()
+        # 默认展开所有节点
+        self.tree_view.expandAll()
 
     def _get_root_type_display(self) -> str:
         """获取根节点类型的友好显示文本
@@ -446,6 +452,12 @@ class GenericTreeEditor(QDialog):
         self.find_shortcut = QShortcut(QKeySequence("Ctrl+F"), self)
         self.find_shortcut.activated.connect(self._open_find_dialog)
         self._find_dialog = None
+        # Ctrl+Z：撤销
+        self.undo_shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
+        self.undo_shortcut.activated.connect(self._undo)
+        # 行内编辑（双击翻译/描述）前记录快照
+        delegate = self.tree_view.itemDelegate()
+        delegate._pre_edit_callback = self._push_undo
 
     def _open_find_dialog(self):
         """Ctrl+F：打开节点查找定位对话框（英文 id / 中文翻译）。"""
@@ -740,6 +752,7 @@ class GenericTreeEditor(QDialog):
             result = dlg.get_node()
             if result:
                 new_child_count = len(result.children)
+                self._push_undo()
                 # 编辑改变了节点内容，需清空其所有祖先节点的 raw_lines，
                 # 否则保存时仍会输出旧的原始文本行，导致修改被丢弃。
                 if node.parent is not None:
@@ -802,22 +815,65 @@ class GenericTreeEditor(QDialog):
             p.raw_lines = []
             p = p.parent
 
-    def _add_node_search(self):
-        """统一搜索添加子节点（词条 / 模板）
+    # ---------- 撤销（Ctrl+Z） ----------
 
-        打开 NodeSearchDialog，合并搜索词条（块/值）与模板：
-        - 词条块 → 创建空块节点
-        - 词条值 → 预填键名打开节点编辑对话框
-        - 模板 → 解析模板内容为块节点
+    def _push_undo(self):
+        """将当前整棵树的深拷贝压入撤销栈（在每次修改前调用）。"""
+        try:
+            snap = self.root_node.clone()
+            self._undo_stack.append(snap)
+            if len(self._undo_stack) > self._undo_limit:
+                self._undo_stack.pop(0)
+        except Exception:
+            pass
+
+    def _undo(self):
+        """撤销最近一次修改：弹出快照恢复树结构并重建模型视图。"""
+        if not self._undo_stack:
+            return
+        snap = self._undo_stack.pop()
+        try:
+            # 用快照替换根节点内容（保持根节点对象引用不变）
+            self._restore_root(snap)
+        except Exception:
+            return
+        # 重建模型：丢弃所有失效的索引与内部缓存（_vrefs/_virtual_nodes 等）
+        from tree_model import FocusTreeModel
+        new_model = FocusTreeModel(self.root_node, self.translator,
+                                   parent=self, loc_manager=self.loc_manager)
+        new_model.set_editor_refs(self.translation_editor, self._fixed_field_ids)
+        self.model = new_model
+        self.tree_view.setModel(self.model)
+        self.tree_view.expandAll()
+        self._update_status()
+
+    def _restore_root(self, snap):
+        """将快照内容写回根节点（原地替换，保持 root_node 引用与模型指针有效）。"""
+        r = self.root_node
+        r.node_type = snap.node_type
+        r.key = snap.key
+        r.value = snap.value
+        r.raw_lines = list(snap.raw_lines)
+        r.children = snap.children
+        for c in r.children:
+            c.parent = r
+
+    def _add_node_search(self):
+        """添加子节点：使用编辑词条的界面（NodeEditDialog，含词条/模板搜索）。
+
+        词条/模板搜索结果可直接确定；选中模板时 NodeEditDialog 会直接将模板内容
+        作为结果节点放入。
         """
-        from node_search_dialog import NodeSearchDialog
+        from node_edit_dialog import NodeEditDialog
         index = self.tree_view.currentIndex()
         parent_node = self.model.node_from_index(index)
-        dlg = NodeSearchDialog(self.translator, parent=self)
+        dlg = NodeEditDialog(self.translator, parent=self)
+        dlg.setWindowTitle("添加节点")
 
         def on_add_ok():
             new_node = dlg.get_node()
             if new_node:
+                self._push_undo()
                 self.model.insert_node(index, new_node)
                 self._invalidate_ancestors(parent_node)
                 self.tree_view.expand(index)
@@ -877,11 +933,7 @@ class GenericTreeEditor(QDialog):
         dlg.show()
 
     def _save_block_as_template(self, node):
-        """将选中的块节点保存为模板文件。
-
-        保存后自动扫描内容中的 __变量名__ 占位符，
-        弹出变量设置对话框让用户选择哪些变量需要填入。
-        """
+        """将选中的块节点保存为模板文件（同名模板存在时覆盖，不新建副本）。"""
         from PyQt6.QtWidgets import QInputDialog
         from template_scheduler import get_template_scheduler
         name, ok = QInputDialog.getText(
@@ -891,18 +943,28 @@ class GenericTreeEditor(QDialog):
         content = node.to_pdx() if node.node_type == "block" else node.key
         ttype = self._template_type_for_file()
         scheduler = get_template_scheduler()
+
+        # 同名模板已存在时直接覆盖，避免 create_template 自动生成新文件副本
+        existing = None
+        for t in scheduler.search_templates(template_type=ttype, include_system=False):
+            if t["name"] == name.strip():
+                existing = t["filepath"]
+                break
+        if existing:
+            import os
+            try:
+                os.makedirs(os.path.dirname(existing), exist_ok=True)
+                with open(existing, "w", encoding="utf-8") as f:
+                    f.write(content)
+            except Exception as e:
+                QMessageBox.critical(self, "错误", f"保存模板失败: {e}")
+                return
+            QMessageBox.information(self, "成功", f"模板已更新：\n{existing}")
+            return
+
         path = scheduler.create_template(name.strip(), content, ttype)
         if not path:
             QMessageBox.warning(self, "错误", "保存模板失败")
-            return
-        # 变量选择：扫描占位符并弹出设置对话框（选择需要填入的变量）
-        variables = scheduler.get_template_variables(path)
-        if variables:
-            from template_manager_dialog import TemplateVariableDialog
-            vdlg = TemplateVariableDialog(scheduler, path, parent=self)
-            vdlg.show()
-            vdlg.accepted.connect(lambda: QMessageBox.information(
-                self, "成功", f"模板已保存并配置变量：\n{path}"))
             return
         QMessageBox.information(self, "成功", f"模板已保存：\n{path}")
 
@@ -921,6 +983,7 @@ class GenericTreeEditor(QDialog):
             # 获取节点在父节点下的索引位置
             idx = node.child_index()
             if idx > 0:  # 不是第一个才能上移
+                self._push_undo()
                 parent_index = index.parent()
                 # 通知模型开始移动行（源行 idx，目标行 idx-1）
                 self.model.beginMoveRows(parent_index, idx, idx, parent_index, idx - 1)
@@ -941,6 +1004,7 @@ class GenericTreeEditor(QDialog):
         if node != self.root_node and node.parent:
             idx = node.child_index()
             if idx < len(node.parent.children) - 1:  # 不是最后一个才能下移
+                self._push_undo()
                 parent_index = index.parent()
                 # idx+2: 因为目标是在 idx+1 行之前插入（即移动到 idx+1 的位置）
                 self.model.beginMoveRows(parent_index, idx, idx, parent_index, idx + 2)
@@ -969,6 +1033,7 @@ class GenericTreeEditor(QDialog):
         reply = QMessageBox.question(self, "确认", f"确定要删除节点 '{node.key}' 吗？")
         if reply == QMessageBox.StandardButton.Yes:
             parent_node = node.parent
+            self._push_undo()
             self.model.remove_node(index)
             if parent_node:
                 self._invalidate_ancestors(parent_node)
