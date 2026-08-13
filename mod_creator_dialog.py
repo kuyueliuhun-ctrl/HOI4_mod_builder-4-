@@ -269,7 +269,7 @@ class ModCreatorDialog(QDialog):
         mod_content = f'name = "{mod_name}"\npath = "{mod_folder_path}/{folder_name}"\nsupported_version = "{version}"\ntags = {{\n{tags_str}\n}}\n'
 
         # 写入.mod文件（游戏启动器读取此文件来识别mod）
-        with open(mod_file_full_path, 'w', encoding='utf-8-sig') as f:
+        with open(mod_file_full_path, 'w', encoding='utf-8') as f:
             f.write(mod_content)
 
         # ====== 创建mod目录结构 ======
@@ -277,7 +277,7 @@ class ModCreatorDialog(QDialog):
 
         # descriptor.mod — mod内部分布式描述文件
         descriptor_path = os.path.join(full_folder, "descriptor.mod")
-        with open(descriptor_path, 'w', encoding='utf-8-sig') as f:
+        with open(descriptor_path, 'w', encoding='utf-8') as f:
             f.write(mod_content)
 
         # gfx/ — 图标资源目录
@@ -289,7 +289,7 @@ class ModCreatorDialog(QDialog):
         os.makedirs(interface_dir, exist_ok=True)
         gfx_file_path = os.path.join(interface_dir, f"{folder_name}.gfx")
         gfx_content = "spriteTypes = {\n\n}\n"
-        with open(gfx_file_path, 'w', encoding='utf-8-sig') as f:
+        with open(gfx_file_path, 'w', encoding='utf-8') as f:
             f.write(gfx_content)
 
         # localisation/simp_chinese/*.yml — 空白简体中文本地化文件（HOI4 标准拼写）

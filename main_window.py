@@ -75,6 +75,20 @@ class MyWindow(QMainWindow):
             with open('settings.json','w',encoding='utf-8') as f:
                 json.dump(data,f,indent=4, ensure_ascii=False)
 
+        # 校验目录字段：配置的目录不存在则清空，避免空界面误导
+        _changed = False
+        for _key in ("HOI4_path", "mod_path", "mod_folder_path", "mod_file_path"):
+            _val = self.settings.get(_key, "")
+            if _val and not os.path.isdir(_val):
+                self.settings[_key] = ""
+                _changed = True
+        if _changed:
+            try:
+                with open('settings.json', 'w', encoding='utf-8') as f:
+                    json.dump(self.settings, f, indent=4, ensure_ascii=False)
+            except Exception:
+                pass
+
 
         # --- 初始化子模块 ---
         self.processor = FocusProcessor()            # 国策数据处理器
@@ -120,6 +134,15 @@ class MyWindow(QMainWindow):
         self.act_validate_mod.triggered.connect(self.on_validate_mod)
         if self.workbench_dock is not None:
             self.act_nofile_mode.setChecked(self.workbench_dock.is_nofile())
+
+        # ---------- 工具栏：问题反馈 ----------
+        from PyQt6.QtWidgets import QToolBar
+        self.toolbar = QToolBar("反馈", self)
+        self.toolbar.setObjectName("toolbar_feedback")
+        self.act_feedback = self.toolbar.addAction("💬 问题反馈")
+        self.act_feedback.setToolTip("遇到问题可加入 QQ 群反馈")
+        self.act_feedback.triggered.connect(self.on_feedback_clicked)
+        self.addToolBar(self.toolbar)
 
         # 如果已配置 HOI4 路径，同步图标映射和本地化管理器
         if self.settings["HOI4_path"]:
@@ -376,7 +399,7 @@ class MyWindow(QMainWindow):
                 if success:
                     try:
                         os.makedirs(os.path.dirname(new_path), exist_ok=True)
-                        with open(new_path, "w", encoding="utf-8-sig") as f:
+                        with open(new_path, "w", encoding="utf-8") as f:
                             f.write(applied)
                     except Exception:
                         success = False
@@ -448,7 +471,7 @@ class MyWindow(QMainWindow):
             QMessageBox.warning(self, "错误", f"文件已存在: {file_path}")
             return
         try:
-            with open(file_path, 'w', encoding='utf-8-sig') as f:
+            with open(file_path, 'w', encoding='utf-8') as f:
                 f.write("")                          # 创建空文件
             self._refresh_tree()
         except Exception as e:
@@ -778,7 +801,7 @@ class MyWindow(QMainWindow):
                     else:
                         skipped.append(f"{kind}:{target}")
 
-            with open(target_file, 'w', encoding='utf-8-sig') as f:
+            with open(target_file, 'w', encoding='utf-8') as f:
                 f.write(content)
 
             # 刷新设计视图
@@ -935,6 +958,41 @@ class MyWindow(QMainWindow):
         from template_manager_dialog import TemplateManagerDialog
         dlg = TemplateManagerDialog(parent=self)
         dlg.show()
+
+    def on_feedback_clicked(self):
+        """问题反馈：显示 QQ 群号（数字部分可复制）。"""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtGui import QGuiApplication
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle("问题反馈")
+        dlg.setFixedWidth(360)
+        lay = QVBoxLayout(dlg)
+        lay.addWidget(QLabel("遇到问题欢迎加入 QQ 群反馈："))
+        num_label = QLabel("720723415")
+        num_label.setStyleSheet(
+            "font-size: 22px; font-weight: bold; color: #2d6cdf;"
+            "border: 1px solid #bbb; border-radius: 6px; padding: 8px; background: #f5f7fa;")
+        num_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        num_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(num_label)
+        hint = QLabel("（可直接选中上面的数字复制）")
+        hint.setStyleSheet("color: #888;")
+        lay.addWidget(hint)
+        btn_row = QHBoxLayout()
+        copy_btn = QPushButton("复制群号")
+        close_btn = QPushButton("关闭")
+
+        def do_copy():
+            QGuiApplication.clipboard().setText("720723415")
+            copy_btn.setText("已复制 ✓")
+        copy_btn.clicked.connect(do_copy)
+        close_btn.clicked.connect(dlg.accept)
+        btn_row.addWidget(copy_btn)
+        btn_row.addWidget(close_btn)
+        lay.addLayout(btn_row)
+        dlg.exec()
 
     def on_validate_mod(self):
         """校验当前 mod：对照游戏数据字典检查未知引用。"""

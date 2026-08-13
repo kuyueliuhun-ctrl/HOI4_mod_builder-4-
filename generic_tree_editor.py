@@ -1062,14 +1062,14 @@ class GenericTreeEditor(QDialog):
             # 写入文件（UTF-8 with BOM）
             output = "\n".join(new_lines) + "\n"
             try:
-                with open(self.file_path, "w", encoding="utf-8-sig", newline="") as f:
+                with open(self.file_path, "w", encoding="utf-8", newline="") as f:
                     f.write(output)
             except PermissionError:
                 # 尝试清除只读属性后重写
                 import os
                 try:
                     os.chmod(self.file_path, 0o666)
-                    with open(self.file_path, "w", encoding="utf-8-sig", newline="") as f:
+                    with open(self.file_path, "w", encoding="utf-8", newline="") as f:
                         f.write(output)
                 except Exception:
                     raise

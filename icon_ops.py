@@ -242,14 +242,14 @@ def _apply_single_icon_field(content, block_start, block_end, field_path, icon_v
 
 
 def write_file_utf8(path, text):
-    """以 UTF-8 BOM 写回文件（兼容只读属性）。"""
+    """以 UTF-8 无 BOM 写回文件（HOI4 脚本解析器对 BOM 敏感，BOM 会破坏整文件解析）。"""
     try:
-        with open(path, "w", encoding="utf-8-sig", newline="") as f:
+        with open(path, "w", encoding="utf-8", newline="") as f:
             f.write(text)
     except PermissionError:
         try:
             os.chmod(path, 0o666)
-            with open(path, "w", encoding="utf-8-sig", newline="") as f:
+            with open(path, "w", encoding="utf-8", newline="") as f:
                 f.write(text)
         except Exception:
             raise
@@ -280,7 +280,7 @@ def update_gfx_file(gfx_path, sprite_name, texture_rel):
         lines.append(f'\t\ttexturefile = "{tx}"')
         lines.append("\t}")
     lines.append("}")
-    with open(gfx_path, "w", encoding="utf-8-sig") as f:
+    with open(gfx_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 

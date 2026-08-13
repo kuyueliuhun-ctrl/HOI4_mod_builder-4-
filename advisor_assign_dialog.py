@@ -366,7 +366,7 @@ def write_character_assign(filepath, char_name, excluded_tags, params, indent="\
     output = newline.join(lines).rstrip() + newline
     try:
         os.makedirs(os.path.dirname(filepath) if os.path.dirname(filepath) else ".", exist_ok=True)
-        with open(filepath, "w", encoding="utf-8-sig", newline="") as f:
+        with open(filepath, "w", encoding="utf-8", newline="") as f:
             f.write(output)
         return True
     except Exception:

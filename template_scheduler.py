@@ -386,8 +386,8 @@ class TemplateScheduler:
             counter += 1
 
         try:
-            # 使用 utf-8-sig 写入（HOI4文件惯例带BOM）
-            with open(filepath, "w", encoding="utf-8-sig") as f:
+            # 使用 utf-8 写入（HOI4 脚本解析器拒绝 BOM，BOM 会破坏 ideas 等文件解析）
+            with open(filepath, "w", encoding="utf-8") as f:
                 f.write(content)
             return filepath
         except Exception:
@@ -430,8 +430,8 @@ class TemplateScheduler:
 
             # 确保目标目录存在
             os.makedirs(os.path.dirname(target_path), exist_ok=True)
-            # 写入目标文件
-            with open(target_path, "w", encoding="utf-8-sig") as f:
+            # 写入目标文件（无 BOM，HOI4 脚本解析器拒绝 BOM）
+            with open(target_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return True
         except Exception:

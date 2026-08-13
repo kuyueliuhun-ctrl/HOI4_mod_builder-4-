@@ -576,7 +576,7 @@ class OobFile:
                 content += newline
             content = content.rstrip() + newline + newline + block + newline
 
-        with open(self.file_path, "w", encoding="utf-8-sig", newline="") as f:
+        with open(self.file_path, "w", encoding="utf-8", newline="") as f:
             f.write(content)
         self.content = content
         self.dirty = False

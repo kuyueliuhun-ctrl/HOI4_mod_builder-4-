@@ -1127,7 +1127,7 @@ class WorkbenchDock(QDockWidget):
             QMessageBox.warning(self, "错误", f"文件已存在: {path}")
             return
         try:
-            with open(path, "w", encoding="utf-8-sig") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write("")
         except Exception as e:
             QMessageBox.warning(self, "错误", f"创建失败: {e}")
@@ -1171,7 +1171,7 @@ class WorkbenchDock(QDockWidget):
                 if success:
                     try:
                         os.makedirs(os.path.dirname(new_path), exist_ok=True)
-                        with open(new_path, "w", encoding="utf-8-sig") as f:
+                        with open(new_path, "w", encoding="utf-8") as f:
                             f.write(applied)
                     except Exception:
                         success = False

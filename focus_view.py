@@ -730,7 +730,7 @@ class FocusView(QGraphicsView):
                 return
 
             lines = lines[:last_brace] + new_focus_lines + lines[last_brace:]
-            with open(file_path, 'w', encoding='utf-8-sig', newline='') as f:
+            with open(file_path, 'w', encoding='utf-8', newline='') as f:
                 f.write('\n'.join(lines))
 
             self._current_file_path = file_path
@@ -834,7 +834,7 @@ class FocusView(QGraphicsView):
                 QMessageBox.warning(self, "错误", f"未找到国策 '{focus_id}' 的 x/y 字段")
                 return
 
-            with open(file_path, 'w', encoding='utf-8-sig', newline='') as f:
+            with open(file_path, 'w', encoding='utf-8', newline='') as f:
                 f.write(content[:start] + new_block + content[end:])
 
             self._current_file_path = file_path
@@ -862,7 +862,7 @@ class FocusView(QGraphicsView):
             new_content = content[:start] + content[end:]
             new_content = re.sub(r'\n{3,}', '\n\n', new_content)
 
-            with open(file_path, 'w', encoding='utf-8-sig', newline='') as f:
+            with open(file_path, 'w', encoding='utf-8', newline='') as f:
                 f.write(new_content)
 
             self._current_file_path = file_path

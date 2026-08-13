@@ -320,7 +320,7 @@ class TemplateManagerDialog(QDialog):
         content = self._serialize_tree()
         try:
             os.makedirs(os.path.dirname(self.current_filepath), exist_ok=True)
-            with open(self.current_filepath, "w", encoding="utf-8-sig") as f:
+            with open(self.current_filepath, "w", encoding="utf-8") as f:
                 f.write(content)
         except Exception as e:
             QMessageBox.critical(self, "错误", f"保存失败: {e}")

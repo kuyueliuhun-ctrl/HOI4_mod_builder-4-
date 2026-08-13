@@ -79,7 +79,7 @@ class Ui_MainWindow(object):
         self.menu_view.addAction(self.action_nofile_mode)
         self.menubar.addAction(self.menu_view.menuAction())
 
-        # ── AI 菜单：提示词生成 ──
+        # ── AI 菜单：提示词生成（暂时屏蔽，不加入菜单栏）──
         self.menu_ai = QtWidgets.QMenu(parent=self.menubar)
         self.menu_ai.setObjectName("menu_ai")
         self.action_ai_prompt_file = QtGui.QAction(parent=self.menubar)
@@ -88,7 +88,8 @@ class Ui_MainWindow(object):
         self.action_ai_prompt_project.setObjectName("action_ai_prompt_project")
         self.menu_ai.addAction(self.action_ai_prompt_file)
         self.menu_ai.addAction(self.action_ai_prompt_project)
-        self.menubar.addAction(self.menu_ai.menuAction())
+        # 暂时屏蔽 AI 助手菜单（不添加到菜单栏）
+        # self.menubar.addAction(self.menu_ai.menuAction())
 
         # ── 配置菜单：模板管理 / 词条管理 ──
         self.menu_config = QtWidgets.QMenu(parent=self.menubar)
