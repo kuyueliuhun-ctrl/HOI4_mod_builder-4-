@@ -3,6 +3,6 @@
     "mod_path": "E:/mods/test",
     "mod_folder_path": "E:\\mods",
     "mod_file_path": "C:\\Users\\枯月流魂\\Documents\\Paradox Interactive\\Hearts of Iron IV\\mod",
-    "ui_mode": "nofile",
-    "workbench_nofile": true
+    "ui_mode": "workbench",
+    "workbench_nofile": false
 }

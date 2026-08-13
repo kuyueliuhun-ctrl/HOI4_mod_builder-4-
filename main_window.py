@@ -108,30 +108,18 @@ class MyWindow(QMainWindow):
         self.ui.action_manage_terms.triggered.connect(self.on_manage_terms)
 
         # ---------- 工具工具栏 ----------
-        from PyQt6.QtWidgets import QToolBar
-        self.toolbar = QToolBar("工具", self)
-        self.toolbar.setObjectName("toolbar")
-        self.addToolBar(self.toolbar)
-        self.act_manage_templates = self.toolbar.addAction("📋 模板管理")
+        # 工具操作已收拢到菜单：模板/词条管理（配置菜单）、无文件模式（视图菜单）、
+        # 校验 mod（工具菜单）。这里仅做菜单动作的信号连接。
+        self.act_nofile_mode = self.ui.action_nofile_mode
+        self.act_manage_templates = self.ui.action_manage_templates
+        self.act_manage_terms = self.ui.action_manage_terms
+        self.act_validate_mod = self.ui.action_validate_mod
         self.act_manage_templates.triggered.connect(self.on_manage_templates)
-        self.toolbar.addSeparator()
-        self.act_manage_terms = self.toolbar.addAction("📚 词条管理")
         self.act_manage_terms.triggered.connect(self.on_manage_terms)
-        # 无文件模式切换（工作台实体浏览，与工作台/菜单同步）
-        self.toolbar.addSeparator()
-        self.act_nofile_mode = self.toolbar.addAction("🧩 无文件模式")
-        self.act_nofile_mode.setCheckable(True)
-        self.act_nofile_mode.setToolTip(
-            "无文件模式：直接按分类浏览全部实体（分国家），不依赖文件结构")
         self.act_nofile_mode.toggled.connect(self._on_toolbar_nofile_toggled)
+        self.act_validate_mod.triggered.connect(self.on_validate_mod)
         if self.workbench_dock is not None:
             self.act_nofile_mode.setChecked(self.workbench_dock.is_nofile())
-        # 校验 mod（对照游戏数据字典检查未知引用）
-        self.toolbar.addSeparator()
-        self.act_validate_mod = self.toolbar.addAction("✅ 校验 mod")
-        self.act_validate_mod.setToolTip(
-            "对照游戏数据字典检查当前 mod 中未知的特质/意识形态/GFX/理念引用")
-        self.act_validate_mod.triggered.connect(self.on_validate_mod)
 
         # 如果已配置 HOI4 路径，同步图标映射和本地化管理器
         if self.settings["HOI4_path"]:
@@ -535,11 +523,14 @@ class MyWindow(QMainWindow):
         self.ui.action_mode_classic.setChecked(False)
         self.ui.action_mode_workbench.setChecked(False)
         saved_mode = self.settings.get("ui_mode", "classic")
-        if saved_mode in ("workbench", "nofile"):
-            # 旧版本「无文件模式」菜单项已移除，兼容迁移为工作台+无文件模式
+        if saved_mode == "nofile":
+            # 旧版本「无文件模式」菜单项已移除，迁移为工作台模式（默认不启用无文件模式）
             self.ui.action_mode_workbench.setChecked(True)
-            self._show_workbench_mode(nofile=saved_mode == "nofile" or
-                                      bool(self.settings.get("workbench_nofile", False)))
+            self._show_workbench_mode(nofile=False)
+        elif saved_mode == "workbench":
+            self.ui.action_mode_workbench.setChecked(True)
+            self._show_workbench_mode(
+                nofile=bool(self.settings.get("workbench_nofile", False)))
         else:
             self.ui.action_mode_classic.setChecked(True)
             self._show_classic_mode()
@@ -603,9 +594,14 @@ class MyWindow(QMainWindow):
         self.custom_view.show_entity_gallery_nofile(content_type, entities)
 
     def _on_toolbar_nofile_toggled(self, checked):
-        """工具栏无文件模式切换：同步工作台并持久化。"""
+        """无文件模式切换（视图菜单）：同步工作台并持久化。"""
         if self.workbench_dock is not None:
             self.workbench_dock.set_nofile_mode(checked)
+        elif checked and self.settings.get("ui_mode") != "workbench":
+            # 经典文件树模式下开启无文件模式：先切到工作台
+            self._set_ui_mode("workbench")
+            if self.workbench_dock is not None:
+                self.workbench_dock.set_nofile_mode(True)
         self.settings["workbench_nofile"] = bool(checked)
         try:
             with open('settings.json', 'w', encoding='utf-8') as f:
@@ -618,6 +614,9 @@ class MyWindow(QMainWindow):
         act = getattr(self, "act_nofile_mode", None)
         if act is not None and act.isChecked() != nofile:
             act.setChecked(nofile)
+        if not nofile:
+            # 退出无文件模式：清空右侧跨文件实体画廊，回到空白场景
+            self.custom_view.clear_entity_gallery()
         self.settings["workbench_nofile"] = bool(nofile)
         try:
             with open('settings.json', 'w', encoding='utf-8') as f:

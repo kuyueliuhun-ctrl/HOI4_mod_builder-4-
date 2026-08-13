@@ -928,6 +928,19 @@ class FocusView(QGraphicsView):
             e.get("file", "") for e in cleaned if e.get("file")})
         self._render_entity_gallery(content_type, cfg, cleaned, None)
 
+    def clear_entity_gallery(self):
+        """清空实体画廊，回到空白场景（用于退出无文件模式时避免残留跨文件实体）。"""
+        self._nofile_entity_list = None
+        self._nofile_files = []
+        self._entity_items = {}
+        self._view_mode = "focus"
+        self._current_file_path = None
+        self._pending_entity_icon = None
+        self._entity_highlight = None
+        self.find_shortcut.setEnabled(False)
+        self.scene().clear()
+        self.resetTransform()
+
     def _render_entity_gallery(self, content_type, cfg, entities, file_path):
         """实体画廊统一渲染；file_path 为 None 表示无文件模式（实体携带 file 键）。"""
         self._view_mode = "entities"
@@ -1500,7 +1513,11 @@ class FocusView(QGraphicsView):
         return field
 
     def _set_entity_icon(self, entity, icon_value, field=None):
-        """将图标值写回实体字段并刷新画廊。field 为空时使用类型默认字段。"""
+        """将图标值写回实体字段并刷新画廊。field 为空时使用类型默认字段。
+
+        民族精神等 picture 字段按游戏约定存储裸名（游戏加载时自动补 GFX_idea_ 前缀），
+        故写回前对带 GFX_idea_ 前缀的值去掉该前缀。
+        """
         file_path = entity.get("file") or self._current_file_path
         if not file_path:
             return
@@ -1513,7 +1530,11 @@ class FocusView(QGraphicsView):
                 return
             if field is None:
                 field = (self._entity_cfg or {}).get("field", "icon")
-            new_content = icon_ops.apply_icon_to_entity(content, start, end, field, icon_value)
+            cfg = self._entity_cfg or {}
+            write_value = icon_value
+            if cfg.get("picture_unprefixed") and write_value.startswith("GFX_idea_"):
+                write_value = write_value[len("GFX_idea_"):]
+            new_content = icon_ops.apply_icon_to_entity(content, start, end, field, write_value)
             icon_ops.write_file_utf8(file_path, new_content)
             self.redraw()
         except Exception as e:

@@ -105,6 +105,8 @@ ICON_RULES = {
         "field": "picture",
         "picker_prefix": "GFX_",
         "dirs": ["gfx/interface/ideas", "gfx/interface/goals", "gfx/event_pictures"],
+        # 游戏加载民族精神 picture 时自动补全 GFX_idea_ 前缀（裸名存储，如 generic_exploit_mines）
+        "picture_unprefixed": True,
         "upload": {
             "subdir": "gfx/interface/ideas",
             "gfx_file": "ideas_mod.gfx",
