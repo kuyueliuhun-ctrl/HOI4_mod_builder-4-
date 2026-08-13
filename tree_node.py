@@ -4,6 +4,16 @@ import re
 # 序列化时强制加双引号
 DATE_QUOTED_KEYS = {"expire", "date", "created"}
 
+# 含中文的键：PDX 引擎将裸键按 ASCII 标识符解析，中文键必须用双引号包裹
+CJK_KEY_RE = re.compile(r'[\u4e00-\u9fff]')
+
+
+def quote_cjk_key(key):
+    """若键含中文字符且尚未被引号包裹，则返回双引号包裹后的键，否则原样返回。"""
+    if key and not key.startswith('"') and CJK_KEY_RE.search(key):
+        return f'"{key}"'
+    return key
+
 
 class TreeNode:
     """递归树节点：用于表示 Paradox 游戏引擎 PDX 脚本结构化数据中的一个节点。
@@ -94,17 +104,17 @@ class TreeNode:
             # 键名为空时直接输出值
             if not self.key:
                 return f"{tabs}{v}"
-            return f"{tabs}{self.key} = {v}"
+            return f"{tabs}{quote_cjk_key(self.key)} = {v}"
         else:
             # 块节点：如果有原始行，使用原始文本
             if self.raw_lines:
                 return "\n".join(tabs + line for line in self.raw_lines)
             # 空块节点
             if not self.children:
-                return f"{tabs}{self.key} = {{ }}"
+                return f"{tabs}{quote_cjk_key(self.key)} = {{ }}"
             # 递归序列化子节点，用大括号包裹
             inner = "\n".join(c.to_pdx(indent + 1) for c in self.children)
-            return f"{tabs}{self.key} = {{\n{inner}\n{tabs}}}"
+            return f"{tabs}{quote_cjk_key(self.key)} = {{\n{inner}\n{tabs}}}"
 
     def clone(self):
         """深拷贝当前节点及其所有子节点，返回一个完全独立的副本。"""

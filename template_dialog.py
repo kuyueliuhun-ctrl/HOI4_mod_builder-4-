@@ -64,6 +64,7 @@ class TemplateDialog(QDialog):
         super().__init__(parent)
         self.scheduler = scheduler or get_template_scheduler()
         self.result_node = None
+        self._applied_content = None  # 变量替换后的模板内容（新建文件场景使用）
 
         self.setWindowTitle("从模板添加")
         self.setMinimumSize(600, 500)
@@ -178,6 +179,17 @@ class TemplateDialog(QDialog):
             QMessageBox.warning(self, "错误", "无法读取模板内容")
             return
 
+        # 模板变量填写：模板启用了占位符变量时，弹出填写对话框
+        enabled_vars = self.scheduler.get_enabled_variables(filepath)
+        if enabled_vars:
+            from template_manager_dialog import TemplateApplyDialog
+            apply_dlg = TemplateApplyDialog(enabled_vars, parent=self)
+            if apply_dlg.exec() != QDialog.DialogCode.Accepted:
+                return
+            content = self.scheduler.apply_template_variables(
+                content, apply_dlg.get_values())
+        self._applied_content = content
+
         nodes = parse_pdx_text_to_nodes(content.strip())
         if not nodes:
             QMessageBox.warning(self, "错误", "模板内容为空或无法解析")
@@ -198,3 +210,11 @@ class TemplateDialog(QDialog):
 
     def get_template_data(self) -> dict:
         return self._current_template
+
+    def get_applied_content(self) -> str:
+        """获取变量替换后的模板内容（新建文件场景使用）。
+
+        Returns:
+            str: 替换后的内容；未选择模板或未确认时为 None
+        """
+        return self._applied_content

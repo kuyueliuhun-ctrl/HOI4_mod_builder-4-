@@ -25,7 +25,7 @@ from PyQt6.QtCore import Qt, QPoint, QSize, pyqtSignal, QEvent
 from PyQt6.QtGui import QFontMetrics, QKeySequence, QShortcut
 
 from tree_model import FocusTreeModel
-from tree_node import TreeNode, DATE_QUOTED_KEYS
+from tree_node import TreeNode, DATE_QUOTED_KEYS, quote_cjk_key
 from node_edit_dialog import NodeEditDialog
 from custom_statement_dialog import CustomStatementDialog
 from translation_editor import get_translation_editor
@@ -442,6 +442,34 @@ class GenericTreeEditor(QDialog):
         self.tree_view.clicked.connect(self._on_node_clicked)
         # 翻译保存后：刷新本地化缓存并重绘树中该节点的显示
         self.translation_saved.connect(self._on_translation_saved)
+        # Ctrl+F：打开节点查找定位对话框（英文 id / 中文翻译）
+        self.find_shortcut = QShortcut(QKeySequence("Ctrl+F"), self)
+        self.find_shortcut.activated.connect(self._open_find_dialog)
+        self._find_dialog = None
+
+    def _open_find_dialog(self):
+        """Ctrl+F：打开节点查找定位对话框（英文 id / 中文翻译）。"""
+        if self._find_dialog is None:
+            from node_find_dialog import NodeFindDialog
+            self._find_dialog = NodeFindDialog(self.model, self.translator,
+                                               parent=self)
+            self._find_dialog.locate_requested.connect(self._locate_node)
+        self._find_dialog.focus_search()
+
+    def _locate_node(self, index):
+        """定位到树节点：展开祖先并滚动居中选中。"""
+        if index is None or not index.isValid():
+            return
+        chain = []
+        p = self.model.parent(index)
+        while p.isValid():
+            chain.append(p)
+            p = self.model.parent(p)
+        for pi in reversed(chain):
+            self.tree_view.setExpanded(pi, True)
+        self.tree_view.setCurrentIndex(index)
+        self.tree_view.scrollTo(index,
+                                QAbstractItemView.ScrollHint.PositionAtCenter)
 
     def _reload_loc_manager(self):
         """重新加载本地化管理器缓存并刷新树的显示。
@@ -611,6 +639,14 @@ class GenericTreeEditor(QDialog):
                 save_tpl_action.triggered.connect(
                     lambda: self._save_block_as_template(node))
             menu.addSeparator()
+
+        # 顾问分配文件（history/general/*advisors*.txt）：提供专门的分配编辑
+        if self._is_advisor_assign_file():
+            if (node.key == "every_possible_country" or node.key == "every_other_country"
+                    or node.key == "generate_character" or is_root):
+                assign_action = menu.addAction("🎯 顾问分配编辑…")
+                assign_action.triggered.connect(self._open_advisor_assign_dialog)
+                menu.addSeparator()
 
         # 通用菜单项
         edit_action = menu.addAction("✎ 编辑节点")
@@ -808,8 +844,44 @@ class GenericTreeEditor(QDialog):
             pass
         return "custom"
 
+    def _is_advisor_assign_file(self) -> bool:
+        """判断当前编辑文件是否为顾问分配文件（history/general/*advisors*.txt）。
+
+        同时识别文件内容中是否存在 every_possible_country / generate_character 结构。
+        """
+        import os
+        fp = (getattr(self, "file_path", "") or "").replace("/", "\\")
+        if "\\history\\general\\" in fp.lower() and "advis" in os.path.basename(fp).lower():
+            return True
+        # 内容识别：根节点下存在 every_possible_country 且含 generate_character
+        try:
+            for child in getattr(self.root_node, "children", []):
+                if child.key in ("every_possible_country", "every_other_country"):
+                    return True
+        except Exception:
+            pass
+        return False
+
+    def _open_advisor_assign_dialog(self):
+        """打开顾问分配编辑对话框（国家条件 + 顾问参数）。"""
+        from advisor_assign_dialog import AdvisorAssignDialog
+        dlg = AdvisorAssignDialog(
+            self.root_node,
+            file_path=getattr(self, "file_path", ""),
+            mod_path=self.mod_path,
+            game_path=self.hoi4_path,
+            loc_manager=self.loc_manager,
+            parent=self,
+        )
+        dlg.tree_changed.connect(self._refresh_translations)
+        dlg.show()
+
     def _save_block_as_template(self, node):
-        """将选中的块节点保存为模板文件。"""
+        """将选中的块节点保存为模板文件。
+
+        保存后自动扫描内容中的 __变量名__ 占位符，
+        弹出变量设置对话框让用户选择哪些变量需要填入。
+        """
         from PyQt6.QtWidgets import QInputDialog
         from template_scheduler import get_template_scheduler
         name, ok = QInputDialog.getText(
@@ -818,11 +890,21 @@ class GenericTreeEditor(QDialog):
             return
         content = node.to_pdx() if node.node_type == "block" else node.key
         ttype = self._template_type_for_file()
-        path = get_template_scheduler().create_template(name.strip(), content, ttype)
-        if path:
-            QMessageBox.information(self, "成功", f"模板已保存：\n{path}")
-        else:
+        scheduler = get_template_scheduler()
+        path = scheduler.create_template(name.strip(), content, ttype)
+        if not path:
             QMessageBox.warning(self, "错误", "保存模板失败")
+            return
+        # 变量选择：扫描占位符并弹出设置对话框（选择需要填入的变量）
+        variables = scheduler.get_template_variables(path)
+        if variables:
+            from template_manager_dialog import TemplateVariableDialog
+            vdlg = TemplateVariableDialog(scheduler, path, parent=self)
+            vdlg.show()
+            vdlg.accepted.connect(lambda: QMessageBox.information(
+                self, "成功", f"模板已保存并配置变量：\n{path}"))
+            return
+        QMessageBox.information(self, "成功", f"模板已保存：\n{path}")
 
 
     def _move_up(self):
@@ -1054,6 +1136,9 @@ class GenericTreeEditor(QDialog):
         lines = []
         tabs = unit * indent
         for child in parent_node.children:
+            # 跳过虚拟节点（顾问分配等展示条目，不写入文件）
+            if getattr(child, "_virtual_parent_key", None):
+                continue
             # 如果有原始行，直接使用（保留格式）
             if child.raw_lines:
                 for line in child.raw_lines:
@@ -1071,15 +1156,15 @@ class GenericTreeEditor(QDialog):
                     v = f'"{v}"'
                 # 键名为空时直接输出值
                 if child.key:
-                    lines.append(f"{tabs}{child.key} = {v}")
+                    lines.append(f"{tabs}{quote_cjk_key(child.key)} = {v}")
                 else:
                     lines.append(f"{tabs}{v}")
             else:  # block 类型
                 if not child.children:
                     # 空块节点
-                    lines.append(f"{tabs}{child.key} = {{ }}")
+                    lines.append(f"{tabs}{quote_cjk_key(child.key)} = {{ }}")
                 else:
-                    lines.append(f"{tabs}{child.key} = {{")
+                    lines.append(f"{tabs}{quote_cjk_key(child.key)} = {{")
                     # 递归序列化子节点
                     lines.extend(self._serialize_children(child, indent + 1, unit))
                     lines.append(f"{tabs}}}")

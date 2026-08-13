@@ -1,0 +1,462 @@
+{
+ "statements": [
+  {
+   "key": "CIVILIAN_FACTORY_USE",
+   "cn_name": "民用工厂运作",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "format": "-=0"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "MODIFIER_GENERATE_WARGOAL_TENSION_LIMIT_AGAINST_COUNTRY",
+   "cn_name": "对该国制造战争目标的紧张度限制",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "format": "-%"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "air_close_air_support_org_damage_factor",
+   "cn_name": "近距支援机组织度伤害",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_AIR_CAS_ORG_DAMAGE_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "air_maximum_speed_factor",
+   "cn_name": "空军最大速度",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_AIR_MAX_SPEED_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "air_strategic_bomber_defence_factor",
+   "cn_name": "战略轰炸",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_STRATEGIC_BOMBER_BOMBING_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "air_strategic_bomber_night_penalty",
+   "cn_name": "夜间战略轰炸惩罚",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_AIR_STRAT_BOMBER_NIGHT_PENALTY",
+    "format": "-%"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "ap_attack",
+   "cn_name": "穿甲深度",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "STAT_COMMON_PIERCING",
+    "format": "=+%"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "army_strength_factor",
+   "cn_name": "HP",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_ARMY_STRENGTH"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "attack_bonus_against",
+   "cn_name": "我国对其进攻加成(目标修正本地化查找是否应该写入代码中?)",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_ATTACK_BONUS_AGAINST_A_COUNTRY",
+    "format": "=+%1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "attrition",
+   "cn_name": "每日装备损耗几率",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "format": "=-1%2"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "base_fuel_gain",
+   "cn_name": "基础燃油增长",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_BASE_FUEL_GAIN_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "breakthrough_bonus_against",
+   "cn_name": "我国对其突破修正",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_BREAKTHROUGH_BONUS_AGAINST_A_COUNTRY",
+    "format": "+=%1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "breakthrough_factor",
+   "cn_name": "突破",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_BREAKTHROUGH"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "compliance_gain",
+   "cn_name": "每日顺从度增长",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_COMPLIANCE_GAIN_ADD",
+    "format": "+=%.0"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "conscription",
+   "cn_name": "适役人口",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_CONSCRIPTION_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "defense_bonus_against",
+   "cn_name": "我国对其防御加成",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_DEFENSE_BONUS_AGAINST_A_COUNTRY",
+    "format": "=+%1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "experience_gain_air_factor",
+   "cn_name": "空军经验增长",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "experience_gain_air",
+    "localization_keys": [
+     "experience_gain_air",
+     "MODIFIER_XP_GAIN_AIR_FACTOR"
+    ]
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "experience_gain_army_unit",
+   "cn_name": "陆军师经验增长",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_XP_GAIN_ARMY_UNIT"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "experience_gain_army_unit_factor",
+   "cn_name": "陆军师经验增长",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_XP_GAIN_ARMY_UNIT_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "experience_gain_factor",
+   "cn_name": "指挥官经验增长",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_XP_GAIN_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "extra_trade_to_overlord_factor",
+   "cn_name": "对宗主国额外贸易",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_TRADE_TO_OVERLORD_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "fighter_sortie_efficiency",
+   "cn_name": "战斗机出击效率",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_CARRIER_FIGHTER_SORTIE_EFFICIENCY_FACTOR",
+    "format": "+=%1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "foreign_subversive_activites",
+   "cn_name": "外来颠覆活动效率",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_FOREIGN_SUBVERSIVE_ACTIVITIES",
+    "format": "=-%"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "generate_wargoal_tension_against",
+   "cn_name": "制造战争目标的紧张度限制",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_GENERATE_WARGOAL_TENSION_LIMIT",
+    "format": "-%"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "max_commander_army_size",
+   "cn_name": "指挥上限",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_COMMAND_CAP",
+    "format": "=+0"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "max_training",
+   "cn_name": "最大训练",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_MAX_TRAINING_XP_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "monthly_population",
+   "cn_name": "每月人口",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_GLOBAL_MONTHLY_POPULATION",
+    "format": "+=%1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "naval_attrition",
+   "cn_name": "损耗",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_NAVAL_ATTRITION_FACTOR",
+    "format": "=-%1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "navy_carrier_air_agility_factor",
+   "cn_name": "航母舰载机机动",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_NAVAL_CARRIER_AIR_AGILITY_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "navy_carrier_air_attack_factor",
+   "cn_name": "航母舰载机对空攻击",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_NAVAL_CARRIER_AIR_ATTACK_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "navy_carrier_air_targetting_factor",
+   "cn_name": "航母舰载机对空瞄准",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_NAVAL_CARRIER_AIR_TARGETTING_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "navy_visibility",
+   "cn_name": "可见度",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_NAVAL_VISIBILITY_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "no_supply_grace",
+   "cn_name": "携行补给",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "format": "+=1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "operation_cost",
+   "cn_name": "行动花费",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "format": "-%0"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "operation_outcome",
+   "cn_name": "行动效率",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "format": "+%0"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "political_power_cost",
+   "cn_name": "每日消耗的政治点数",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "format": "-=2"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "port_strike",
+   "cn_name": "港口袭击",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_PORT_STRIKE_ATTACK_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "refit_ic_cost",
+   "cn_name": "舰艇改装花费",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_INDUSTRIAL_REFIT_IC_COST_FACTOR",
+    "format": "+%"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "resistance_damage_to_garrison",
+   "cn_name": "驻军所受伤害",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_RESISTANCE_DAMAGE_TO_GARRISONS"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "river_crossing_factor",
+   "cn_name": "跨河速度惩罚",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_RIVER_CROSSING_PENALTY_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "ships_at_battle_start",
+   "cn_name": "最早接战时的参战舰艇数",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_SHIPS_AT_BATTLE_START_FACTOR",
+    "format": "=+%1"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "shore_bombardment_bonus",
+   "cn_name": "对岸炮击加成",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_SHORE_BOMBARDMENT"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "sortie_efficiency",
+   "cn_name": "出击效率",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "CARRIER_SORTIE_EFFICIENCY_FACTOR"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  },
+  {
+   "key": "strategic_bomb_visibility",
+   "cn_name": "战略轰炸可见度",
+   "node_type": "value",
+   "default_value": "",
+   "value_translations": {
+    "localization_key": "MODIFIER_STRAT_BOMBING_VISIBILITY"
+   },
+   "description": "来源:VModer(Apache-2.0) ModiferLocalizationKeyMapping.csv / ModifierLocalizationFormatInfo.csv"
+  }
+ ]
+}

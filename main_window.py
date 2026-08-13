@@ -29,6 +29,7 @@ class MyWindow(QMainWindow):
         self.settings["mod_folder_path"] = ''        # 默认 mod 目录（存放 mod 内容子文件夹）
         self.settings["mod_file_path"] = ''          # .mod 文件目录（只存放 .mod 描述文件）
         self.settings["ui_mode"] = 'classic'         # 界面模式：classic 经典文件树 / workbench 工作台
+        self.settings["workbench_nofile"] = False    # 工作台无文件模式（实体浏览）
 
         # 读取持久化配置（如果存在）
         if os.path.exists('settings.json'):
@@ -58,6 +59,10 @@ class MyWindow(QMainWindow):
                 self.settings["ui_mode"] = data["ui_mode"]
             except (KeyError, TypeError):
                 self.settings["ui_mode"] = 'classic'
+            try:
+                self.settings["workbench_nofile"] = bool(data.get("workbench_nofile", False))
+            except Exception:
+                self.settings["workbench_nofile"] = False
         else:
             # 文件不存在则创建默认配置
             data = {}
@@ -66,6 +71,7 @@ class MyWindow(QMainWindow):
             data["mod_folder_path"] = ''
             data["mod_file_path"] = ''
             data["ui_mode"] = 'classic'
+            data["workbench_nofile"] = False
             with open('settings.json','w',encoding='utf-8') as f:
                 json.dump(data,f,indent=4, ensure_ascii=False)
 
@@ -100,6 +106,32 @@ class MyWindow(QMainWindow):
         self.ui.action_ai_prompt_file.triggered.connect(self.on_ai_prompt_file)
         self.ui.action_ai_prompt_project.triggered.connect(self.on_ai_prompt_project)
         self.ui.action_manage_terms.triggered.connect(self.on_manage_terms)
+
+        # ---------- 工具工具栏 ----------
+        from PyQt6.QtWidgets import QToolBar
+        self.toolbar = QToolBar("工具", self)
+        self.toolbar.setObjectName("toolbar")
+        self.addToolBar(self.toolbar)
+        self.act_manage_templates = self.toolbar.addAction("📋 模板管理")
+        self.act_manage_templates.triggered.connect(self.on_manage_templates)
+        self.toolbar.addSeparator()
+        self.act_manage_terms = self.toolbar.addAction("📚 词条管理")
+        self.act_manage_terms.triggered.connect(self.on_manage_terms)
+        # 无文件模式切换（工作台实体浏览，与工作台/菜单同步）
+        self.toolbar.addSeparator()
+        self.act_nofile_mode = self.toolbar.addAction("🧩 无文件模式")
+        self.act_nofile_mode.setCheckable(True)
+        self.act_nofile_mode.setToolTip(
+            "无文件模式：直接按分类浏览全部实体（分国家），不依赖文件结构")
+        self.act_nofile_mode.toggled.connect(self._on_toolbar_nofile_toggled)
+        if self.workbench_dock is not None:
+            self.act_nofile_mode.setChecked(self.workbench_dock.is_nofile())
+        # 校验 mod（对照游戏数据字典检查未知引用）
+        self.toolbar.addSeparator()
+        self.act_validate_mod = self.toolbar.addAction("✅ 校验 mod")
+        self.act_validate_mod.setToolTip(
+            "对照游戏数据字典检查当前 mod 中未知的特质/意识形态/GFX/理念引用")
+        self.act_validate_mod.triggered.connect(self.on_validate_mod)
 
         # 如果已配置 HOI4 路径，同步图标映射和本地化管理器
         if self.settings["HOI4_path"]:
@@ -188,6 +220,42 @@ class MyWindow(QMainWindow):
         self._sync_loc_manager()                     # 同步本地化管理器
         with open('settings.json', 'w', encoding='utf-8') as f:
             json.dump(self.settings, f, indent=4, ensure_ascii=False)
+        self._warn_missing_game_folders(directory)
+
+    @staticmethod
+    def _warn_missing_game_folders(directory):
+        """校验游戏目录关键结构，缺失时提示（避免 MIO/决议目录等版本差异坑）。"""
+        from PyQt6.QtWidgets import QMessageBox
+        if not directory or not os.path.isdir(directory):
+            return
+        critical = [
+            ("common", "common"),
+            ("national_focus", "common/national_focus"),
+            ("characters", "common/characters"),
+            ("ideas", "common/ideas"),
+            ("history", "history"),
+            ("localisation", "localisation"),
+            ("interface", "interface"),
+        ]
+        missing = [name for name, rel in critical
+                   if not os.path.isdir(os.path.join(directory, rel.replace("/", os.sep)))]
+        if missing:
+            QMessageBox.warning(
+                None, "HOI4 目录校验",
+                "所选目录缺少以下关键文件夹，可能不是有效的游戏根目录：\n"
+                + "、".join(missing))
+        else:
+            # 版本相关目录差异提示
+            hints = []
+            mio_s = os.path.isdir(os.path.join(directory, "common",
+                                               "military_industrial_organizations"))
+            mio = os.path.isdir(os.path.join(directory, "common",
+                                             "military_industrial_organization"))
+            if mio_s and not mio:
+                hints.append("检测到旧版 MIO 目录名（复数 military_industrial_organizations），"
+                             "当前游戏版本应为单数 military_industrial_organization。")
+            if hints:
+                QMessageBox.information(None, "HOI4 目录校验", "\n".join(hints))
 
     def on_modfolder_choose_clicked(self):
         """菜单"选择默认 mod 目录"：设置存放 mod 内容子文件夹的目录并保存配置。"""
@@ -313,7 +381,19 @@ class MyWindow(QMainWindow):
                 QMessageBox.warning(self, "错误", f"文件已存在: {new_path}")
                 dlg.deleteLater()
                 return
-            success = scheduler.apply_template(template_data["filepath"], new_path)
+            # 模板变量已在模板对话框内填写，优先使用替换后的内容
+            applied = dlg.get_applied_content()
+            if applied is not None:
+                success = scheduler.apply_template(template_data["filepath"], new_path)
+                if success:
+                    try:
+                        os.makedirs(os.path.dirname(new_path), exist_ok=True)
+                        with open(new_path, "w", encoding="utf-8-sig") as f:
+                            f.write(applied)
+                    except Exception:
+                        success = False
+            else:
+                success = scheduler.apply_template(template_data["filepath"], new_path)
             dlg.deleteLater()
             if success:
                 self._refresh_tree()
@@ -451,17 +531,17 @@ class MyWindow(QMainWindow):
     # ---------- 界面模式（经典文件树 / 工作台） ----------
 
     def _init_ui_mode(self):
-        """初始化界面模式：经典文件树（默认）与工作台二选一，持久化到 settings.json。"""
-        self.ui.action_mode_classic.setChecked(True)
+        """初始化界面模式：经典文件树 / 工作台（无文件模式由工具栏切换），持久化到 settings.json。"""
+        self.ui.action_mode_classic.setChecked(False)
         self.ui.action_mode_workbench.setChecked(False)
         saved_mode = self.settings.get("ui_mode", "classic")
-        if saved_mode == "workbench":
-            self.ui.action_mode_classic.setChecked(False)
+        if saved_mode in ("workbench", "nofile"):
+            # 旧版本「无文件模式」菜单项已移除，兼容迁移为工作台+无文件模式
             self.ui.action_mode_workbench.setChecked(True)
-            self._show_workbench_mode()
+            self._show_workbench_mode(nofile=saved_mode == "nofile" or
+                                      bool(self.settings.get("workbench_nofile", False)))
         else:
             self.ui.action_mode_classic.setChecked(True)
-            self.ui.action_mode_workbench.setChecked(False)
             self._show_classic_mode()
 
         self.ui.action_mode_classic.triggered.connect(
@@ -474,7 +554,7 @@ class MyWindow(QMainWindow):
         if mode == "workbench":
             self.ui.action_mode_classic.setChecked(False)
             self.ui.action_mode_workbench.setChecked(True)
-            self._show_workbench_mode()
+            self._show_workbench_mode(nofile=bool(self.settings.get("workbench_nofile", False)))
         else:
             self.ui.action_mode_classic.setChecked(True)
             self.ui.action_mode_workbench.setChecked(False)
@@ -493,8 +573,8 @@ class MyWindow(QMainWindow):
             self.workbench_dock.hide()
         self.ui.dockWidget.show()
 
-    def _show_workbench_mode(self):
-        """显示工作台模式（隐藏经典文件树，显示工作台）。"""
+    def _show_workbench_mode(self, nofile=False):
+        """显示工作台模式（隐藏经典文件树，显示工作台）；nofile 为无文件模式。"""
         self.ui.dockWidget.hide()
         if self.workbench_dock is None:
             from workbench import WorkbenchDock
@@ -502,8 +582,12 @@ class MyWindow(QMainWindow):
             self.workbench_dock.focus_file_selected.connect(self._on_workbench_focus_file)
             self.workbench_dock.generic_file_selected.connect(self._on_workbench_generic_file)
             self.workbench_dock.entity_gallery_requested.connect(self._on_workbench_entity_gallery)
+            self.workbench_dock.entity_gallery_nofile_requested.connect(
+                self._on_workbench_nofile_gallery)
+            self.workbench_dock.nofile_mode_changed.connect(self._on_workbench_nofile_changed)
             self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.workbench_dock)
         self.workbench_dock.set_mod_path(self.settings.get("mod_path", ""))
+        self.workbench_dock.set_nofile_mode(nofile)
         self.workbench_dock.show()
 
     def _on_workbench_focus_file(self, file_path):
@@ -513,6 +597,33 @@ class MyWindow(QMainWindow):
     def _on_workbench_entity_gallery(self, content_type, file_path):
         """工作台：在右侧国策组件中展示图标型文件的实体图标画廊。"""
         self.custom_view.show_entity_gallery(content_type, file_path)
+
+    def _on_workbench_nofile_gallery(self, content_type, entities):
+        """工作台无文件模式：在右侧国策组件中展示跨文件收集的实体画廊。"""
+        self.custom_view.show_entity_gallery_nofile(content_type, entities)
+
+    def _on_toolbar_nofile_toggled(self, checked):
+        """工具栏无文件模式切换：同步工作台并持久化。"""
+        if self.workbench_dock is not None:
+            self.workbench_dock.set_nofile_mode(checked)
+        self.settings["workbench_nofile"] = bool(checked)
+        try:
+            with open('settings.json', 'w', encoding='utf-8') as f:
+                json.dump(self.settings, f, indent=4, ensure_ascii=False)
+        except Exception:
+            pass
+
+    def _on_workbench_nofile_changed(self, nofile):
+        """工作台无文件模式变化：同步工具栏动作并持久化。"""
+        act = getattr(self, "act_nofile_mode", None)
+        if act is not None and act.isChecked() != nofile:
+            act.setChecked(nofile)
+        self.settings["workbench_nofile"] = bool(nofile)
+        try:
+            with open('settings.json', 'w', encoding='utf-8') as f:
+                json.dump(self.settings, f, indent=4, ensure_ascii=False)
+        except Exception:
+            pass
 
     def _on_workbench_generic_file(self, file_path, entity_id=None):
         """工作台：打开其他内容文件（复用树形编辑器），可选定位实体。"""
@@ -819,3 +930,69 @@ class MyWindow(QMainWindow):
         from term_registry import get_term_registry
         dlg = TermDialog(get_term_registry(), parent=self)
         dlg.show()
+
+    def on_manage_templates(self):
+        """打开模板管理对话框（树形编辑 + 变量设置）。"""
+        from template_manager_dialog import TemplateManagerDialog
+        dlg = TemplateManagerDialog(parent=self)
+        dlg.show()
+
+    def on_validate_mod(self):
+        """校验当前 mod：对照游戏数据字典检查未知引用。"""
+        from PyQt6.QtWidgets import QMessageBox
+        from game_data import build_dictionary, validate_directory
+
+        hoi4 = self.settings.get("HOI4_path", "")
+        mod = self.settings.get("mod_path", "")
+        if not hoi4 or not os.path.isdir(hoi4):
+            QMessageBox.information(
+                self, "校验 mod", "未配置有效的 HOI4 游戏目录，无法构建数据字典。")
+            return
+        if not mod or not os.path.isdir(mod):
+            QMessageBox.information(self, "校验 mod", "未打开有效的 mod 目录。")
+            return
+
+        self.statusBar().showMessage("正在构建游戏数据字典…")
+        try:
+            dictionary = build_dictionary(hoi4)
+        except Exception as e:
+            QMessageBox.warning(self, "校验失败", f"构建数据字典失败: {e}")
+            return
+
+        self.statusBar().showMessage("正在校验 mod 文件…")
+        from game_data import find_duplicate_ids
+        results = validate_directory(dictionary, mod)
+        duplicates = find_duplicate_ids(mod)
+        self.statusBar().clearMessage()
+
+        lines = []
+        total = 0
+        for rel in sorted(results):
+            issues = results[rel]
+            total += len(issues)
+            lines.append(f"◆ {rel}")
+            for i in issues:
+                lines.append(f"    - {i}")
+        if duplicates:
+            lines.append("")
+            lines.append("════ 重复 ID（多个文件定义同一标识） ════")
+            for k in sorted(duplicates):
+                total += 1
+                lines.append(f"◆ {k}:")
+                for rel in duplicates[k]:
+                    lines.append(f"    - {rel}")
+
+        if not lines:
+            QMessageBox.information(
+                self, "校验 mod", "未发现未知引用，mod 内容与游戏数据字典一致。")
+            return
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPlainTextEdit
+        dlg = QDialog(self)
+        dlg.setWindowTitle(f"校验结果：{total} 个问题")
+        dlg.resize(720, 480)
+        lay = QVBoxLayout(dlg)
+        edit = QPlainTextEdit()
+        edit.setReadOnly(True)
+        edit.setPlainText("\n".join(lines))
+        lay.addWidget(edit)
+        dlg.exec()

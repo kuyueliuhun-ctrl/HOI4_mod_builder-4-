@@ -1,0 +1,5 @@
+# 顾问分配模板（单个节点）
+set_character_advisor = {
+	character = CHL_test_generic_advisor
+	advisor_slot = political_advisor
+}

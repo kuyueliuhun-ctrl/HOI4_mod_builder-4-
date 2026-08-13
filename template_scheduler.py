@@ -37,6 +37,7 @@
 
 import json
 import os
+import re
 from typing import Dict, List, Optional
 
 
@@ -303,6 +304,10 @@ class TemplateScheduler:
                 rel_parts = rel_path.split(os.sep)
                 detected_type = rel_parts[0] if len(rel_parts) > 1 else "custom"
 
+                # 指定类型时：仅保留类型匹配的模板（支持中文系统类型名）
+                if template_type and detected_type != template_type:
+                    continue
+
                 # 获取不含扩展名的文件名（用于显示）
                 name_without_ext = os.path.splitext(filename)[0]
                 # 隐藏 _ 前缀（默认模板标记）
@@ -440,8 +445,125 @@ class TemplateScheduler:
         将它们替换为下划线
         """
         illegal_chars = r'[<>:"/\\|?*]'
-        import re
         return re.sub(illegal_chars, "_", name).strip()
+
+    # ────────────── 模板变量（占位符）支持 ──────────────
+
+    # 占位符格式：__变量名__（与 apply_template 的 replacements 兼容）
+    VAR_PATTERN = re.compile(r"__([A-Za-z0-9_\u4e00-\u9fff]+)__")
+
+    def _rel_key(self, filepath: str) -> str:
+        """获取模板文件相对 templates 目录的键（正斜杠分隔）。"""
+        try:
+            rel = os.path.relpath(filepath, self.templates_dir)
+        except Exception:
+            rel = os.path.basename(filepath)
+        return rel.replace(os.sep, "/")
+
+    def variable_config_path(self) -> str:
+        """模板变量配置文件路径（templates/variables.json）。"""
+        return os.path.join(self.templates_dir, "variables.json")
+
+    def _load_variable_config(self) -> Dict:
+        """读取全部模板的变量配置（filepath -> {variables: [...]}）。"""
+        try:
+            with open(self.variable_config_path(), "r", encoding="utf-8-sig") as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+
+    def scan_template_variables(self, content: str) -> List[str]:
+        """扫描模板内容中的占位符变量（按出现顺序去重）。
+
+        Args:
+            content: 模板文本内容
+        Returns:
+            list[str]: 占位符列表，如 ["__BUILDING_TYPE__", "__BUILDING_LEVEL__"]
+        """
+        if not content:
+            return []
+        seen = []
+        for m in self.VAR_PATTERN.finditer(content):
+            token = m.group(0)
+            if token not in seen:
+                seen.append(token)
+        return seen
+
+    def get_template_variables(self, filepath: str) -> List[Dict]:
+        """获取模板的变量配置。
+
+        配置项：{"name": 占位符, "label": 中文说明, "enabled": 是否启用填入}
+        未配置过时自动扫描内容中的占位符生成默认配置（默认启用）。
+
+        Args:
+            filepath: 模板文件路径
+        Returns:
+            list[dict]: 变量配置列表
+        """
+        key = self._rel_key(filepath)
+        config = self._load_variable_config().get(key, {})
+        configured = config.get("variables", []) if isinstance(config, dict) else []
+
+        content = self.get_template_content(filepath) or ""
+        tokens = self.scan_template_variables(content)
+
+        # 合并：保留配置中的 label/顺序，内容中消失的变量移除，新出现的变量追加
+        result = []
+        seen = set()
+        for v in configured:
+            name = v.get("name", "")
+            if name in tokens and name not in seen:
+                result.append({
+                    "name": name,
+                    "label": v.get("label", ""),
+                    "enabled": bool(v.get("enabled", True)),
+                })
+                seen.add(name)
+        for tok in tokens:
+            if tok not in seen:
+                result.append({"name": tok, "label": "", "enabled": True})
+                seen.add(tok)
+        return result
+
+    def set_template_variables(self, filepath: str, variables: List[Dict]) -> bool:
+        """保存模板的变量配置到 variables.json。
+
+        Args:
+            filepath: 模板文件路径
+            variables: [{"name", "label", "enabled"}, ...]
+        Returns:
+            成功返回 True
+        """
+        key = self._rel_key(filepath)
+        config = self._load_variable_config()
+        config[key] = {"variables": variables}
+        try:
+            os.makedirs(self.templates_dir, exist_ok=True)
+            with open(self.variable_config_path(), "w", encoding="utf-8") as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
+            return True
+        except Exception:
+            return False
+
+    def get_enabled_variables(self, filepath: str) -> List[Dict]:
+        """获取模板中启用的变量（用于使用时弹出填写框）。"""
+        return [v for v in self.get_template_variables(filepath) if v.get("enabled")]
+
+    @staticmethod
+    def apply_template_variables(content: str, values: Dict[str, str]) -> str:
+        """按填写值替换模板内容中的占位符。
+
+        Args:
+            content: 模板文本
+            values: 占位符 -> 替换值，如 {"__BUILDING_TYPE__": "arms_factory"}
+        Returns:
+            替换后的文本（未填写值的占位符保留原样）
+        """
+        for token, value in values.items():
+            if value is not None:
+                content = content.replace(token, value)
+        return content
 
 
 # 全局调度器单例

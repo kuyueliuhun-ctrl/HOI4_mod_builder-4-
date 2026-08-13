@@ -47,7 +47,7 @@ class InitialOobEditor(QDialog):
         root.addWidget(info)
 
         btn = QHBoxLayout()
-        self.division_btn = QPushButton("🪖 师编制编辑器")
+        self.division_btn = QPushButton("🎖️ 师编制编辑器")
         self.division_btn.setMinimumHeight(64)
         self.division_btn.clicked.connect(self._open_division_editor)
         btn.addWidget(self.division_btn)

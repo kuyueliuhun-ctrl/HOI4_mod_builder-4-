@@ -1,8 +1,8 @@
 import os
 import re
 import json
-from PyQt6.QtWidgets import QGraphicsView, QMenu, QDialog, QInputDialog, QMessageBox, QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem
-from PyQt6.QtGui import QPainter, QAction, QFont, QColor, QPixmap, QBrush
+from PyQt6.QtWidgets import QGraphicsView, QMenu, QDialog, QInputDialog, QMessageBox, QGraphicsPixmapItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem, QGraphicsRectItem
+from PyQt6.QtGui import QPainter, QAction, QFont, QColor, QPixmap, QBrush, QPen, QKeySequence, QShortcut
 from PyQt6.QtCore import Qt, QPoint
 from focus_parser import parse_focus_file
 from gui_translator import GuiTranslator
@@ -106,6 +106,17 @@ class FocusView(QGraphicsView):
         self._pending_entity_icon = None       # 待上传图标的实体字典
         self._pending_entity_icon_slot = None  # 待上传图标的目标槽位（large/small/None）
         self._gallery_font_obj = None
+        self._entity_find_dialog = None        # Ctrl+F 查找对话框（懒创建）
+        self._entity_highlight = None          # 定位高亮边框项
+
+        # 无文件模式画廊状态（跨文件实体；None 表示文件模式画廊）
+        self._nofile_entity_list = None
+        self._nofile_files = []                # 无文件画廊的源文件列表
+
+        # Ctrl+F：实体画廊中按英文 id / 中文名查找并定位实体
+        self.find_shortcut = QShortcut(QKeySequence("Ctrl+F"), self)
+        self.find_shortcut.activated.connect(self._open_entity_find_dialog)
+        self.find_shortcut.setEnabled(False)
 
         self.setAcceptDrops(True)
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
@@ -269,10 +280,13 @@ class FocusView(QGraphicsView):
         self.scale(zoom_factor, zoom_factor)
 
     def redraw(self):
-        if not self._current_file_path:
-            return
         if self._view_mode == "entities":
-            self.show_entity_gallery(self._entity_type, self._current_file_path)
+            if self._nofile_entity_list is not None:
+                self._reload_nofile_gallery()
+            elif self._current_file_path:
+                self.show_entity_gallery(self._entity_type, self._current_file_path)
+            return
+        if not self._current_file_path:
             return
         window = self.window()
         if window and hasattr(window, 'load_txt_pdx_to_memory'):
@@ -864,6 +878,7 @@ class FocusView(QGraphicsView):
     GALLERY_CELL_W = 170
     GALLERY_CELL_H = 190
     GALLERY_COLS = 5
+    NOFILE_GALLERY_COLS = 8   # 无文件模式画廊每行实体数量（更多，减少纵向滚动）
 
     def _gallery_font(self):
         if self._gallery_font_obj is None:
@@ -895,7 +910,26 @@ class FocusView(QGraphicsView):
             QMessageBox.critical(self, "错误", f"无法读取文件: {file_path}")
             return
         entities = WorkbenchDock._extract_entities(content_type, content)
+        self._nofile_entity_list = None
+        self._nofile_files = []
+        self._render_entity_gallery(content_type, cfg, entities, file_path)
 
+    def show_entity_gallery_nofile(self, content_type, entities):
+        """无文件模式：在右侧国策组件中展示跨文件收集的全部实体。
+
+        每个实体字典需携带 file（源文件路径，用于编辑/删除/打开树编辑器）与
+        可选的 country（国家标签，用于提示）。双击实体打开其源文件的树形编辑器。
+        """
+        from workbench import ICON_RULES
+        cfg = ICON_RULES.get(content_type) or {}
+        cleaned = [dict(e) for e in entities]
+        self._nofile_entity_list = cleaned
+        self._nofile_files = sorted({
+            e.get("file", "") for e in cleaned if e.get("file")})
+        self._render_entity_gallery(content_type, cfg, cleaned, None)
+
+    def _render_entity_gallery(self, content_type, cfg, entities, file_path):
+        """实体画廊统一渲染；file_path 为 None 表示无文件模式（实体携带 file 键）。"""
         self._view_mode = "entities"
         self._entity_type = content_type
         self._entity_cfg = cfg
@@ -903,22 +937,66 @@ class FocusView(QGraphicsView):
         self._entity_items = {}
         self._pending_entity_icon = None
         self._cancel_pending_modes()
+        self.find_shortcut.setEnabled(True)
 
         scene = self.scene()
         scene.clear()
         self.resetTransform()
+        self._entity_highlight = None
 
         from icon_resolver import resolve_pixmap
         from localization_mgr import get_localization_manager
         loc = get_localization_manager()
         loc.reload(game_path=_get_hoi4_path(), mod_path=_get_mod_path())
         gfx_map = self._gallery_gfx_map()
+        nofile = file_path is None
+        cols = self.NOFILE_GALLERY_COLS if nofile else self.GALLERY_COLS
 
-        for i, ent in enumerate(entities):
-            col = i % self.GALLERY_COLS
-            row = i // self.GALLERY_COLS
+        # 无文件模式：按国家分组（有国家标签的组 + 未分国家组），组前绘制标题行
+        groups = {}
+        rows = []
+        if nofile:
+            for ent in entities:
+                groups.setdefault((ent.get("tags") or [""])[0], []).append(ent)
+            order = sorted(groups)
+            if "" in order:
+                order = [c for c in order if c != ""] + [""]
+            for c in order:
+                if c:
+                    rows.append(("header", c))
+                for ent in groups[c]:
+                    rows.append(("entity", ent))
+        else:
+            rows = [("entity", e) for e in entities]
+
+        cur_row = 0
+        cur_col = 0
+        for kind, payload in rows:
+            if kind == "header":
+                cur_col = 0
+                cur_row += 1
+                y = cur_row * self.GALLERY_CELL_H + 30
+                hfont = QFont(self._gallery_font())
+                hfont.setBold(True)
+                hfont.setPointSize(hfont.pointSize() + 1)
+                head = QGraphicsSimpleTextItem(f"🏷 {payload}（{len(groups[payload])}）")
+                head.setFont(hfont)
+                head.setBrush(QBrush(QColor(255, 200, 90)))
+                head.setPos(14, y)
+                head.setData(0, "__header__")
+                scene.addItem(head)
+                cur_row += 1
+                continue
+            if cur_col >= cols:
+                cur_col = 0
+                cur_row += 1
+            ent = payload
+            col = cur_col
+            row = cur_row
             x = col * self.GALLERY_CELL_W + self.GALLERY_CELL_W // 2
             y = row * self.GALLERY_CELL_H + self.GALLERY_CELL_H // 2
+
+            ent_file = ent.get("file") or file_path or ""
 
             pm = resolve_pixmap(ent.get("icon", ""), dirs=cfg.get("dirs"),
                                 gfx_map=gfx_map, mod_path=_get_mod_path(),
@@ -932,7 +1010,7 @@ class FocusView(QGraphicsView):
             pix_item = QGraphicsPixmapItem(thumb)
             pix_item.setPos(x - thumb.width() / 2, y - thumb.height() / 2 - 18)
             pix_item.setData(0, ent["name"])
-            pix_item.setData(1, file_path)
+            pix_item.setData(1, ent_file)
             pix_item.setData(2, ent)
             scene.addItem(pix_item)
 
@@ -951,15 +1029,23 @@ class FocusView(QGraphicsView):
             tw = text_item.boundingRect().width()
             text_item.setPos(x - tw / 2, y + 20)
             text_item.setData(0, ent["name"])
-            text_item.setData(1, file_path)
+            text_item.setData(1, ent_file)
             text_item.setData(2, ent)
             scene.addItem(text_item)
 
+            if nofile:
+                tags = "、".join(ent.get("tags") or [])
+                tooltip = f"{ent['name']}\n国家: {tags or '—'}\n文件: {ent_file}"
+                pix_item.setToolTip(tooltip)
+                text_item.setToolTip(tooltip)
+
             self._entity_items[ent["name"]] = (pix_item, text_item, x, y)
+            cur_col += 1
 
         # 新建实体按钮：位于实体网格下方
         self._add_entity_button_proxy = None
-        if entities:
+        show_add = bool(entities) or (nofile and bool(self._nofile_files))
+        if show_add:
             from PyQt6.QtWidgets import QPushButton, QGraphicsProxyWidget
             btn = QPushButton(self._entity_add_button_text())
             btn.setFixedSize(140, 34)
@@ -967,12 +1053,73 @@ class FocusView(QGraphicsView):
             btn.clicked.connect(self._add_new_entity)
             proxy = QGraphicsProxyWidget()
             proxy.setWidget(btn)
-            n_rows = (len(entities) + self.GALLERY_COLS - 1) // self.GALLERY_COLS
-            proxy.setPos(self.GALLERY_CELL_W // 2 - 70, n_rows * self.GALLERY_CELL_H + 30)
+            btn_row = cur_row + 1
+            proxy.setPos(self.GALLERY_CELL_W // 2 - 70, btn_row * self.GALLERY_CELL_H + 30)
             scene.addItem(proxy)
             self._add_entity_button_proxy = proxy
+        elif not entities:
+            empty_text = QGraphicsSimpleTextItem("（无实体）")
+            empty_text.setBrush(QBrush(QColor(160, 160, 160)))
+            empty_text.setFont(self._gallery_font())
+            empty_text.setPos(30, 30)
+            scene.addItem(empty_text)
 
         scene.setSceneRect(scene.itemsBoundingRect().adjusted(-40, -40, 40, 40))
+
+    def _reload_nofile_gallery(self):
+        """重新从各源文件提取实体并刷新无文件画廊（删除/修改后调用）。"""
+        from workbench import WorkbenchDock
+        entities = []
+        for fp in self._nofile_files:
+            content = WorkbenchDock._read_file(fp)
+            if not content.strip():
+                continue
+            entities.extend(WorkbenchDock._collect_file_entities(
+                self._entity_type, content, fp))
+        self.show_entity_gallery_nofile(self._entity_type, entities)
+
+    def _open_entity_find_dialog(self):
+        """Ctrl+F：打开实体查找定位对话框（英文 id / 中文名）。"""
+        if self._view_mode != "entities" or not self._entity_items:
+            return
+        if self._entity_find_dialog is None:
+            from entity_find_dialog import EntityFindDialog
+            loc = _get_loc_manager()
+
+            def get_cn(name):
+                try:
+                    return (loc.get_name(name) or "") if loc is not None else ""
+                except Exception:
+                    return ""
+
+            self._entity_find_dialog = EntityFindDialog(
+                sorted(self._entity_items), get_cn, parent=self)
+            self._entity_find_dialog.locate_requested.connect(self._locate_gallery_entity)
+        self._entity_find_dialog.refresh_entities(sorted(self._entity_items))
+        self._entity_find_dialog.focus_search()
+
+    def _locate_gallery_entity(self, name):
+        """定位画廊实体：视图居中并绘制高亮边框。"""
+        if name not in self._entity_items:
+            return
+        _pix, _text, x, y = self._entity_items[name]
+        if self._entity_highlight is not None:
+            try:
+                self.scene().removeItem(self._entity_highlight)
+            except Exception:
+                pass
+            self._entity_highlight = None
+        half_w, half_h = self.GALLERY_CELL_W / 2, self.GALLERY_CELL_H / 2
+        rect = QGraphicsRectItem(x - half_w, y - half_h,
+                                 self.GALLERY_CELL_W, self.GALLERY_CELL_H)
+        pen = QPen(QColor(255, 170, 0), 2.5)
+        pen.setCosmetic(True)
+        rect.setPen(pen)
+        rect.setBrush(Qt.GlobalColor.transparent)
+        rect.setZValue(50)
+        self.scene().addItem(rect)
+        self._entity_highlight = rect
+        self.centerOn(x, y)
 
     def _entity_add_button_text(self):
         """新建实体按钮文案。"""
@@ -996,9 +1143,67 @@ class FocusView(QGraphicsView):
         return key
 
     def _add_new_entity(self):
-        """在当前文件中追加一个新实体块，写入并打开树形编辑器定位。"""
-        from workbench import WorkbenchDock
+        """在当前文件（或无文件模式所选文件）中追加一个新实体块并打开编辑。"""
+        if self._nofile_entity_list is not None:
+            self._add_new_entity_nofile()
+            return
         file_path = self._current_file_path
+        if not file_path or not self._entity_type:
+            return
+        self._add_new_entity_to(file_path)
+
+    def _add_new_entity_nofile(self):
+        """无文件模式：新建弹窗选择目标文件后创建实体。"""
+        if not self._nofile_files:
+            QMessageBox.information(self, "提示", "当前类型没有可写入的文件")
+            return
+        target = self._choose_nofile_target_file()
+        if not target:
+            return
+        self._add_new_entity_to(target)
+
+    def _choose_nofile_target_file(self):
+        """弹窗：选择无文件模式下新建实体的目标文件（按国家分组列出）。"""
+        from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QListWidget,
+                                     QListWidgetItem, QDialogButtonBox)
+        from workbench import WorkbenchDock
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle("选择目标文件")
+        dlg.resize(440, 440)
+        lay = QVBoxLayout(dlg)
+        btn_text = self._entity_add_button_text().lstrip("＋ ").strip() or "实体"
+        lay.addWidget(QLabel(f"将新建「{btn_text}」，请选择写入的文件："))
+        lst = QListWidget()
+        groups = {}
+        for fp in self._nofile_files:
+            tags = WorkbenchDock._detect_country_tags(fp, WorkbenchDock._read_file(fp))
+            groups.setdefault(tags[0] if tags else "", []).append(fp)
+        for c in sorted(groups, key=lambda k: (k == "", k)):
+            for fp in groups[c]:
+                label = f"{c} · {os.path.basename(fp)}" if c else os.path.basename(fp)
+                item = QListWidgetItem(label)
+                item.setData(Qt.ItemDataRole.UserRole, fp)
+                lst.addItem(item)
+        lay.addWidget(lst)
+        btnbox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        btnbox.accepted.connect(dlg.accept)
+        btnbox.rejected.connect(dlg.reject)
+        lay.addWidget(btnbox)
+        if lst.count():
+            lst.setCurrentRow(0)
+        if dlg.exec() == QDialog.DialogCode.Accepted and lst.currentItem():
+            return lst.currentItem().data(Qt.ItemDataRole.UserRole)
+        return None
+
+    def _add_new_entity_to(self, file_path):
+        """在指定文件中追加一个新实体块，写入并打开树形编辑器定位。
+
+        优先使用系统模板的「项目模板」（节点级骨架）生成块，
+        无模板时回退到内置最小块。
+        """
+        from workbench import WorkbenchDock
         if not file_path or not self._entity_type:
             return
         try:
@@ -1008,18 +1213,7 @@ class FocusView(QGraphicsView):
             base = f"NEW_{self._entity_type.upper()}"
             key = self._unique_entity_key(base, entities)
 
-            if self._entity_type == "character":
-                block = (
-                    f"\t{key} = {{\n"
-                    f"\t\tportraits = {{\n"
-                    f"\t\t\tcivilian = {{\n"
-                    f"\t\t\t\tlarge = \"gfx/Leaders/{key}.png\"\n"
-                    f"\t\t\t}}\n"
-                    f"\t\t}}\n"
-                    f"\t}}\n"
-                )
-            else:
-                block = f"\t{key} = {{\n\t\t# 新实体\n\t}}\n"
+            block = self._build_entity_block(self._entity_type, key)
 
             start, end = icon_ops.find_block_range(content, {"characters"} if self._entity_type == "character" else {key})
             if self._entity_type == "character" and start >= 0:
@@ -1032,7 +1226,10 @@ class FocusView(QGraphicsView):
             icon_ops.write_file_utf8(file_path, new_content)
 
             # 刷新画廊并打开树形编辑器定位到新实体
-            self.show_entity_gallery(self._entity_type, file_path)
+            if self._nofile_entity_list is not None:
+                self._reload_nofile_gallery()
+            else:
+                self.show_entity_gallery(self._entity_type, file_path)
             new_ent = None
             for e in WorkbenchDock._extract_entities(self._entity_type, new_content):
                 if e["name"] == key:
@@ -1042,6 +1239,53 @@ class FocusView(QGraphicsView):
                 self._open_entity_tree_editor(file_path, new_ent)
         except Exception as e:
             QMessageBox.critical(self, "错误", f"新建实体失败: {e}")
+
+    @staticmethod
+    def _build_entity_block(content_type, key):
+        """按内容类型生成实体块文本（优先系统「项目模板」，否则内置最小块）。
+
+        - character：内置带 portraits 的最小角色块
+        - 其余类型：尝试 系统模板/<类型>/项目模板.txt 的节点骨架
+        """
+        from template_scheduler import get_template_scheduler
+        if content_type == "character":
+            return (
+                f"\t{key} = {{\n"
+                f"\t\tname = {key}\n"
+                f"\t\tportraits = {{\n"
+                f"\t\t\tcivilian = {{\n"
+                f"\t\t\t\tlarge = \"gfx/Leaders/{key}.png\"\n"
+                f"\t\t\t}}\n"
+                f"\t\t}}\n"
+                f"\t}}\n"
+            )
+        try:
+            scheduler = get_template_scheduler()
+            # 系统模板类型键：优先英文模板类型，否则用内容类型中文名
+            tkey = None
+            for c in __import__("workbench", fromlist=["CONTENT_TYPES"]).CONTENT_TYPES:
+                if c[0] == content_type:
+                    tkey = c[4] or c[1]
+                    break
+            if tkey:
+                matches = scheduler.search_templates(
+                    template_type=tkey, usage="node")
+                if matches:
+                    with open(matches[0]["filepath"], "r",
+                              encoding="utf-8-sig", errors="ignore") as f:
+                        tpl_text = f.read()
+                    # 把模板第一行键名替换为新实体 key
+                    lines = tpl_text.splitlines()
+                    if lines:
+                        m = re.match(r'^(\s*)(\S+)(\s*=\s*\{.*)$', lines[0])
+                        if m:
+                            lines[0] = f"{m.group(1)}{key}{m.group(3)}"
+                    body = "\n".join("\t" + ln if ln.strip() else ln
+                                     for ln in lines)
+                    return body.rstrip() + "\n"
+        except Exception:
+            pass
+        return f"\t{key} = {{\n\t\t# 新实体\n\t}}\n"
 
     def _get_entity_under(self, pos):
         """返回点击位置对应的实体字典，未命中返回 None。"""
@@ -1106,9 +1350,10 @@ class FocusView(QGraphicsView):
             del_action = menu.addAction("🗑 删除实体")
             del_action.triggered.connect(lambda: self._delete_entity(entity))
             menu.addSeparator()
+            ent_file = entity.get("file") or self._current_file_path or ""
             explorer_action = menu.addAction("📂 所在文件在资源管理器中显示")
             explorer_action.triggered.connect(
-                lambda: self._show_in_explorer(self._current_file_path))
+                lambda: self._show_in_explorer(ent_file))
         else:
             if self._current_file_path:
                 explorer_action = menu.addAction("📂 打开文件于资源管理器")
@@ -1256,7 +1501,7 @@ class FocusView(QGraphicsView):
 
     def _set_entity_icon(self, entity, icon_value, field=None):
         """将图标值写回实体字段并刷新画廊。field 为空时使用类型默认字段。"""
-        file_path = self._current_file_path
+        file_path = entity.get("file") or self._current_file_path
         if not file_path:
             return
         try:
@@ -1343,8 +1588,8 @@ class FocusView(QGraphicsView):
         super().dropEvent(event)
 
     def _delete_entity(self, entity):
-        """从当前文件中删除指定实体块并刷新画廊。"""
-        file_path = self._current_file_path
+        """从实体所在文件中删除指定实体块并刷新画廊。"""
+        file_path = entity.get("file") or self._current_file_path
         if not file_path:
             return
         reply = QMessageBox.question(

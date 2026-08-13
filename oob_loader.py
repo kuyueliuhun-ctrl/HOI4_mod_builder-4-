@@ -265,7 +265,7 @@ def load_sub_units(mod_path="", hoi4_path=""):
     """扫描 common/units/*.txt 的 sub_units 块。
 
     Returns:
-        dict: type -> {abbreviation, support, sprite}
+        dict: type -> {abbreviation, group, support, sprite}
     """
     result = {}
     for base in (mod_path, hoi4_path):
@@ -296,6 +296,7 @@ def load_sub_units(mod_path="", hoi4_path=""):
                     info = {
                         "abbreviation": _node_field_value(sub, "abbreviation") or "",
                         "sprite": _node_field_value(sub, "sprite") or "",
+                        "group": _node_field_value(sub, "group") or "",
                         "support": False,
                     }
                     reg = _node_field_value(sub, "regimental")

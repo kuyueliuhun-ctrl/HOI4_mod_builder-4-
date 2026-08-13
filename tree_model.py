@@ -199,7 +199,10 @@ class FocusTreeModel(QAbstractItemModel):
                     vtext = node.value
                     if cn_val and cn_val != node.value:
                         vtext += f"--{cn_val}"
-                    return f"📄 {node.key} = {vtext}"
+                    key_text = node.key
+                    if cn_key and cn_key != node.key:
+                        key_text = f"{node.key}--{cn_key}"
+                    return f"📄 {key_text} = {vtext}"
                 # 只有值而没有等号（裸值）：不显示等号，多个值用换行隔开
                 vals = [p for p in node.key.split() if p]
                 if not vals:
@@ -290,6 +293,42 @@ class FocusTreeModel(QAbstractItemModel):
         self.beginRemoveRows(parent_index, row, row)
         parent_node.remove_child(node)
         self.endRemoveRows()
+
+    def add_node(self, node: TreeNode, parent_index: QModelIndex = None):
+        """添加节点到指定父节点下（默认根节点）。
+
+        Args:
+            node (TreeNode): 新节点
+            parent_index (QModelIndex, optional): 父节点索引
+        """
+        if parent_index is None or not parent_index.isValid():
+            parent_node = self.root_node
+            parent_index = QModelIndex()
+        else:
+            parent_node = self._safe_pointer(parent_index)
+            if parent_node is None:
+                parent_node = self.root_node
+                parent_index = QModelIndex()
+        row = len(parent_node.children)
+        self.beginInsertRows(parent_index, row, row)
+        parent_node.add_child(node, row)
+        self.endInsertRows()
+
+    def index_from_node(self, node: TreeNode) -> QModelIndex:
+        """由节点查找其 QModelIndex（递归）。
+
+        Args:
+            node (TreeNode): 目标节点
+        Returns:
+            QModelIndex: 节点的索引；根节点或未找到时返回 QModelIndex()
+        """
+        if node is None or node == self.root_node:
+            return QModelIndex()
+        parent_index = self.index_from_node(node.parent) if node.parent else QModelIndex()
+        row = node.child_index()
+        if row < 0:
+            return QModelIndex()
+        return self.index(row, 0, parent_index)
 
     def find_nodes(self, keyword: str) -> list:
         results = []

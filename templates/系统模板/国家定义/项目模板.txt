@@ -1,0 +1,2 @@
+# 国家定义模板（单个节点）
+CHL = "countries/Chile.txt"

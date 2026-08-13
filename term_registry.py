@@ -25,6 +25,7 @@ TRANSLATIONS_DIR = os.path.join(_BASE_DIR, "translations")
 TERM_FILES = [
     os.path.join(TRANSLATIONS_DIR, "effect_terms.json"),
     os.path.join(TRANSLATIONS_DIR, "custom_terms.json"),
+    os.path.join(TRANSLATIONS_DIR, "vmoder_modifiers_terms.json"),
 ]
 
 NODE_TYPE_NAMES = {

@@ -1,0 +1,1011 @@
+{
+ "version": 1,
+ "terms": [
+  {
+   "key": "additional_brigade_column_size",
+   "cn": "额外旅级纵队宽度",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "air_ace_bonuses_factor",
+   "cn": "王牌飞行员加成",
+   "tags": [
+    "空军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "air_invasion_division_cap",
+   "cn": "空降师数量上限",
+   "tags": [
+    "空军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "air_invasion_prep_days",
+   "cn": "空降作战准备时间",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "air_maximum_speed_factor",
+   "cn": "空军最大速度",
+   "tags": [
+    "空军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "air_strategic_bomber_night_penalty",
+   "cn": "夜间战略轰炸惩罚",
+   "tags": [
+    "空军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "amphibious_invasion_against",
+   "cn": "对敌两栖进攻加成",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "amphibious_invasion_defence",
+   "cn": "两栖防御加成",
+   "tags": [
+    "海军",
+    "将领"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "armor_factor",
+   "cn": "装甲加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_attack_against_major_factor",
+   "cn": "对主要国家陆军攻击加成",
+   "tags": [
+    "陆军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_attack_against_minor_factor",
+   "cn": "对次要国家陆军攻击加成",
+   "tags": [
+    "陆军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_breakthrough_against_major_factor",
+   "cn": "对主要国家突破加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_breakthrough_against_minor_factor",
+   "cn": "对次要国家突破加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_claim_attack_factor",
+   "cn": "对宣称领土攻击加成",
+   "tags": [
+    "陆军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_claim_defence_factor",
+   "cn": "对宣称领土防御加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_defence_against_major_factor",
+   "cn": "对主要国家防御加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_defence_against_minor_factor",
+   "cn": "对次要国家防御加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_non_core_attack_factor",
+   "cn": "非核心领土攻击加成",
+   "tags": [
+    "陆军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_non_core_defence_factor",
+   "cn": "非核心领土防御加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "army_strength_factor",
+   "cn": "HP",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "attack_bonus_against_cores",
+   "cn": "对核心领土攻击加成",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "base_fuel_gain",
+   "cn": "基础燃油增长",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "breakthrough_bonus_against",
+   "cn": "我国对其突破修正",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "can_guarantee_other_ideologies",
+   "cn": "可保障其他意识形态",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "choose_preferred_tactics_cost",
+   "cn": "选择偏好战术花费",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "critical_receive_chance",
+   "cn": "受击暴击几率",
+   "tags": [
+    "海军",
+    "将领",
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "daily_political_power",
+   "cn": "每日政治点数",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "disable_strategic_redeployment",
+   "cn": "禁用战略撤退",
+   "tags": [
+    "省份",
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "disable_strategic_redeployment_for_controller",
+   "cn": "占领国禁用战略撤退",
+   "tags": [
+    "省份",
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "disabled_ideas",
+   "cn": "禁用理念",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "dont_lose_dig_in_on_attack",
+   "cn": "攻击时不失去堑壕加成",
+   "tags": [
+    "陆军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "exile_manpower_factor",
+   "cn": "流亡人力",
+   "tags": [
+    "流亡政府"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_army_unit",
+   "cn": "陆军师经验增长",
+   "tags": [
+    "陆军",
+    "军事进步"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_army_unit_factor",
+   "cn": "陆军师经验增长",
+   "tags": [
+    "陆军",
+    "军事进步"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_factor",
+   "cn": "指挥官经验增长",
+   "tags": [
+    "将领",
+    "军事进步"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_navy_unit",
+   "cn": "海军单位经验增长",
+   "tags": [
+    "海军",
+    "将领",
+    "军事进步"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "experience_gain_navy_unit_factor",
+   "cn": "海军单位经验增长系数",
+   "tags": [
+    "海军",
+    "将领",
+    "军事进步"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "extra_marine_supply_grace",
+   "cn": "海军陆战队额外补给宽限",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "extra_paratrooper_supply_grace",
+   "cn": "空降兵额外补给宽限",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "extra_trade_to_overlord_factor",
+   "cn": "对宗主国额外贸易",
+   "tags": [
+    "自治"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "faction_influence_contribution_factor",
+   "cn": "阵营影响力贡献",
+   "tags": [
+    "阵营"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "faction_influence_war_score_factor",
+   "cn": "阵营影响力战争分数",
+   "tags": [
+    "阵营"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "female_random_admiral_chance",
+   "cn": "女性海军将领生成几率",
+   "tags": [
+    "海军",
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "female_random_army_leader_chance",
+   "cn": "女性将领生成几率",
+   "tags": [
+    "国家",
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "female_random_country_leader_chance",
+   "cn": "女性国家领袖生成几率",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "female_random_operative_chance",
+   "cn": "女性特工生成几率",
+   "tags": [
+    "国家",
+    "情报"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "female_random_scientist_chance",
+   "cn": "女性科学家生成几率",
+   "tags": [
+    "国家",
+    "科学家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "fighter_sortie_efficiency",
+   "cn": "战斗机出击效率",
+   "tags": [
+    "海军",
+    "将领",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "fortification_damage",
+   "cn": "要塞损坏",
+   "tags": [
+    "将领"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "fuel_gain",
+   "cn": "燃油增长",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "generate_wargoal_tension_against",
+   "cn": "制造战争目标的紧张度限制",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "industrial_capacity_dockyard_powered",
+   "cn": "船坞工厂产能(供电)",
+   "tags": [
+    "国家",
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "industrial_capacity_factory_powered",
+   "cn": "工厂产能(供电)",
+   "tags": [
+    "国家",
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "invasion_preparation_against",
+   "cn": "对敌登陆准备加成",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "lend_lease_tension_with_overlord",
+   "cn": "对宗主国租借紧张度",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "local_non_core_supply_impact_factor",
+   "cn": "本地非核心补给影响",
+   "tags": [
+    "省份"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "local_supply_impact_factor",
+   "cn": "本地补给影响",
+   "tags": [
+    "省份"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "max_army_group_size",
+   "cn": "最大集团军规模",
+   "tags": [
+    "将领"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "max_commander_army_size",
+   "cn": "指挥上限",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "max_fuel",
+   "cn": "最大燃油储量",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "max_fuel_building",
+   "cn": "燃油设施最大储量",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "max_organisation",
+   "cn": "最大组织度",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "max_training",
+   "cn": "最大训练",
+   "tags": [
+    "陆军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_design_team_assign_cost",
+   "cn": "军工组织指派设计团队花费",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_design_team_change_cost",
+   "cn": "军工组织更换设计团队花费",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_funds_gain",
+   "cn": "军工组织资金增长",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_industrial_manufacturer_assign_cost",
+   "cn": "军工组织指派工业制造商花费",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_policy_cooldown",
+   "cn": "军工组织政策冷却",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_policy_cost",
+   "cn": "军工组织政策花费",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_research_bonus",
+   "cn": "军工组织研究加成",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_size_up_requirement",
+   "cn": "军工组织扩张需求",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "military_industrial_organization_task_capacity",
+   "cn": "军工组织任务容量",
+   "tags": [
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_attrition",
+   "cn": "损耗",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_commando_raid_distance",
+   "cn": "海军突击队突袭距离",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_critical_score_chance_factor_against",
+   "cn": "对敌海军暴击几率",
+   "tags": [
+    "海军",
+    "将领",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_hit_chance_against",
+   "cn": "对敌命中几率",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_invasion_division_cap",
+   "cn": "登陆师数量上限",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_invasion_planning_bonus_speed",
+   "cn": "登陆作战计划加成速度",
+   "tags": [
+    "陆军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "naval_invasion_prep_days",
+   "cn": "登陆作战准备时间",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_capital_ship_attack_factor_against",
+   "cn": "对敌主力舰攻击加成",
+   "tags": [
+    "海军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_capital_ship_defence_factor_against",
+   "cn": "对敌主力舰防御加成",
+   "tags": [
+    "海军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_casualty_on_hit",
+   "cn": "命中时敌舰伤亡",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_casualty_on_sink",
+   "cn": "击沉时敌舰伤亡",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_screen_attack_factor_against",
+   "cn": "对敌护卫舰攻击加成",
+   "tags": [
+    "海军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_screen_defence_factor_against",
+   "cn": "对敌护卫舰防御加成",
+   "tags": [
+    "海军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_submarine_attack_factor_against",
+   "cn": "对敌潜艇攻击加成",
+   "tags": [
+    "海军",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_submarine_defence_factor_against",
+   "cn": "对敌潜艇防御加成",
+   "tags": [
+    "海军",
+    "防御"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "navy_visibility",
+   "cn": "可见度",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "out_of_power_impact_factor",
+   "cn": "电力不足影响",
+   "tags": [
+    "国家",
+    "战争生产"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "overlord_trade_cost_factor",
+   "cn": "宗主国贸易花费加成",
+   "tags": [
+    "自治"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "paratrooper_aa_defense",
+   "cn": "空降兵对空防御",
+   "tags": [
+    "将领",
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "paratrooper_weight_factor",
+   "cn": "空降兵重量系数",
+   "tags": [
+    "将领",
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "party_popularity_stability_factor",
+   "cn": "政党支持率对稳定度影响",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "political_power_gain_factor",
+   "cn": "每日政治点数获取系数",
+   "tags": [
+    "政治",
+    "修正"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "port_strike",
+   "cn": "港口袭击",
+   "tags": [
+    "海军",
+    "将领",
+    "进攻"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "promote_cost_factor",
+   "cn": "晋升花费加成",
+   "tags": [
+    "将领"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "request_lease_tension",
+   "cn": "请求租借紧张度",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_activity",
+   "cn": "抵抗活动",
+   "tags": [
+    "国家",
+    "省份"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "resistance_damage_to_garrison_on_our_occupied_states",
+   "cn": "我方占领省份驻军所受抵抗伤害",
+   "tags": [
+    "国家",
+    "省份"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "river_crossing_factor",
+   "cn": "跨河速度惩罚",
+   "tags": [
+    "将领"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "river_crossing_factor_against",
+   "cn": "对敌跨河惩罚加成",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "shore_bombardment_bonus",
+   "cn": "对岸炮击加成",
+   "tags": [
+    "陆军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "skill_bonus_factor",
+   "cn": "将领技能加成",
+   "tags": [
+    "将领"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "spotting_chance_against",
+   "cn": "对敌索敌几率",
+   "tags": [
+    "海军"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "starting_compliance",
+   "cn": "初始顺从度",
+   "tags": [
+    "国家",
+    "省份"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  },
+  {
+   "key": "war_stability_factor",
+   "cn": "战争对稳定度影响",
+   "tags": [
+    "国家"
+   ],
+   "source": "vmoder",
+   "node_type": "value"
+  }
+ ]
+}

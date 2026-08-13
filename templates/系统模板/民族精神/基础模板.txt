@@ -1,44 +1,28 @@
 ﻿ideas = {
-	test_one_economic_action = {
-		modifier = {
-			business_value_factor = 
-			personal_value_factor = 
-			income_growth_factor = 
-			expense_growth_factor = 
-			personal_expense_factor = 
-		}
-		allowed = {
-			always = no
-		}
-		picture = 
-		removal_cost = -1
-		level = 
-		cost = 100
-		available = {
-			if = {
-				
-			}
-			NOT = {
-				
-			}
-		}
-		allowed_to_remove = {
-			development = yes
-			always = no
-			hidden_trigger = {
-				
-			}
-		}
-		ai_will_do = {
+	country = {
+		CHL_test_spirit = {
+			name = CHL_test_spirit
+			allowed = { always = yes }
+			allowed_civil_war = { always = yes }
+			removal_cost = -1
+			picture = GFX_idea_generic_agrarian_society
 			modifier = {
-				
+				consumer_goods_factor = 0.05
+				stability_factor = -0.05
+				war_support_factor = 0.03
+				political_power_gain = 0.10
+				research_speed_factor = 0.05
+				production_factory_efficiency_gain_factor = 0.05
+				industrial_capacity_factory = 0.05
+				industrial_capacity_dockyard = 0.05
+				production_speed_buildings_factor = 0.05
+				army_org_factor = 0.05
+				army_attack_factor = 0.03
+				army_defence_factor = 0.03
+				recruitable_population_factor = 0.02
+				local_resources_factor = 0.03
+				fuel_gain_factor = 0.05
 			}
-			base = 
-		}
-		visible = {
-			has_completed_focus = 
-			tag = 
-			has_idea = 
 		}
 	}
 }

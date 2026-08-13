@@ -5,32 +5,35 @@
 
 自定义语句允许用户扩展 PDX 命令翻译库，为项目特定的命令
 提供中文翻译、默认值、值翻译映射等配置。
+
+升级说明（文件视图）：
+- 左侧列出所有可编辑的翻译文件（用户自定义语句文件 + translations 目录中含 statements 的 JSON 文件）
+- 右侧表格展示当前选中文件中的语句，增删改直接写入该文件
+- 同时同步翻译器内存（custom_statements），保证翻译即时生效
 """
+
+import json
+import os
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QTextEdit,
     QMessageBox, QComboBox, QFormLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView
+    QTableWidgetItem, QHeaderView, QListWidget, QListWidgetItem,
+    QSplitter, QWidget
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
 
 class CustomStatementDialog(QDialog):
-    """自定义语句管理对话框 - 非模态
+    """自定义语句管理对话框 - 非模态（文件视图版）
 
-    以表格形式展示所有自定义的 PDX 语句，支持：
-    - 添加新的自定义语句定义
-    - 编辑现有自定义语句
-    - 删除自定义语句
-    - 自动保存到配置文件
-
-    每条语句包含：PDX键名、中文翻译、节点类型、默认值、描述。
-    语句数据通过 GuiTranslator 管理，保存到 custom_statement_path 指定的文件。
+    左侧：翻译文件列表（用户自定义语句文件 + translations 目录中含 statements 的 JSON 文件）
+    右侧：当前选中文件中的语句表格，支持添加/编辑/删除，直接写入选中文件。
 
     Attributes:
         translator (GuiTranslator): 翻译器实例，管理自定义语句数据
-        custom_path (str): 自定义语句配置文件的保存路径
+        custom_path (str): 用户自定义语句配置文件的保存路径
         table (QTableWidget): 显示语句列表的表格控件
     """
 
@@ -50,26 +53,53 @@ class CustomStatementDialog(QDialog):
         self.custom_path = custom_path
 
         self.setWindowTitle("自定义语句管理")
-        self.setMinimumSize(600, 450)
+        self.setMinimumSize(820, 500)
         # 非模态窗口
         self.setWindowModality(Qt.WindowModality.NonModal)
 
+        self._files = []          # [(显示名, 文件路径), ...]
+        self._current_file = None  # 当前选中的文件路径
+
         self._setup_ui()
-        # 加载现有自定义语句到表格
+        self._scan_statement_files()
         self._load_statements()
+
+    # ────────────── UI 构建 ──────────────
 
     def _setup_ui(self):
         """构建 UI 布局
 
         布局结构：
-        1. 操作按钮行：添加 / 编辑 / 删除
-        2. 表格：展示所有自定义语句（PDX键名、中文翻译、类型、默认值、描述）
-        3. 状态标签
-        4. 关闭按钮（右下角）
+        左侧：文件列表（已有翻译文件）
+        右侧：操作按钮行 + 语句表格 + 状态标签 + 关闭按钮
         """
-        layout = QVBoxLayout(self)
+        main_layout = QHBoxLayout(self)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # ── 操作按钮 ──
+        # ── 左侧：翻译文件列表 ──
+        left_panel = QVBoxLayout()
+        left_panel.setContentsMargins(0, 0, 0, 0)
+        file_label = QLabel("翻译文件")
+        left_panel.addWidget(file_label)
+        self.file_list = QListWidget()
+        self.file_list.setMinimumWidth(220)
+        self.file_list.currentItemChanged.connect(self._on_file_changed)
+        left_panel.addWidget(self.file_list)
+        left_widget = QWidget()
+        left_widget.setLayout(left_panel)
+
+        # ── 右侧：语句表格 ──
+        right_panel = QVBoxLayout()
+        right_panel.setContentsMargins(0, 0, 0, 0)
+
+        search_row = QHBoxLayout()
+        search_row.addWidget(QLabel("搜索:"))
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText("语句名 / 中文翻译 / 描述…")
+        self.search_edit.textChanged.connect(self._load_statements)
+        search_row.addWidget(self.search_edit)
+        right_panel.addLayout(search_row)
+
         btn_layout = QHBoxLayout()
         add_btn = QPushButton("+ 添加新语句")
         add_btn.clicked.connect(self._on_add)
@@ -81,53 +111,155 @@ class CustomStatementDialog(QDialog):
         btn_layout.addWidget(edit_btn)
         btn_layout.addWidget(del_btn)
         btn_layout.addStretch()
-        layout.addLayout(btn_layout)
+        right_panel.addLayout(btn_layout)
 
-        # ── 语句表格 ──
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["PDX键名", "中文翻译", "类型", "默认值", "描述"])
-        # 设置列宽策略：拉伸填充，类型列自适应内容
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        # 禁止直接编辑单元格（通过弹窗编辑）
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        # 整行选中
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        layout.addWidget(self.table)
+        right_panel.addWidget(self.table)
 
-        # ── 状态标签 ──
         self.status_label = QLabel()
-        layout.addWidget(self.status_label)
+        right_panel.addWidget(self.status_label)
 
-        # ── 关闭按钮 ──
         close_btn = QPushButton("关闭")
-        close_btn.clicked.connect(self._on_close)
-        layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignRight)
+        close_btn.clicked.connect(self.close)
+        right_panel.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignRight)
+
+        right_widget = QWidget()
+        right_widget.setLayout(right_panel)
+
+        splitter.addWidget(left_widget)
+        splitter.addWidget(right_widget)
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([260, 560])
+        main_layout.addWidget(splitter)
+
+    # ────────────── 文件扫描与加载 ──────────────
+
+    def _scan_statement_files(self):
+        """扫描可编辑的翻译文件
+
+        文件来源：
+        1. 用户自定义语句文件（custom_statement_path）
+        2. translations 目录中所有含 statements 数组的 JSON 文件
+        """
+        self._files = []
+        self.file_list.clear()
+
+        items = []
+        if self.custom_path and os.path.isfile(self.custom_path):
+            items.append((os.path.basename(self.custom_path) + " (用户)", self.custom_path))
+        try:
+            from translation_loader import get_translations_dir
+            trans_dir = get_translations_dir()
+        except Exception:
+            trans_dir = ""
+        if trans_dir and os.path.isdir(trans_dir):
+            for fn in sorted(os.listdir(trans_dir)):
+                if not fn.endswith(".json"):
+                    continue
+                fp = os.path.join(trans_dir, fn)
+                if self.custom_path and os.path.abspath(fp) == os.path.abspath(self.custom_path):
+                    continue
+                if self._file_has_statements(fp):
+                    items.append((fn, fp))
+
+        self._files = items
+        for name, path in items:
+            count = len(self._load_file_statements(path))
+            self.file_list.addItem(QListWidgetItem(f"{name}  ({count} 条)"))
+
+    @staticmethod
+    def _file_has_statements(path):
+        """判断文件是否为含 statements 数组的 JSON 文件"""
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return isinstance(data, dict) and isinstance(data.get("statements"), list)
+        except Exception:
+            return False
+
+    @staticmethod
+    def _load_file_statements(path):
+        """读取文件中的 statements 数组（不经过加载器合并）"""
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict) and isinstance(data.get("statements"), list):
+                return data["statements"]
+        except Exception:
+            pass
+        return []
+
+    @staticmethod
+    def _save_file_statements(path, statements):
+        """将 statements 写回指定文件（保留文件其它顶层键）"""
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if not isinstance(data, dict):
+                data = {}
+        except Exception:
+            data = {}
+        data["statements"] = statements
+        os.makedirs(os.path.dirname(path) if os.path.dirname(path) else ".", exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+    def _current_path(self):
+        """获取当前选中文件的路径"""
+        row = self.file_list.currentRow()
+        if 0 <= row < len(self._files):
+            return self._files[row][1]
+        return self.custom_path if self._files else None
+
+    # ────────────── 数据展示 ──────────────
+
+    def _on_file_changed(self, current, previous):
+        """切换文件时刷新右侧语句表格"""
+        if current is not None:
+            self._load_statements()
 
     def _load_statements(self):
-        """从翻译器加载自定义语句并填充表格
-
-        清空现有表格数据，遍历 translator.custom_statements 字典，
-        为每条语句创建一行数据。
-        """
-        self.table.setRowCount(0)  # 清空所有行
-        for key, stmt in self.translator.custom_statements.items():
+        """加载当前选中文件中的语句并填充表格（支持关键词过滤）"""
+        path = self._current_path()
+        statements = self._load_file_statements(path) if path else []
+        keyword = self.search_edit.text().strip().lower() if hasattr(self, "search_edit") else ""
+        if keyword:
+            filtered = []
+            for stmt in statements:
+                haystack = " ".join([
+                    str(stmt.get("key", "")),
+                    str(stmt.get("cn_name", "")),
+                    str(stmt.get("description", "")),
+                    str(stmt.get("default_value", "")),
+                ]).lower()
+                if keyword in haystack:
+                    filtered.append(stmt)
+            statements = filtered
+        self._current_file = path
+        self.table.setRowCount(0)
+        for stmt in statements:
             row = self.table.rowCount()
             self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(key))
-            self.table.setItem(row, 1, QTableWidgetItem(stmt.get("cn_name", "")))
+            self.table.setItem(row, 0, QTableWidgetItem(str(stmt.get("key", ""))))
+            self.table.setItem(row, 1, QTableWidgetItem(str(stmt.get("cn_name", ""))))
             self.table.setItem(row, 2, QTableWidgetItem(
                 "块" if stmt.get("node_type") == "block" else "值"
             ))
             self.table.setItem(row, 3, QTableWidgetItem(str(stmt.get("default_value", ""))))
-            self.table.setItem(row, 4, QTableWidgetItem(stmt.get("description", "")))
-        self._update_status()
+            self.table.setItem(row, 4, QTableWidgetItem(str(stmt.get("description", ""))))
+        self._update_status(len(statements))
 
-    def _update_status(self):
-        """更新状态标签：显示已定义的自定义语句数量"""
-        count = len(self.translator.custom_statements)
-        self.status_label.setText(f"已定义 {count} 条自定义语句")
+    def _update_status(self, count):
+        """更新状态标签：显示当前文件与语句数量"""
+        name = os.path.basename(self._current_path()) if self._current_path else ""
+        self.status_label.setText(f"文件 {name}：共 {count} 条语句")
 
     def _get_selected_key(self):
         """获取当前选中行的 PDX 键名
@@ -142,26 +274,25 @@ class CustomStatementDialog(QDialog):
         row = selected[0].row()
         return self.table.item(row, 0).text()
 
-    def _on_add(self):
-        """打开添加自定义语句对话框
+    # ────────────── 增删改 ──────────────
 
-        创建 _StatementEditDialog 并连接确认信号，
-        确认后通过 _on_edit_dialog_ok 保存新语句。
-        """
+    def _on_add(self):
+        """打开添加自定义语句对话框"""
         dlg = _StatementEditDialog(self.translator, parent=self)
         dlg.accepted.connect(lambda: self._on_edit_dialog_ok(dlg))
         dlg.show()
 
     def _on_edit(self):
-        """打开编辑自定义语句对话框
-
-        获取选中的语句键名，从翻译器中读取现有数据，
-        传入 _StatementEditDialog 进行编辑。
-        """
+        """打开编辑自定义语句对话框"""
         key = self._get_selected_key()
         if not key:
             return
-        stmt = self.translator.custom_statements.get(key)
+        path = self._current_path()
+        stmt = None
+        for s in self._load_file_statements(path) if path else []:
+            if s.get("key") == key:
+                stmt = s
+                break
         if not stmt:
             return
         dlg = _StatementEditDialog(self.translator, stmt=stmt, parent=self)
@@ -171,23 +302,33 @@ class CustomStatementDialog(QDialog):
     def _on_edit_dialog_ok(self, dlg, old_key=None):
         """处理编辑对话框的确认结果
 
-        如果键名发生了变化，先删除旧的键名再添加。
-        保存到翻译器并持久化到文件，最后刷新表格。
-
-        Args:
-            dlg (_StatementEditDialog): 编辑对话框实例
-            old_key (str, optional): 编辑前的旧键名
+        更新选中文件中的语句并持久化，同步翻译器内存。
         """
+        path = self._current_path()
         stmt = dlg.get_statement()
-        # 如果键名变更，移除旧键
+        statements = self._load_file_statements(path) if path else []
+
+        # 键名变更时移除旧键
         if old_key and old_key != stmt["key"]:
-            self.translator.remove_custom_statement(old_key)
-        # 添加/更新自定义语句
+            statements = [s for s in statements if s.get("key") != old_key]
+            if self.translator.custom_statements.get(old_key):
+                self.translator.remove_custom_statement(old_key)
+        # 更新或追加
+        for i, s in enumerate(statements):
+            if s.get("key") == stmt["key"]:
+                statements[i] = stmt
+                break
+        else:
+            statements.append(stmt)
+
+        # 同步翻译器内存
         self.translator.add_custom_statement(**stmt)
-        # 持久化保存到文件
-        self.translator.save_custom_statements(self.custom_path)
-        # 刷新表格显示
+        # 持久化到选中文件
+        if path:
+            self._save_file_statements(path, statements)
+        # 刷新表格与文件列表计数
         self._load_statements()
+        self._refresh_file_counts()
         # 通知外部数据变更
         self.statements_changed.emit()
         dlg.deleteLater()
@@ -195,21 +336,37 @@ class CustomStatementDialog(QDialog):
     def _on_delete(self):
         """删除选中的自定义语句
 
-        二次确认后从翻译器中移除，保存并刷新表格。
+        二次确认后从当前文件与翻译器内存中移除并保存。
         """
         key = self._get_selected_key()
         if not key:
             return
         reply = QMessageBox.question(self, "确认", f"确定要删除语句 '{key}' 吗？")
-        if reply == QMessageBox.StandardButton.Yes:
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        path = self._current_path()
+        statements = self._load_file_statements(path) if path else []
+        statements = [s for s in statements if s.get("key") != key]
+        if self.translator.custom_statements.get(key):
             self.translator.remove_custom_statement(key)
-            self.translator.save_custom_statements(self.custom_path)
-            self._load_statements()
-            self.statements_changed.emit()
+        if path:
+            self._save_file_statements(path, statements)
+        self._load_statements()
+        self._refresh_file_counts()
+        self.statements_changed.emit()
 
-    def _on_close(self):
-        """关闭对话框"""
-        self.close()
+    def _refresh_file_counts(self):
+        """刷新左侧文件列表的语句计数（不重置选中）"""
+        current_name = self.file_list.currentItem().text() if self.file_list.currentItem() else ""
+        self.file_list.blockSignals(True)
+        self.file_list.clear()
+        for name, path in self._files:
+            count = len(self._load_file_statements(path))
+            item = QListWidgetItem(f"{name}  ({count} 条)")
+            self.file_list.addItem(item)
+            if current_name and current_name.startswith(name):
+                self.file_list.setCurrentItem(item)
+        self.file_list.blockSignals(False)
 
 
 class _StatementEditDialog(QDialog):
@@ -309,15 +466,15 @@ class _StatementEditDialog(QDialog):
             stmt (dict): 语句数据字典，包含 key, cn_name, node_type,
                          default_value, description, value_translations
         """
-        self.key_edit.setText(stmt.get("key", ""))
-        self.cn_edit.setText(stmt.get("cn_name", ""))
+        self.key_edit.setText(str(stmt.get("key", "")))
+        self.cn_edit.setText(str(stmt.get("cn_name", "")))
         # 根据节点类型设置下拉框索引
         if stmt.get("node_type") == "block":
             self.type_combo.setCurrentIndex(1)  # 块节点
         else:
             self.type_combo.setCurrentIndex(0)  # 值节点
         self.default_edit.setText(str(stmt.get("default_value", "")))
-        self.desc_edit.setText(stmt.get("description", ""))
+        self.desc_edit.setText(str(stmt.get("description", "")))
 
         # 加载值翻译映射
         vt = stmt.get("value_translations", {})

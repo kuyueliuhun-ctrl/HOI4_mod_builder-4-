@@ -1,0 +1,30 @@
+# 顾问分配（history/general）
+# 为指定国家生成/分配顾问角色，或直接招募已定义角色为顾问
+every_possible_country = {
+	limit = {
+		tag = CHL
+	}
+	generate_character = {
+		token_base = CHL_test_generic_advisor
+		name = CHL_test_generic_advisor
+		portraits = {
+			civilian = {
+				large = GFX_portrait_generic_europe_male_01
+			}
+		}
+		advisor = {
+			slot = political_advisor
+			allowed = {
+				original_tag = CHL
+			}
+			available = {
+				always = yes
+			}
+			traits = { silent_workhorse }
+			ai_will_do = {
+				factor = 1
+			}
+			cost = 50
+		}
+	}
+}
