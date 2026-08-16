@@ -882,6 +882,9 @@ class MapEditorDialogSmokeTest(unittest.TestCase):
         self.assertTrue(icon_only)
         self.assertGreaterEqual(icon_only[0].width(), 56)
         self.assertGreaterEqual(icon_only[0].height(), 56)
+        # 图标在按钮内占比高（iconSize 接近按钮尺寸）
+        self.assertGreaterEqual(icon_only[0].iconSize().width(), 52)
+        self.assertGreaterEqual(icon_only[0].iconSize().height(), 52)
         # 左侧滚动区加宽 + 底部无水平滚动条
         self.assertGreaterEqual(dlg.building_scroll.minimumWidth(), 320)
         self.assertEqual(

@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 import re
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QButtonGroup, QCheckBox, QColorDialog, QComboBox, QDialog, QGridLayout,
@@ -198,9 +198,13 @@ class MapEditorDialog(QDialog):
         if icon_only:
             btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
             btn.setFixedSize(56, 56)
+            # 图标尽量充满按钮（Qt 默认 iconSize 偏小，会留大量白边）
+            btn.setIconSize(QSize(52, 52))
+            btn.setStyleSheet("QToolButton { padding: 0px; }")
         else:
             btn.setToolButtonStyle(
                 Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+            btn.setIconSize(QSize(32, 32))
             btn.setText(self._building_name(b["key"]))
         tip = "%s（%s级）" % (self._building_name(b["key"]),
                              "省" if b["provincial"] else "州")
