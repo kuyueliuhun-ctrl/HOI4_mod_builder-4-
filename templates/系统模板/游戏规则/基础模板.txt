@@ -1,0 +1,9 @@
+allow_wargoals = {
+	name = "RULE_ALLOW_WARGOALS"
+	group = "RULE_GROUP_GENERAL"
+	icon = "GFX_wargoals"
+	option = {
+		name = "LIMITED"
+		text = "RULE_OPTION_LIMITED"
+	}
+}

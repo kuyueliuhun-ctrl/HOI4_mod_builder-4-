@@ -1,0 +1,3 @@
+peace_conference = {
+	# 和会阶段与选项
+}

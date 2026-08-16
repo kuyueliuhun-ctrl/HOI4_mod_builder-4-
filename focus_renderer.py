@@ -76,6 +76,20 @@ class FocusRenderer:
             self._text_font = QFont("Microsoft YaHei", 9, QFont.Weight.Bold)
         return self._text_font
 
+    MAX_ICON_SIZE = 192  # 图标解码尺寸上限（超过则缩放，避免超大贴图拖慢绘制）
+
+    def _load_scaled(self, tex_path):
+        """加载纹理并限制最大尺寸（过大贴图缩放，兼顾清晰度与性能）。"""
+        pm = DdsLoader.load_as_pixmap(tex_path)
+        if pm is not None and not pm.isNull():
+            w, h = pm.width(), pm.height()
+            if max(w, h) > self.MAX_ICON_SIZE:
+                pm = pm.scaled(
+                    self.MAX_ICON_SIZE, self.MAX_ICON_SIZE,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation)
+        return pm
+
     def _get_fallback_pixmap(self):
         if self._fallback_pixmap is not None:
             return self._fallback_pixmap
@@ -92,24 +106,24 @@ class FocusRenderer:
         return None
 
     def _search_icon_dirs(self, icon_name, stripped, base_path):
-        """在指定基础路径下查找图标文件（goals/ideas 目录）。"""
+        """在指定基础路径下查找图标文件（goals/ideas 目录），限制最大尺寸。"""
         goals_dir = os.path.join(base_path, "gfx", "interface", "goals")
         for ext in ('.dds', '.png'):
-            result = DdsLoader.load_as_pixmap(os.path.join(goals_dir, icon_name + ext))
+            result = self._load_scaled(os.path.join(goals_dir, icon_name + ext))
             if result:
                 return result
         for ext in ('.dds', '.png'):
-            result = DdsLoader.load_as_pixmap(os.path.join(goals_dir, stripped + ext))
+            result = self._load_scaled(os.path.join(goals_dir, stripped + ext))
             if result:
                 return result
 
         ideas_dir = os.path.join(base_path, "gfx", "interface", "ideas")
         for ext in ('.dds', '.png'):
-            result = DdsLoader.load_as_pixmap(os.path.join(ideas_dir, icon_name + ext))
+            result = self._load_scaled(os.path.join(ideas_dir, icon_name + ext))
             if result:
                 return result
         for ext in ('.dds', '.png'):
-            result = DdsLoader.load_as_pixmap(os.path.join(ideas_dir, stripped + ext))
+            result = self._load_scaled(os.path.join(ideas_dir, stripped + ext))
             if result:
                 return result
         return None
@@ -132,7 +146,7 @@ class FocusRenderer:
         # 1. 通过 gfx_map 直接定位纹理（含游戏与 mod 合并的映射）
         if self.gfx_map and icon_name in self.gfx_map:
             tex_path = self.gfx_map[icon_name]
-            result = DdsLoader.load_as_pixmap(tex_path)
+            result = self._load_scaled(tex_path)
             if result:
                 self._icon_cache[icon_name] = result
                 return result
@@ -153,7 +167,7 @@ class FocusRenderer:
 
         legacy_path = f"gfx/{icon_name}.png"
         if os.path.exists(legacy_path):
-            result = DdsLoader.load_as_pixmap(legacy_path)
+            result = self._load_scaled(legacy_path)
             if result:
                 self._icon_cache[icon_name] = result
                 return result

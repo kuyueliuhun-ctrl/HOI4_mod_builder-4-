@@ -1,0 +1,9 @@
+technology_sharing_group = {
+	id = custom_research
+	name = custom_research_name
+	desc = custom_research_desc
+	picture = GFX_custom_research
+	research_sharing_per_country_bonus = 0.1
+	available = {
+	}
+}

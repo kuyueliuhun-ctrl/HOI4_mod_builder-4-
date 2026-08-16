@@ -1,0 +1,39 @@
+{
+  "_comment": "写入纪律豁免登记。规则：mod 内容文件（.txt/.gfx/.yml/.mod 等）必须走 write_utils.atomic_write_text（原子写 + 无 BOM 契约 + 撤销快照）；仅程序自身配置、程序数据文件与一次性开发脚本允许直写，登记于此并写明理由。新写入请优先走原子写，确需直写时在此登记。",
+  "modules": {
+    "ai_assist.py": {
+      "reason": "程序配置 settings.json 写入（非 mod 内容，低风险）"
+    },
+    "custom_statement_dialog.py": {
+      "reason": "程序数据 custom_statements.json 写入（非 mod 内容）"
+    },
+    "gui_translator.py": {
+      "reason": "程序数据 custom_statements.json 写入（非 mod 内容）"
+    },
+    "main_window.py": {
+      "reason": "程序配置 settings.json 写入（非 mod 内容，多处）"
+    },
+    "setup_wizard.py": {
+      "reason": "程序配置 settings.json 写入（非 mod 内容）"
+    },
+    "template_scheduler.py": {
+      "reason": "程序变量配置 json 写入（非 mod 内容）"
+    },
+    "term_registry.py": {
+      "reason": "程序自定义词条库 json 写入（非 mod 内容）"
+    },
+    "tools/gen_system_templates.py": {
+      "reason": "一次性系统模板生成脚本（开发工具）"
+    },
+    "tools/repro_files_via_api.py": {
+      "reason": "一次性 API 复现脚本（开发工具）"
+    },
+    "tools/repro_via_api.py": {
+      "reason": "一次性 API 复现脚本（开发工具）"
+    },
+    "tools/verify_repro.py": {
+      "reason": "一次性复现验证脚本（开发工具）"
+    }
+  },
+  "lines": {}
+}

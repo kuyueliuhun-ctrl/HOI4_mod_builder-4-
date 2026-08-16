@@ -1,0 +1,5 @@
+on_actions = {
+	on_startup = {
+		# 游戏启动时触发
+	}
+}

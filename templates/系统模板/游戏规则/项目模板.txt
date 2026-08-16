@@ -1,0 +1,8 @@
+custom_rule = {
+	name = "RULE_CUSTOM"
+	group = "RULE_GROUP_GENERAL"
+	option = {
+		name = "DEFAULT_OPTION"
+		text = "RULE_OPTION_DEFAULT"
+	}
+}

@@ -1,4 +1,4 @@
-﻿"""通用 PDX 树编辑器模块
+"""通用 PDX 树编辑器模块
 
 提供 GenericTreeEditor 类，用于可视化编辑 PDX（Paradox Development Language）树结构。
 支持节点的增删改查、拖拽排序、搜索过滤、翻译集成、模板导入等功能。
@@ -370,7 +370,7 @@ class GenericTreeEditor(QDialog):
         # ── 根节点类型显示 ──
         self.root_type_label = QLabel(self._get_root_type_display())
         self.root_type_label.setStyleSheet(
-            "QLabel { background: #3c3c3c; color: #ffcc00; padding: 4px 8px; border-radius: 3px; font-weight: bold; }"
+            "QLabel { background: rgba(31, 79, 126, 0.12); color: #1f4f7e; padding: 4px 8px; border-radius: 6px; font-weight: bold; }"
         )
         self.main_layout.addWidget(self.root_type_label)
 
@@ -392,7 +392,7 @@ class GenericTreeEditor(QDialog):
         # ── 详情标签（默认隐藏，选中国策节点时显示翻译信息） ──
         self.detail_label = QLabel("")
         self.detail_label.setWordWrap(True)
-        self.detail_label.setStyleSheet("QLabel { background: #2d2d30; color: #d0d0d0; padding: 4px; border-radius: 3px; }")
+        self.detail_label.setStyleSheet("QLabel { background: #f4f7fa; color: #5d6b7a; padding: 4px; border-radius: 6px; }")
         self.detail_label.setVisible(False)
         self.main_layout.addWidget(self.detail_label)
 
@@ -954,8 +954,8 @@ class GenericTreeEditor(QDialog):
             import os
             try:
                 os.makedirs(os.path.dirname(existing), exist_ok=True)
-                with open(existing, "w", encoding="utf-8") as f:
-                    f.write(content)
+                from write_utils import atomic_write_text
+                atomic_write_text(existing, content)
             except Exception as e:
                 QMessageBox.critical(self, "错误", f"保存模板失败: {e}")
                 return
@@ -1124,20 +1124,10 @@ class GenericTreeEditor(QDialog):
                 self.file_lines[end:]
             )
 
-            # 写入文件（UTF-8 with BOM）
+            # 写入文件（UTF-8 无 BOM 原子写）；写前自动快照到撤销管理器
             output = "\n".join(new_lines) + "\n"
-            try:
-                with open(self.file_path, "w", encoding="utf-8", newline="") as f:
-                    f.write(output)
-            except PermissionError:
-                # 尝试清除只读属性后重写
-                import os
-                try:
-                    os.chmod(self.file_path, 0o666)
-                    with open(self.file_path, "w", encoding="utf-8", newline="") as f:
-                        f.write(output)
-                except Exception:
-                    raise
+            from write_utils import atomic_write_text
+            atomic_write_text(self.file_path, output)
             # 保存成功后刷新固定字段ID（翻译/描述条目跟随新ID）
             self._collect_fixed_fields()
             self.model.set_editor_refs(self.translation_editor, self._fixed_field_ids)

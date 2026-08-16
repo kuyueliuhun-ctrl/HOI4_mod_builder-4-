@@ -40,6 +40,10 @@ class MapData:
 
     # ---------- 文件定位 ----------
 
+    def map_file(self, name):
+        """按 mod -> 游戏 顺序查找地图文件（公开版）。"""
+        return self._map_file(name)
+
     def _map_file(self, name):
         """按 mod -> 游戏 顺序查找地图文件。"""
         for base in (self.mod_path, self.hoi4_path):
@@ -173,6 +177,63 @@ class MapData:
             self._base_pixmap = QPixmap.fromImage(img)
         return self._base_pixmap
 
+    # ---------- 地形演示 ----------
+
+    _terrain_pixmap = None
+    _hillshade_pixmap = None
+
+    def terrain_pixmap(self):
+        """地形类型图 QPixmap：map/terrain.bmp 原图（平原绿/丘陵黄/山地棕…）。"""
+        if self._terrain_pixmap is None:
+            path = self._map_file("terrain.bmp")
+            if path:
+                img = QImage(path)
+                if not img.isNull():
+                    self._terrain_pixmap = QPixmap.fromImage(img)
+        return self._terrain_pixmap
+
+    def hillshade_pixmap(self, alpha=110, light=None):
+        """伪 3D 地形立体感图层：heights.bmp 高度图 → hillshade 明暗叠加层。
+
+        取巧方案（零生成成本）：游戏自带 16-bit 高度图，numpy 梯度 + 光照点积
+        一次合成半透明 overlay（与 country_overlay 同一模式，缓存复用）。
+        """
+        if self._hillshade_pixmap is None:
+            height = self._load_heights()
+            if height is None:
+                return None
+            if light is None:
+                light = (0.5, 0.5, 0.85)  # 西北光照
+            shade = hillshade_array(height, light)
+            h, w = shade.shape
+            rgba = np.zeros((h, w, 4), dtype=np.uint8)
+            rgba[..., 0] = 30
+            rgba[..., 1] = 35
+            rgba[..., 2] = 45
+            rgba[..., 3] = (shade.astype(np.uint16) * alpha // 255).astype(np.uint8)
+            img = QImage(rgba.data, w, h, w * 4,
+                         QImage.Format.Format_RGBA8888).copy()
+            self._hillshade_pixmap = QPixmap.fromImage(img)
+        return self._hillshade_pixmap
+
+    def _load_heights(self):
+        """读取高度图（16-bit 灰度，QImage 不支持，用 PIL）。
+
+        原版文件名为 map/heightmap.bmp；部分 mod 沿用旧名 heights.bmp。
+        """
+        path = self._map_file("heightmap.bmp") or self._map_file("heights.bmp")
+        if not path:
+            return None
+        try:
+            from PIL import Image
+            with Image.open(path) as img:
+                arr = np.asarray(img)
+            if arr.ndim == 3:
+                arr = arr[..., 0]
+            return arr.astype(np.float32)
+        except Exception:
+            return None
+
     def edge_overlay_pixmap(self):
         """地块边界线图层 QPixmap（深色半透明，叠加在底图上）。
 
@@ -215,7 +276,12 @@ class MapData:
 
     # ---------- 国家着色 ----------
 
-    def country_overlay_pixmap(self, owner_by_pid, focus_tag=None):
+    def invalidate_country_overlays(self):
+        """清除国家着色层缓存（归属编辑后调用，强制重绘）。"""
+        self._country_overlays.clear()
+
+    def country_overlay_pixmap(self, owner_by_pid, focus_tag=None,
+                               tag_colors=None):
         """国家着色图层：同一国家统一色块 + 地块边界线 + 国界线 + 焦点金边。
 
         图层顺序（一次 numpy 合成）：
@@ -228,6 +294,8 @@ class MapData:
         Args:
             owner_by_pid (dict): 地块ID -> 国家标签
             focus_tag (str): 焦点国家标签（金边高亮），可为空
+            tag_colors (dict): 国家标签 -> (r, g, b) 文件颜色（building_lib
+                load_country_colors）；缺省/未知用色环均匀分配
         Returns:
             QPixmap: 图层，叠加在底图之上（海面无色）
         """
@@ -240,7 +308,7 @@ class MapData:
         idm = self.id_map
         h, w = idm.shape
 
-        # 标签 -> 索引，颜色按索引在色环上均匀分布
+        # 标签 -> 索引，颜色按标签文件色或色环均匀分布
         tags = sorted({t for t in owner_by_pid.values() if t})
         tag_idx = {t: i + 1 for i, t in enumerate(tags)}  # 0 = 无主（海面）
 
@@ -261,9 +329,17 @@ class MapData:
         max_idx = len(tags)
         color_table = np.zeros((max_idx + 1, 3), dtype=np.uint8)
         for idx in range(1, max_idx + 1):
-            hue, sat, light = _color(idx)
-            c = QColor.fromHsl(hue, sat, light)
-            color_table[idx] = (c.red(), c.green(), c.blue())
+            tag = tags[idx - 1]
+            file_c = None
+            if tag_colors:
+                file_c = tag_colors.get(tag) or tag_colors.get(tag.upper())
+            if file_c is not None:
+                color_table[idx] = (int(file_c[0]), int(file_c[1]),
+                                    int(file_c[2]))
+            else:
+                hue, sat, light = _color(idx)
+                cc = QColor.fromHsl(hue, sat, light)
+                color_table[idx] = (cc.red(), cc.green(), cc.blue())
 
         rgba = np.zeros((h, w, 4), dtype=np.uint8)
 
@@ -347,3 +423,24 @@ class MapData:
                 out[inv[idx]] = (int(sx[idx] / cnt[idx]),
                                  int(sy[idx] / cnt[idx]))
         return out
+
+
+def hillshade_array(height, light=(0.5, 0.5, 0.85)):
+    """高度图 -> hillshade 明暗数组（0-255，纯 numpy，可测试）。
+
+    Args:
+        height: (H, W) float 高度矩阵
+        light: 光照方向 (lx, ly, lz)，默认西北光
+
+    Returns:
+        (H, W) uint8：0=最暗（背光坡），255=最亮（迎光坡）
+    """
+    if height is None or height.size == 0:
+        return None
+    gy, gx = np.gradient(height)
+    lx, ly, lz = light
+    mag = np.sqrt(gx * gx + gy * gy + 1.0)
+    # 表面法线近似 (-gx, -gy, 1) 与光照方向点积 → 明暗
+    shade = (-gx * lx - gy * ly + lz) / mag
+    shade = np.clip((shade + 1.0) * 0.5 * 255.0, 0, 255)
+    return shade.astype(np.uint8)

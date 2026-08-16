@@ -1,0 +1,3 @@
+divisions = {
+	"1st Division"
+}

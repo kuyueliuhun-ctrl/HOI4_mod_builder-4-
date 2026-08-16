@@ -1,0 +1,11 @@
+buildings = {
+	arms_factory = {
+		# show_on_map = 1
+		# province_max = 1
+		# cost = 1
+		# time = 1
+		# icon = "GFX_building_arms_factory"
+		# country_modifiers = { }
+		# state_modifiers = { }
+	}
+}

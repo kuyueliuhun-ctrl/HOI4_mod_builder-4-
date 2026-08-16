@@ -1,0 +1,5 @@
+stability = {
+	icon = "GFX_stability"
+	default = 50
+	# 修正项：stability = { 图标与默认值 }
+}

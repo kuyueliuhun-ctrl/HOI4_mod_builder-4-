@@ -1,0 +1,5 @@
+custom_medal = {
+	name = "CAREER_PROFILE_CUSTOM_MEDAL"
+	description = "CAREER_PROFILE_CUSTOM_MEDAL_DESCRIPTION"
+	frames = { 1 1 2 }
+}

@@ -1,0 +1,11 @@
+continuous_focus_palette = {
+	id = __FOCUS_PALETTE_ID__
+	country = {
+		factor = 1
+	}
+	position = { x = 50 y = 50 }
+	focus = {
+		id = __FOCUS_ID__
+		cost = 1
+	}
+}

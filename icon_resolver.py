@@ -13,6 +13,7 @@
 """
 
 import os
+import re
 
 from dds_loader import DdsLoader
 
@@ -22,8 +23,73 @@ _PIXMAP_CACHE = {}
 # 目录小写索引：目录路径 -> {小写文件名: 完整路径}，按需惰性建立
 _DIR_INDEX = {}
 
+# 全局纹理索引：{小写文件名: 绝对路径}，跨 mod/游戏全部 gfx 目录建立，
+# 用于「更广泛的搜索」——任何图标名都能按文件名兜底命中，不受类型目录白名单限制。
+_GLOBAL_INDEX = None
+_GLOBAL_INDEX_KEYS = None
+
 # 占位图（缓存）
 _PLACEHOLDER = None
+
+
+def _strip_frame_ref(value):
+    """去掉 GFX 精灵的帧引用后缀（如 "GFX_icon:5" -> "GFX_icon"）。
+
+    科技/占领法/建筑等图标字段常写 "GFX_xxx:帧号"（sprite strip 帧引用）。
+    """
+    if not value:
+        return value
+    return re.sub(r':\d+\s*$', '', value)
+
+
+def _build_global_index(mod_path="", hoi4_path=""):
+    """建立全局纹理文件名索引（mod gfx + 游戏 gfx 目录树）。
+
+    索引键为小写文件名（含扩展名），值为绝对路径；同名文件 mod 优先。
+    首次调用后缓存，clear_cache() 时重建。
+    """
+    global _GLOBAL_INDEX, _GLOBAL_INDEX_KEYS
+    if _GLOBAL_INDEX is not None:
+        return _GLOBAL_INDEX
+    idx = {}
+    roots = []
+    for base in (mod_path, hoi4_path):
+        if not base:
+            continue
+        gfx_dir = os.path.join(base, "gfx")
+        if os.path.isdir(gfx_dir):
+            roots.append(gfx_dir)
+        # 部分 mod 把素材放在根目录其他位置（interface/ 下的 .gfx 定义本身不索引纹理）
+    for root in roots:
+        try:
+            for dirpath, _dirs, files in os.walk(root):
+                for name in files:
+                    key = name.lower()
+                    if key not in idx:
+                        idx[key] = os.path.join(dirpath, name)
+        except Exception:
+            continue
+    _GLOBAL_INDEX = idx
+    _GLOBAL_INDEX_KEYS = set(idx)
+    return idx
+
+
+def _search_global(value):
+    """在全局纹理索引中按文件名搜索，返回绝对路径或 None。
+
+    支持去 GFX_ 前缀、去帧引用、去路径只留文件名、扩展名容错。
+    """
+    idx = _build_global_index()
+    if not idx:
+        return None
+    for cand in _candidate_names(_strip_frame_ref(value)):
+        base = cand.replace("\\", "/").split("/")[-1].lower()
+        root, _ext = os.path.splitext(base)
+        for ext in (".dds", ".png", ".jpg", ".jpeg", ".tga"):
+            key = root + ext
+            if key in idx:
+                return idx[key]
+    return None
 
 
 def _normalize(value):
@@ -53,7 +119,8 @@ def _get_dir_index(directory):
 
 
 def _candidate_names(value):
-    """根据图标值生成候选文件名（原始 / 去 GFX_ 前缀等）。"""
+    """根据图标值生成候选文件名（原始 / 去 GFX_ 前缀 / 去帧引用等）。"""
+    value = _strip_frame_ref(value)
     names = [value]
     if value.startswith("GFX_goal_"):
         names.append(value[9:])
@@ -153,6 +220,7 @@ def resolve_pixmap(icon_value, dirs=None, gfx_map=None,
     value = _normalize(icon_value)
     if not value:
         return _get_placeholder()
+    value = _strip_frame_ref(value)
 
     # 解析真实纹理路径
     tex_path = ""
@@ -183,6 +251,11 @@ def resolve_pixmap(icon_value, dirs=None, gfx_map=None,
             if tex_path:
                 break
 
+    if not tex_path:
+        # 更广泛的搜索：全局 gfx 纹理索引兜底（mod 优先），
+        # 覆盖科技/占领法/建筑等未列入类型白名单目录的图标
+        tex_path = _search_global(value) or ""
+
     if not tex_path or not os.path.isfile(tex_path):
         return _get_placeholder()
 
@@ -201,3 +274,6 @@ def clear_cache():
     """清空图标与目录索引缓存（mod/游戏路径变化时调用）。"""
     _PIXMAP_CACHE.clear()
     _DIR_INDEX.clear()
+    global _GLOBAL_INDEX, _GLOBAL_INDEX_KEYS
+    _GLOBAL_INDEX = None
+    _GLOBAL_INDEX_KEYS = None

@@ -1,0 +1,20 @@
+custom_power_balance = {
+	initial_value = 0.0
+	left_side = custom_left_side
+	right_side = custom_right_side
+	decision_category = custom_bop_category
+	range = {
+		id = custom_unstable
+		min = -0.1
+		max = 0.1
+	}
+	side = {
+		id = custom_left_side
+		icon = GFX_bop_left_side
+		range = {
+			id = custom_left_range
+			min = -1
+			max = -0.1
+		}
+	}
+}

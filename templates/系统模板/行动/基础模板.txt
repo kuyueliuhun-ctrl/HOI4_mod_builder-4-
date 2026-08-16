@@ -1,0 +1,19 @@
+operation_custom = {
+	icon = GFX_operations_custom
+	name = operation_custom
+	desc = operation_custom_desc
+	priority = 0
+	days = 35
+	network_strength = 30
+	operatives = 1
+	visible = {
+	}
+	available = {
+	}
+	requirements = {
+	}
+	equipment = {
+	}
+	risk_chance = 0.1
+	experience = 2
+}

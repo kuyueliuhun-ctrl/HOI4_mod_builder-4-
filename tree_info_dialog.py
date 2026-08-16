@@ -304,8 +304,8 @@ class TreeInfoDialog(QDialog):
             lines.append("}")
 
             output = '\n'.join(lines) + '\n'
-            with open(self.file_path, 'w', encoding='utf-8', newline="") as f:
-                f.write(output)
+            from write_utils import atomic_write_text
+            atomic_write_text(self.file_path, output)
 
             self.info_saved.emit()
             self.close()
@@ -455,8 +455,8 @@ class TreeHeaderEditor(GenericTreeEditor):
             # 拼接完整文件
             output_lines = ["focus_tree = {"] + inner_lines + child_lines + ["}"]
             output = "\n".join(output_lines) + "\n"
-            with open(self.file_path, "w", encoding="utf-8", newline="") as f:
-                f.write(output)
+            from write_utils import atomic_write_text
+            atomic_write_text(self.file_path, output)
             # 发送保存成功信号
             self.tree_saved.emit()
             self.close()

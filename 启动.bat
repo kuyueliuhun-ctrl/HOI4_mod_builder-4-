@@ -1,4 +1,4 @@
 @echo off
-set "VIRTUAL_ENV=%cd%\.venv"
-call ".venv\Scripts\activate.bat"
-python main.py
+chcp 65001 >nul
+cd /d "%~dp0"
+".venv\Scripts\python.exe" main.py

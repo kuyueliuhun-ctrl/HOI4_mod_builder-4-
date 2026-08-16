@@ -37,6 +37,7 @@ CATEGORIES = [
     ("关系修正", "opinion_modifier"),
     ("效果器", "effect"),
     ("触发器", "trigger"),
+    ("动态修正", "动态修正"),
     ("自定义", "custom"),
 ]
 

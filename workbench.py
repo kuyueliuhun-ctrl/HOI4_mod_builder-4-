@@ -22,37 +22,121 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 
 
-# 内容类型定义：key -> (显示名, 图标, 相对 mod 目录的文件夹列表, 基础模板类型或 None, 扩展名)
-# 仿网站工作台内容类型；基础模板类型为 None 表示暂无对应模板（标注：暂未制作相关功能）
+# 有专门制作/编辑功能的类型（放在类型列表上方；其余为通用树形编辑）
+SPECIAL_TYPE_KEYS = ("focus", "tech", "initial_oob")
+
+
+# 内容类型定义：key -> (显示名, 图标, 相对 mod 目录的文件夹列表, 基础模板类型或 None, 扩展名或扩展名列表)
+# 覆盖范围：对照游戏 common/ 全部子目录、events/history/interface/localisation/map/gfx 顶层目录
+# 与 E:\mods 中 5 个成熟 mod 实际使用的目录整理（详见 覆盖检查报告.md）。
+# 基础模板类型为 None 表示暂无「新建文件」模板（标注：无新建模板；仍可树形编辑）。
 CONTENT_TYPES = [
+    # ── 政治 / 意识形态 ──
     ("character", "角色", "👤", ["common/characters"], "character", ".txt"),
     ("idea", "民族精神", "💡", ["common/ideas"], "ideas_file", ".txt"),
+    ("idea_tag", "理念标签", "🏷️", ["common/idea_tags"], None, ".txt"),
+    ("ideologies", "意识形态", "☭", ["common/ideologies"], "意识形态", ".txt"),
+    ("country_leader", "国家领袖", "👑", ["common/country_leader"], None, ".txt"),
+    ("country_tag_aliases", "国家别名", "🔀", ["common/country_tag_aliases"], None, ".txt"),
+    # ── 国策 ──
     ("focus", "国策", "🌳", ["common/national_focus"], "focus_tree", ".txt"),
+    ("continuous_focus", "持续国策", "♾️", ["common/continuous_focus"], "持续国策", ".txt"),
+    ("focus_inlay_windows", "国策内嵌窗口", "🪟", ["common/focus_inlay_windows"], None, ".txt"),
+    # ── 事件 / 决议 / 科技 ──
     ("event", "事件", "📜", ["events"], "event", ".txt"),
+    ("super_event", "超事件", "📢", ["events"], "event", ".txt"),
     ("decision", "决议", "📋", ["common/decisions"], "decision", ".txt"),
     ("tech", "科技", "🔬", ["common/technologies"], "tech", ".txt"),
+    ("technology_sharing", "科技共享", "🔗", ["common/technology_sharing"], "科技共享", ".txt"),
+    ("technology_tags", "科技标签", "🏷️", ["common/technology_tags"], "科技标签", ".txt"),
+    ("equipment_groups", "装备组", "🗂️", ["common/equipment_groups"], None, ".txt"),
+    # ── 地块 / 地图 ──
     ("state", "地块", "🗺️", ["history/states"], "地块", ".txt"),
-    ("super_event", "超事件", "📢", ["events"], "event", ".txt"),
+    ("state_category", "地块类别", "🏙️", ["common/state_category"], "地块类别", ".txt"),
+    ("strategic_region", "战略区域", "🗺️", ["map/strategicregions"], None, ".txt"),
+    ("supply_area", "补给区域", "🚚", ["map/supplyareas"], None, ".txt"),
+    ("map_terrain", "地图地形", "⛰️", ["map/terrain", "common/terrain"], None, ".txt"),
+    # ── 剧本 / 历史 ──
     ("bookmark", "剧本", "🎬", ["common/bookmarks"], "bookmark", ".txt"),
     ("country_history", "国家设置", "🏛️", ["history/countries"], "country_history", ".txt"),
     ("advisor_assign", "顾问分配", "👔", ["history/general"], "顾问分配", ".txt"),
+    # ── 脚本 / 触发 ──
     ("scripted", "脚本化效果", "🧩", ["common/scripted_effects", "common/scripted_triggers"], "scripted", ".txt"),
-    ("gui", "界面机制", "🖥️", ["interface"], "gui", ".gui"),
+    ("scripted_localisation", "脚本化本地化", "🌐", ["common/scripted_localisation"], "脚本化本地化", ".txt"),
+    ("scripted_guis", "脚本化界面", "🖼️", ["common/scripted_guis"], "脚本化界面", ".txt"),
+    ("scripted_diplomatic_actions", "脚本化外交行动", "🕊️", ["common/scripted_diplomatic_actions"], None, ".txt"),
+    ("script_constants", "脚本常量", "🔧", ["common/script_constants"], None, ".txt"),
+    ("synchronized_dynamic_tokens", "同步动态令牌", "🔄", ["common/synchronized_dynamic_tokens"], None, ".txt"),
+    ("on_actions", "触发动作", "⚙️", ["common/on_actions"], "触发动作", ".txt"),
+    ("mtth", "MTTH调整", "⏱️", ["common/mtth"], None, ".txt"),
+    ("generation", "生成器", "🧬", ["common/generation"], None, ".txt"),
+    # ── 军事 / 部队 ──
     ("mio", "MIO", "🏭", ["common/military_industrial_organization"], "MIO", ".txt"),
     ("equipment", "装备", "🎯", ["common/units/equipment"], "equipment", ".txt"),
     ("unit", "兵种", "🛡️", ["common/units"], "unit", ".txt"),
+    ("unit_tags", "部队标签", "🏷️", ["common/unit_tags"], "部队标签", ".txt"),
+    ("unit_leader", "部队领袖", "🎖️", ["common/unit_leader"], None, ".txt"),
+    ("unit_medals", "部队勋章", "🎗️", ["common/unit_medals"], "部队勋章", ".txt"),
     ("initial_oob", "初始部队", "🚁", ["history/units"], "初始部队", ".txt"),
-    ("special_project", "特殊计划", "🧪", ["common/special_projects"], "特殊计划", ".txt"),
     ("doctrine", "军事学说", "📚", ["common/doctrines"], "军事学说", ".txt"),
+    ("special_project", "特殊计划", "🧪", ["common/special_projects"], "特殊计划", ".txt"),
+    ("abilities", "特种作战能力", "💥", ["common/abilities"], "特种作战能力", ".txt"),
+    ("aces", "王牌", "✈️", ["common/aces"], "王牌", ".txt"),
+    ("operations", "行动", "🕵️", ["common/operations"], "行动", ".txt"),
+    ("operation_phases", "行动阶段", "📈", ["common/operation_phases"], None, ".txt"),
+    ("operation_tokens", "行动令牌", "🔑", ["common/operation_tokens"], None, ".txt"),
+    ("raids", "突袭", "🎯", ["common/raids"], "突袭", ".txt"),
+    ("medals", "勋章", "🎖️", ["common/medals"], "勋章", ".txt"),
+    ("ribbons", "勋表", "🎗️", ["common/ribbons"], None, ".txt"),
+    ("strategic_locations", "战略要地", "📍", ["common/strategic_locations"], None, ".txt"),
+    # ── 内政 / 经济 ──
+    ("buildings", "建筑", "🏢", ["common/buildings"], "建筑", ".txt"),
+    ("resources", "资源", "⛏️", ["common/resources"], "资源", ".txt"),
+    ("occupation_laws", "占领法", "⚖️", ["common/occupation_laws"], "占领法", ".txt"),
+    ("resistance_compliance_modifiers", "抵抗顺从修正", "🚨", ["common/resistance_compliance_modifiers"], "抵抗顺从修正", ".txt"),
+    ("resistance_activity", "抵抗活动", "🔥", ["common/resistance_activity"], None, ".txt"),
+    ("difficulty_settings", "难度设置", "🎚️", ["common/difficulty_settings"], "难度设置", ".txt"),
+    ("game_rules", "游戏规则", "📜", ["common/game_rules"], "游戏规则", ".txt"),
+    ("timed_activities", "限时活动", "⏰", ["common/timed_activities"], "限时活动", ".txt"),
+    # ── 外交 / 政治机制 ──
+    ("factions", "派系", "🤝", ["common/factions"], None, ".txt"),
+    ("opinion_modifiers", "关系修正", "💬", ["common/opinion_modifiers"], "opinion_modifier", ".txt"),
+    ("peace_conference", "和平会议", "🕊️", ["common/peace_conference"], "和平会议", ".txt"),
+    ("bop", "力量平衡", "⚖️", ["common/bop"], "力量平衡", ".txt"),
+    # ── 情报 ──
     ("intelligence", "情报机构", "🕵️", ["common/intelligence_agencies"], "情报机构", ".txt"),
+    ("intelligence_agency_upgrades", "情报机构升级", "📈", ["common/intelligence_agency_upgrades"], "情报机构升级", ".txt"),
+    # ── 自治 / 修正 ──
     ("autonomy", "自治状态", "🤝", ["common/autonomous_states"], "自治状态", ".txt"),
-    ("country_setup", "国家定义", "🏷️", ["common/country_tags", "common/countries"], "国家定义", ".txt"),
     ("dynamic_modifier", "动态修正", "⚡", ["common/dynamic_modifiers"], "动态修正", ".txt"),
     ("modifier_definition", "修正量定义", "📐", ["common/modifier_definitions"], "修正量定义", ".txt"),
+    ("modifier_type", "修正类型", "🧮", ["common/modifiers"], "修正类型", ".txt"),
+    # ── AI ──
     ("ai_strategy", "AI战略计划", "🤖", ["common/ai_strategy_plans", "common/ai_strategy"], "ai_strategy", ".txt"),
     ("ai_division", "AI师模板", "🤖", ["common/ai_templates"], "ai_strategy", ".txt"),
+    ("ai_areas", "AI区域", "🗺️", ["common/ai_areas"], None, ".txt"),
+    ("ai_equipment", "AI装备", "🎯", ["common/ai_equipment"], None, ".txt"),
+    ("ai_faction_theaters", "AI战区", "🎭", ["common/ai_faction_theaters"], None, ".txt"),
+    ("ai_focuses", "AI国策", "🌳", ["common/ai_focuses"], None, ".txt"),
+    ("ai_navy", "AI海军", "⚓", ["common/ai_navy"], None, ".txt"),
+    # ── 国家定义 / 其他 ──
+    ("country_setup", "国家定义", "🏷️", ["common/country_tags", "common/countries"], "国家定义", ".txt"),
     ("wargoal", "战争目标", "⚔️", ["common/wargoals"], "战争目标", ".txt"),
+    ("names", "命名列表", "📛", ["common/names"], "命名列表", ".txt"),
+    ("map_modes", "地图模式", "🗺️", ["common/map_modes"], "地图模式", ".txt"),
+    ("scientist_traits", "科学家特质", "🔬", ["common/scientist_traits"], "科学家特质", ".txt"),
+    ("scorers", "计分器", "📊", ["common/scorers"], None, ".txt"),
+    ("collections", "藏品", "📦", ["common/collections"], None, ".txt"),
+    ("frontend", "主界面前端", "🎨", ["common/frontend"], None, ".txt"),
+    ("profile_backgrounds", "档案背景", "🖼️", ["common/profile_backgrounds"], None, ".txt"),
+    ("profile_pictures", "档案图片", "📸", ["common/profile_pictures"], None, ".txt"),
+    ("defines", "游戏定义", "⚙️", ["common/defines"], None, ".lua"),
+    # ── 界面 / 图形 / 本地化 / 描述 ──
+    ("gui", "界面机制", "🖥️", ["interface"], "gui", ".gui"),
     ("gui_edit", "GUI编辑", "🖼️", ["interface"], "gui", ".gui"),
+    ("gfx_definition", "图形定义", "🎨", ["gfx"], None, ".gfx"),
+    ("localisation", "本地化文件", "🌐", ["localisation"], None, [".yml", ".yaml"]),
+    ("mod_descriptor", "Mod描述", "📄", ["."], None, ".mod"),
     ("generic", "通用文件", "📁", ["."], None, ".txt"),
 ]
 
@@ -64,6 +148,10 @@ TYPE_ROOT_LABELS = {
     "idea": "ideas",
     "generic": "",
 }
+
+# 顶层块即实体的类型（不做「单包装块取直接子块」下沉）：
+# 这些类型的文件顶层就是一个个实体定义（如力量平衡、限时活动、修正类型）。
+TOP_LEVEL_ENTITY_TYPES = {"bop", "timed_activities", "modifiers", "generation"}
 
 # 图标型内容类型的图标配置：
 #   locate      实体块定位规则（keys/wrap 语义，同实体提取）
@@ -144,15 +232,16 @@ ICON_RULES = {
     },
     "tech": {
         "locate": ("wrap", [("technologies", 1), ("technology", 1)]),
-        "field": "picture",
+        "field": "",
         "picker_prefix": "",
         "dirs": ["gfx/interface/technologies"],
         "upload": {
             "subdir": "gfx/interface/technologies",
             "gfx_file": "technologies_mod.gfx",
-            "gfx_name_pattern": "GFX_tech_{name}",
+            "gfx_name_pattern": "GFX_{name}_medium",
             "shine": False,
-            "ref_mode": "direct",
+            "ref_mode": "sprite",
+            "tech_special": True,
         },
     },
     "character": {
@@ -224,6 +313,12 @@ class WorkbenchDock(QDockWidget):
     entity_gallery_requested = pyqtSignal(str, str)
     entity_gallery_nofile_requested = pyqtSignal(str, list)
     nofile_mode_changed = pyqtSignal(bool)
+    country_changed = pyqtSignal(str)
+    # 无文件模式国策树绘制请求（国家tag或""，国策文件列表）
+    focus_tree_nofile_requested = pyqtSignal(str, list)
+    # 科技树画布绘制请求（与国策树同一画布）
+    tech_file_selected = pyqtSignal(str)
+    tech_tree_nofile_requested = pyqtSignal(list)
 
     def __init__(self, mod_path="", parent=None):
         super().__init__("工作台", parent)
@@ -231,6 +326,8 @@ class WorkbenchDock(QDockWidget):
         self._current_type = "focus"
         self._nofile = False
         self._nofile_entities = []
+        # 无文件模式「当前国家」筛选；None 表示全部国家
+        self._current_country = None
 
         self._build_ui()
         self.setObjectName("workbenchDock")
@@ -247,17 +344,15 @@ class WorkbenchDock(QDockWidget):
         self._nofile = nofile
         if self._nofile:
             self.title_label.setText("工作台 · 无文件模式")
-            self.search_edit.setPlaceholderText("搜索实体…")
+            self.search_edit.setPlaceholderText("搜索实体（id / 中文名 / 国家tag）…")
         else:
             self.title_label.setText("工作台")
             self.search_edit.setPlaceholderText("搜索文件…")
-        self.search_bar.setVisible(not nofile)
+        self.search_bar.setVisible(True)
         self.file_list.setVisible(not nofile)
+        self.country_bar.setVisible(nofile)
         self.nofile_mode_changed.emit(nofile)
         self._refresh()
-        if nofile and self._nofile_entities:
-            self.entity_gallery_nofile_requested.emit(
-                self._current_type, list(self._nofile_entities))
 
     def is_nofile(self):
         """返回当前是否处于无文件模式。"""
@@ -280,6 +375,26 @@ class WorkbenchDock(QDockWidget):
         title_row.addWidget(self.refresh_btn)
         layout.addLayout(title_row)
 
+        # ── 无文件模式国家栏（仅在无文件模式显示，置于内容区下方） ──
+        self.country_bar = QWidget()
+        country_row = QHBoxLayout(self.country_bar)
+        country_row.setContentsMargins(0, 4, 0, 0)
+        self.country_label = QLabel("当前国家：全部")
+        self.country_label.setStyleSheet("font-weight: bold;")
+        country_row.addWidget(self.country_label)
+        self.nofile_stats_label = QLabel("")
+        self.nofile_stats_label.setStyleSheet("color: #5d6b7a;")
+        country_row.addWidget(self.nofile_stats_label)
+        country_row.addStretch()
+        self.select_country_btn = QPushButton("🔍 选择国家…")
+        self.select_country_btn.setToolTip("仅切换当前浏览国家（不修改任何文件）")
+        self.select_country_btn.clicked.connect(self._on_select_country)
+        country_row.addWidget(self.select_country_btn)
+        self.country_setup_btn = QPushButton("🌐 国家设置（复制/创建）…")
+        self.country_setup_btn.setToolTip("显式写操作：复制原版或创建空覆盖文件到 mod")
+        self.country_setup_btn.clicked.connect(self._on_country_setup)
+        country_row.addWidget(self.country_setup_btn)
+
         # ── 内容区：类型列表（左） + 文件块（右） ──
         content_row = QHBoxLayout()
 
@@ -295,13 +410,30 @@ class WorkbenchDock(QDockWidget):
         self.type_list.setFont(type_font)
         self.type_list.setStyleSheet(
             "QListWidget::item { padding: 6px 4px; }")
-        for key, name, icon, _folders, tpl_type, _ext in CONTENT_TYPES:
+        # 专门功能类型（国策/科技/初始部队）置顶；其余通用类型放分界线下方
+        def _type_text(key, name, icon, tpl_type):
             text = f"{icon} {name}"
             if tpl_type is None and key != "generic":
-                text += "（暂未制作相关功能）"
-            item = QListWidgetItem(text)
+                text += "（无新建模板）"
+            return text
+
+        def _add_type_item(entry):
+            key, name, icon, _folders, tpl_type, _ext = entry
+            item = QListWidgetItem(_type_text(key, name, icon, tpl_type))
             item.setData(Qt.ItemDataRole.UserRole, key)
             self.type_list.addItem(item)
+
+        special = [e for e in CONTENT_TYPES if e[0] in SPECIAL_TYPE_KEYS]
+        others = [e for e in CONTENT_TYPES if e[0] not in SPECIAL_TYPE_KEYS]
+        for entry in special:
+            _add_type_item(entry)
+        # 分界线（不可选）
+        sep = QListWidgetItem("────────── 通用类型（树形编辑）──────────")
+        sep.setFlags(Qt.ItemFlag.NoItemFlags)
+        sep.setForeground(Qt.GlobalColor.gray)
+        self.type_list.addItem(sep)
+        for entry in others:
+            _add_type_item(entry)
         self.type_list.itemClicked.connect(self._on_type_clicked)
         self.type_list.setCurrentRow(0)
         type_box.addWidget(self.type_list)
@@ -333,6 +465,11 @@ class WorkbenchDock(QDockWidget):
         content_row.addLayout(right_box)
 
         layout.addLayout(content_row)
+
+        # 国家栏置于内容区下方（无文件模式显示）
+        layout.addWidget(self.country_bar)
+        self.country_bar.setVisible(False)
+
         self.setWidget(container)
 
         self._refresh()
@@ -343,11 +480,72 @@ class WorkbenchDock(QDockWidget):
     _TAG_RE = re.compile(r'(?=[A-Z0-9]*[A-Z])[A-Z0-9]{2,4}')
 
     def _refresh(self):
-        """按当前模式刷新右侧列表（文件模式 / 无文件模式）。"""
+        """按当前模式刷新右侧列表（文件模式 / 无文件模式）。
+
+        无文件模式下收集实体后自动向右侧画廊推送（含关键词/国家筛选）；
+        国策类型不推送画廊，而是发出国策树绘制请求（展示当前设计国家）。
+        """
         if self._nofile:
+            if self._current_type == "focus":
+                self._emit_focus_tree_nofile()
+                return
+            if self._current_type == "tech":
+                self._emit_tech_tree_nofile()
+                return
             self._refresh_entities()
+            self._update_nofile_stats()
+            # 始终推送（0 实体也推送，画廊显示「无实体」，避免残留上一类型内容）
+            self.entity_gallery_nofile_requested.emit(
+                self._current_type, list(self._filtered_entities()))
         else:
             self._refresh_files()
+
+    def _emit_focus_tree_nofile(self):
+        """无文件模式：请求绘制国策树。
+
+        未设置「当前国家」时先弹窗选择国家（只绘制一个国家，不画全部国家树）；
+        选定后绘制该国全部国策文件的合并树。
+        """
+        files = self._collect_files()
+        if not files:
+            self._update_nofile_stats()
+            return
+        tag = self._current_country
+        if not tag:
+            tag = self._ask_focus_country(files)
+            if not tag:
+                # 用户取消：清空右侧场景（不绘制任何国家树）
+                self.focus_tree_nofile_requested.emit("", [])
+                return
+            self.set_current_country(tag)
+            return  # set_current_country 触发 _refresh，重新进入本方法并绘制
+        kept = [fp for fp in files
+                if tag in self._detect_country_tags(fp, self._read_file(fp))]
+        self.focus_tree_nofile_requested.emit(tag, list(kept))
+
+    def _emit_tech_tree_nofile(self):
+        """无文件模式：请求绘制科技树（与国策树同一画布，跨文件合并全部科技）。"""
+        files = self._collect_files()
+        if not files:
+            self._update_nofile_stats()
+            return
+        self.tech_tree_nofile_requested.emit(list(files))
+
+    def _ask_focus_country(self, files):
+        """弹窗选择要设计国策树的国家（从国策文件检测 tag）。"""
+        from PyQt6.QtWidgets import QInputDialog
+        tags = set()
+        for fp in files:
+            for t in self._detect_country_tags(fp, self._read_file(fp)):
+                tags.add(t)
+        if not tags:
+            return None
+        items = sorted(tags)
+        item, ok = QInputDialog.getItem(
+            self, "选择国家", "请选择要设计国策树的国家：", items, 0, False)
+        if ok and item:
+            return item
+        return None
 
     def _collect_entities(self):
         """无文件模式：全局扫描当前类型的所有实体（不按下级目录/文件区分）。
@@ -363,7 +561,7 @@ class WorkbenchDock(QDockWidget):
             return []
 
         key = self._current_type
-        folders, ext = self._type_folders_ext(key)
+        folders, exts = self._type_folders_ext(key)
         entities = []
         seen = set()
         for rel in folders:
@@ -372,7 +570,7 @@ class WorkbenchDock(QDockWidget):
                 continue
             for root, _dirs, names in os.walk(base):
                 for name in sorted(names):
-                    if not name.lower().endswith(ext):
+                    if not self._ext_matches(name, exts):
                         continue
                     fp = os.path.join(root, name)
                     if not os.path.isfile(fp):
@@ -384,8 +582,46 @@ class WorkbenchDock(QDockWidget):
                     content = self._read_file(fp)
                     if not content:
                         continue
-                    entities.extend(self._collect_file_entities(key, content, fp))
-        return entities
+                    entities.extend(self._entities_for_file(key, content, fp))
+        return self._filter_entities(entities)
+
+    def _current_country_tags(self):
+        """返回当前国家筛选对应的 tag 集合；None 表示全部。"""
+        return {self._current_country} if self._current_country else None
+
+    def _filter_entities(self, entities):
+        """按「当前国家」过滤实体列表（tags 首项匹配）。"""
+        if not self._current_country:
+            return entities
+        tag = self._current_country
+        return [e for e in entities if (e.get("tags") or [""])[0] == tag]
+
+    def _filtered_entities(self):
+        """返回当前画廊应展示的实体（应用国家筛选 + 关键词筛选）。"""
+        entities = self._nofile_entities
+        if self._current_country:
+            entities = self._filter_entities(entities)
+        keyword = self.search_edit.text().strip().lower()
+        if keyword:
+            kw = keyword
+            out = []
+            for e in entities:
+                name = e.get("name") or ""
+                hay = f"{name} {e.get('key', '')} {' '.join(e.get('tags', []))}".lower()
+                if kw in hay:
+                    out.append(e)
+            entities = out
+        return list(entities)
+
+    def _update_nofile_stats(self):
+        """更新无文件模式统计标签（实体数 / 源文件数 / 筛选后数量）。"""
+        total = len(self._nofile_entities)
+        files = len({e.get("file", "") for e in self._nofile_entities if e.get("file")})
+        shown = len(self._filtered_entities())
+        text = f"共 {total} 实体 / {files} 文件"
+        if shown != total:
+            text += f"（显示 {shown}）"
+        self.nofile_stats_label.setText(text)
 
     @classmethod
     def _collect_file_entities(cls, content_type, content, fp):
@@ -399,6 +635,9 @@ class WorkbenchDock(QDockWidget):
             # 国家设置：文件即实体（文件名前缀即国家）
             es = [{"name": os.path.splitext(os.path.basename(fp))[0], "key": "",
                    "icon": "", "range": (0, len(content))}]
+        elif content_type in TOP_LEVEL_ENTITY_TYPES:
+            # 顶层块即实体（如力量平衡/限时活动：`name = { ... }` 不做单包装块下沉）
+            es = cls._extract_top_entities(content)
         elif content_type in ICON_RULES:
             es = cls._extract_entities(content_type, content)
             for e in es:
@@ -412,6 +651,17 @@ class WorkbenchDock(QDockWidget):
             if not e.get("name"):
                 e["name"] = os.path.splitext(os.path.basename(fp))[0]
         return es
+
+    @classmethod
+    def _extract_top_entities(cls, content):
+        """顶层块即实体：不做「单包装块取直接子块」的下沉。"""
+        try:
+            spans = cls._block_spans(cls._scan_blocks(content))
+        except Exception:
+            return []
+        md = min(s[1] for s in spans) if spans else 0
+        return [cls._make_generic_entity(content, s[2], s[3], s[0])
+                for s in spans if s[1] == md]
 
     @classmethod
     def _extract_character_entities(cls, content, file_tags):
@@ -445,7 +695,11 @@ class WorkbenchDock(QDockWidget):
 
     @classmethod
     def _extract_generic_entities(cls, content):
-        """通用实体提取：单顶层包装块取其直接子块；多顶层块时顶层块即实体；无块时整个文件视为一个实体。"""
+        """通用实体提取：单顶层包装块取其直接子块；多顶层块时顶层块即实体；无块时整个文件视为一个实体。
+
+        实体附带 icon/picture 字段探测（顶层字段中取 icon 或 picture），
+        供全局图标索引渲染科技/占领法/建筑等类型的图标。
+        """
         try:
             spans = cls._block_spans(cls._scan_blocks(content))
         except Exception:
@@ -461,13 +715,225 @@ class WorkbenchDock(QDockWidget):
             children = [s for s in spans
                         if s[2] > bpos and s[3] <= bend and s[1] == bd + 1]
             for c in children:
-                entities.append({"name": c[0], "key": c[0], "icon": "",
-                                 "range": (c[2], c[3])})
+                entities.append(cls._make_generic_entity(content, c[2], c[3], c[0]))
         if not entities:
             for s in tops:
-                entities.append({"name": s[0], "key": s[0], "icon": "",
-                                 "range": (s[2], s[3])})
+                entities.append(cls._make_generic_entity(content, s[2], s[3], s[0]))
         return entities
+
+    @classmethod
+    def _make_generic_entity(cls, content, start, end, key):
+        """构造通用实体字典：提取顶层 icon/picture 字段作为图标值。"""
+        import math
+        if math.isinf(end):
+            end = len(content)
+        block = content[start:end]
+        fields = cls._top_level_fields(block)
+        icon = fields.get("icon") or fields.get("picture") or ""
+        return {"name": key, "key": key, "icon": icon, "range": (start, end)}
+
+    @classmethod
+    def _quick_focus_scan(cls, content):
+        """轻量国策扫描：快速提取绘制所需字段（id/x/y/icon/cost/relative/prerequisite）。
+
+        无文件模式跨文件合并绘制国策树时使用（完整 parse_pdx_script 解析
+        整文件过慢，60 文件需数十秒）；编辑仍走 parse_focus_file 精确定位。
+
+        Returns:
+            dict: {focus_id: node}，node 结构与 FocusProcessor.process 输出兼容
+                （basic/draw/abs_x/abs_y/_abs_calculated）。
+        """
+        import math
+        try:
+            spans = cls._block_spans(cls._scan_blocks(content))
+        except Exception:
+            return {}
+        result = {}
+        n = len(content)
+
+        def _fnum(v, default=0.0):
+            try:
+                return float(v)
+            except Exception:
+                return default
+
+        for key, _depth, start, end in spans:
+            if key not in ("focus", "shared_focus", "joint_focus"):
+                continue
+            if math.isinf(end):
+                end = n
+            block = content[start:end]
+            fields = cls._top_level_fields(block)
+            fid = fields.get("id") or ""
+            if not fid:
+                continue
+            # prerequisite 引用：定位实体内的 prerequisite 块（括号配对），提取其中的 focus 值
+            refs = []
+            pm = re.search(r'\bprerequisite\s*=\s*\{', block)
+            if pm:
+                inner = block[pm.end():]
+                depth = 1
+                j = 0
+                while j < len(inner) and depth > 0:
+                    if inner[j] == '{':
+                        depth += 1
+                    elif inner[j] == '}':
+                        depth -= 1
+                    j += 1
+                seg = inner[:max(j - 1, 0)]
+                refs = re.findall(r'\bfocus\s*=\s*([\w\.\-]+)', seg)
+            node = {
+                'basic': {
+                    'id': fid,
+                    'icon': fields.get("icon", ""),
+                    'x': _fnum(fields.get("x")),
+                    'y': _fnum(fields.get("y")),
+                    'cost': fields.get("cost", 10),
+                    'ai_will_do': {},
+                    'search_filters': {},
+                },
+                'draw': {
+                    'relative_position_id': fields.get("relative_position_id") or None,
+                    'prerequisite': refs,
+                    'mutually_exclusive': [],
+                },
+                'conditions': {},
+                'rewards': {},
+                'abs_x': 0.0,
+                'abs_y': 0.0,
+                '_abs_calculated': False,
+            }
+            result[fid] = node
+        return result
+
+    # ---------- 科技扫描（科技树视图用） ----------
+
+    @staticmethod
+    def _pair_block(content, brace_pos):
+        """从 '{' 位置做括号配对，返回 (内部文本, 结束位置)。"""
+        depth = 0
+        i = brace_pos
+        n = len(content)
+        while i < n:
+            c = content[i]
+            if c == '{':
+                depth += 1
+            elif c == '}':
+                depth -= 1
+                if depth == 0:
+                    return content[brace_pos + 1:i], i
+            i += 1
+        return content[brace_pos + 1:], n
+
+    @staticmethod
+    def _tech_node_from_block(tid, block):
+        """从单个科技块提取绘制科技树所需字段。"""
+        fields = WorkbenchDock._top_level_fields(block)
+        node = {
+            "id": tid,
+            "folder": "",
+            "folder_x": None,
+            "folder_y": None,
+            "leads_to": [],
+            "sub_techs": [],
+            "allow_tags": [],
+            "unresearchable": False,
+            "cost": fields.get("research_cost") or fields.get("cost") or "",
+            "start_year": fields.get("start_year") or "",
+            "hidden": bool(fields.get("hidden")),
+        }
+        fm = re.search(r'\bfolder\s*=\s*\{', block)
+        if fm:
+            inner, _ = WorkbenchDock._pair_block(block, fm.end() - 1)
+            nm = re.search(r'\bname\s*=\s*([\w\.\-]+)', inner)
+            if nm:
+                node["folder"] = nm.group(1)
+            px = re.search(r'\bposition\s*=\s*\{[^}]*?\bx\s*=\s*(-?[\d\.]+)', inner)
+            py = re.search(r'\bposition\s*=\s*\{[^}]*?\by\s*=\s*(-?[\d\.]+)', inner)
+            if px:
+                node["folder_x"] = float(px.group(1))
+            if py:
+                node["folder_y"] = float(py.group(1))
+        for pm in re.finditer(r'\bpath\s*=\s*\{', block):
+            inner, _ = WorkbenchDock._pair_block(block, pm.end() - 1)
+            node["leads_to"].extend(
+                re.findall(r'\bleads_to_tech\s*=\s*([\w\.\-]+)', inner))
+        sm = re.search(r'\bsub_technologies\s*=\s*\{', block)
+        if sm:
+            inner, _ = WorkbenchDock._pair_block(block, sm.end() - 1)
+            node["sub_techs"] = re.findall(r'[\w\.\-]+', inner)
+        am = re.search(r'\ballow\s*=\s*\{', block)
+        if am:
+            inner, _ = WorkbenchDock._pair_block(block, am.end() - 1)
+            compact = re.sub(r'\s+', ' ', inner)
+            if re.search(r'\balways\s*=\s*no\b', compact):
+                node["unresearchable"] = True
+            for kw, label in (
+                    ("has_completed_focus", "国策解锁"),
+                    ("has_any_global_flag", "全局flag"),
+                    ("has_any_country_flag", "国家flag"),
+                    ("has_global_flag", "全局flag"),
+                    ("has_country_flag", "国家flag"),
+                    ("has_war", "战争条件"),
+                    ("has_government", "政体条件"),
+                    ("has_idea", "理念条件"),
+                    ("has_trait", "特质条件"),
+                    ("has_any_idea", "理念条件")):
+                if re.search(r'\b' + kw + r'\b', compact) and label not in node["allow_tags"]:
+                    node["allow_tags"].append(label)
+        return node
+
+    @classmethod
+    def _quick_tech_scan(cls, content):
+        """轻量科技扫描：快速提取绘制科技树所需字段。
+
+        科技文件结构：technologies = { tech_id = { ... } }。
+        提取：folder（树归属 + 锚点网格坐标）、path 连线（leads_to_tech）、
+        sub_technologies（子科技列表）、allow 获取方式标注、cost/start_year。
+
+        Returns:
+            dict: {tech_id: node}
+        """
+        import math
+        try:
+            spans = cls._block_spans(cls._scan_blocks(content))
+        except Exception:
+            return {}
+        result = {}
+        n = len(content)
+        found_wrapper = False
+        for key, _depth, start, end in spans:
+            if key != "technologies":
+                continue
+            found_wrapper = True
+            if math.isinf(end):
+                end = n
+            outer = content[start:end]
+            try:
+                inner = cls._block_spans(cls._scan_blocks(outer))
+            except Exception:
+                continue
+            for tid, d2, s2, e2 in inner:
+                # 只取包装块的直接子块（深度 1）；enable_equipments/allow 等
+                # 科技内部子块深度 >= 2，会被跳过
+                if d2 != 1:
+                    continue
+                if math.isinf(e2):
+                    e2 = len(outer)
+                node = cls._tech_node_from_block(tid, outer[s2:e2])
+                if node:
+                    result[tid] = node
+        if not found_wrapper:
+            # 无 technologies 包装的旧式文件：直接以顶层块作为科技
+            for tid, bdepth, s2, e2 in spans:
+                if bdepth != 0:
+                    continue
+                if math.isinf(e2):
+                    e2 = n
+                node = cls._tech_node_from_block(tid, content[s2:e2])
+                if node:
+                    result[tid] = node
+        return result
 
     def _refresh_entities(self):
         """刷新无文件模式实体数据（右侧列表框在无文件模式下隐藏，仅收集实体供画廊使用）。
@@ -534,7 +1000,7 @@ class WorkbenchDock(QDockWidget):
             return []
 
         key = self._current_type
-        folders, ext = self._type_folders_ext(key)
+        folders, exts = self._type_folders_ext(key)
         files = []
         seen = set()
         for rel in folders:
@@ -544,7 +1010,7 @@ class WorkbenchDock(QDockWidget):
             for root, _dirs, names in os.walk(base):
                 for name in sorted(names):
                     fp = os.path.join(root, name)
-                    if os.path.isfile(fp) and name.lower().endswith(ext):
+                    if os.path.isfile(fp) and self._ext_matches(name, exts):
                         real = os.path.realpath(fp)
                         if real in seen:
                             continue
@@ -554,11 +1020,26 @@ class WorkbenchDock(QDockWidget):
 
     @staticmethod
     def _type_folders_ext(key):
-        """返回内容类型的 (文件夹列表, 扩展名)。"""
+        """返回内容类型的 (文件夹列表, 扩展名列表)。
+
+        扩展名支持字符串（单个）或列表（多个），统一返回小写列表。
+        """
         for c in CONTENT_TYPES:
             if c[0] == key:
-                return c[3], c[5]
-        return [], ".txt"
+                folders = c[3]
+                ext = c[5]
+                if isinstance(ext, str):
+                    exts = [ext]
+                else:
+                    exts = list(ext or [])
+                return list(folders), [e.lower() for e in exts]
+        return [], [".txt"]
+
+    @classmethod
+    def _ext_matches(cls, name, exts):
+        """判断文件名是否匹配扩展名列表（大小写不敏感）。"""
+        lower = name.lower()
+        return any(lower.endswith(e) for e in exts)
 
     @staticmethod
     def _blank_pdx(text):
@@ -797,6 +1278,27 @@ class WorkbenchDock(QDockWidget):
     _TAG_CACHE = {}
     _TAG_CACHE_MAX = 8192
 
+    # 实体提取缓存：path -> ((mtime_ns, size), [entities])；增量复用避免重复解析
+    _ENTITY_CACHE = {}
+    _ENTITY_CACHE_MAX = 8192
+
+    def _entities_for_file(self, content_type, content, fp):
+        """带缓存的实体提取：文件 (mtime, size) 未变时直接返回上次结果（副本）。"""
+        try:
+            st = os.stat(fp)
+            key = (st.st_mtime_ns, st.st_size)
+        except OSError:
+            return self._collect_file_entities(content_type, content, fp)
+        hit = self._ENTITY_CACHE.get(fp)
+        if hit is not None and hit[0] == key:
+            return [dict(e) for e in hit[1]]
+        es = self._collect_file_entities(content_type, content, fp)
+        self._ENTITY_CACHE[fp] = (key, es)
+        if len(self._ENTITY_CACHE) > self._ENTITY_CACHE_MAX:
+            for k in list(self._ENTITY_CACHE)[: self._ENTITY_CACHE_MAX // 2]:
+                del self._ENTITY_CACHE[k]
+        return [dict(e) for e in es]
+
     def _file_tags(self, fp):
         """带缓存的国家标签识别：文件(mtime,size)未变时直接返回上次结果。"""
         try:
@@ -894,17 +1396,16 @@ class WorkbenchDock(QDockWidget):
     def _on_type_clicked(self, item):
         """切换内容类型。无文件模式下自动在右侧展示该类型全部实体。"""
         key = item.data(Qt.ItemDataRole.UserRole)
+        if not key:
+            return  # 分隔线项（NoItemFlags 无 data）
         self._current_type = key
         if self._nofile:
-            self._refresh_entities()
-            if self._nofile_entities:
-                self.entity_gallery_nofile_requested.emit(
-                    self._current_type, list(self._nofile_entities))
+            self._refresh()
             return
         self._refresh_files()
 
     def _on_file_double_clicked(self, item):
-        """双击文件块/实体项：国策→设计视图，实体→树编辑器定位，其余→树编辑器。"""
+        """双击文件块/实体项：国策→设计视图，图标型→画廊，其余→先展示实体再树编辑。"""
         if self._nofile:
             self._on_entity_double_clicked(item)
             return
@@ -913,10 +1414,36 @@ class WorkbenchDock(QDockWidget):
             return
         if self._current_type == "focus":
             self.focus_file_selected.emit(fp)
+        elif self._current_type == "tech":
+            # 科技：与国策树同一画布绘制科技树（树形自动布局）
+            self.tech_file_selected.emit(fp)
         elif self._current_type in ICON_RULES:
             self.entity_gallery_requested.emit(self._current_type, fp)
         else:
-            self.generic_file_selected.emit(fp, None)
+            # 初始部队（history/units）→ 直接弹设计器（编制/地编），不先进画廊
+            norm_fp = fp.replace("\\", "/")
+            if self._current_type == "initial_oob" or "/history/units/" in norm_fp:
+                self.generic_file_selected.emit(fp, None)
+                return
+            # 普通模式也先展示实体：文件内有可提取的实体时进画廊，否则直接树编辑
+            if self._file_has_entities(fp):
+                self.entity_gallery_requested.emit(self._current_type, fp)
+            else:
+                self.generic_file_selected.emit(fp, None)
+
+    def _file_has_entities(self, fp):
+        """判断文件是否能提取出「非文件级」实体（区别于整文件一个实体）。"""
+        try:
+            content = self._read_file(fp)
+            if not content.strip():
+                return False
+            base = os.path.splitext(os.path.basename(fp))[0]
+            es = self._entities_for_file(self._current_type, content, fp)
+            meaningful = [e for e in es
+                          if e.get("name") and e["name"] != base]
+            return bool(meaningful)
+        except Exception:
+            return False
 
     def _on_entity_double_clicked(self, item):
         """无文件模式双击实体：图标型在右侧图形化展示，均提供树编辑器弹窗。"""
@@ -930,9 +1457,16 @@ class WorkbenchDock(QDockWidget):
             if fp:
                 self.focus_file_selected.emit(fp)
             return
+        # 初始部队（history/units）→ 直接弹设计器（无文件模式也支持）
+        fp = meta.get("file", "") if isinstance(meta, dict) else ""
+        norm_fp = (fp or "").replace("\\", "/")
+        if self._current_type == "initial_oob" or "/history/units/" in norm_fp:
+            if fp:
+                self.generic_file_selected.emit(fp, meta.get("key"))
+            return
         # 右侧图形化展示当前类型全部实体（画廊）
         self.entity_gallery_nofile_requested.emit(
-            self._current_type, list(self._nofile_entities))
+            self._current_type, list(self._filtered_entities()))
 
     def _show_file_menu(self, pos):
         """文件块右键菜单。"""
@@ -954,11 +1488,14 @@ class WorkbenchDock(QDockWidget):
                 open_action = menu.addAction("打开（国策设计视图）")
                 open_action.triggered.connect(
                     lambda: self.focus_file_selected.emit(fp))
+            elif self._current_type == "tech":
+                open_action = menu.addAction("🔬 打开（科技树画布）")
+                open_action.triggered.connect(
+                    lambda: self.tech_file_selected.emit(fp))
             else:
-                if is_icon:
-                    gallery_action = menu.addAction("🖼 在右侧展示实体图标")
-                    gallery_action.triggered.connect(
-                        lambda: self.entity_gallery_requested.emit(self._current_type, fp))
+                gallery_action = menu.addAction("🖼 在右侧展示实体")
+                gallery_action.triggered.connect(
+                    lambda: self.entity_gallery_requested.emit(self._current_type, fp))
                 open_action = menu.addAction("✎ 打开（树形编辑器）")
                 open_action.triggered.connect(
                     lambda: self.generic_file_selected.emit(fp, None))
@@ -995,7 +1532,7 @@ class WorkbenchDock(QDockWidget):
                     gallery_action = menu.addAction("🖼 在右侧展示实体图标")
                     gallery_action.triggered.connect(
                         lambda: self.entity_gallery_nofile_requested.emit(
-                            self._current_type, list(self._nofile_entities)))
+                            self._current_type, list(self._filtered_entities())))
                 open_action = menu.addAction("✎ 打开（树形编辑器）")
                 open_action.triggered.connect(
                     lambda: self.generic_file_selected.emit(fp, entity_id))
@@ -1009,6 +1546,170 @@ class WorkbenchDock(QDockWidget):
         new_template_action.triggered.connect(self._new_file_from_template)
 
         menu.exec(self.file_list.viewport().mapToGlobal(pos))
+
+    # ---------- 无文件模式国家设置 ----------
+
+    def _country_name(self, tag):
+        """国家 tag → 显示名（文件名推断；无则空）。"""
+        try:
+            if not tag:
+                return ""
+            if getattr(self, "_country_names", None) is None:
+                self._country_names = self._load_country_names()
+            return self._country_names.get(tag, "")
+        except Exception:
+            return ""
+
+    def _load_country_names(self):
+        """预载 {tag: 国家名}（复用国家设置扫描 + history/countries 文件名）。"""
+        names = {}
+        try:
+            from country_setup_dialog import scan_vanilla_countries
+            game_path = self._game_path()
+            for tag, rel in (scan_vanilla_countries(game_path) or {}).items():
+                base = os.path.basename((rel or "").replace("\\", "/"))
+                name = os.path.splitext(base)[0] if base else ""
+                # "GER - Germany.txt" → "Germany"；无分隔则保留原名
+                if " - " in name:
+                    name = name.split(" - ", 1)[1]
+                names[tag] = name
+        except Exception:
+            pass
+        # 补充 history/countries 文件名前缀国家（scan_vanilla_countries 不扫该目录）
+        try:
+            for base in (self.mod_path, self._game_path()):
+                if not base:
+                    continue
+                d = os.path.join(base, "history", "countries")
+                if not os.path.isdir(d):
+                    continue
+                for fn in os.listdir(d):
+                    if not fn.lower().endswith(".txt"):
+                        continue
+                    first = (fn.split()[0] if fn.split() else "").upper()
+                    if not first or not first.isalnum() or not any(
+                            ch.isalpha() for ch in first):
+                        continue
+                    stem = os.path.splitext(fn)[0]
+                    name = stem
+                    if " - " in stem:
+                        name = stem.split(" - ", 1)[1]
+                    names.setdefault(first, name)
+        except Exception:
+            pass
+        return names
+
+    def set_current_country(self, tag):
+        """设置无文件模式「当前国家」筛选（None=全部），刷新画廊。"""
+        tag = (tag or "").strip().upper() or None
+        if tag == self._current_country:
+            return
+        self._current_country = tag
+        if tag:
+            name = self._country_name(tag)
+            self.country_label.setText(
+                f"当前国家：{tag}（{name}）" if name else f"当前国家：{tag}")
+        else:
+            self.country_label.setText("当前国家：全部")
+        self.country_changed.emit(tag or "")
+        if self._nofile:
+            self._refresh()
+
+    def current_country(self):
+        """返回当前无文件模式国家筛选（None=全部）。"""
+        return self._current_country
+
+    def _on_select_country(self):
+        """纯选择国家（不修改任何文件）：仅切换当前浏览国家。"""
+        from PyQt6.QtWidgets import QInputDialog
+        try:
+            from country_setup_dialog import scan_vanilla_countries, \
+                scan_mod_countries
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"国家列表加载失败: {e}")
+            return
+        countries = scan_vanilla_countries(self._game_path())
+        mod_tags = scan_mod_countries(self.mod_path)
+        # 合并 history/countries 文件名前缀国家（scan_vanilla_countries 不扫该目录）
+        for base in (self.mod_path, self._game_path()):
+            if not base:
+                continue
+            d = os.path.join(base, "history", "countries")
+            if not os.path.isdir(d):
+                continue
+            for fn in os.listdir(d):
+                if not fn.lower().endswith(".txt"):
+                    continue
+                first = (fn.split()[0] if fn.split() else "").upper()
+                if not first or not first.isalnum() or not any(
+                        ch.isalpha() for ch in first):
+                    continue
+                countries.setdefault(first, "history/countries/" + fn)
+        items = ["（全部）"]
+        for tag in sorted(countries or {}):
+            rel = (countries.get(tag) or "").replace("\\", "/")
+            name = os.path.splitext(os.path.basename(rel))[0] if rel else ""
+            if " - " in name:
+                name = name.split(" - ", 1)[1]
+            marked = " [mod 已接管]" if tag in mod_tags else ""
+            items.append(f"{tag}  {name}{marked}")
+        item, ok = QInputDialog.getItem(
+            self, "选择国家", "选择要浏览的国家（仅切换，不写文件）：",
+            items, 0, False)
+        if not ok:
+            return
+        if item == "（全部）":
+            tag = ""
+        else:
+            tag = (item.split()[0] if item.split() else "").upper()
+        self.set_current_country(tag)
+
+    def _on_country_setup(self):
+        """打开国家设置对话框：选择/创建国家 + 复制原版或同名覆盖。"""
+        try:
+            from country_setup_dialog import (
+                CountrySetupDialog, copy_country_files, create_blank_overrides,
+                create_new_country_files)
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"国家设置模块加载失败: {e}")
+            return
+
+        game_path = self._game_path()
+        dlg = CountrySetupDialog(game_path, self.mod_path, parent=self)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+        tag, mode, dirs = dlg.get_result()
+        if not tag:
+            return
+
+        if mode == "copy":
+            copied = copy_country_files(game_path, self.mod_path, tag, dirs)
+            msg = f"已复制 {len(copied)} 个原版文件到 mod：\n" + \
+                "\n".join(copied[:12]) + ("\n…" if len(copied) > 12 else "")
+            QMessageBox.information(self, "复制完成", msg or "无匹配文件")
+        else:
+            created = create_blank_overrides(self.mod_path, tag, dirs,
+                                             game_path=game_path)
+            if not created:
+                # 新国家基础设施文件
+                created = create_new_country_files(self.mod_path, tag, dirs,
+                                                   game_path=game_path)
+            msg = f"已创建 {len(created)} 个文件：\n" + \
+                "\n".join(created[:12]) + ("\n…" if len(created) > 12 else "")
+            QMessageBox.information(self, "覆盖完成", msg or "无匹配文件")
+
+        # 完成国家流程后，将当前国家设为所选 tag，刷新画廊
+        self.set_current_country(tag)
+
+    def _game_path(self):
+        """返回游戏根目录（读取 settings.json）。"""
+        try:
+            import json
+            with open("settings.json", "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return data.get("HOI4_path", "")
+        except Exception:
+            return ""
 
     def _new_file_directory(self):
         """确定新建文件的目录：通用类型手动选择，其余类型取首个内容文件夹。"""
@@ -1030,17 +1731,22 @@ class WorkbenchDock(QDockWidget):
             return None
         return directory
 
-    @staticmethod
-    def _ask_file_name(parent, default_name=""):
-        """询问文件名，自动补当前类型的扩展名。"""
+    def _ask_file_name(self, parent, default_name="", default_ext=None):
+        """询问文件名，自动补当前类型的扩展名。
+
+        default_ext: 无扩展名时补的扩展名；None 时取当前类型首个扩展名。
+        """
         from PyQt6.QtWidgets import QInputDialog
+        if default_ext is None:
+            _folders, exts = self._type_folders_ext(self._current_type)
+            default_ext = exts[0] if exts else ".txt"
         name, ok = QInputDialog.getText(
             parent, "新建文件", "文件名（含扩展名）:", text=default_name)
         if not ok or not name.strip():
             return None
         name = name.strip()
         if os.path.splitext(name)[1] == "":
-            name += ".txt"
+            name += default_ext
         return name
 
     def _base_template(self):
@@ -1075,22 +1781,23 @@ class WorkbenchDock(QDockWidget):
         if not tpl_type:
             QMessageBox.information(
                 self, "提示",
-                f"「{self._current_type}」类型暂未制作相关功能，无法新建文件。")
+                f"「{self._current_type}」类型暂无新建文件模板（仍可树形编辑），无法新建文件。")
             return
 
         template_path = self._base_template()
         if not template_path:
             QMessageBox.information(
                 self, "提示",
-                f"「{self._current_type}」类型暂未制作相关功能，无法新建文件。")
+                f"「{self._current_type}」类型暂无新建文件模板（仍可树形编辑），无法新建文件。")
             return
 
         directory = self._new_file_directory()
         if not directory:
             return
-        _, ext = self._type_folders_ext(self._current_type)
+        _, exts = self._type_folders_ext(self._current_type)
+        ext = exts[0] if exts else ".txt"
         default_name = os.path.splitext(os.path.basename(template_path))[0] + ext
-        name = self._ask_file_name(self, default_name=default_name)
+        name = self._ask_file_name(self, default_name=default_name, default_ext=ext)
         if not name:
             return
         path = os.path.join(directory, name)
@@ -1120,8 +1827,8 @@ class WorkbenchDock(QDockWidget):
             QMessageBox.warning(self, "错误", f"文件已存在: {path}")
             return
         try:
-            with open(path, "w", encoding="utf-8") as f:
-                f.write("")
+            from write_utils import atomic_write_text
+            atomic_write_text(path, "", undo=False)
         except Exception as e:
             QMessageBox.warning(self, "错误", f"创建失败: {e}")
             return
@@ -1164,8 +1871,8 @@ class WorkbenchDock(QDockWidget):
                 if success:
                     try:
                         os.makedirs(os.path.dirname(new_path), exist_ok=True)
-                        with open(new_path, "w", encoding="utf-8") as f:
-                            f.write(applied)
+                        from write_utils import atomic_write_text
+                        atomic_write_text(new_path, applied, undo=False)
                     except Exception:
                         success = False
             else:

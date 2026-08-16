@@ -1,0 +1,12 @@
+law_custom = {
+	tooltip = "OCCUPATION_LAW_CUSTOM"
+	icon = "GFX_occupation_policy_icon_strip:1"
+	visible = {
+		always = yes
+	}
+	available = {
+		always = yes
+	}
+	state_modifier = {
+	}
+}

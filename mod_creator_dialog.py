@@ -1,4 +1,4 @@
-﻿"""
+"""
 新建 mod 项目对话框 — 非模态交互窗口
 用于创建 HOI4 模组的基础文件结构，包括：
   - .mod 文件（mod描述文件，写入 .mod 文件目录）
@@ -79,7 +79,7 @@ class ModCreatorDialog(QDialog):
         label = QLabel("  |  ".join(status_text))
         # 如果路径未配置完全，用红色提醒用户
         if not (hoi4_ok and modfolder_ok and modfile_ok):
-            label.setStyleSheet("color: red;")
+            label.setStyleSheet("color: #b94d3f;")
         path_layout.addWidget(label)
         layout.addWidget(path_status)
 
@@ -115,7 +115,7 @@ class ModCreatorDialog(QDialog):
         tag_header = QHBoxLayout()
         tag_header.addWidget(QLabel("Tags:"))
         self.tag_counter = QLabel("已选择 0/10")
-        self.tag_counter.setStyleSheet("color: #666;")
+        self.tag_counter.setStyleSheet("color: #5d6b7a;")
         tag_header.addWidget(self.tag_counter)
         tag_header.addStretch()
         layout.addLayout(tag_header)
@@ -268,17 +268,16 @@ class ModCreatorDialog(QDialog):
         tags_str = "\n".join(f'    "{tag}"' for tag in tags)
         mod_content = f'name = "{mod_name}"\npath = "{mod_folder_path}/{folder_name}"\nsupported_version = "{version}"\ntags = {{\n{tags_str}\n}}\n'
 
-        # 写入.mod文件（游戏启动器读取此文件来识别mod）
-        with open(mod_file_full_path, 'w', encoding='utf-8') as f:
-            f.write(mod_content)
+        # 写入.mod文件（游戏启动器读取此文件来识别mod；原子写）
+        from write_utils import atomic_write_text
+        atomic_write_text(mod_file_full_path, mod_content, undo=False)
 
         # ====== 创建mod目录结构 ======
         os.makedirs(full_folder, exist_ok=True)
 
         # descriptor.mod — mod内部分布式描述文件
         descriptor_path = os.path.join(full_folder, "descriptor.mod")
-        with open(descriptor_path, 'w', encoding='utf-8') as f:
-            f.write(mod_content)
+        atomic_write_text(descriptor_path, mod_content, undo=False)
 
         # gfx/ — 图标资源目录
         gfx_dir = os.path.join(full_folder, "gfx")
@@ -289,12 +288,11 @@ class ModCreatorDialog(QDialog):
         os.makedirs(interface_dir, exist_ok=True)
         gfx_file_path = os.path.join(interface_dir, f"{folder_name}.gfx")
         gfx_content = "spriteTypes = {\n\n}\n"
-        with open(gfx_file_path, 'w', encoding='utf-8') as f:
-            f.write(gfx_content)
+        atomic_write_text(gfx_file_path, gfx_content, undo=False)
 
         # localisation/simp_chinese/*.yml — 空白简体中文本地化文件（HOI4 标准拼写）
         loc_dir = os.path.join(full_folder, "localisation", "simp_chinese")
         os.makedirs(loc_dir, exist_ok=True)
         yml_path = os.path.join(loc_dir, f"{folder_name}_l_simp_chinese.yml")
-        with open(yml_path, 'w', encoding='utf-8-sig') as f:
-            f.write("l_simp_chinese:\n")
+        atomic_write_text(yml_path, "l_simp_chinese:\n",
+                          encoding="utf-8-sig", allow_bom=True, undo=False)

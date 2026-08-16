@@ -1,0 +1,6 @@
+sub_unit_categories = {
+	category_front_line
+	category_all_infantry
+	category_all_armor
+	category_support_battalions
+}

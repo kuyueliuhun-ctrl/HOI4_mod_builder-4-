@@ -1,9 +1,11 @@
 """州/基地数据加载模块
 
 解析游戏与 mod 的 history/states/*.txt（mod 覆盖游戏）：
-  - 州：id、名称键（STATE_x）、所属地块列表
+  - 州：id、名称键（STATE_x）、所属地块列表、州类别（state_category）、
+    manpower、胜利点、完整建筑列表（顶层键 + 按地块锚定）
   - 海军基地：buildings 块内 `3838 = { naval_base = 3 }`（锚点为具体地块）
   - 空军基地：`air_base = 3`（无地块，取州内首地块作为锚点）
+  - 建筑位：common/state_category/*.txt（mod→游戏）的 local_building_slots
 
 名称经 LocalizationManager 解析为简体中文。
 """
@@ -13,6 +15,51 @@ import os
 from tree_node import parse_pdx_text_to_nodes
 
 
+def load_state_categories(mod_path, hoi4_path):
+    """解析 common/state_category/*.txt（mod 优先，游戏兜底）。
+
+    Returns:
+        dict: 类别名 -> 建筑位数量（local_building_slots）
+    """
+    out = {}
+    for base in (mod_path, hoi4_path):
+        if not base:
+            continue
+        d = os.path.join(base, "common", "state_category")
+        if not os.path.isdir(d):
+            continue
+        for name in sorted(os.listdir(d)):
+            if not name.lower().endswith(".txt"):
+                continue
+            try:
+                with open(os.path.join(d, name), "r", encoding="utf-8-sig",
+                          errors="ignore") as f:
+                    content = f.read()
+            except Exception:
+                continue
+            for node in parse_pdx_text_to_nodes(content):
+                if node.node_type != "block":
+                    continue
+                # 包裹层 state_categories = { town = {...} ... }
+                blocks = (node.children if node.key == "state_categories"
+                          else [node])
+                for b in blocks:
+                    if b.node_type != "block":
+                        continue
+                    cat = b.key
+                    slots = 0
+                    for child in b.children:
+                        if (child.node_type == "value"
+                                and child.key == "local_building_slots"):
+                            try:
+                                slots = int(float(child.value))
+                            except ValueError:
+                                slots = 0
+                    if cat not in out or slots:
+                        out[cat] = slots
+    return out
+
+
 class StateData:
     """州与海军/空军基地数据。"""
 
@@ -20,7 +67,9 @@ class StateData:
         self.mod_path = mod_path or ""
         self.hoi4_path = hoi4_path or ""
         self.loc_manager = loc_manager
-        # 州ID -> dict(id, name_key, provinces:[...], naval:{pid:level}, air_level)
+        # 州ID -> dict(id, name_key, provinces:[...], naval:{pid:level},
+        #              air_level, state_category, manpower, buildings,
+        #              buildings_pid, victory_points, src)
         self.states = {}
         # 地块ID -> 州ID 反向索引
         self.province_to_state = {}
@@ -28,6 +77,18 @@ class StateData:
         self.naval_bases = []
         # 空军基地列表 [(地块ID, 等级, 州ID), ...]
         self.air_bases = []
+        # 州类别 -> 建筑位（common/state_category）
+        self.categories = load_state_categories(mod_path, hoi4_path)
+        self._load()
+
+    def reload(self):
+        """写回 mod 后重新加载（mod 覆盖游戏后新内容生效）。"""
+        self.states = {}
+        self.province_to_state = {}
+        self.naval_bases = []
+        self.air_bases = []
+        self.categories = load_state_categories(
+            self.mod_path, self.hoi4_path)
         self._load()
 
     # ---------- 加载 ----------
@@ -62,14 +123,16 @@ class StateData:
                 for node in parse_pdx_text_to_nodes(content):
                     if node.node_type != "block" or node.key != "state":
                         continue
-                    info = self._parse_state(node)
+                    info = self._parse_state(node, path)
                     if info and info["id"] not in self.states:
                         self._register(info)
 
-    def _parse_state(self, node):
+    def _parse_state(self, node, src=""):
         """解析单个 state = {...} 块。"""
         info = {"id": 0, "name_key": "", "provinces": [], "naval": {},
-                "air_level": 0, "owner": ""}
+                "air_level": 0, "owner": "", "state_category": "",
+                "manpower": 0, "victory_points": [], "buildings": {},
+                "buildings_pid": {}, "src": src}
         for child in node.children:
             if child.node_type == "value":
                 if child.key == "id":
@@ -79,6 +142,13 @@ class StateData:
                         return None
                 elif child.key == "name":
                     info["name_key"] = child.value
+                elif child.key == "state_category":
+                    info["state_category"] = child.value.strip().strip('"')
+                elif child.key == "manpower":
+                    try:
+                        info["manpower"] = int(float(child.value))
+                    except ValueError:
+                        pass
             else:  # block
                 if child.key == "provinces":
                     for p in child.children:
@@ -90,25 +160,41 @@ class StateData:
 
     @staticmethod
     def _parse_history(info, history_node):
-        """解析 history 块中的 owner 与 buildings（海军/空军基地）。"""
+        """解析 history 块中的 owner、胜利点与完整 buildings。"""
         for child in history_node.children:
             if child.node_type == "value" and child.key == "owner":
                 info["owner"] = child.value.strip().strip('"').upper()
             elif child.node_type == "block" and child.key == "buildings":
                 for b in child.children:
-                    if b.node_type == "value" and b.key == "air_base":
+                    if b.node_type == "value":
                         try:
-                            info["air_level"] = int(float(b.value))
+                            lv = int(float(b.value))
                         except ValueError:
-                            pass
+                            continue
+                        info["buildings"][b.key] = lv
+                        if b.key == "air_base":
+                            info["air_level"] = lv
                     elif b.node_type == "block" and b.key.strip().isdigit():
                         pid = int(b.key)
+                        d = info["buildings_pid"].setdefault(pid, {})
                         for n in b.children:
-                            if n.node_type == "value" and n.key == "naval_base":
+                            if n.node_type == "value":
                                 try:
-                                    info["naval"][pid] = int(float(n.value))
+                                    d[n.key] = int(float(n.value))
                                 except ValueError:
                                     pass
+                        if "naval_base" in d:
+                            info["naval"][pid] = d["naval_base"]
+            elif child.node_type == "block" and child.key == "victory_points":
+                # 配对序列：pid points pid points ...
+                items = [c.key.strip() for c in child.children
+                         if c.node_type == "value"]
+                for i in range(0, len(items) - 1, 2):
+                    try:
+                        info["victory_points"].append(
+                            (int(float(items[i])), int(float(items[i + 1]))))
+                    except ValueError:
+                        pass
 
     def _register(self, info):
         sid = info["id"]
@@ -137,6 +223,28 @@ class StateData:
             except Exception:
                 pass
         return key
+
+    def category_slots(self, category):
+        """州类别 -> 建筑位数量（未知类别返回 0）。"""
+        if not category:
+            return 0
+        return int(self.categories.get(category, 0))
+
+    def slots_of(self, state_id):
+        """州建筑位数量（state_category 的 local_building_slots）。"""
+        info = self.states.get(state_id)
+        return self.category_slots(info["state_category"]) if info else 0
+
+    def buildings_of(self, state_id):
+        """州建筑汇总：{type: level}（含按地块锚定的防御类）。"""
+        info = self.states.get(state_id)
+        if not info:
+            return {}
+        out = dict(info.get("buildings", {}))
+        for d in info.get("buildings_pid", {}).values():
+            for k, v in d.items():
+                out[k] = out.get(k, 0) + v
+        return out
 
     def state_of_province(self, pid):
         """地块所属州ID，未知返回 0。"""

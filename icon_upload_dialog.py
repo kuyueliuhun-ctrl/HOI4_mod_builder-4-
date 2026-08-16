@@ -64,7 +64,7 @@ class IconUploadDialog(QDialog):
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setMinimumHeight(180)
         self.preview_label.setStyleSheet(
-            "QLabel { border: 1px dashed #888; color: #888; background: #2d2d30; }"
+            "QLabel { border: 1px dashed #5d6b7a; color: #5d6b7a; background: #f4f7fa; border-radius: 8px; }"
         )
         layout.addWidget(self.preview_label, 1)
 

@@ -1,0 +1,8 @@
+democratic = {
+	types = {
+		conservatism = {
+		}
+	}
+	color = { 0 0 255 }
+	# rules = { ... }
+}

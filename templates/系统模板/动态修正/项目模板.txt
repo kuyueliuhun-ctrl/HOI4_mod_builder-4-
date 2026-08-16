@@ -1,17 +1,15 @@
-﻿	sabotaged_resources = {
-		icon = 
+	# 动态修正节点 — 添加到 common/dynamic_modifiers/ 文件中
+	example_dynamic_modifier = {
+		icon = "GFX_idea_unknown"
 		enable = {
 			always = yes
-			tag = 
 		}
-		political_power_gain = 
-		stability_factor = 
-		war_support_factor = 
-		army_defence_factor = 
-		society_development_monthly = 
-		poverty_development_monthly = 
-		industrial_capacity_factory = 
-		production_speed_buildings_factor = 
-		army_attack_factor = 
-		industrial_capacity_dockyard = 
+		remove_trigger = {
+			always = no
+		}
+		attacker_modifier = no
+		political_power_gain = 0.1
+		stability_factor = 0.05
+		war_support_factor = -0.05
+		recruitable_population_factor = 0.02
 	}

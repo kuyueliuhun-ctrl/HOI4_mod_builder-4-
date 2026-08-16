@@ -1,7 +1,7 @@
 """主窗口模块：包含文件浏览、mod 管理、国策树解析与渲染等核心功能。"""
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMenu, QMessageBox, QInputDialog
 from PyQt6.QtGui import QFileSystemModel
-from PyQt6.QtCore import Qt, QFileInfo
+from PyQt6.QtCore import Qt, QFileInfo, QTimer
 from ui_untitled import Ui_MainWindow
 import json
 import os
@@ -111,6 +111,9 @@ class MyWindow(QMainWindow):
         self.ui.hoi4_path_choose.triggered.connect(self.on_hoi4_path_choose_clicked)
         self.ui.modfolder_choose.triggered.connect(self.on_modfolder_choose_clicked)
         self.ui.mod_file_choose.triggered.connect(self.on_modfile_choose_clicked)
+        # 文件菜单：首次使用配置向导
+        self.act_setup_wizard = self.ui.menu.addAction("配置向导…")
+        self.act_setup_wizard.triggered.connect(self.on_setup_wizard)
 
         # ---------- 界面模式（经典文件树 / 工作台） ----------
         self.workbench_dock = None
@@ -132,6 +135,55 @@ class MyWindow(QMainWindow):
         self.act_manage_terms.triggered.connect(self.on_manage_terms)
         self.act_nofile_mode.toggled.connect(self._on_toolbar_nofile_toggled)
         self.act_validate_mod.triggered.connect(self.on_validate_mod)
+        # 工具菜单：文件类型覆盖检查报告（列出仍使用树形编辑器打开的类型/文件）
+        self.act_coverage_report = self.ui.menu_tools.addAction("文件类型覆盖报告…")
+        self.act_coverage_report.triggered.connect(self.on_coverage_report)
+        # 工具菜单：导出前健康检查（发布前确定性检查：括号/引用/编码/重复 id）
+        self.act_health_check = self.ui.menu_tools.addAction("导出前健康检查…")
+        self.act_health_check.triggered.connect(self.on_health_check)
+        # 工具菜单：地图编辑（点选/涂色归属/框选/地形演示）
+        self.act_map_editor = self.ui.menu_tools.addAction("🗺 地图编辑…")
+        self.act_map_editor.triggered.connect(self.on_map_editor)
+        # 工具菜单：区域编辑（框选划分战略区域/补给区域/州）
+        self.act_region_editor = self.ui.menu_tools.addAction("🗺 区域编辑（框选划分）…")
+        self.act_region_editor.triggered.connect(self.on_region_editor)
+        # 工具菜单：覆盖规则与增量报告（SF 移植：规则分层 + delta 模型）
+        self.act_overlay_report = self.ui.menu_tools.addAction(
+            "覆盖规则与增量报告（mod vs 原版）…")
+        self.act_overlay_report.triggered.connect(self.on_overlay_report)
+        # 工具菜单：图标库 manifest（SF 移植：图标库清单）
+        self.act_icon_manifest = self.ui.menu_tools.addAction(
+            "图标库 manifest…")
+        self.act_icon_manifest.triggered.connect(self.on_icon_manifest)
+        # 工具菜单：单位标牌库（SF 移植：兵牌图标库浏览/导入）
+        self.act_unit_counters = self.ui.menu_tools.addAction(
+            "单位标牌库…")
+        self.act_unit_counters.triggered.connect(self.on_unit_counters)
+        # 工具菜单：撤销上次文件写入（配合画布 Ctrl+Z）
+        self.act_undo_write = self.ui.menu_tools.addAction("撤销上次文件写入…")
+        self.act_undo_write.triggered.connect(self.on_undo_last_write)
+        # 工具菜单：游戏数据参考面板
+        self.act_game_reference = self.ui.menu_tools.addAction("游戏数据参考…")
+        self.act_game_reference.triggered.connect(self.on_game_reference)
+        # 工具菜单：AI 创作助手 / AI 设置
+        self.act_ai_assist = self.ui.menu_tools.addAction("AI 创作助手…")
+        self.act_ai_assist.triggered.connect(self.on_ai_assist)
+        self.act_ai_config = self.ui.menu_tools.addAction("AI 设置…")
+        self.act_ai_config.triggered.connect(self.on_ai_config)
+        # 工具菜单：外部接口（外置 Agent HTTP API）
+        self.act_api_dialog = self.ui.menu_tools.addAction("外部接口（外置 Agent）…")
+        self.act_api_dialog.triggered.connect(self.on_api_dialog)
+        # 工具菜单：设计器（无文件模式/工作台同样可用；舰艇/飞机/坦克跨文件浏览，
+        # 编制需先选 OOB 文件）
+        self.act_division_editor = self.ui.menu_tools.addAction(
+            "🎖️ 师编制编辑器（选择 OOB 文件）…")
+        self.act_division_editor.triggered.connect(self.on_division_editor)
+        self.act_ship_designer = self.ui.menu_tools.addAction("🚢 舰艇设计…")
+        self.act_ship_designer.triggered.connect(self.on_ship_designer)
+        self.act_plane_designer = self.ui.menu_tools.addAction("✈ 飞机设计…")
+        self.act_plane_designer.triggered.connect(self.on_plane_designer)
+        self.act_tank_designer = self.ui.menu_tools.addAction("🛡 坦克设计…")
+        self.act_tank_designer.triggered.connect(self.on_tank_designer)
         if self.workbench_dock is not None:
             self.act_nofile_mode.setChecked(self.workbench_dock.is_nofile())
 
@@ -161,6 +213,10 @@ class MyWindow(QMainWindow):
         self.ui.tree.setModel(self.model)
         self.ui.tree.setRootIndex(self.model.index(directory))
         self.ui.tree.setColumnWidth(0, 200)
+
+        # 首次启动（游戏目录与 mod 目录均未配置）：自动弹出配置向导
+        if not self.settings.get("HOI4_path") and not self.settings.get("mod_path"):
+            QTimer.singleShot(400, self.on_setup_wizard)
 
     def _sync_gfx_to_renderer(self):
         """同步图标映射（gfx_map）到渲染器，使其能正确显示科技/国策图标。
@@ -284,6 +340,50 @@ class MyWindow(QMainWindow):
         with open('settings.json', 'w', encoding='utf-8') as f:
             json.dump(self.settings, f, indent=4, ensure_ascii=False)
 
+    def on_setup_wizard(self):
+        """文件菜单：首次使用配置向导（四步路径引导）。"""
+        from PyQt6.QtWidgets import QDialog
+        from setup_wizard import SetupWizard
+        wiz = SetupWizard(parent=self, current=self.settings)
+        if wiz.exec() != QDialog.DialogCode.Accepted:
+            return
+        if not wiz.save_settings():
+            return
+        data = wiz.get_data()
+        self.apply_path_settings(**data)
+
+    def apply_path_settings(self, HOI4_path="", mod_path="",
+                            mod_folder_path="", mod_file_path=""):
+        """应用向导/外部配置：更新内存配置、刷新文件树/翻译器/本地化并持久化。"""
+        if HOI4_path and os.path.isdir(HOI4_path) \
+                and HOI4_path != self.settings.get("HOI4_path"):
+            self.settings["HOI4_path"] = HOI4_path
+            self.renderer.set_hoi4_path(HOI4_path)
+            try:
+                from focus_view import reload_translator
+                reload_translator()
+            except Exception:
+                pass
+            self._sync_gfx_to_renderer()
+            self._sync_loc_manager()
+        if mod_folder_path:
+            self.settings["mod_folder_path"] = mod_folder_path
+        if mod_file_path:
+            self.settings["mod_file_path"] = mod_file_path
+        if mod_path and os.path.isdir(mod_path) \
+                and mod_path != self.settings.get("mod_path"):
+            self.settings["mod_path"] = mod_path
+            self._refresh_tree()
+            self._sync_gfx_to_renderer()
+            self._sync_loc_manager()
+            if self.workbench_dock is not None:
+                self.workbench_dock.set_mod_path(mod_path)
+        try:
+            with open('settings.json', 'w', encoding='utf-8') as f:
+                json.dump(self.settings, f, indent=4, ensure_ascii=False)
+        except Exception:
+            pass
+
     def on_mod_creater_clicked(self):
         """菜单"创建 Mod"：打开 Mod 创建对话框。需先配置 HOI4 路径、默认 mod 目录和 .mod 文件目录。"""
         from mod_creator_dialog import ModCreatorDialog
@@ -399,8 +499,8 @@ class MyWindow(QMainWindow):
                 if success:
                     try:
                         os.makedirs(os.path.dirname(new_path), exist_ok=True)
-                        with open(new_path, "w", encoding="utf-8") as f:
-                            f.write(applied)
+                        from write_utils import atomic_write_text
+                        atomic_write_text(new_path, applied, undo=False)
                     except Exception:
                         success = False
             else:
@@ -471,8 +571,8 @@ class MyWindow(QMainWindow):
             QMessageBox.warning(self, "错误", f"文件已存在: {file_path}")
             return
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write("")                          # 创建空文件
+            from write_utils import atomic_write_text
+            atomic_write_text(file_path, "", undo=False)   # 创建空文件
             self._refresh_tree()
         except Exception as e:
             QMessageBox.critical(self, "错误", f"创建文件失败: {e}")
@@ -501,15 +601,18 @@ class MyWindow(QMainWindow):
             self.ui.tree.setRootIndex(self.model.index(directory))
 
     def on_tree_doubleClicked(self, index):
-        """文件树双击事件：若为 .txt 文件则解析为国策树并绘制。"""
+        """文件树双击事件：文本类文件解析打开（国策→设计视图，其余→树形编辑器）。"""
         if not index.isValid(): return
         file_path = self.model.filePath(index)
         file_info = QFileInfo(file_path)
-        if file_info.isFile() and file_info.suffix().lower() == 'txt':
+        if not file_info.isFile():
+            return
+        suffix = file_info.suffix().lower()
+        if suffix in ("txt", "gui", "lua", "mod", "yml", "yaml", "gfx", "asset", "csv"):
             self.load_txt_pdx_to_memory(file_path)
 
     def load_txt_pdx_to_memory(self, file_path):
-        """读取并解析 PDX 脚本文件，若为国策树则渲染到图形场景。"""
+        """读取并解析 PDX 脚本文件，若为国策树则渲染到图形场景，否则打开树形编辑器。"""
         try:
             with open(file_path, 'r', encoding='utf-8-sig') as f:
                 content = f.read()
@@ -523,18 +626,18 @@ class MyWindow(QMainWindow):
                 self.renderer.draw_graph(focus_data, file_path)  # 在场景中绘制国策树
                 self.custom_view._current_file_path = file_path
             else:
-                # 初始部队文件（history/units）→ 专用编制+地图放置编辑器
+                # 初始部队文件（history/units）→ 直接打开师编制设计器（顶部可调地编）
                 norm = os.path.normpath(file_path).replace("\\", "/")
                 if "/history/units/" in norm or norm.endswith("/history/units"):
-                    from initial_oob_editor import InitialOobEditor
-                    editor = InitialOobEditor(
+                    from initial_oob_editor import open_oob_designer
+                    open_oob_designer(
                         file_path,
-                        hoi4_path=self.settings.get("HOI4_path", ""),
                         mod_path=self.settings.get("mod_path", ""),
+                        hoi4_path=self.settings.get("HOI4_path", ""),
                         parent=self)
-                    editor.show()
                 else:
-                    print("非国策文件，执行其他解析逻辑...")
+                    # 其余文本文件 → 树形编辑器（覆盖国策以外的全部类型）
+                    self._open_tree_editor(file_path, None)
 
         except Exception as e:
             print(f"读取或解析文件时发生错误: {e}")
@@ -599,6 +702,13 @@ class MyWindow(QMainWindow):
             self.workbench_dock.entity_gallery_nofile_requested.connect(
                 self._on_workbench_nofile_gallery)
             self.workbench_dock.nofile_mode_changed.connect(self._on_workbench_nofile_changed)
+            self.workbench_dock.country_changed.connect(self._on_workbench_country_changed)
+            self.workbench_dock.focus_tree_nofile_requested.connect(
+                self._on_workbench_focus_tree_nofile)
+            self.workbench_dock.tech_file_selected.connect(
+                self._on_workbench_tech_file)
+            self.workbench_dock.tech_tree_nofile_requested.connect(
+                self._on_workbench_tech_tree_nofile)
             self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.workbench_dock)
         self.workbench_dock.set_mod_path(self.settings.get("mod_path", ""))
         self.workbench_dock.set_nofile_mode(nofile)
@@ -647,20 +757,59 @@ class MyWindow(QMainWindow):
         except Exception:
             pass
 
+    def _on_workbench_country_changed(self, tag):
+        """工作台「当前国家」变化：同步到右侧画廊（新建实体时优先写入该国文件）。"""
+        try:
+            self.custom_view.set_current_country_hint(tag or None)
+        except Exception:
+            pass
+
+    def _on_workbench_focus_tree_nofile(self, country, files):
+        """无文件模式：在右侧绘制国策树（当前设计中的国家），跨文件合并。"""
+        try:
+            self.custom_view.show_focus_tree_nofile(country, files)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    def _on_workbench_tech_file(self, file_path):
+        """工作台：科技文件 → 在右侧画布绘制科技树（与国策树同一画布）。"""
+        try:
+            self.custom_view.show_tech_tree_file(file_path)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    def _on_workbench_tech_tree_nofile(self, files):
+        """无文件模式：在右侧画布绘制全部科技（跨文件合并）。"""
+        try:
+            self.custom_view.show_tech_tree_nofile(files)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
     def _on_workbench_generic_file(self, file_path, entity_id=None):
         """工作台：打开其他内容文件（复用树形编辑器），可选定位实体。"""
+        self._open_tree_editor(file_path, entity_id)
+
+    def _open_tree_editor(self, file_path, entity_id=None):
+        """打开指定文件到合适的编辑器：
+
+        - history/units → 初始部队编辑器（编制 + 地图放置）
+        - 其余文本文件 → 通用 PDX 树形编辑器（可选定位实体）
+        经典文件树双击与工作台双击共用此分发逻辑。
+        """
         # 初始部队文件（history/units）→ 专用编制+地图放置编辑器
         mod = self.settings.get("mod_path", "")
         try:
             norm = os.path.normpath(file_path).replace("\\", "/")
             if "/history/units/" in norm or norm.endswith("/history/units"):
-                from initial_oob_editor import InitialOobEditor
-                editor = InitialOobEditor(
+                from initial_oob_editor import open_oob_designer
+                open_oob_designer(
                     file_path,
-                    hoi4_path=self.settings.get("HOI4_path", ""),
                     mod_path=mod,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
                     parent=self)
-                editor.show()
                 return
         except Exception as e:
             import traceback
@@ -710,6 +859,218 @@ class MyWindow(QMainWindow):
             import traceback
             traceback.print_exc()
             QMessageBox.critical(self, "错误", f"无法打开文件: {e}")
+
+    def on_coverage_report(self):
+        """工具菜单：打开文件类型覆盖检查报告（含仍使用树形编辑器打开的类型清单）。"""
+        from coverage_report import CoverageReportDialog
+        dlg = CoverageReportDialog(
+            parent=self,
+            mod_path=self.settings.get("mod_path", ""),
+            game_path=self.settings.get("HOI4_path", ""))
+        dlg.show()
+
+    def on_health_check(self):
+        """工具菜单：导出前健康检查（发布前确定性检查清单）。"""
+        mod_path = self.settings.get("mod_path", "")
+        if not mod_path or not os.path.isdir(mod_path):
+            QMessageBox.information(
+                self, "导出前健康检查",
+                "请先打开一个 mod 目录（文件菜单 → 打开 Mod）")
+            return
+        from health_check_dialog import HealthCheckDialog
+        dlg = HealthCheckDialog(
+            parent=self,
+            mod_path=mod_path,
+            game_path=self.settings.get("HOI4_path", ""))
+        dlg.exec()
+
+    def on_map_editor(self):
+        """工具菜单：地图编辑（点选/涂色/框选/地形演示）。"""
+        mod_path = self.settings.get("mod_path", "")
+        if not mod_path or not os.path.isdir(mod_path):
+            QMessageBox.information(
+                self, "地图编辑",
+                "请先打开一个 mod 目录（文件菜单 → 打开 Mod）")
+            return
+        from map_editor_dialog import MapEditorDialog
+        dlg = MapEditorDialog(
+            parent=self,
+            mod_path=mod_path,
+            game_path=self.settings.get("HOI4_path", ""))
+        dlg.exec()
+
+    def _require_mod(self, title):
+        """工具菜单统一入口：要求已打开 mod 目录，返回 mod_path/hoi4_path。"""
+        mod_path = self.settings.get("mod_path", "")
+        if not mod_path or not os.path.isdir(mod_path):
+            QMessageBox.information(
+                self, title,
+                "请先打开一个 mod 目录（文件菜单 → 打开 Mod）")
+            return None, None
+        return mod_path, self.settings.get("HOI4_path", "")
+
+    def on_division_editor(self):
+        """工具菜单：师编制编辑器（先选择 OOB 文件；无文件模式同样可用）。"""
+        mod_path, hoi4_path = self._require_mod("师编制编辑器")
+        if not mod_path:
+            return
+        from PyQt6.QtWidgets import QInputDialog
+        files = []
+        for base in (mod_path, hoi4_path):
+            if not base:
+                continue
+            d = os.path.join(base, "history", "units")
+            if not os.path.isdir(d):
+                continue
+            for fn in sorted(os.listdir(d)):
+                if fn.lower().endswith(".txt"):
+                    files.append(os.path.join(d, fn))
+        if not files:
+            QMessageBox.information(self, "师编制编辑器",
+                                    "未找到 history/units 下的 OOB 文件。")
+            return
+        names = [os.path.basename(f) for f in files]
+        name, ok = QInputDialog.getItem(self, "师编制编辑器", "选择 OOB 文件:",
+                                        names, 0, False)
+        if not ok:
+            return
+        file_path = files[names.index(name)]
+        from initial_oob_editor import open_oob_designer
+        open_oob_designer(file_path, mod_path=mod_path,
+                          hoi4_path=hoi4_path, parent=self)
+
+    def on_ship_designer(self):
+        """工具菜单：舰艇设计（跨国家浏览，无文件模式可用）。"""
+        mod_path, hoi4_path = self._require_mod("舰艇设计")
+        if not mod_path:
+            return
+        from ship_design_dialog import ShipDesignDialog
+        dlg = ShipDesignDialog(mod_path, hoi4_path, parent=self)
+        dlg.show()
+
+    def on_plane_designer(self):
+        """工具菜单：飞机设计（跨国家浏览，无文件模式可用）。"""
+        mod_path, hoi4_path = self._require_mod("飞机设计")
+        if not mod_path:
+            return
+        from plane_design_dialog import PlaneDesignDialog
+        dlg = PlaneDesignDialog(mod_path, hoi4_path, parent=self)
+        dlg.show()
+
+    def on_tank_designer(self):
+        """工具菜单：坦克设计（跨国家浏览，无文件模式可用）。"""
+        mod_path, hoi4_path = self._require_mod("坦克设计")
+        if not mod_path:
+            return
+        from tank_design_dialog import TankDesignDialog
+        dlg = TankDesignDialog(mod_path, hoi4_path, parent=self)
+        dlg.show()
+
+    def on_region_editor(self):
+        """工具菜单：区域编辑（框选划分战略区域/补给区域/州）。"""
+        mod_path = self.settings.get("mod_path", "")
+        if not mod_path or not os.path.isdir(mod_path):
+            QMessageBox.information(
+                self, "区域编辑",
+                "请先打开一个 mod 目录（文件菜单 → 打开 Mod）")
+            return
+        from region_editor_dialog import RegionEditorDialog
+        dlg = RegionEditorDialog(
+            parent=self,
+            mod_path=mod_path,
+            game_path=self.settings.get("HOI4_path", ""))
+        dlg.exec()
+
+    def on_overlay_report(self):
+        """工具菜单：覆盖规则与增量报告（mod 覆盖原版的显式规则链）。"""
+        from overlay_report_dialog import OverlayReportDialog
+        dlg = OverlayReportDialog(
+            parent=self,
+            mod_path=self.settings.get("mod_path", ""),
+            hoi4_path=self.settings.get("HOI4_path", ""))
+        dlg.exec()
+
+    def on_icon_manifest(self):
+        """工具菜单：图标库 manifest（全部 gfx sprite 清单）。"""
+        from icon_manifest_dialog import IconManifestDialog
+        dlg = IconManifestDialog(
+            parent=self,
+            mod_path=self.settings.get("mod_path", ""),
+            hoi4_path=self.settings.get("HOI4_path", ""))
+        dlg.exec()
+
+    def on_unit_counters(self):
+        """工具菜单：单位标牌库（从游戏导入的兵牌图标库）。"""
+        from unit_counter_library_dialog import UnitCounterLibraryDialog
+        dlg = UnitCounterLibraryDialog(
+            parent=self,
+            game_path=self.settings.get("HOI4_path", ""))
+        dlg.exec()
+
+    def on_undo_last_write(self):
+        """工具菜单：撤销最近一次文件写入并刷新界面。"""
+        from undo_mgr import undo, can_undo
+        if not can_undo():
+            QMessageBox.information(self, "撤销", "没有可撤销的写入操作")
+            return
+        path, ok = undo()
+        if not ok:
+            QMessageBox.warning(self, "撤销", f"撤销失败: {path}")
+            return
+        self._refresh_tree()
+        if self.workbench_dock is not None:
+            try:
+                self.workbench_dock._refresh()
+            except Exception:
+                pass
+        try:
+            self.custom_view.redraw()
+        except Exception:
+            pass
+        QMessageBox.information(
+            self, "撤销", f"已恢复文件到上次写入前:\n{os.path.basename(path)}")
+
+    def on_game_reference(self):
+        """工具菜单：游戏数据参考面板（国家 tag + 中文名搜索复制）。"""
+        from reference_panel import GameReferenceDialog
+        dlg = GameReferenceDialog(
+            parent=self,
+            game_path=self.settings.get("HOI4_path", ""),
+            mod_path=self.settings.get("mod_path", ""))
+        dlg.exec()
+
+    def on_ai_assist(self):
+        """工具菜单：AI 创作助手（需求 → 生成 → 预览 → 写入 mod）。"""
+        from ai_assist_dialog import AiAssistDialog
+        cur_type = ""
+        wb = self.workbench_dock
+        if wb is not None:
+            cur_type = wb._current_type
+        dlg = AiAssistDialog(
+            parent=self,
+            content_type_key=cur_type,
+            mod_path=self.settings.get("mod_path", ""))
+        dlg.exec()
+
+    def on_ai_config(self):
+        """工具菜单：AI 服务配置。"""
+        from ai_assist_dialog import AiConfigDialog
+        dlg = AiConfigDialog(self)
+        dlg.exec()
+
+    def on_api_dialog(self):
+        """工具菜单：外部接口对话框（外置 Agent HTTP API / MCP）。"""
+        from api_gui_dialog import ApiDialog
+        dlg = ApiDialog(
+            parent=self,
+            mod_path=self.settings.get("mod_path", ""),
+            game_path=self.settings.get("HOI4_path", ""))
+        dlg.exec()
+
+    def on_tech_tree_view(self):
+        """（已废弃入口）科技树改在国策树画布中绘制：工作台选中「科技」类型，
+        双击科技文件或在无文件模式下自动绘制；此处保留空实现避免旧引用报错。"""
+        pass
 
     @staticmethod
     def _locate_entity_in_editor(editor, entity_id):
@@ -801,8 +1162,8 @@ class MyWindow(QMainWindow):
                     else:
                         skipped.append(f"{kind}:{target}")
 
-            with open(target_file, 'w', encoding='utf-8') as f:
-                f.write(content)
+            from write_utils import atomic_write_text
+            atomic_write_text(target_file, content)
 
             # 刷新设计视图
             self.load_txt_pdx_to_memory(target_file)
@@ -972,13 +1333,13 @@ class MyWindow(QMainWindow):
         lay.addWidget(QLabel("遇到问题欢迎加入 QQ 群反馈："))
         num_label = QLabel("720723415")
         num_label.setStyleSheet(
-            "font-size: 22px; font-weight: bold; color: #2d6cdf;"
-            "border: 1px solid #bbb; border-radius: 6px; padding: 8px; background: #f5f7fa;")
+            "font-size: 22px; font-weight: bold; color: #1f4f7e;"
+            "border: 1px solid rgba(22, 35, 51, 0.18); border-radius: 8px; padding: 8px; background: #f4f7fa;")
         num_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         num_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(num_label)
         hint = QLabel("（可直接选中上面的数字复制）")
-        hint.setStyleSheet("color: #888;")
+        hint.setStyleSheet("color: #5d6b7a;")
         lay.addWidget(hint)
         btn_row = QHBoxLayout()
         copy_btn = QPushButton("复制群号")
@@ -1022,6 +1383,13 @@ class MyWindow(QMainWindow):
         duplicates = find_duplicate_ids(mod)
         self.statusBar().clearMessage()
 
+        # ── 校验体系扩展：本地化缺失 + 国策引用悬空 ──
+        from validation import (
+            check_localisation_coverage, check_focus_references,
+            fix_localisation_missing)
+        loc_missing = check_localisation_coverage(mod, hoi4)
+        focus_refs = check_focus_references(mod)
+
         lines = []
         total = 0
         for rel in sorted(results):
@@ -1038,18 +1406,76 @@ class MyWindow(QMainWindow):
                 lines.append(f"◆ {k}:")
                 for rel in duplicates[k]:
                     lines.append(f"    - {rel}")
+        if loc_missing:
+            lines.append("")
+            lines.append(f"════ 本地化缺失（{len(loc_missing)} 条，可一键补写） ════")
+            total += len(loc_missing)
+            for m in sorted(loc_missing, key=lambda x: (x["country"], x["key"]))[:200]:
+                tag = f"[{m['country']}] " if m["country"] else ""
+                miss = ", ".join(m.get("missing_keys") or [m["key"]])
+                lines.append(f"◆ {tag}{m['key']}（{m['type']} · {m['file']}）→ 缺: {miss}")
+            if len(loc_missing) > 200:
+                lines.append(f"    …（其余 {len(loc_missing) - 200} 条略）")
+        if focus_refs:
+            lines.append("")
+            lines.append(f"════ 国策引用悬空（{len(focus_refs)} 处） ════")
+            total += len(focus_refs)
+            for r in sorted(focus_refs, key=lambda x: x["file"])[:100]:
+                lines.append(f"◆ {r['focus_id']}（{r['file']}）→ 缺少: {', '.join(r['missing'])}")
+            if len(focus_refs) > 100:
+                lines.append(f"    …（其余 {len(focus_refs) - 100} 处略）")
 
         if not lines:
             QMessageBox.information(
-                self, "校验 mod", "未发现未知引用，mod 内容与游戏数据字典一致。")
+                self, "校验 mod", "未发现问题：无未知引用、无重复 ID、无本地化缺失、无国策引用悬空。")
             return
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPlainTextEdit
+        from PyQt6.QtWidgets import (
+            QDialog, QVBoxLayout, QHBoxLayout, QPlainTextEdit, QPushButton,
+            QApplication, QMessageBox as _MB)
         dlg = QDialog(self)
         dlg.setWindowTitle(f"校验结果：{total} 个问题")
-        dlg.resize(720, 480)
+        dlg.resize(760, 520)
         lay = QVBoxLayout(dlg)
         edit = QPlainTextEdit()
         edit.setReadOnly(True)
         edit.setPlainText("\n".join(lines))
         lay.addWidget(edit)
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        if loc_missing:
+            fix_btn = QPushButton(f"✅ 一键补写本地化（{len(loc_missing)} 条）")
+            fix_btn.clicked.connect(
+                lambda: self._fix_missing_localisation(dlg, edit, mod, hoi4, loc_missing))
+            btn_row.addWidget(fix_btn)
+        copy_btn = QPushButton("📋 复制报告")
+        copy_btn.clicked.connect(
+            lambda: QApplication.clipboard().setText("\n".join(lines)))
+        btn_row.addWidget(copy_btn)
+        close_btn = QPushButton("关闭")
+        close_btn.clicked.connect(dlg.accept)
+        btn_row.addWidget(close_btn)
+        lay.addLayout(btn_row)
         dlg.exec()
+
+    def _fix_missing_localisation(self, dlg, edit, mod, hoi4, missing):
+        """一键补写本地化缺失词条（写入 mod 翻译文件，不碰游戏文件）。"""
+        from PyQt6.QtWidgets import QMessageBox
+        reply = QMessageBox.question(
+            self, "一键补写本地化",
+            f"将把 {len(missing)} 个缺失词条写入 mod 的本地化文件\n"
+            "（值取游戏英文原文，无原文用实体 id 占位，之后可逐条翻译）。\n"
+            "只写入 mod 目录，不会修改游戏文件。继续？")
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        from validation import fix_localisation_missing
+        try:
+            n, target = fix_localisation_missing(mod, hoi4, missing)
+        except Exception as e:
+            QMessageBox.critical(self, "错误", f"补写失败: {e}")
+            return
+        if n:
+            edit.appendPlainText(
+                f"\n✅ 已补写 {n} 条本地化词条 → {os.path.basename(target)}")
+        else:
+            QMessageBox.information(self, "提示", "没有需要补写的词条（可能已被其他文件覆盖）")
+        self._sync_loc_manager()

@@ -1,4 +1,4 @@
-﻿"""
+"""
 翻译编辑器逻辑 — 核心翻译管理系统
 从 HOI4_path 和 mod_path 中读取 YML 翻译文件，
 支持查看、修改、保存翻译（只写入 mod_path，不修改游戏原始文件）。
@@ -217,14 +217,17 @@ class TranslationEditor:
                 self.mod_cache[key] = val
 
             # 写入文件（l_simp_chinese 头 + " key: \"value\"" 每行一条）
+            # 本地化 .yml 遵循 HOI4 惯例带 BOM（utf-8-sig），显式 allow_bom
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            with open(filepath, "w", encoding="utf-8-sig", newline="") as f:
-                f.write("l_simp_chinese:\n")
-                for key in new_order:
-                    val = new_content[key]
-                    # 转义：反斜杠、双引号、换行（保证多行描述仍为单行 YML 条目）
-                    escaped_val = val.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
-                    f.write(f' {key}: "{escaped_val}"\n')
+            lines = ["l_simp_chinese:"]
+            for key in new_order:
+                val = new_content[key]
+                # 转义：反斜杠、双引号、换行（保证多行描述仍为单行 YML 条目）
+                escaped_val = val.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+                lines.append(f' {key}: "{escaped_val}"')
+            from write_utils import atomic_write_text
+            atomic_write_text(filepath, "\n".join(lines) + "\n",
+                              encoding="utf-8-sig", allow_bom=True)
 
             return True
 

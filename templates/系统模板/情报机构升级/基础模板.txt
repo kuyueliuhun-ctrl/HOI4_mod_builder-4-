@@ -1,0 +1,11 @@
+branch_intelligence = {
+	upgrade_economy_civilian = {
+		picture = GFX_agency_economy_department
+		frame = GFX_upgrade_frame_economy
+		ai_will_do = {
+			factor = 1
+		}
+		modifiers_during_progress = {
+		}
+	}
+}

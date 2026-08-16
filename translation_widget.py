@@ -109,15 +109,15 @@ class TranslationEditDialog(QDialog):
         if in_mod:
             # mod中已有翻译 — 绿色
             self.source_label.setText("📦 此条目的翻译来自mod文件")
-            self.source_label.setStyleSheet("color: #2e7d32;")
+            self.source_label.setStyleSheet("color: #2f7d57;")
         elif self.editor.has_in_hoi4(self.field_id):
             # 游戏原始有翻译但mod中没有 — 蓝色
             self.source_label.setText("🎮 此条目的翻译来自游戏原始文件（保存后将复制到mod）")
-            self.source_label.setStyleSheet("color: #1565c0;")
+            self.source_label.setStyleSheet("color: #1f4f7e;")
         else:
             # 完全没有翻译 — 橙色，需要新建
             self.source_label.setText("❓ 此条目无原始翻译（将新建到mod文件）")
-            self.source_label.setStyleSheet("color: #e65100;")
+            self.source_label.setStyleSheet("color: #b7791f;")
 
     def _save(self):
         """

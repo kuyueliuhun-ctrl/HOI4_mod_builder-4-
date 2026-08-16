@@ -1,0 +1,6 @@
+difficulty_setting = {
+	key = "custom_diff_setting"
+	modifier = diff_strong_ai_generic
+	countries = { }
+	multiplier = 2.0
+}

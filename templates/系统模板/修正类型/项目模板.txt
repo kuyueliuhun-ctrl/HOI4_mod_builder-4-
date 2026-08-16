@@ -1,0 +1,4 @@
+custom_modifier = {
+	icon = "GFX_custom"
+	# 修正默认值
+}

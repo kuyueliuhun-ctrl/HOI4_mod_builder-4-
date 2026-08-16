@@ -1,0 +1,5 @@
+focus = {
+	id = __FOCUS_ID__
+	cost = 1
+	# 持续国策的逐日效果
+}

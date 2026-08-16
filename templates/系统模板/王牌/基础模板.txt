@@ -1,0 +1,9 @@
+modifiers = {
+	fighter_good = {
+		type = { fighter heavy_fighter interceptor }
+		chance = 0.9
+		effect = {
+			air_attack_factor = 0.03
+		}
+	}
+}

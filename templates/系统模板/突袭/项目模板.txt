@@ -1,0 +1,6 @@
+facility_strike = {
+	days_to_prepare = 90
+	ai_will_do = {
+		base = 2
+	}
+}

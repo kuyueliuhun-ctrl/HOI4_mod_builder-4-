@@ -1,12 +1,15 @@
 """师编制编辑器 — 仿游戏内师设计器（Division Designer）
 
-左侧模板列表（新建/复制/删除），右侧编辑区（固定 5x5 团/营网格）：
+顶部标题栏（模板下拉切换/新建/复制/删除/锁定 + 保存/地图放置），
+中部左=编制网格（固定 5x5 团/营网格），右=数据面板（基础数据/战斗数据/
+装备花费/地形适应性，基础值估算）：
   - 每列 = 一个团，每格 = 一个营；团内只能放置同一大类型兵种
   - 团级支援连：横向一排，与团（列）对齐；团内营数 >= 3 后解锁（每团最多 1 个）
   - 普通支援连：右侧纵向一列，与营（行）对齐；无放置条件
   - 兵种选择：点击 ＋ 弹出分类面板（步兵部队/机动部队/装甲部队/支援部队…），
     分类取自兵种文件中的 group 字段；先选大类型，再点具体兵种放入
   - 兵种名：优先显示本地化（翻译文件）中文名，无中文时回退兵种 key（英文）
+  - 数据面板数值 = oob_loader.division_stats 基础值估算（未含科技/将领修正）
 
 数据编码（support 块内）：
   普通支援连  ->  (type, x=0, y=行)   （与 mod 现有文件写法一致）
@@ -20,7 +23,8 @@ from PyQt6.QtGui import QIcon, QPixmap, QColor
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem,
     QPushButton, QToolButton, QLineEdit, QCheckBox, QLabel, QMessageBox,
-    QGridLayout, QScrollArea, QWidget, QFrame, QSplitter, QGroupBox
+    QGridLayout, QScrollArea, QWidget, QFrame, QSplitter, QGroupBox,
+    QComboBox, QMenu
 )
 
 from oob_loader import DivisionTemplate
@@ -31,6 +35,7 @@ GRID_COLS = 5              # 团（列）数量
 GRID_ROWS = 5              # 营（行）数量
 SUPPORT_UNLOCK = 3         # 团内营数达到该值后解锁团级支援连
 MAX_LINE_BATTALIONS = 25   # 全师战斗营上限（游戏上限）
+PANEL_WIDTH = 330          # 右侧数据面板固定宽度
 
 # 大类型（兵种文件 group 字段）→ 中文名
 GROUP_LABELS = {
@@ -45,23 +50,75 @@ GROUP_LABELS = {
 _GROUP_ORDER = ("infantry", "mobile", "armor", "support",
                 "combat_support", "mobile_combat_support", "armor_combat_support")
 
-# 空槽 ＋ 按钮样式（亮色加号，便于分辨）
+# 地形徽章（键 → 中文名）；顺序与游戏内地形徽章矩阵一致
+TERRAIN_LABELS = (
+    ("desert", "沙漠"), ("forest", "森林"), ("hills", "丘陵"),
+    ("jungle", "丛林"), ("marsh", "沼泽"), ("mountain", "山地"),
+    ("plains", "平原"), ("urban", "城市"),
+)
+
+# 空槽 ＋ 按钮样式（亮色主题适配：主色虚线框 + 主色加号）
 _PLUS_STYLE = (
-    "QPushButton { border: 1px dashed #777; background: #2b2b30;"
-    " color: #9fe870; font-size: 22px; font-weight: bold; }"
-    "QPushButton:hover { background: #3a3a44; }")
+    "QPushButton { border: 1.5px dashed #1f4f7e; background: #ffffff;"
+    " color: #1f4f7e; font-size: 22px; font-weight: bold; }"
+    "QPushButton:hover { background: rgba(31, 79, 126, 0.10); }")
 _OCCUPIED_STYLE = (
-    "QPushButton { border: 1px solid #7a8; background: #2f3a32;"
-    " color: #e8f5e9; }"
-    "QPushButton:hover { background: #3a463c; }")
+    "QPushButton { border: 1px solid #2f7d57; background: #eef6f0;"
+    " color: #2f7d57; }"
+    "QPushButton:hover { background: #e0efe6; }")
 _LOCKED_STYLE = (
-    "QPushButton { border: 1px dashed #444; background: #242428;"
-    " color: #666; font-size: 18px; }")
+    "QPushButton { border: 1px dashed #95a0ab; background: #f4f6f8;"
+    " color: #95a0ab; font-size: 18px; }")
+
+# 数据面板样式（亮色主题：标签次级灰、数值主色粗体、分组框圆角）
+_STAT_LABEL_STYLE = "color:#5d6b7a; font-size:12px;"
+_STAT_VALUE_STYLE = "color:#1f4f7e; font-weight:bold; font-size:12px;"
+_STAT_GROUP_STYLE = (
+    "QGroupBox { border: 1px solid rgba(22,35,51,0.18); border-radius: 8px;"
+    " margin-top: 10px; font-weight: bold; }"
+    "QGroupBox::title { subcontrol-origin: margin; left: 10px;"
+    " padding: 0 4px; color:#425062; }")
+_TERRAIN_CARD_STYLE = (
+    "QLabel { border: 1px solid rgba(22,35,51,0.18); border-radius: 6px;"
+    " background: #ffffff; padding: 4px; }")
 
 
 def group_label(g):
     """group 字段 → 中文大类名（未收录的 group 原样显示）。"""
     return GROUP_LABELS.get(g, g or "其他部队")
+
+
+def _fmt_num(v, nd=1):
+    """数值格式化：None → "—"；整数去小数；否则保留 nd 位。"""
+    if v is None:
+        return "—"
+    f = float(v)
+    if abs(f - round(f)) < 1e-9:
+        return str(int(round(f)))
+    return ("%." + str(nd) + "f") % f
+
+
+def _fmt_pct(v, nd=1):
+    """比例格式化（0.2 → "+20%"）：None → "—"。"""
+    if v is None:
+        return "—"
+    p = v * 100.0
+    sign = "+" if p > 0 else ""
+    if abs(p - round(p)) < 1e-9:
+        return "%s%d%%" % (sign, int(round(p)))
+    return "%s%.*f%%" % (sign, nd, p)
+
+
+def equip_cn_name(key):
+    """装备中文名（本地化），无中文回退装备键。"""
+    try:
+        from gui_translator import get_translator
+        cn = get_translator().translate_value(key)
+        if cn and cn != key:
+            return cn
+    except Exception:
+        pass
+    return key
 
 
 def unit_icon(name, sub_units, gfx_map, mod_path, hoi4_path):
@@ -136,7 +193,7 @@ class UnitPickerDialog(QDialog):
         else:
             hint = QLabel("先选择大类型（步兵部队/机动部队/装甲部队/支援部队…），"
                           "再点击具体兵种放入。")
-        hint.setStyleSheet("color:#999; padding:2px;")
+        hint.setStyleSheet("color:#5d6b7a; padding:2px;")
         root.addWidget(hint)
 
         split = QHBoxLayout()
@@ -218,111 +275,227 @@ class DivisionEditor(QDialog):
         self.hoi4_path = hoi4_path
         # 当前编辑中的模板
         self.current = None
+        # 数据面板字段名 → QLabel（_update_stats 更新）
+        self._stat_labels = {}
 
         self.setWindowTitle("师编制编辑器")
-        self.resize(1120, 660)
+        self.resize(1280, 760)
         self._build_ui()
-        self._refresh_template_list()
-        if self.list_widget.count() > 0:
-            self.list_widget.setCurrentRow(0)
+        self._refresh_combo()
+        if self.combo.count() > 0:
+            self.combo.setCurrentIndex(0)
+            if self.current is None:
+                # addItem 在 blockSignals 期间已自动选中第 0 项，
+                # 索引未变化 → 信号不触发，手动补一次
+                self._on_combo_changed(0)
 
     # ---------- UI ----------
 
     def _build_ui(self):
         root = QVBoxLayout(self)
 
-        # 工具栏
+        # 顶部标题栏：标题 + 模板下拉 + 改名 + 锁定 + 模板管理 + 全局按钮
         bar = QHBoxLayout()
-        self.save_btn = QPushButton("💾 保存")
-        self.save_btn.clicked.connect(self._save)
-        bar.addWidget(self.save_btn)
-        bar.addStretch(1)
-        self.place_btn = QPushButton("🗺 地图放置陆军…")
-        self.place_btn.clicked.connect(self._open_map)
-        bar.addWidget(self.place_btn)
-        root.addLayout(bar)
+        title = QLabel("师编制编辑器")
+        title.setStyleSheet("font-size:15px; font-weight:bold; color:#162333;")
+        bar.addWidget(title)
+        bar.addSpacing(8)
 
-        split = QSplitter(Qt.Orientation.Horizontal)
+        self.combo = QComboBox()
+        self.combo.setMinimumWidth(240)
+        self.combo.currentIndexChanged.connect(self._on_combo_changed)
+        bar.addWidget(self.combo)
 
-        # 左侧：模板列表
-        left = QWidget()
-        left_layout = QVBoxLayout(left)
-        left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.addWidget(QLabel("师编制模板:"))
-        self.list_widget = QListWidget()
-        self.list_widget.currentRowChanged.connect(self._on_template_selected)
-        left_layout.addWidget(self.list_widget)
-        btn_row = QHBoxLayout()
+        self.name_edit = QLineEdit()
+        self.name_edit.setFixedWidth(220)
+        self.name_edit.setPlaceholderText("模板名（可编辑）")
+        self.name_edit.textChanged.connect(self._on_name_changed)
+        bar.addWidget(self.name_edit)
+
+        self.locked_check = QCheckBox("🔒 is_locked")
+        self.locked_check.toggled.connect(self._on_locked_changed)
+        bar.addWidget(self.locked_check)
+
         self.add_btn = QPushButton("＋ 新建")
         self.add_btn.clicked.connect(self._add_template)
         self.copy_btn = QPushButton("⧉ 复制")
         self.copy_btn.clicked.connect(self._copy_template)
         self.del_btn = QPushButton("🗑 删除")
         self.del_btn.clicked.connect(self._delete_template)
-        btn_row.addWidget(self.add_btn)
-        btn_row.addWidget(self.copy_btn)
-        btn_row.addWidget(self.del_btn)
-        left_layout.addLayout(btn_row)
-        split.addWidget(left)
+        self.tpl_save_btn = QPushButton("💾 存为模板")
+        self.tpl_save_btn.clicked.connect(self._save_as_template)
+        self.tpl_load_btn = QPushButton("📥 模板新建")
+        self.tpl_load_btn.clicked.connect(self._new_from_template)
+        bar.addWidget(self.add_btn)
+        bar.addWidget(self.copy_btn)
+        bar.addWidget(self.del_btn)
+        bar.addWidget(self.tpl_save_btn)
+        bar.addWidget(self.tpl_load_btn)
 
-        # 右侧：编辑区
-        right = QWidget()
-        right_layout = QVBoxLayout(right)
-        right_layout.setContentsMargins(0, 0, 0, 0)
+        bar.addStretch(1)
 
-        # 模板属性
-        prop = QHBoxLayout()
-        prop.addWidget(QLabel("模板名:"))
-        self.name_edit = QLineEdit()
-        self.name_edit.setFixedWidth(260)
-        self.name_edit.textChanged.connect(self._on_name_changed)
-        prop.addWidget(self.name_edit)
-        self.locked_check = QCheckBox("is_locked（锁模板）")
-        self.locked_check.toggled.connect(self._on_locked_changed)
-        prop.addWidget(self.locked_check)
-        prop.addStretch(1)
-        right_layout.addLayout(prop)
+        # 顶部：地编入口 + 其他设计器（舰艇/飞机/坦克）
+        self.place_btn = QPushButton("🗺 地编（地图放置）…")
+        self.place_btn.setToolTip("打开地图放置窗口，选择当前编制点击地块放置部队")
+        self.place_btn.clicked.connect(self._open_map)
+        bar.addWidget(self.place_btn)
 
-        # 编制网格区
+        self.design_btn = QToolButton()
+        self.design_btn.setText("🛠 设计器 ▾")
+        self.design_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        design_menu = QMenu(self)
+        act_ship = design_menu.addAction("🚢 舰艇设计…")
+        act_ship.triggered.connect(self._open_ship_designer)
+        act_plane = design_menu.addAction("✈ 飞机设计…")
+        act_plane.triggered.connect(self._open_plane_designer)
+        act_tank = design_menu.addAction("🛡 坦克设计…")
+        act_tank.triggered.connect(self._open_tank_designer)
+        self.design_btn.setMenu(design_menu)
+        bar.addWidget(self.design_btn)
+
+        self.save_btn = QPushButton("💾 保存")
+        self.save_btn.clicked.connect(self._save)
+        bar.addWidget(self.save_btn)
+        root.addLayout(bar)
+
+        split = QSplitter(Qt.Orientation.Horizontal)
+
+        # 左侧：编制网格区
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         self.grid_host = QWidget()
         self.grid_layout = QVBoxLayout(self.grid_host)
         self.grid_layout.setContentsMargins(0, 0, 0, 0)
         scroll.setWidget(self.grid_host)
-        right_layout.addWidget(scroll, 1)
+        split.addWidget(scroll)
 
         hint = QLabel(
             "提示: 点击 ＋ 选择兵种（按大类型分类）；每列 = 一个团，每格 = 一个营，"
             "团内只能放置同一大类型兵种；团内营数达到 3 后可加入 1 个团级支援连"
             "（下方横向与团对齐）；普通支援连（右侧纵向与营对齐）随时可加入。"
-            "点击已占格子可移除该兵种。")
+            "点击已占格子可移除该兵种。右侧数值为基础值估算（未含科技修正）。")
         hint.setWordWrap(True)
-        hint.setStyleSheet("color:#888")
-        right_layout.addWidget(hint)
+        hint.setStyleSheet("color:#5d6b7a")
+        # 提示 + 网格容器：网格内容在 _grid_holder 内，_clear_grid 只清容器
+        self.grid_layout.addWidget(hint)
+        self._grid_holder = QWidget()
+        self._grid_holder_layout = QVBoxLayout(self._grid_holder)
+        self._grid_holder_layout.setContentsMargins(0, 0, 0, 0)
+        self.grid_layout.addWidget(self._grid_holder)
+        self.grid_layout.addStretch(1)
 
-        split.addWidget(right)
-        split.setStretchFactor(0, 0)
-        split.setStretchFactor(1, 1)
+        # 右侧：数据面板（固定宽度）
+        panel = QWidget()
+        panel.setFixedWidth(PANEL_WIDTH)
+        panel_layout = QVBoxLayout(panel)
+        panel_layout.setContentsMargins(0, 0, 0, 0)
+        panel_scroll = QScrollArea()
+        panel_scroll.setWidgetResizable(True)
+        panel_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        panel_host = QWidget()
+        panel_host_layout = QVBoxLayout(panel_host)
+        panel_host_layout.setContentsMargins(4, 0, 4, 0)
+
+        # --- 基础数据 ---
+        self._build_stat_group(panel_host_layout, "基础数据", (
+            ("width", "战斗宽度"), ("manpower", "人力"), ("org", "组织度"),
+            ("speed", "最大速度"), ("hp", "HP"), ("org_regain", "恢复速度"),
+            ("recon", "侦察"), ("suppression", "镇压能力"),
+            ("weight", "重量"), ("supply", "补给使用"),
+            ("fuel", "燃油使用"), ("training", "训练时间"),
+        ))
+        # --- 战斗数据 ---
+        self._build_stat_group(panel_host_layout, "战斗数据", (
+            ("soft", "对人员杀伤"), ("hard", "对装甲杀伤"),
+            ("air", "对空攻击"), ("defense", "防御"),
+            ("breakthrough", "突破"), ("armor", "装甲厚度"),
+            ("piercing", "穿甲深度"), ("initiative", "主动性"),
+        ))
+        # --- 装备花费 ---
+        self._build_equip_box(panel_host_layout)
+        # --- 地形适应性 ---
+        self._build_terrain_group(panel_host_layout)
+
+        panel_host_layout.addStretch(1)
+        panel_scroll.setWidget(panel_host)
+        panel_layout.addWidget(panel_scroll)
+        split.addWidget(panel)
+        split.setStretchFactor(0, 1)
+        split.setStretchFactor(1, 0)
         root.addWidget(split, 1)
+
+        # 底部操作栏：重置 + 装备需求汇总
+        bottom = QHBoxLayout()
+        self.reset_btn = QPushButton("⟲ 重置")
+        self.reset_btn.setToolTip("放弃当前模板未保存的修改，从文件重新载入")
+        self.reset_btn.clicked.connect(self._reset_current)
+        bottom.addWidget(self.reset_btn)
+        bottom.addStretch(1)
+        self.equip_summary = QLabel("装备需求: —")
+        self.equip_summary.setStyleSheet("color:#5d6b7a;")
+        bottom.addWidget(self.equip_summary)
+        root.addLayout(bottom)
+
+    def _build_stat_group(self, host_layout, title, fields):
+        """数据面板分组框（两列：标签 | 数值右对齐）。"""
+        box = QGroupBox(title)
+        box.setStyleSheet(_STAT_GROUP_STYLE)
+        grid = QGridLayout(box)
+        grid.setContentsMargins(10, 12, 10, 8)
+        grid.setHorizontalSpacing(12)
+        grid.setVerticalSpacing(4)
+        for row, (key, label) in enumerate(fields):
+            lbl = QLabel(label)
+            lbl.setStyleSheet(_STAT_LABEL_STYLE)
+            val = QLabel("—")
+            val.setStyleSheet(_STAT_VALUE_STYLE)
+            val.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            val.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+            grid.addWidget(lbl, row, 0)
+            grid.addWidget(val, row, 1)
+            self._stat_labels[key] = val
+        host_layout.addWidget(box)
+
+    def _build_terrain_group(self, host_layout):
+        """地形适应性徽章矩阵（2 列 × 4 行，显示平均移动修正）。"""
+        box = QGroupBox("地形适应性")
+        box.setStyleSheet(_STAT_GROUP_STYLE)
+        grid = QGridLayout(box)
+        grid.setContentsMargins(10, 12, 10, 8)
+        grid.setSpacing(6)
+        self._terrain_labels = {}
+        for i, (key, cn) in enumerate(TERRAIN_LABELS):
+            card = QLabel("—")
+            card.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            card.setStyleSheet(_TERRAIN_CARD_STYLE)
+            card.setToolTip(f"{cn}（平均移动修正，基础值估算）")
+            grid.addWidget(card, i // 2, i % 2)
+            self._terrain_labels[key] = (card, cn)
+        host_layout.addWidget(box)
 
     # ---------- 数据刷新 ----------
 
-    def _refresh_template_list(self):
-        self.list_widget.blockSignals(True)
-        self.list_widget.clear()
+    def _refresh_combo(self):
+        """重填模板下拉（保留当前选择）。"""
+        cur = self.current.name if self.current is not None else None
+        self.combo.blockSignals(True)
+        self.combo.clear()
         for t in self.oob_file.templates:
             n = len(self.oob_file.placements_for_template(t.name))
-            item = QListWidgetItem(f"{t.name}   ({n} 个部署)")
-            item.setData(Qt.ItemDataRole.UserRole, t)
-            self.list_widget.addItem(item)
-        self.list_widget.blockSignals(False)
+            self.combo.addItem(f"{t.name}   ({n} 个部署)", t)
+        if cur is not None:
+            for i in range(self.combo.count()):
+                t = self.combo.itemData(i)
+                if t is not None and t.name == cur:
+                    self.combo.setCurrentIndex(i)
+                    break
+        self.combo.blockSignals(False)
 
     # ---------- 编辑区 ----------
 
     def _clear_grid(self):
-        """递归清空网格（含嵌套布局与全部子控件），避免重建时控件堆积。"""
-        DivisionEditor._clear_layout(self.grid_layout)
+        """递归清空网格容器（避免重建时控件堆积；提示/拉伸保留）。"""
+        DivisionEditor._clear_layout(self._grid_holder_layout)
 
     @staticmethod
     def _clear_layout(layout):
@@ -338,11 +511,8 @@ class DivisionEditor(QDialog):
                 DivisionEditor._clear_layout(child)
                 child.deleteLater()
 
-    def _on_template_selected(self, row):
-        item = self.list_widget.item(row)
-        if item is None:
-            return
-        tpl = item.data(Qt.ItemDataRole.UserRole)
+    def _on_combo_changed(self, index):
+        tpl = self.combo.itemData(index)
         if tpl is None:
             return
         self.current = tpl
@@ -387,8 +557,9 @@ class DivisionEditor(QDialog):
             grid.addWidget(self._make_slot(tpl, "regimental", c, 0),
                            GRID_ROWS + 2, c)
 
-        self.grid_layout.addLayout(grid)
-        self.grid_layout.addStretch(1)
+        self._grid_holder_layout.addLayout(grid)
+        self._grid_holder_layout.addStretch(1)
+        self._update_stats(tpl)
 
     def _make_slot(self, tpl, kind, x, y):
         """创建单个格子按钮。
@@ -619,11 +790,154 @@ class DivisionEditor(QDialog):
         if self.current is not None and text != self.current.name:
             self.current.name = text
             self.oob_file.mark_template_modified(self.current)
+            # 同步下拉显示文本（不触发切换）
+            self.combo.blockSignals(True)
+            idx = self.combo.currentIndex()
+            if idx >= 0:
+                self.combo.setItemText(idx, f"{text}   "
+                                           f"({len(self.oob_file.placements_for_template(text))} 个部署)")
+            self.combo.blockSignals(False)
 
     def _on_locked_changed(self, checked):
         if self.current is not None:
             self.current.is_locked = checked
             self.oob_file.mark_template_modified(self.current)
+
+    # ---------- 数据面板（基础值估算） ----------
+
+    def _equip_stats(self):
+        """装备攻击属性（惰性加载 + 模块级缓存）。"""
+        try:
+            from oob_loader import load_equipment_stats
+            return load_equipment_stats(self.mod_path, self.hoi4_path)
+        except Exception:
+            return {}
+
+    def _update_stats(self, tpl):
+        """按当前模板刷新右侧数据面板 + 底部装备汇总。"""
+        try:
+            from oob_loader import division_stats
+            st = division_stats(tpl, self.sub_units, self._equip_stats())
+        except Exception:
+            return
+        fmt = {
+            "width": lambda v: _fmt_num(v, 1),
+            "manpower": lambda v: _fmt_num(v, 0),
+            "org": lambda v: _fmt_num(v, 1),
+            "speed": lambda v: ("—" if v is None else _fmt_num(v, 1) + " km/h"),
+            "hp": lambda v: _fmt_num(v, 1),
+            "org_regain": lambda v: _fmt_num(v, 2),
+            "recon": lambda v: _fmt_num(v, 1),
+            "suppression": lambda v: _fmt_num(v, 1),
+            "weight": lambda v: _fmt_num(v, 1),
+            "supply": lambda v: _fmt_num(v, 2),
+            "fuel": lambda v: _fmt_num(v, 2),
+            "training": lambda v: _fmt_num(v, 0),
+            "soft": lambda v: _fmt_num(v, 1),
+            "hard": lambda v: _fmt_num(v, 1),
+            "air": lambda v: _fmt_num(v, 1),
+            "defense": lambda v: _fmt_num(v, 1),
+            "breakthrough": lambda v: _fmt_num(v, 1),
+            "armor": lambda v: _fmt_num(v, 1),
+            "piercing": lambda v: _fmt_num(v, 1),
+            "initiative": lambda v: _fmt_num(v, 2),
+            "reliability": lambda v: _fmt_pct(v, 1),
+        }
+        for key, val in self._stat_labels.items():
+            val.setText(fmt.get(key, _fmt_num)(st.get(key)))
+        # 地形徽章：平均移动修正（%）
+        terrain = st.get("terrain") or {}
+        for key, (card, cn) in self._terrain_labels.items():
+            mv = terrain.get(key)
+            card.setText(f"{cn}\n{_fmt_pct(mv, 0)}")
+        # 装备花费：按数量降序，最多 8 行
+        eq = st.get("equipment") or {}
+        lines = []
+        if eq:
+            rows = sorted(eq.items(), key=lambda kv: kv[1], reverse=True)
+            for k, cnt in rows[:8]:
+                lines.append(f"{equip_cn_name(k)}  {_fmt_num(cnt, 0)}")
+            if len(rows) > 8:
+                lines.append(f"…等 {len(rows)} 种装备")
+        self._equip_text.setText("\n".join(lines) if lines else "（无装备需求）")
+        n_total = int(sum(eq.values()))
+        self.equip_summary.setText(
+            f"装备需求: {len(eq)} 种 · 合计 {n_total} 件")
+
+    def _build_equip_box(self, host_layout):
+        """装备花费分组框（多行文本，_update_stats 刷新）。"""
+        box = QGroupBox("装备花费")
+        box.setStyleSheet(_STAT_GROUP_STYLE)
+        lay = QVBoxLayout(box)
+        lay.setContentsMargins(10, 12, 10, 8)
+        self._equip_text = QLabel("—")
+        self._equip_text.setStyleSheet(_STAT_VALUE_STYLE)
+        self._equip_text.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse)
+        self._equip_text.setWordWrap(True)
+        lay.addWidget(self._equip_text)
+        host_layout.addWidget(box)
+        self._equip_box = box
+
+    # ---------- 设计模板（存为模板 / 从模板新建） ----------
+
+    def _save_as_template(self):
+        if self.current is None:
+            QMessageBox.information(self, "提示", "没有可保存的编制。")
+            return
+        from PyQt6.QtWidgets import QInputDialog
+        name, ok = QInputDialog.getText(
+            self, "存为模板", "模板名:", text=self.current.name)
+        if not ok or not name.strip():
+            return
+        tpl = DivisionTemplate(
+            name.strip(), self.current.is_locked,
+            list(self.current.regiments), list(self.current.support),
+            list(self.current.extra_lines))
+        from design_template import save_design_template
+        path = save_design_template("division", name.strip(), tpl.to_pdx())
+        if path:
+            QMessageBox.information(self, "已保存模板",
+                                    f"模板已保存到:\n{path}")
+        else:
+            QMessageBox.critical(self, "保存失败", "模板保存失败。")
+
+    def _new_from_template(self):
+        if self.oob_file is None:
+            return
+        from PyQt6.QtWidgets import QInputDialog
+        from design_template import list_design_templates, load_design_template
+        from oob_loader import parse_division_templates
+        tpls = list_design_templates("division")
+        if not tpls:
+            QMessageBox.information(self, "模板", "暂无编制模板。")
+            return
+        names = [t["name"] for t in tpls]
+        name, ok = QInputDialog.getItem(self, "从模板新建", "选择模板:",
+                                        names, 0, False)
+        if not ok:
+            return
+        content = load_design_template("division", name)
+        if not content:
+            return
+        parsed = parse_division_templates(content)
+        if not parsed:
+            QMessageBox.warning(self, "模板无效",
+                                "模板内容不是有效的编制模板。")
+            return
+        src = parsed[0]
+        new_name = src.name
+        while any(t.name == new_name for t in self.oob_file.templates):
+            new_name = src.name + " Copy"
+            src.name = new_name
+        tpl = DivisionTemplate(
+            new_name, src.is_locked,
+            list(src.regiments), list(src.support),
+            list(src.extra_lines))
+        self.oob_file.add_template(tpl)
+        self._refresh_combo()
+        if self.combo.count() > 0:
+            self.combo.setCurrentIndex(self.combo.count() - 1)
 
     # ---------- 模板管理 ----------
 
@@ -631,8 +945,8 @@ class DivisionEditor(QDialog):
         tpl = DivisionTemplate("New Division", is_locked=False,
                                regiments=[("infantry", 0, 0)])
         self.oob_file.add_template(tpl)
-        self._refresh_template_list()
-        self.list_widget.setCurrentRow(self.list_widget.count() - 1)
+        self._refresh_combo()
+        self.combo.setCurrentIndex(self.combo.count() - 1)
 
     def _copy_template(self):
         if self.current is None:
@@ -643,8 +957,8 @@ class DivisionEditor(QDialog):
             list(self.current.regiments), list(self.current.support),
             list(self.current.extra_lines))
         self.oob_file.add_template(tpl)
-        self._refresh_template_list()
-        self.list_widget.setCurrentRow(self.list_widget.count() - 1)
+        self._refresh_combo()
+        self.combo.setCurrentIndex(self.combo.count() - 1)
 
     def _delete_template(self):
         if self.current is None:
@@ -658,10 +972,31 @@ class DivisionEditor(QDialog):
             return
         self.oob_file.remove_template(self.current.name)
         self.current = None
-        self._refresh_template_list()
+        self._refresh_combo()
         self._clear_grid()
-        if self.list_widget.count() > 0:
-            self.list_widget.setCurrentRow(0)
+        if self.combo.count() > 0:
+            self.combo.setCurrentIndex(0)
+
+    def _reset_current(self):
+        """丢弃当前模板未保存的修改，从文件原始内容重新载入。"""
+        if self.current is None:
+            return
+        name = self.current.name
+        try:
+            from oob_loader import parse_division_templates
+            tpl = next((t for t in parse_division_templates(self.oob_file.content)
+                        if t.name == name), None)
+        except Exception:
+            return
+        if tpl is None:
+            return
+        for i, t in enumerate(self.oob_file.templates):
+            if t.name == name:
+                self.oob_file.templates[i] = tpl
+                break
+        self.current = tpl
+        self._refresh_combo()
+        self._rebuild_editor(tpl)
 
     # ---------- 地图 ----------
 
@@ -672,7 +1007,22 @@ class DivisionEditor(QDialog):
         dlg = OobMapEditor(self.oob_file, self.sub_units, self.gfx_map,
                            self.mod_path, self.hoi4_path,
                            country_tag=tag, parent=self)
-        dlg.map_saved.connect(self._refresh_template_list)
+        dlg.map_saved.connect(self._refresh_combo)
+        dlg.show()
+
+    def _open_ship_designer(self):
+        from ship_design_dialog import ShipDesignDialog
+        dlg = ShipDesignDialog(self.mod_path, self.hoi4_path, parent=self)
+        dlg.show()
+
+    def _open_plane_designer(self):
+        from plane_design_dialog import PlaneDesignDialog
+        dlg = PlaneDesignDialog(self.mod_path, self.hoi4_path, parent=self)
+        dlg.show()
+
+    def _open_tank_designer(self):
+        from tank_design_dialog import TankDesignDialog
+        dlg = TankDesignDialog(self.mod_path, self.hoi4_path, parent=self)
         dlg.show()
 
     # ---------- 保存 ----------
@@ -685,4 +1035,4 @@ class DivisionEditor(QDialog):
             return
         QMessageBox.information(self, "已保存", f"已保存到:\n{self.oob_file.file_path}")
         self.tree_saved.emit()
-        self._refresh_template_list()
+        self._refresh_combo()

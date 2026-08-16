@@ -1,17 +1,40 @@
-﻿sabotaged_resources = {
-	icon = 
+# 动态修正模板 — 新建 common/dynamic_modifiers/ 文件
+#
+# 动态修正：可被 add_dynamic_modifier 效果器动态添加/移除，
+# 不占民族精神槽位；按 enable/remove_trigger 条件自动生效/移除。
+#
+# 触发（放在国策/事件/决议/脚本效果中）：
+#   add_dynamic_modifier = {
+#       modifier = example_dynamic_modifier
+#       scope = GER        # 可选，默认 root
+#       days = 14          # 可选，N 天后自动移除
+#   }
+
+# 动态修正块（可复制多个；块名需全局唯一）
+example_dynamic_modifier = {
+	# 可选：界面图标（GFX 键，如 GFX_modifiers_sabotaged_resource）
+	icon = "GFX_idea_unknown"
+
+	# 可选：触发器，条件不满足时该修正不生效
 	enable = {
 		always = yes
-		tag = 
 	}
-	political_power_gain = 
-	stability_factor = 
-	war_support_factor = 
-	army_defence_factor = 
-	society_development_monthly = 
-	poverty_development_monthly = 
-	industrial_capacity_factory = 
-	production_speed_buildings_factor = 
-	army_attack_factor = 
-	industrial_capacity_dockyard = 
+
+	# 可选：触发器，条件满足时自动移除该修正
+	remove_trigger = {
+		always = no
+	}
+
+	# 可选：yes 时战斗参与方也读取该修正
+	attacker_modifier = no
+
+	# ── 修正键值（标准 modifier 键；值可为数字或变量）──
+	# 国家级常用：
+	political_power_gain = 0.1
+	stability_factor = 0.05
+	war_support_factor = -0.05
+	recruitable_population_factor = 0.02
+	# 州级常用（作用于州时）：
+	# state_production_speed_buildings_factor = 0.2
+	# local_factories = -1
 }

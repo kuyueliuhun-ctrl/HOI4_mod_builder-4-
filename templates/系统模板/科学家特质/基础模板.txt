@@ -1,0 +1,7 @@
+scientist_trait = {
+	id = custom_scientist
+	picture = GFX_scientist_custom
+	# 对特殊计划生效的修正
+	modifiers = {
+	}
+}

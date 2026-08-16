@@ -242,14 +242,15 @@ def find_duplicate_ids(mod_path):
         for f in folders:
             if f == ".":
                 continue
-            type_dirs.setdefault(key, (f, ext))
-    for key, (rel, ext) in type_dirs.items():
+            exts = [ext] if isinstance(ext, str) else list(ext or [])
+            type_dirs.setdefault(key, (f, tuple(exts)))
+    for key, (rel, exts) in type_dirs.items():
         base = os.path.join(mod_path, rel.replace("/", os.sep))
         if not os.path.isdir(base):
             continue
         for root, _dirs, files in os.walk(base):
             for fn in files:
-                if not fn.lower().endswith(ext):
+                if not fn.lower().endswith(exts):
                     continue
                 fp = os.path.join(root, fn)
                 rp = os.path.relpath(fp, mod_path).replace(os.sep, "/")

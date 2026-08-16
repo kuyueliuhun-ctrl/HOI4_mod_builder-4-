@@ -1,0 +1,9 @@
+custom_ability = {
+	name = ABILITY_CUSTOM
+	desc = ABILITY_CUSTOM_DESC
+	type = army_leader
+	allowed = {
+	}
+	effect = {
+	}
+}

@@ -2,6 +2,11 @@
 
 加载游戏/mod 地图文件绘制所有地块，显示海军/空军基地锚点，
 按游戏兵牌样式展示已放置的陆军部队；选择编制后点击地块放置部队。
+
+基于可复用 MapCanvas（map_canvas.py）：
+- 平移/缩放/滚轮防抖/矢量渲染（边界线 + 多边形填充）由画布提供
+- 兵牌/国家标签通过前景 painter 钩子绘制（屏幕恒定大小）
+- 点击/右键/悬停通过通用信号接入
 """
 
 import os
@@ -9,15 +14,15 @@ import os
 import numpy as np
 from PyQt6.QtCore import Qt, pyqtSignal, QPoint, QPointF, QRectF
 from PyQt6.QtGui import (
-    QPainter, QColor, QPixmap, QPen
+    QPainter, QColor, QPixmap, QPen, QTransform
 )
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox,
-    QMessageBox, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
-    QGraphicsSimpleTextItem, QGraphicsItem, QMenu, QInputDialog, QToolTip
+    QMessageBox, QMenu, QInputDialog, QToolTip
 )
 
 from map_loader import MapData
+from map_canvas import MapCanvas, MODE_PAN
 from state_loader import StateData
 from oob_loader import DivisionPlacement
 from localization_mgr import get_localization_manager
@@ -61,138 +66,13 @@ _COUNTER_CACHE = {}
 
 def _make_anchor_item(char, color):
     """生成锚点文字 item（矢量文本，随缩放重新光栅化，不失真）。"""
+    from PyQt6.QtWidgets import QGraphicsSimpleTextItem
     item = QGraphicsSimpleTextItem(char)
     font = item.font()
     font.setPointSizeF(ANCHOR_FONT_SIZE)
     item.setFont(font)
     item.setBrush(QColor(color))
     return item
-
-
-class MapView(QGraphicsView):
-    """地图视图：平移/缩放/点击/悬停 + 兵牌/国家名覆盖绘制。
-
-    兵牌与国家名在 paintEvent 中随每次视图重绘换算场景坐标绘制，
-    缩放/平移后位置始终与地块对齐（不依赖独立覆盖层的刷新时机）。
-    """
-
-    hover_moved = pyqtSignal(int, int)        # viewport 坐标
-    canvas_clicked = pyqtSignal(int, int)     # viewport 坐标
-    canvas_context = pyqtSignal(int, int, QPoint)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
-        self.setRenderHints(QPainter.RenderHint.Antialiasing |
-                            QPainter.RenderHint.SmoothPixmapTransform)
-        # 完整重绘视图，避免平移/缩放时兵牌残留错位
-        self.setViewportUpdateMode(
-            QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
-        self._press_pos = None
-        self.screen_counters = []   # list[ScreenCounter]
-        self.country_labels = []    # [(scene_x, scene_y, 名称), ...]
-
-    def paintEvent(self, event):
-        super().paintEvent(event)
-        p = QPainter(self.viewport())
-        p.setRenderHints(QPainter.RenderHint.SmoothPixmapTransform |
-                         QPainter.RenderHint.Antialiasing |
-                         QPainter.RenderHint.TextAntialiasing)
-        # 国家名称（恒定屏幕大小，锚定各国领土中心）
-        if self.country_labels:
-            font = p.font()
-            font.setPointSizeF(9.0)
-            p.setFont(font)
-            for sx, sy, name in self.country_labels:
-                vp = self.mapFromScene(QPointF(sx, sy))
-                rect = QRectF(vp.x() - 100, vp.y() - 9, 200, 18)
-                p.setPen(QPen(QColor(15, 15, 15), 3))
-                p.setBrush(Qt.BrushStyle.NoBrush)
-                p.drawText(rect, Qt.AlignmentFlag.AlignCenter, name)
-                p.setPen(QPen(QColor(255, 255, 255)))
-                p.setBrush(QColor(255, 255, 255))
-                p.drawText(rect, Qt.AlignmentFlag.AlignCenter, name)
-        # 兵牌（恒定屏幕大小，锚定地块中心；聚合：不透明绿底矩形 + 白框黑底兵牌 + 数量）
-        for c in self.screen_counters:
-            vp = self.mapFromScene(QPointF(*c.scene_point))
-            rect = QRectF(vp.x() - COUNTER_W / 2, vp.y() - COUNTER_H / 2,
-                          COUNTER_W, COUNTER_H)
-            # 底层矩形：不透明绿色 + 黑边（drawRect 会用当前 brush 填充，
-            # 必须先清空 brush，否则标签的白色 brush 会把整块刷白）
-            p.fillRect(rect, COUNTER_BG)
-            p.setPen(QPen(QColor(0, 0, 0), 2))
-            p.setBrush(Qt.BrushStyle.NoBrush)
-            p.drawRect(rect)
-            # 左侧兵牌区：白框黑底
-            num_w = rect.width() * NUM_RATIO
-            icon_rect = QRectF(rect.x(), rect.y(),
-                               rect.width() - num_w, rect.height())
-            inner = icon_rect.adjusted(2, 2, -2, -2)
-            p.fillRect(inner, QColor(18, 18, 18))
-            p.setPen(QPen(QColor(255, 255, 255), 1))
-            p.setBrush(Qt.BrushStyle.NoBrush)
-            p.drawRect(inner)
-            src = c.pixmap
-            scaled = src.scaled(int(inner.width()), int(inner.height()),
-                                Qt.AspectRatioMode.KeepAspectRatio,
-                                Qt.TransformationMode.SmoothTransformation)
-            dx = (inner.width() - scaled.width()) / 2
-            dy = (inner.height() - scaled.height()) / 2
-            p.drawPixmap(inner.x() + dx, inner.y() + dy, scaled)
-            # 右侧数量数字（1/4 区）
-            num_rect = QRectF(rect.x() + rect.width() - num_w, rect.y(),
-                              num_w, rect.height())
-            font = p.font()
-            font.setPointSizeF(11.0)
-            font.setBold(True)
-            p.setFont(font)
-            p.setPen(QColor(255, 255, 255))
-            p.setBrush(QColor(255, 255, 255))
-            p.drawText(num_rect, Qt.AlignmentFlag.AlignCenter, str(c.count))
-            if c.selected:
-                p.setPen(QPen(QColor(255, 215, 0), 2))
-                p.setBrush(Qt.BrushStyle.NoBrush)
-                p.drawRect(rect.adjusted(-1, -1, 1, 1))
-        p.end()
-
-    def wheelEvent(self, event):
-        factor = 1.25 if event.angleDelta().y() > 0 else 1.0 / 1.25
-        self.scale(factor, factor)
-
-    def hit_counter(self, vp_pos):
-        """按 viewport 坐标命中兵牌，返回 ScreenCounter 或 None。"""
-        for c in self.screen_counters:
-            vp = self.mapFromScene(QPointF(*c.scene_point))
-            if abs(vp.x() - vp_pos.x()) <= COUNTER_W / 2 + 2 \
-                    and abs(vp.y() - vp_pos.y()) <= COUNTER_H / 2 + 2:
-                return c
-        return None
-
-    def refresh_counters(self):
-        self.viewport().update()
-
-    def mousePressEvent(self, event):
-        self._press_pos = event.position().toPoint()
-        super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event):
-        vp = event.position().toPoint()
-        self.hover_moved.emit(vp.x(), vp.y())
-        super().mouseMoveEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        # 仅当按下与释放位置接近时视为点击（区分拖拽平移）
-        if self._press_pos is not None:
-            dist = (event.position().toPoint() - self._press_pos).manhattanLength()
-            if dist < 5:
-                vp = event.position().toPoint()
-                if event.button() == Qt.MouseButton.LeftButton:
-                    self.canvas_clicked.emit(vp.x(), vp.y())
-                elif event.button() == Qt.MouseButton.RightButton:
-                    self.canvas_context.emit(vp.x(), vp.y(),
-                                             event.globalPosition().toPoint())
-        self._press_pos = None
-        super().mouseReleaseEvent(event)
 
 
 class ScreenCounter:
@@ -255,12 +135,10 @@ class OobMapEditor(QDialog):
         self.state_data = get_state_data(mod_path, hoi4_path)
 
         self.place_mode = False
-        self.counters = []          # list[ArmyCounter]
-        self.highlight_item = None  # 悬停地块高亮
+        self.counters = []          # list[ScreenCounter]
+        self.country_labels = []    # [(scene_x, scene_y, 名称), ...]
         self._current_highlight_pid = 0
-        # 地块高亮 LRU 缓存：(pid, 模式) -> (pixmap, x0, y0)
-        from collections import OrderedDict
-        self._highlight_cache = OrderedDict()
+        self._highlight_color = (120, 220, 255)
 
         # 批量预计算全部地块中心（基地/兵牌定位使用）
         self.map_data.precompute_centroids()
@@ -292,8 +170,7 @@ class OobMapEditor(QDialog):
         bar.addWidget(self.place_btn)
 
         self.fit_btn = QPushButton("⌂ 全景")
-        self.fit_btn.clicked.connect(lambda: self.view.fitInView(
-            self.scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio))
+        self.fit_btn.clicked.connect(self._fit)
         bar.addWidget(self.fit_btn)
 
         bar.addStretch(1)
@@ -302,22 +179,18 @@ class OobMapEditor(QDialog):
         bar.addWidget(self.save_btn)
         root.addLayout(bar)
 
-        self.view = MapView()
-        self.scene = QGraphicsScene(self)
-        self.view.setScene(self.scene)
-        root.addWidget(self.view, 1)
+        # 可复用地图画布（平移/缩放/矢量渲染/信号由画布提供）
+        self.canvas = MapCanvas(self.map_data)
+        self.canvas.hover_moved.connect(self._on_hover)
+        self.canvas.left_clicked.connect(self._on_canvas_clicked)
+        self.canvas.right_clicked.connect(self._on_canvas_context)
+        self.canvas.add_painter(self._paint_foreground)
+        root.addWidget(self.canvas, 1)
 
         self.status_label = QLabel("就绪")
         root.addWidget(self.status_label)
 
-        # 底图（provinces.bmp 平坦地块色，地形不影响地图颜色）
-        pm = self.map_data.base_pixmap()
-        self.base_item = QGraphicsPixmapItem(pm)
-        self.base_item.setCacheMode(
-            QGraphicsItem.CacheMode.DeviceCoordinateCache)
-        self.scene.addItem(self.base_item)
         # 国家着色图层（统一国家色块 + 地块边界线 + 国界线 + 焦点金边）
-        self.country_item = None
         owner_by_pid = {}
         try:
             owner_by_pid = {
@@ -331,11 +204,7 @@ class OobMapEditor(QDialog):
             country_pm = self.map_data.country_overlay_pixmap(
                 owner_by_pid, focus_tag=self.country_tag)
             if not country_pm.isNull():
-                self.country_item = QGraphicsPixmapItem(country_pm)
-                self.country_item.setZValue(2)
-                self.country_item.setCacheMode(
-                    QGraphicsItem.CacheMode.DeviceCoordinateCache)
-                self.scene.addItem(self.country_item)
+                self.canvas.set_overlay("country", country_pm, z=2)
         except Exception:
             pass
         # 国家名称标签（各国领土中心，屏幕恒定大小绘制）
@@ -350,21 +219,9 @@ class OobMapEditor(QDialog):
                 except Exception:
                     name = ""
                 labels.append((cx, cy, name or tag))
-            self.view.country_labels = labels
+            self.country_labels = labels
         except Exception:
             pass
-        self.scene.setSceneRect(0, 0, pm.width(), pm.height())
-
-        # 悬停高亮
-        self.highlight_item = QGraphicsPixmapItem()
-        self.highlight_item.setZValue(5)
-        self.scene.addItem(self.highlight_item)
-        self.highlight_item.hide()
-
-        # 交互
-        self.view.hover_moved.connect(self._on_hover)
-        self.view.canvas_clicked.connect(self._on_canvas_clicked)
-        self.view.canvas_context.connect(self._on_canvas_context)
 
         # 初始视野：优先定位到编辑文件对应国家的领土（或文件中已放置部队的区域），
         # 否则全景基础上放大 DEFAULT_ZOOM 倍
@@ -377,12 +234,14 @@ class OobMapEditor(QDialog):
                 rect = QRectF(min(xs) - pad, min(ys) - pad,
                               max(xs) - min(xs) + pad * 2,
                               max(ys) - min(ys) + pad * 2)
-                self.view.fitInView(rect, Qt.AspectRatioMode.KeepAspectRatio)
-                self.view.scale(1.2, 1.2)
+                self.canvas.fitInView(rect, Qt.AspectRatioMode.KeepAspectRatio)
+                self.canvas.scale(1.2, 1.2)
                 return
-        self.view.fitInView(self.scene.sceneRect(),
-                            Qt.AspectRatioMode.KeepAspectRatio)
-        self.view.scale(DEFAULT_ZOOM, DEFAULT_ZOOM)
+        self._fit()
+        self.canvas.scale(DEFAULT_ZOOM, DEFAULT_ZOOM)
+
+    def _fit(self):
+        self.canvas.fit_map()
 
     def _focus_region(self):
         """定位区域：国家领土地块中心；无领土则用文件中已放置部队的地块。"""
@@ -411,6 +270,7 @@ class OobMapEditor(QDialog):
             by_pid[pid].append(("naval", level, sid))
         for pid, level, sid in self.state_data.air_bases:
             by_pid[pid].append(("air", level, sid))
+        scene = self.canvas.scene()
         for pid, anchors in by_pid.items():
             c = self.map_data.province_centroid(pid)
             if not c:
@@ -427,7 +287,7 @@ class OobMapEditor(QDialog):
                 state_name = self.state_data.state_name(sid)
                 label = "海军基地" if kind == "naval" else "空军基地"
                 item.setToolTip(f"{label} 等级 {level}\n{state_name} (州 {sid})")
-                self.scene.addItem(item)
+                scene.addItem(item)
 
     # ---------- 兵牌 ----------
 
@@ -448,8 +308,7 @@ class OobMapEditor(QDialog):
             counter = ScreenCounter(group[0], c, pm)
             counter.count = len(group)
             self.counters.append(counter)
-        self.view.screen_counters = self.counters
-        self.view.refresh_counters()
+        self.canvas.viewport().update()
 
     def _placement_type(self, placement):
         """部队主兵种（用于兵牌图标）：取模板首个战斗连。"""
@@ -458,24 +317,99 @@ class OobMapEditor(QDialog):
             return tpl.regiments[0][0]
         return "infantry"
 
+    # ---------- 前景绘制（屏幕恒定大小：国家标签 + 兵牌） ----------
+
+    def _paint_foreground(self, painter, rect, canvas):
+        """前景 painter 钩子：切到视口坐标绘制，恒定屏幕大小。"""
+        painter.save()
+        painter.setWorldTransform(QTransform())
+        painter.setRenderHints(
+            QPainter.RenderHint.Antialiasing
+            | QPainter.RenderHint.TextAntialiasing)
+        # 国家名称（锚定各国领土中心）
+        if self.country_labels:
+            font = painter.font()
+            font.setPointSizeF(9.0)
+            painter.setFont(font)
+            for sx, sy, name in self.country_labels:
+                vp = canvas.mapFromScene(QPointF(sx, sy))
+                rect2 = QRectF(vp.x() - 100, vp.y() - 9, 200, 18)
+                painter.setPen(QPen(QColor(15, 15, 15), 3))
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                painter.drawText(rect2, Qt.AlignmentFlag.AlignCenter, name)
+                painter.setPen(QPen(QColor(255, 255, 255)))
+                painter.setBrush(QColor(255, 255, 255))
+                painter.drawText(rect2, Qt.AlignmentFlag.AlignCenter, name)
+        # 兵牌（锚定地块中心；聚合：不透明绿底矩形 + 白框黑底兵牌 + 数量）
+        for c in self.counters:
+            vp = canvas.mapFromScene(QPointF(*c.scene_point))
+            r = QRectF(vp.x() - COUNTER_W / 2, vp.y() - COUNTER_H / 2,
+                       COUNTER_W, COUNTER_H)
+            painter.fillRect(r, COUNTER_BG)
+            painter.setPen(QPen(QColor(0, 0, 0), 2))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRect(r)
+            num_w = r.width() * NUM_RATIO
+            icon_rect = QRectF(r.x(), r.y(),
+                               r.width() - num_w, r.height())
+            inner = icon_rect.adjusted(2, 2, -2, -2)
+            painter.fillRect(inner, QColor(18, 18, 18))
+            painter.setPen(QPen(QColor(255, 255, 255), 1))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRect(inner)
+            src = c.pixmap
+            scaled = src.scaled(int(inner.width()), int(inner.height()),
+                                Qt.AspectRatioMode.KeepAspectRatio,
+                                Qt.TransformationMode.SmoothTransformation)
+            dx = (inner.width() - scaled.width()) / 2
+            dy = (inner.height() - scaled.height()) / 2
+            # PyQt6 无 (float, float, QPixmap) 重载 → 用 QPointF 版本
+            painter.drawPixmap(QPointF(inner.x() + dx, inner.y() + dy),
+                               scaled)
+            num_rect = QRectF(r.x() + r.width() - num_w, r.y(),
+                              num_w, r.height())
+            font = painter.font()
+            font.setPointSizeF(11.0)
+            font.setBold(True)
+            painter.setFont(font)
+            painter.setPen(QColor(255, 255, 255))
+            painter.setBrush(QColor(255, 255, 255))
+            painter.drawText(num_rect, Qt.AlignmentFlag.AlignCenter,
+                             str(c.count))
+            if c.selected:
+                painter.setPen(QPen(QColor(255, 215, 0), 2))
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                painter.drawRect(r.adjusted(-1, -1, 1, 1))
+        painter.restore()
+
     # ---------- 交互 ----------
 
     def _on_place_mode(self, checked):
         self.place_mode = checked
         if checked:
-            self.view.setDragMode(QGraphicsView.DragMode.NoDrag)
-            self.view.setCursor(Qt.CursorShape.CrossCursor)
+            self.canvas.setDragMode(self.canvas.DragMode.NoDrag)
+            self.canvas.setCursor(Qt.CursorShape.CrossCursor)
+            self._highlight_color = (255, 215, 0)
             self.status_label.setText(
                 "放置模式：移动鼠标预览地块，点击陆地放置所选编制；"
                 "按住 Ctrl 拖动平移")
         else:
-            self.view.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
-            self.view.setCursor(Qt.CursorShape.ArrowCursor)
+            self.canvas.set_mode(MODE_PAN)
+            self._highlight_color = (120, 220, 255)
             self.status_label.setText("就绪")
+
+    def _hit_counter(self, vp_pos):
+        """按 viewport 坐标命中兵牌，返回 ScreenCounter 或 None。"""
+        for c in self.counters:
+            vp = self.canvas.mapFromScene(QPointF(*c.scene_point))
+            if abs(vp.x() - vp_pos.x()) <= COUNTER_W / 2 + 2 \
+                    and abs(vp.y() - vp_pos.y()) <= COUNTER_H / 2 + 2:
+                return c
+        return None
 
     def _on_hover(self, x, y):
         # 兵牌优先：悬停已放置部队显示部队信息
-        counter = self.view.hit_counter(QPoint(x, y))
+        counter = self._hit_counter(QPoint(x, y))
         if counter is not None:
             p = counter.placement
             extra = f" | 本地块共 {counter.count} 支" if counter.count > 1 else ""
@@ -483,10 +417,11 @@ class OobMapEditor(QDialog):
                 f"部队: {p.name} | 模板: {p.division_template} | 地块: {p.location}{extra}")
             QToolTip.hideText()
             return
-        sp = self.view.mapToScene(QPoint(x, y))
+        sp = self.canvas.mapToScene(QPoint(x, y))
         pid = self.map_data.province_at(int(sp.x()), int(sp.y()))
         if pid <= 0:
-            self.highlight_item.hide()
+            self.canvas.clear_highlight()
+            self._current_highlight_pid = 0
             self.status_label.setText("地图外")
             QToolTip.hideText()
             return
@@ -499,59 +434,16 @@ class OobMapEditor(QDialog):
         QToolTip.hideText()
         if pid != self._current_highlight_pid:
             self._current_highlight_pid = pid
-            self._update_highlight(pid)
-
-    def _update_highlight(self, pid):
-        key = (pid, self.place_mode)
-        hit = self._highlight_cache.get(key)
-        if hit is not None:
-            pm, x0, y0 = hit
-            self.highlight_item.setPixmap(pm)
-            self.highlight_item.setPos(x0, y0)
-            self.highlight_item.setZValue(6)
-            self.highlight_item.show()
-            return
-        mask = self.map_data.province_mask(pid)
-        if mask is None or not mask.any():
-            self.highlight_item.hide()
-            return
-        ys, xs = np.nonzero(mask)
-        x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
-        sub = mask[y0:y1 + 1, x0:x1 + 1]
-        h, w = sub.shape
-        rgba = np.zeros((h, w, 4), dtype=np.uint8)
-        rgba[..., 3] = np.where(sub, 160, 0)
-        if self.place_mode:
-            # 放置模式：亮黄
-            rgba[..., 0] = 255
-            rgba[..., 1] = 215
-            rgba[..., 2] = 0
-        else:
-            # 查看模式：淡青
-            rgba[..., 0] = 120
-            rgba[..., 1] = 220
-            rgba[..., 2] = 255
-        from PyQt6.QtGui import QImage
-        img = QImage(rgba.data, w, h, w * 4,
-                     QImage.Format.Format_RGBA8888).copy()
-        pm = QPixmap.fromImage(img)
-        # LRU 缓存（键含放置模式，两种颜色分别缓存）
-        self._highlight_cache[key] = (pm, x0, y0)
-        while len(self._highlight_cache) > 64:
-            self._highlight_cache.popitem(last=False)
-        self.highlight_item.setPixmap(pm)
-        self.highlight_item.setPos(x0, y0)
-        self.highlight_item.setZValue(6)
-        self.highlight_item.show()
+            self.canvas.highlight_pids([pid], self._highlight_color, 160)
 
     def _on_canvas_clicked(self, x, y):
         vp = QPoint(x, y)
-        counter = self.view.hit_counter(vp)
+        counter = self._hit_counter(vp)
         if counter is not None and not self.place_mode:
             # 点击兵牌：选中并显示详情（聚合兵牌以首支部队为代表）
             for c in self.counters:
                 c.selected = c is counter
-            self.view.refresh_counters()
+            self.canvas.viewport().update()
             p = counter.placement
             extra = f" | 本地块共 {counter.count} 支" if counter.count > 1 else ""
             self.status_label.setText(
@@ -560,14 +452,14 @@ class OobMapEditor(QDialog):
                    if p.start_experience_factor is not None else "")
                 + extra)
             return
-        sp = self.view.mapToScene(vp)
+        sp = self.canvas.mapToScene(vp)
         pid = self.map_data.province_at(int(sp.x()), int(sp.y()))
         if pid <= 0:
             return
         if not self.place_mode:
             for c in self.counters:
                 c.selected = False
-            self.view.refresh_counters()
+            self.canvas.viewport().update()
             return
         if self.map_data.is_sea(pid):
             QMessageBox.information(self, "提示", "陆军部队不能放置在海上。")
@@ -588,7 +480,7 @@ class OobMapEditor(QDialog):
 
     def _on_canvas_context(self, x, y, global_pos):
         vp = QPoint(x, y)
-        counter = self.view.hit_counter(vp)
+        counter = self._hit_counter(vp)
         if counter is None:
             return
         # 该地块全部部队（聚合兵牌覆盖同地块多支部队）

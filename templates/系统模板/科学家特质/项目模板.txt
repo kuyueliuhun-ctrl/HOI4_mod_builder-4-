@@ -1,0 +1,4 @@
+custom_scientist_trait = {
+	picture = GFX_scientist_custom
+	# 对特殊计划生效的修正
+}

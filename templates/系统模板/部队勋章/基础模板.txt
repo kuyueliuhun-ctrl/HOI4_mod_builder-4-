@@ -1,0 +1,7 @@
+unit_medals = {
+	custom_unit_medal = {
+		name = "CAREER_PROFILE_CUSTOM_UNIT_MEDAL"
+		description = "CAREER_PROFILE_CUSTOM_UNIT_MEDAL_DESCRIPTION"
+		frames = { 1 1 1 }
+	}
+}

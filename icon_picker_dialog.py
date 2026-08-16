@@ -84,12 +84,12 @@ class IconPickerDialog(QDialog):
         # 前缀过滤提示
         if self.prefix:
             filter_label = QLabel(f"仅显示以 <code>{self.prefix}</code> 开头的图标")
-            filter_label.setStyleSheet("color: #ff9800; font-size: 11px;")
+            filter_label.setStyleSheet("color: #b05b2d; font-size: 11px;")
             layout.addWidget(filter_label)
 
         # 计数提示
         self.count_label = QLabel("")
-        self.count_label.setStyleSheet("color: #888; font-size: 11px;")
+        self.count_label.setStyleSheet("color: #5d6b7a; font-size: 11px;")
         layout.addWidget(self.count_label)
 
         self.list_widget = QListWidget()

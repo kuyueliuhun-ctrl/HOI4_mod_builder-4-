@@ -1,0 +1,7 @@
+custom_ace_modifier = {
+	type = fighter
+	chance = 0.5
+	effect = {
+		air_attack_factor = 0.03
+	}
+}

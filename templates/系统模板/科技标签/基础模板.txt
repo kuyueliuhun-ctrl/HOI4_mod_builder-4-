@@ -1,0 +1,5 @@
+technology_categories = {
+	infantry_weapons
+	armor
+	air_tech
+}

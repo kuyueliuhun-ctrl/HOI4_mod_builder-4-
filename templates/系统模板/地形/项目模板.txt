@@ -1,0 +1,4 @@
+plains = {
+	color = { 127 127 127 }
+	movement_cost = 1.0
+}

@@ -1,0 +1,8 @@
+names = {
+	divisions = {
+		"1st Division"
+	}
+	ships = {
+		"HM Ship"
+	}
+}

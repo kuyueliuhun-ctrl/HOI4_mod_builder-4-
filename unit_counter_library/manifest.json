@@ -1,0 +1,5389 @@
+{
+ "library": "hoi4-unit-counters",
+ "categories": [
+  "air_small",
+  "division_templates_large",
+  "division_templates_small",
+  "divisions_large",
+  "divisions_small",
+  "ships_small"
+ ],
+ "entries": [
+  {
+   "name": "onmap_cas",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_cas.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "f027815e8e0bcbba19e35b2f01bed562",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_cas.dds"
+  },
+  {
+   "name": "onmap_cas_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_cas_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "1e195030842decb222d5750484ff724e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_cas_inverted.dds"
+  },
+  {
+   "name": "onmap_fighter",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_fighter.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "3784dc99c701e0155a96022f701f1be6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_fighter.dds"
+  },
+  {
+   "name": "onmap_fighter_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_fighter_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "764afef9b0f01e1ddd940ed5d29cd348",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_fighter_inverted.dds"
+  },
+  {
+   "name": "onmap_heavy_fighter",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_heavy_fighter.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "72c801a1ada3ed28c45ff196acf18411",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_heavy_fighter.dds"
+  },
+  {
+   "name": "onmap_heavy_fighter_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_heavy_fighter_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "f5db3d8e96e188526972fbed86438f02",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_heavy_fighter_inverted.dds"
+  },
+  {
+   "name": "onmap_jet_fighter",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_jet_fighter.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "52aca0060916c892b4ef4b4ee7d5d1a0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_jet_fighter.dds"
+  },
+  {
+   "name": "onmap_jet_fighter_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_jet_fighter_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "ef4483f72c78aabf14b8c4d141841f51",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_jet_fighter_inverted.dds"
+  },
+  {
+   "name": "onmap_jet_strat_bomber",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_jet_strat_bomber.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "e44f56cf52d1ce8d9dafcff03e2f8c1a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_jet_strat_bomber.dds"
+  },
+  {
+   "name": "onmap_jet_strat_bomber_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_jet_strat_bomber_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "2c618e963e3387e56b08335afc861093",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_jet_strat_bomber_inverted.dds"
+  },
+  {
+   "name": "onmap_jet_tac_bomber",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_jet_tac_bomber.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "04748e289fb32a5eb8077b3a95bfa78a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_jet_tac_bomber.dds"
+  },
+  {
+   "name": "onmap_jet_tac_bomber_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_jet_tac_bomber_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "4d25ca877c63fb3eda0ba7b7cc5e54ce",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_jet_tac_bomber_inverted.dds"
+  },
+  {
+   "name": "onmap_maritime_patrol_plane",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_maritime_patrol_plane.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "c04eb5eb6c24b37f7819f861fa93de70",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_maritime_patrol_plane.dds"
+  },
+  {
+   "name": "onmap_maritime_patrol_plane_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_maritime_patrol_plane_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "ac6987cd35144f23798a8860f00e7389",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_maritime_patrol_plane_inverted.dds"
+  },
+  {
+   "name": "onmap_nav_bomber",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_nav_bomber.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "4ad45fc74b303669a9232adecd69ee1c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_nav_bomber.dds"
+  },
+  {
+   "name": "onmap_nav_bomber_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_nav_bomber_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "43b7581c95ecfd5af0c84faf19dc2202",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_nav_bomber_inverted.dds"
+  },
+  {
+   "name": "onmap_strat_bomber",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_strat_bomber.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "fb193700f41815e5864ceb557b01554b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_strat_bomber.dds"
+  },
+  {
+   "name": "onmap_strat_bomber_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_strat_bomber_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "563d06d10242572311948101b39b8f47",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_strat_bomber_inverted.dds"
+  },
+  {
+   "name": "onmap_supply_plane",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_supply_plane.png",
+   "size": [
+    58,
+    11
+   ],
+   "md5": "cbae3d6cf86a56f1d309e6fd2af2f3db",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_supply_plane.dds"
+  },
+  {
+   "name": "onmap_supply_plane_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_supply_plane_inverted.png",
+   "size": [
+    58,
+    11
+   ],
+   "md5": "46cc2345ad254edc4148f7753af54dea",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_supply_plane_inverted.dds"
+  },
+  {
+   "name": "onmap_tac_bomber",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_tac_bomber.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "54f377815bf737631024d13536b9a6b8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_tac_bomber.dds"
+  },
+  {
+   "name": "onmap_tac_bomber_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_tac_bomber_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "11b94cbe514a5d368b96527073c85f88",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_tac_bomber_inverted.dds"
+  },
+  {
+   "name": "onmap_transport_plane",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_transport_plane.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "934de93b9429969b75c41274939180d5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_transport_plane.dds"
+  },
+  {
+   "name": "onmap_transport_plane_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_transport_plane_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "5c64620b4a38736b9ddf3305b261f1f9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_transport_plane_inverted.dds"
+  },
+  {
+   "name": "onmap_v2_rocket",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_v2_rocket.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "48978fba65582bafb024bad20a250a1f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_v2_rocket.dds"
+  },
+  {
+   "name": "onmap_v2_rocket_inverted",
+   "category": "air_small",
+   "file": "icon/air_small/onmap_v2_rocket_inverted.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "8f3070b4674681664cc1a1e71eb37b86",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/air_small/onmap_v2_rocket_inverted.dds"
+  },
+  {
+   "name": "pioneers_support",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/pioneers_support.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "5e7178b6796130fc452659e3fc097701",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/pioneers_support.dds"
+  },
+  {
+   "name": "support_unit_airborne_armored_recon_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_airborne_armored_recon_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "a919aab364da51fd8214fce270b359f8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_airborne_armored_recon_icon.dds"
+  },
+  {
+   "name": "support_unit_anti_air_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_anti_air_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "b96c9ff78ce7fa5d15984d849183c512",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_anti_air_icon.dds"
+  },
+  {
+   "name": "support_unit_armored_car_recon_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_armored_car_recon_icon.png",
+   "size": [
+    152,
+    40
+   ],
+   "md5": "6bb95baade5cfd4fa88bc02137bfee70",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_armored_car_recon_icon.dds"
+  },
+  {
+   "name": "support_unit_armored_recon_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_armored_recon_icon.png",
+   "size": [
+    152,
+    40
+   ],
+   "md5": "7e8cdcee64cd3feef787e0e9c42a4c6e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_armored_recon_icon.dds"
+  },
+  {
+   "name": "support_unit_art_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_art_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "9807ec0cd828b7ed1ad836df17924e10",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_art_icon.dds"
+  },
+  {
+   "name": "support_unit_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "1105ae23ad2dfffa4687133f114b28fc",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_at_icon.dds"
+  },
+  {
+   "name": "support_unit_field_guns_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_field_guns_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "3ee61442ddb31e777bc4bfc3232dea7f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_field_guns_icon.dds"
+  },
+  {
+   "name": "support_unit_field_hospital_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_field_hospital_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "5894b513524959e9593d0ff0671aabb3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_field_hospital_icon.dds"
+  },
+  {
+   "name": "support_unit_fire_support_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_fire_support_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "045bac82892bdf0231aa0cbce02110cb",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_fire_support_icon.dds"
+  },
+  {
+   "name": "support_unit_heavy_spaa_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_heavy_spaa_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "21d5988b7c2cba8f3508c2d6f98e12bb",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_heavy_spaa_icon.dds"
+  },
+  {
+   "name": "support_unit_heavy_spart_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_heavy_spart_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "41929b93e5889bee31e3e2bd0d3d19c2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_heavy_spart_icon.dds"
+  },
+  {
+   "name": "support_unit_heavy_tank_destroyer_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_heavy_tank_destroyer_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "c260da9d849121b52e42e3c60d1ce00f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_heavy_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "support_unit_hq_air_liason_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_hq_air_liason_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "6074e766f90cca8cba74ae13328b4ba9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_hq_air_liason_icon.dds"
+  },
+  {
+   "name": "support_unit_hq_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_hq_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "4b97c8b9a169abcbe94cf86bcb47da09",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_hq_icon.dds"
+  },
+  {
+   "name": "support_unit_hq_naval_liason_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_hq_naval_liason_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "91693144925b24e5e39c62d48bc83ea4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_hq_naval_liason_icon.dds"
+  },
+  {
+   "name": "support_unit_hq_specops_icon ",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_hq_specops_icon .png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "844dce47ebcc84ca225ce15e8c84d972",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_hq_specops_icon .dds"
+  },
+  {
+   "name": "support_unit_light_spaa_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_light_spaa_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "5fecb632b7caabf31889d6a86136076d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_light_spaa_icon.dds"
+  },
+  {
+   "name": "support_unit_light_spart_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_light_spart_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "e74db16ec695cf36eb93b7c9ef98f20e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_light_spart_icon.dds"
+  },
+  {
+   "name": "support_unit_light_tank_destroyer_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_light_tank_destroyer_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "89f1c8e1d75de31720158b0359449214",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_light_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "support_unit_logistics_company_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_logistics_company_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "aec4692961471664b32865eeb90e7581",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_logistics_company_icon.dds"
+  },
+  {
+   "name": "support_unit_maintenance_company_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_maintenance_company_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "1be5c630f419af10ac01ee471ba72668",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_maintenance_company_icon.dds"
+  },
+  {
+   "name": "support_unit_medium_spaa_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_medium_spaa_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "c227256f5fe3e36eae7e744812bd1559",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_medium_spaa_icon.dds"
+  },
+  {
+   "name": "support_unit_medium_spart_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_medium_spart_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "2766d2d60af80e4d693452f37a965aff",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_medium_spart_icon.dds"
+  },
+  {
+   "name": "support_unit_medium_tank_destroyer_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_medium_tank_destroyer_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "05cda18e67d65fb6dd894bc5499a677e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_medium_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "support_unit_military_police_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_military_police_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "2435b32ae5f0677377655290ab84c33b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_military_police_icon.dds"
+  },
+  {
+   "name": "support_unit_modern_spaa_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_modern_spaa_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "f745e083ddca8c451aef568e3f34c8c4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_modern_spaa_icon.dds"
+  },
+  {
+   "name": "support_unit_modern_spart_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_modern_spart_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "371246e2d3a015d4eb98798911f3c5a7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_modern_spart_icon.dds"
+  },
+  {
+   "name": "support_unit_modern_tank_destroyer_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_modern_tank_destroyer_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "a670a82feeee956b8789f436d2365cd3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_modern_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "support_unit_mot_fire_support_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_mot_fire_support_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "4e334a6bd23a660584ce22bd506017ff",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_mot_fire_support_icon.dds"
+  },
+  {
+   "name": "support_unit_motorized_recon_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_motorized_recon_icon.png",
+   "size": [
+    152,
+    40
+   ],
+   "md5": "7b3bbbc64d00fca4e0018466415aef03",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_motorized_recon_icon.dds"
+  },
+  {
+   "name": "support_unit_rangers_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_rangers_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "7334d686b5f7c95c892db0432ba701a9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_rangers_icon.dds"
+  },
+  {
+   "name": "support_unit_rocket_art_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_rocket_art_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "2523a60ac3e47329c4cbbcb41570ade5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_rocket_art_icon.dds"
+  },
+  {
+   "name": "support_unit_signal_company_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/support_unit_signal_company_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "793b6d98e493b40758f322697eec2822",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/support_unit_signal_company_icon.dds"
+  },
+  {
+   "name": "unit_amphibious_mechanized_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_amphibious_mechanized_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "1dfe1dfba4b9b0cb3e41579e081b0ae8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_amphibious_mechanized_icon.dds"
+  },
+  {
+   "name": "unit_amphibious_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_amphibious_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "0984cc48337d04b2a9e1273a187fd7de",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "unit_anti_air_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_anti_air_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "100da9c457f570634fcf020f63ab9dd9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_anti_air_icon.dds"
+  },
+  {
+   "name": "unit_armored_car_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_armored_car_icon.png",
+   "size": [
+    152,
+    40
+   ],
+   "md5": "ea205d7cbda8bb27c578f6c85dfb6f2e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_armored_car_icon.dds"
+  },
+  {
+   "name": "unit_armored_engineer_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_armored_engineer_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "e3195881f404e22f88e78f7fd029608a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_armored_engineer_icon.dds"
+  },
+  {
+   "name": "unit_armored_maintenance_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_armored_maintenance_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "ef7bf334f30bf79cc7ba79c749c3e22a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_armored_maintenance_icon.dds"
+  },
+  {
+   "name": "unit_armored_signal_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_armored_signal_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "35702ad45c2327ab29952d4e34fb6f2f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_armored_signal_icon.dds"
+  },
+  {
+   "name": "unit_art_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_art_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "9c2cebde896bd12163ff3dd889ae4c5b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_art_icon.dds"
+  },
+  {
+   "name": "unit_assault_engineer_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_assault_engineer_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "90b80af23cb1e87b25f15c9cced96171",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_assault_engineer_icon.dds"
+  },
+  {
+   "name": "unit_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "c48410de29472a413f3f67c6cba49a42",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_at_icon.dds"
+  },
+  {
+   "name": "unit_bicycle_battalion_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_bicycle_battalion_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "15fce47737d097cb21b37b760639f092",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_bicycle_battalion_icon.dds"
+  },
+  {
+   "name": "unit_bicycle_infantry_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_bicycle_infantry_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "75a603e2cfb649920567d6006a1dc15f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_bicycle_infantry_icon.dds"
+  },
+  {
+   "name": "unit_blackshirt_assault_battalion_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_blackshirt_assault_battalion_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "b9bd0b4757eebf2c8703fe7b5264d310",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_blackshirt_assault_battalion_icon.dds"
+  },
+  {
+   "name": "unit_camelry_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_camelry_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "906be4bc232234ef775d53dc88846fcc",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_camelry_icon.dds"
+  },
+  {
+   "name": "unit_cavalry_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_cavalry_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "ccfa371d661c915541346a52bcc461f5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_cavalry_icon.dds"
+  },
+  {
+   "name": "unit_elephantry_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_elephantry_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "ea6e45ff2bb250bc2c2d29a46635eae3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_elephantry_icon.dds"
+  },
+  {
+   "name": "unit_engineer_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_engineer_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "bf67b42a8207e47bd5aa5a8e0a3371c0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_engineer_icon.dds"
+  },
+  {
+   "name": "unit_fake_intel_unit_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_fake_intel_unit_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "25ad74ee7244a8f033019f4ef13ee695",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_fake_intel_unit_icon.dds"
+  },
+  {
+   "name": "unit_guided_missile_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_guided_missile_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "8a0f9e55868840e231921e55b4660048",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_guided_missile_icon.dds"
+  },
+  {
+   "name": "unit_heavy_amphibious_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_heavy_amphibious_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "1eab9ab5b82ae44730d4bf5a3fd7c3bb",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_heavy_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "unit_heavy_armor_antiair_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_heavy_armor_antiair_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "e07d6bdf38a55fed168186a180aadb86",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_heavy_armor_antiair_icon.dds"
+  },
+  {
+   "name": "unit_heavy_armor_artillery_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_heavy_armor_artillery_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "da45f667f1476af5cecaa83a0f7fdd3b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_heavy_armor_artillery_icon.dds"
+  },
+  {
+   "name": "unit_heavy_armor_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_heavy_armor_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "457d4b4290ce3e8de725ae33f32cef9a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_heavy_armor_at_icon.dds"
+  },
+  {
+   "name": "unit_heavy_armor_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_heavy_armor_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "0d3975aa2e127db90a13fb725c9b5202",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_heavy_armor_icon.dds"
+  },
+  {
+   "name": "unit_heavy_flamethrower_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_heavy_flamethrower_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "607b39da4e8185275b194233961b6911",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_heavy_flamethrower_tank_icon.dds"
+  },
+  {
+   "name": "unit_heavy_tank_jungle_support_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_heavy_tank_jungle_support_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "ddb5d1cdfe7a895b48b96e0946e4f265",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_heavy_tank_jungle_support_icon.dds"
+  },
+  {
+   "name": "unit_helicopter_brigade_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_helicopter_brigade_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "54448a452c2ba4acf5f19d83274379cd",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_helicopter_brigade_icon.dds"
+  },
+  {
+   "name": "unit_helicopter_field_hospital_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_helicopter_field_hospital_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "27fc5392905b03a1c905de2e087bd982",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_helicopter_field_hospital_icon.dds"
+  },
+  {
+   "name": "unit_helicopter_recon_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_helicopter_recon_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "c7850efc3ca8fda982c17b3a3110d913",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_helicopter_recon_icon.dds"
+  },
+  {
+   "name": "unit_helicopter_transport_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_helicopter_transport_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "8f15e385136790bab42d94bd8744282c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_helicopter_transport_icon.dds"
+  },
+  {
+   "name": "unit_infantry_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_infantry_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "15fce47737d097cb21b37b760639f092",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_infantry_icon.dds"
+  },
+  {
+   "name": "unit_integralist_militia_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_integralist_militia_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "e7b0035325cae7051688d0be861a8189",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_integralist_militia_icon.dds"
+  },
+  {
+   "name": "unit_irregular_infantry_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_irregular_infantry_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "340c3e39ac545ccd160f3add72053215",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_irregular_infantry_icon.dds"
+  },
+  {
+   "name": "unit_jungle_pioneers_support_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_jungle_pioneers_support_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "372ecd339358ba5a15139e05a6af9375",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_jungle_pioneers_support_icon.dds"
+  },
+  {
+   "name": "unit_land_cruiser_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_land_cruiser_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "cc04f51dbfccc5eb6ccacf9eefd07cd0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_land_cruiser_icon.dds"
+  },
+  {
+   "name": "unit_light_amphibious_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_light_amphibious_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "4a2b9c5620392362fe76cf532a8228b4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_light_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "unit_light_flamethrower_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_light_flamethrower_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "6ee23d499a8c60532eac33bc051552ca",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_light_flamethrower_tank_icon.dds"
+  },
+  {
+   "name": "unit_light_tank_antiair_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_light_tank_antiair_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "575ce958a9af03018d3f87345a8911a3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_light_tank_antiair_icon.dds"
+  },
+  {
+   "name": "unit_light_tank_artillery_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_light_tank_artillery_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "48277ff28521ed1c4c3642808417d9a9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_light_tank_artillery_icon.dds"
+  },
+  {
+   "name": "unit_light_tank_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_light_tank_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "717bbd670d0eb0846e4a943a16bf2b3b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_light_tank_at_icon.dds"
+  },
+  {
+   "name": "unit_light_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_light_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "79b97a269383682a87251b38716b2188",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_light_tank_icon.dds"
+  },
+  {
+   "name": "unit_long_range_patrol_support_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_long_range_patrol_support_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "20f127ceef2efe9828b2fb1237e2f56e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_long_range_patrol_support_icon.dds"
+  },
+  {
+   "name": "unit_marine_commando_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_marine_commando_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "84906ee35120e577cb912761be6160bc",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_marine_commando_icon.dds"
+  },
+  {
+   "name": "unit_marine_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_marine_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "73c15d22da54861a1b36917f449f00f6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_marine_icon.dds"
+  },
+  {
+   "name": "unit_mechanized_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_mechanized_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "ad6eeeded15055a2a52d1fdec1aa3d7f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_mechanized_icon.dds"
+  },
+  {
+   "name": "unit_medium_amphibious_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_medium_amphibious_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "17e5fb196845bf0284ca32103a07122f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_medium_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "unit_medium_flamethrower_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_medium_flamethrower_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "fd2e470e1ca2a770315547e1e6f5794c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_medium_flamethrower_tank_icon.dds"
+  },
+  {
+   "name": "unit_medium_tank_antiair_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_medium_tank_antiair_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "b0b58f3610b66ff8b267b3fd2b627dbf",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_medium_tank_antiair_icon.dds"
+  },
+  {
+   "name": "unit_medium_tank_artillery_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_medium_tank_artillery_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "e99419876f3f8bd0438c20a8b59ce5a7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_medium_tank_artillery_icon.dds"
+  },
+  {
+   "name": "unit_medium_tank_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_medium_tank_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "7563480923aabff4b9a910e386881d71",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_medium_tank_at_icon.dds"
+  },
+  {
+   "name": "unit_medium_tank_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_medium_tank_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "eb780576c43e10f48df017d334233dc6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_medium_tank_icon.dds"
+  },
+  {
+   "name": "unit_militia_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_militia_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "cc0c68b774daf4580c9786ee1f2551b5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_militia_icon.dds"
+  },
+  {
+   "name": "unit_modern_armor_antiair_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_modern_armor_antiair_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "5036684a358af385304679201e72380f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_modern_armor_antiair_icon.dds"
+  },
+  {
+   "name": "unit_modern_armor_artillery_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_modern_armor_artillery_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "52fe92b6491100070a0d7d13b58a1cfe",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_modern_armor_artillery_icon.dds"
+  },
+  {
+   "name": "unit_modern_armor_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_modern_armor_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "330b6790709e4441ca3f6c89eb7cd85e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_modern_armor_at_icon.dds"
+  },
+  {
+   "name": "unit_modern_armor_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_modern_armor_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "f104e5106a5110697351f695855875b6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_modern_armor_icon.dds"
+  },
+  {
+   "name": "unit_mot_anti_air_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_mot_anti_air_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "d66008bcc2296a362d6c16ae9dba3ca3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_mot_anti_air_icon.dds"
+  },
+  {
+   "name": "unit_mot_art_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_mot_art_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "1a1abdec9423eefaef6c85827ab0c52a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_mot_art_icon.dds"
+  },
+  {
+   "name": "unit_mot_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_mot_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "cb4b708b47514b703090a8e9bbca3342",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_mot_at_icon.dds"
+  },
+  {
+   "name": "unit_mot_rocket_art_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_mot_rocket_art_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "317569c69e2e2b24b8d845bbf39f92c6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_mot_rocket_art_icon.dds"
+  },
+  {
+   "name": "unit_mothership_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_mothership_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "146445850ca475ff421249f57a24b2d6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_mothership_icon.dds"
+  },
+  {
+   "name": "unit_motorized_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_motorized_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "6ac882a4cef507af523ba94a4efd36b7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_motorized_icon.dds"
+  },
+  {
+   "name": "unit_motorized_military_police_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_motorized_military_police_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "774454d7fb87a3159b618346b85596e6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_motorized_military_police_icon.dds"
+  },
+  {
+   "name": "unit_motorized_rocket_brigade_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_motorized_rocket_brigade_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "333d34df9f98a8c380f2b3b504fc5297",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_motorized_rocket_brigade_icon.dds"
+  },
+  {
+   "name": "unit_mountain_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_mountain_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "c0e52aa3c5972fb23f7109a5466d6b1b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_mountain_icon.dds"
+  },
+  {
+   "name": "unit_northern_territory_recon_support_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_northern_territory_recon_support_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "08ea01820e4345358a6494a3ca91884d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_northern_territory_recon_support_icon.dds"
+  },
+  {
+   "name": "unit_paratroop_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_paratroop_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "f8dd97c35c21193e0ba50c6e53c78d3a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_paratroop_icon.dds"
+  },
+  {
+   "name": "unit_penal_infantry_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_penal_infantry_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "c9338b787ee03c457ac4f4d8a00ffc7a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_penal_infantry_icon.dds"
+  },
+  {
+   "name": "unit_railway_gun_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_railway_gun_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "d44fee655be625e2e40b64bb8ac2d955",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_railway_gun_icon.dds"
+  },
+  {
+   "name": "unit_ranger_battalion_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_ranger_battalion_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "175a500b39f28c7c1795080ffcdce7b4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_ranger_battalion_icon.dds"
+  },
+  {
+   "name": "unit_recon_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_recon_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "012dd6492aa6bf4a28420828ae5ef6b9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_recon_icon.dds"
+  },
+  {
+   "name": "unit_rocket_art_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_rocket_art_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "f768669ed5026331276375fb95cf538e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_rocket_art_icon.dds"
+  },
+  {
+   "name": "unit_self_propelled_super_heavy_artillery_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_self_propelled_super_heavy_artillery_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "910ceaee908773abbfe86d2df15aae71",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_self_propelled_super_heavy_artillery_icon.dds"
+  },
+  {
+   "name": "unit_sturmtruppe_battalion_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_sturmtruppe_battalion_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "9f46063f4085c9bd88fa497ca5df4b4e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_sturmtruppe_battalion_icon.dds"
+  },
+  {
+   "name": "unit_super_heavy_armor_antiair_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_super_heavy_armor_antiair_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "22eccc882f19bf8cd95d4604d15bb48c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_super_heavy_armor_antiair_icon.dds"
+  },
+  {
+   "name": "unit_super_heavy_armor_artillery_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_super_heavy_armor_artillery_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "a048df72a4ac7aedd3535ce76938a82f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_super_heavy_armor_artillery_icon.dds"
+  },
+  {
+   "name": "unit_super_heavy_armor_at_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_super_heavy_armor_at_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "95fcc92c79049287c902fd167c2f4ba0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_super_heavy_armor_at_icon.dds"
+  },
+  {
+   "name": "unit_super_heavy_armor_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_super_heavy_armor_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "c75cd7fc60b061ebb0dc9e650ce89449",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_super_heavy_armor_icon.dds"
+  },
+  {
+   "name": "unit_super_heavy_artillery_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_super_heavy_artillery_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "e17ec806a3dd9fd899f04f3e0393a505",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_super_heavy_artillery_icon.dds"
+  },
+  {
+   "name": "unit_super_heavy_railway_gun_unit_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_super_heavy_railway_gun_unit_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "f8c339273f29ce8db01eff3a2667f7be",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_super_heavy_railway_gun_unit_icon.dds"
+  },
+  {
+   "name": "unit_winter_logistics_support_icon",
+   "category": "divisions_large",
+   "file": "icon/divisions_large/unit_winter_logistics_support_icon.png",
+   "size": [
+    152,
+    42
+   ],
+   "md5": "33a380b17be95125ad7513a72fe5a7a8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_large/unit_winter_logistics_support_icon.dds"
+  },
+  {
+   "name": "onmap_helicopter_brigade_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_helicopter_brigade_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "989b31d317c2184d235d01bea3dacf18",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_helicopter_brigade_icon.dds"
+  },
+  {
+   "name": "onmap_no_intel_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_no_intel_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "139caba433d5a10ff0240caf60ae5cc8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_no_intel_icon.dds"
+  },
+  {
+   "name": "onmap_unit_BRA_integralist_militia_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_BRA_integralist_militia_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "3c4945d30ace8f4c15729d573bffe278",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_BRA_integralist_militia_icon.dds"
+  },
+  {
+   "name": "onmap_unit_amphibious_mechanized_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_amphibious_mechanized_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "028160968617f95ab5888a80b3a740b4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_amphibious_mechanized_icon.dds"
+  },
+  {
+   "name": "onmap_unit_amphibious_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_amphibious_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "2bafff4cddd9cc57fb20d890d8e6b9c6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_anti_air_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_anti_air_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "cadfcaac93eae766f4bb6018080217c7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_anti_air_icon.dds"
+  },
+  {
+   "name": "onmap_unit_armored_car_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_armored_car_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "3034e7615e670f75a7c9d386b493db72",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_armored_car_icon.dds"
+  },
+  {
+   "name": "onmap_unit_armored_engineer_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_armored_engineer_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "65fdbf293fcc87bacb7518053968c726",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_armored_engineer_icon.dds"
+  },
+  {
+   "name": "onmap_unit_armored_maintenance_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_armored_maintenance_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "1f146cd47df3679bb9506a1f06ba418e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_armored_maintenance_icon.dds"
+  },
+  {
+   "name": "onmap_unit_armored_signal_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_armored_signal_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "8844ef7af06cb81ad770093459590659",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_armored_signal_icon.dds"
+  },
+  {
+   "name": "onmap_unit_art_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_art_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "74a88a4c04fa75c439f2859e2ce49aa0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_art_icon.dds"
+  },
+  {
+   "name": "onmap_unit_assault_engineer_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_assault_engineer_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "01681dae5277dd425c56a150499d85c1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_assault_engineer_icon.dds"
+  },
+  {
+   "name": "onmap_unit_at_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_at_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "2887d5892c1db3325fbbe7c7773dc20e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_at_icon.dds"
+  },
+  {
+   "name": "onmap_unit_bicycle_infantry_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_bicycle_infantry_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "f6c9f74af30097cef681396fc709ed05",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_bicycle_infantry_icon.dds"
+  },
+  {
+   "name": "onmap_unit_blackshirt_assault_battalion_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_blackshirt_assault_battalion_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "c95e8c6913ee184d34fa8651a982919d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_blackshirt_assault_battalion_icon.dds"
+  },
+  {
+   "name": "onmap_unit_camelry_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_camelry_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "d294905977ea12aaac183f3c0d448ac9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_camelry_icon.dds"
+  },
+  {
+   "name": "onmap_unit_cavalry_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_cavalry_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "ca8a9f28633c89fde912fc818ec2b810",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_cavalry_icon.dds"
+  },
+  {
+   "name": "onmap_unit_elephantry_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_elephantry_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "fbf016b7e741792c11b1a35851e0e6a7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_elephantry_icon.dds"
+  },
+  {
+   "name": "onmap_unit_engineer_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_engineer_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "a4f302d76300fb96e56fb49c55039631",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_engineer_icon.dds"
+  },
+  {
+   "name": "onmap_unit_fake_intel_unit_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_fake_intel_unit_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "8842790098b8fd7a23de91b1ec92beaa",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_fake_intel_unit_icon.dds"
+  },
+  {
+   "name": "onmap_unit_field_guns_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_field_guns_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "be09fbdb7222ee54ced64301c31dd90c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_field_guns_icon.dds"
+  },
+  {
+   "name": "onmap_unit_fire_support_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_fire_support_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "3e379907e5a9b793f89f49fa13db6cdd",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_fire_support_icon.dds"
+  },
+  {
+   "name": "onmap_unit_heavy_amphibious_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_heavy_amphibious_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "bcd8f77fc08d229abe7acdc13cc53477",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_heavy_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_heavy_armor_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_heavy_armor_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "8c94068e952a5e711057c9ef3a61b3a8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_heavy_armor_icon.dds"
+  },
+  {
+   "name": "onmap_unit_heavy_flamethrower_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_heavy_flamethrower_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "0a72ebdbba5a442be02f593e728070a2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_heavy_flamethrower_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_heavy_spaa_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_heavy_spaa_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "c7bd7e1d5feff377bc6924c9d6e4a51f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_heavy_spaa_icon.dds"
+  },
+  {
+   "name": "onmap_unit_heavy_spart_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_heavy_spart_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "e37d607de70cc647df104798088574ed",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_heavy_spart_icon.dds"
+  },
+  {
+   "name": "onmap_unit_heavy_tank_destroyer_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_heavy_tank_destroyer_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "23285037a97c635c7524fc44ce795cd0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_heavy_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "onmap_unit_heavy_tank_jungle_support_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_heavy_tank_jungle_support_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "fc6778b79fdc5a0365d071c9dcb8ecdf",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_heavy_tank_jungle_support_icon.dds"
+  },
+  {
+   "name": "onmap_unit_helicopter_field_hospital_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_helicopter_field_hospital_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "2e4ddd5cc8d816f21733f4308c2be32c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_helicopter_field_hospital_icon.dds"
+  },
+  {
+   "name": "onmap_unit_helicopter_recon_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_helicopter_recon_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "d917a655f10f6dcb90bed54555040bbe",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_helicopter_recon_icon.dds"
+  },
+  {
+   "name": "onmap_unit_helicopter_transport_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_helicopter_transport_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "9554096ab287c632bd3bd085fbe52648",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_helicopter_transport_icon.dds"
+  },
+  {
+   "name": "onmap_unit_hq_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_hq_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "e1ad379006a8d49d8d2786b94aedd3c9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_hq_icon.dds"
+  },
+  {
+   "name": "onmap_unit_infantry_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_infantry_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "a6136fe46760d08b25efcbb8fd8199de",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_infantry_icon.dds"
+  },
+  {
+   "name": "onmap_unit_irregular_infantry_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_irregular_infantry_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "6c751dd86e3e1265a65ac4fba5a4c20a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_irregular_infantry_icon.dds"
+  },
+  {
+   "name": "onmap_unit_land_cruiser_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_land_cruiser_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "de874317f7b78950a0c2ccbee94e91c9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_land_cruiser_icon.dds"
+  },
+  {
+   "name": "onmap_unit_light_amphibious_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_light_amphibious_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "40e8be71ade9366316fdea491b3573b8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_light_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_light_flamethrower_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_light_flamethrower_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "3002dfb719c7d67f43cf1fcd7fb1b8af",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_light_flamethrower_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_light_spaa_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_light_spaa_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "367a4fa20a657cea9ecdab06b10c61b0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_light_spaa_icon.dds"
+  },
+  {
+   "name": "onmap_unit_light_spart_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_light_spart_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "cc153661f9ff00c5eb138611d3ae2ee9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_light_spart_icon.dds"
+  },
+  {
+   "name": "onmap_unit_light_tank_destroyer_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_light_tank_destroyer_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "64be681c268dae2f2be7a89ad0bac485",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_light_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "onmap_unit_light_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_light_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "2237a6472ac7ef7b586927fbdb84adc0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_light_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_long_range_patrol_support_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_long_range_patrol_support_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "907fe20df4551581398fdf77c80724fb",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_long_range_patrol_support_icon.dds"
+  },
+  {
+   "name": "onmap_unit_marine_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_marine_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "de1e6883a387f91601d0c63bdb4d2369",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_marine_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mechanized_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mechanized_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "1e9581bab0079d7a475ea25c081ff307",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mechanized_icon.dds"
+  },
+  {
+   "name": "onmap_unit_medium_amphibious_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_medium_amphibious_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "3128154e0043392a26693737e63f5d3a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_medium_amphibious_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_medium_flamethrower_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_medium_flamethrower_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "4d5701bbcd06bbe7dbb2574b66225a8a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_medium_flamethrower_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_medium_spaa_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_medium_spaa_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "ebf47636d747342080d3b9f83eb13970",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_medium_spaa_icon.dds"
+  },
+  {
+   "name": "onmap_unit_medium_spart_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_medium_spart_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "04f64a300903e16620c73b6aa17ba0f2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_medium_spart_icon.dds"
+  },
+  {
+   "name": "onmap_unit_medium_tank_destroyer_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_medium_tank_destroyer_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "a505cc17e0f0b31eaba66d6af74189f7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_medium_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "onmap_unit_medium_tank_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_medium_tank_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "1157f0282c0d08efab0dcca6c5856d14",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_medium_tank_icon.dds"
+  },
+  {
+   "name": "onmap_unit_militia_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_militia_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "7de52718235927a1595356eac06d2f19",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_militia_icon.dds"
+  },
+  {
+   "name": "onmap_unit_modern_armor_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_modern_armor_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "e3dd354dfce08c9fdcc6a61ba356f858",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_modern_armor_icon.dds"
+  },
+  {
+   "name": "onmap_unit_modern_spaa_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_modern_spaa_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "0bdd0c594cea239de0debff60671ebc4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_modern_spaa_icon.dds"
+  },
+  {
+   "name": "onmap_unit_modern_spart_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_modern_spart_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "e0f400761709f43e2e28e61bc27863fe",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_modern_spart_icon.dds"
+  },
+  {
+   "name": "onmap_unit_modern_tank_destroyer_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_modern_tank_destroyer_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "ad05fb79703cf3dbbc0932c5403e6536",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_modern_tank_destroyer_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mot_anti_air_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mot_anti_air_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "a4c65ffcbd7384cb2f819bd897bfcc46",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mot_anti_air_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mot_art_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mot_art_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "f52f54808ab63cc32fb9d5c0401c1611",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mot_art_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mot_at_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mot_at_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "87af51eff69d1210e78e6f240cd2a7fb",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mot_at_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mot_fire_support_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mot_fire_support_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "7f55a810cd2b26b008f185dbff9e63d7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mot_fire_support_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mot_rocket_artillery_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mot_rocket_artillery_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "2737b9f0a6c635df41861e9f5ba4fc54",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mot_rocket_artillery_icon.dds"
+  },
+  {
+   "name": "onmap_unit_motorized_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_motorized_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "c9f4ad60700691b7127fa76bb12d2235",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_motorized_icon.dds"
+  },
+  {
+   "name": "onmap_unit_motorized_military_police_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_motorized_military_police_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "5339fc0e70a9995c40321f62c50de40a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_motorized_military_police_icon.dds"
+  },
+  {
+   "name": "onmap_unit_motorized_rocket_brigade_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_motorized_rocket_brigade_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "5d49923b796ad9d7e0cbedb299488944",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_motorized_rocket_brigade_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mountain_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mountain_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "95cbeb89eeb2fa9a65d355cd66c336a1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mountain_icon.dds"
+  },
+  {
+   "name": "onmap_unit_mountain_ski_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_mountain_ski_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "0716d2a91f72333446bcd52eeb51b262",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_mountain_ski_icon.dds"
+  },
+  {
+   "name": "onmap_unit_northern_territory_recon_support_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_northern_territory_recon_support_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "bdba4b0f394557116bbc0770d457496c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_northern_territory_recon_support_icon.dds"
+  },
+  {
+   "name": "onmap_unit_paratroop_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_paratroop_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "b6467bf5d3d8d6f5f18a739f788d4fa9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_paratroop_icon.dds"
+  },
+  {
+   "name": "onmap_unit_penal_infantry_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_penal_infantry_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "28dda75a904673b5a04b2db3e7e2481f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_penal_infantry_icon.dds"
+  },
+  {
+   "name": "onmap_unit_railway_gun_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_railway_gun_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "ea8faa3195c2a4028a969b9b3f1ceb90",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_railway_gun_icon.dds"
+  },
+  {
+   "name": "onmap_unit_ranger_battalion_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_ranger_battalion_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "32df4d6a3ee82c8b15b47a13c80ce5c4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_ranger_battalion_icon.dds"
+  },
+  {
+   "name": "onmap_unit_recon_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_recon_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "548412974bbf88a9ff010d34b84086f1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_recon_icon.dds"
+  },
+  {
+   "name": "onmap_unit_rocket_artillery_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_rocket_artillery_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "5e7be1f99fb5c8a22fb03f4e887e2a27",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_rocket_artillery_icon.dds"
+  },
+  {
+   "name": "onmap_unit_self_propelled_super_heavy_artillery_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_self_propelled_super_heavy_artillery_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "acb291ecfcef371c3aaa14a46a4d60b5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_self_propelled_super_heavy_artillery_icon.dds"
+  },
+  {
+   "name": "onmap_unit_sturmtruppe_battalion_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_sturmtruppe_battalion_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "a3bc8877c4c9bab6f450a165e70ec0b3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_sturmtruppe_battalion_icon.dds"
+  },
+  {
+   "name": "onmap_unit_super_heavy_armor_antiair_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_super_heavy_armor_antiair_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "11b881a9c93d7bf385dae47cfb8b0b47",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_super_heavy_armor_antiair_icon.dds"
+  },
+  {
+   "name": "onmap_unit_super_heavy_armor_artillery_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_super_heavy_armor_artillery_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "015b7a971bd9834c8bb619e8660a6dc0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_super_heavy_armor_artillery_icon.dds"
+  },
+  {
+   "name": "onmap_unit_super_heavy_armor_at_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_super_heavy_armor_at_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "1c73a98cb0368baf5624bbed2c8f566c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_super_heavy_armor_at_icon.dds"
+  },
+  {
+   "name": "onmap_unit_super_heavy_armor_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_super_heavy_armor_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "c64e000c29b739df79602da361b9c65b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_super_heavy_armor_icon.dds"
+  },
+  {
+   "name": "onmap_unit_super_heavy_artillery_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_super_heavy_artillery_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "64989ebea365939ad3727c082497ac0d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_super_heavy_artillery_icon.dds"
+  },
+  {
+   "name": "onmap_unit_super_heavy_railway_gun_unit_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_super_heavy_railway_gun_unit_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "28b05e62c3e4a12d80e5474af4c277f6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_super_heavy_railway_gun_unit_icon.dds"
+  },
+  {
+   "name": "onmap_unit_winter_logistics_support_icon",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/onmap_unit_winter_logistics_support_icon.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "52bab62692ffa3c584b42fc222af83c5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/onmap_unit_winter_logistics_support_icon.dds"
+  },
+  {
+   "name": "unit_jungle_pioneers_support_icon_white",
+   "category": "divisions_small",
+   "file": "icon/divisions_small/unit_jungle_pioneers_support_icon_white.png",
+   "size": [
+    60,
+    12
+   ],
+   "md5": "1c30f9ab22242b4f26563a2c0ae9785b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/divisions_small/unit_jungle_pioneers_support_icon_white.dds"
+  },
+  {
+   "name": "custom_template_000",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_000.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "e47d613bd2e658dc509a16d66c9f0444",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_000.dds"
+  },
+  {
+   "name": "custom_template_001",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_001.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6ef143f006a3d32246ae838486596b91",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_001.dds"
+  },
+  {
+   "name": "custom_template_002",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_002.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "45075c3784294a155d1a40f79bf94459",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_002.dds"
+  },
+  {
+   "name": "custom_template_003",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_003.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "c6a6a81f099d2e969d152ac6d85f4531",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_003.dds"
+  },
+  {
+   "name": "custom_template_004",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_004.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "e22b25aeb1a36396e594871a21f29304",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_004.dds"
+  },
+  {
+   "name": "custom_template_005",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_005.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "8daae2f6c15dc27805d9f4cbf4ac5570",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_005.dds"
+  },
+  {
+   "name": "custom_template_006",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_006.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "cfa2662dfda37a6cc17b22774a2d61bd",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_006.dds"
+  },
+  {
+   "name": "custom_template_007",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_007.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "b9dcf9aef5819d7a9c157031d140e80b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_007.dds"
+  },
+  {
+   "name": "custom_template_008",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_008.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "3fce38d7a3b432c265f44ec41895b5fa",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_008.dds"
+  },
+  {
+   "name": "custom_template_009",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_009.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "5ea1f0005f7032f491d60f2fbf8b79ca",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_009.dds"
+  },
+  {
+   "name": "custom_template_010",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_010.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "66219b9d2532ad5ef5b679fd271f5d08",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_010.dds"
+  },
+  {
+   "name": "custom_template_011",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_011.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "4fbb8be520c409ff8e370c5cafd6a562",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_011.dds"
+  },
+  {
+   "name": "custom_template_012",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_012.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "de6b81c32eca00689410a8d16c20ea90",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_012.dds"
+  },
+  {
+   "name": "custom_template_013",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_013.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "8946bf6aeadb2ccf7116cde3727aa9f8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_013.dds"
+  },
+  {
+   "name": "custom_template_014",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_014.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7acc2a858335653ea80f4b650ffdfba1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_014.dds"
+  },
+  {
+   "name": "custom_template_015",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_015.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "8e989f28232f0b81be2b3f9758c44030",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_015.dds"
+  },
+  {
+   "name": "custom_template_016",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_016.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "0b308e99a83938848f5d787a316c27be",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_016.dds"
+  },
+  {
+   "name": "custom_template_017",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_017.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "0a5ac9cc1414657ed48c730a210f82ac",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_017.dds"
+  },
+  {
+   "name": "custom_template_018",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_018.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "398e3f07f3554c4ea156d54be20388b9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_018.dds"
+  },
+  {
+   "name": "custom_template_019",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_019.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "a75aecb1ce8a0c725c1de960a746df6a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_019.dds"
+  },
+  {
+   "name": "custom_template_020",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_020.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "0189dd247cbe726aab085eedbe9401aa",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_020.dds"
+  },
+  {
+   "name": "custom_template_021",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_021.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "97845d248e50cd78f1d7f585005847f5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_021.dds"
+  },
+  {
+   "name": "custom_template_022",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_022.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6e00a240af210a33a00520db15fb1a2e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_022.dds"
+  },
+  {
+   "name": "custom_template_023",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_023.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "21c7eb7e391d0aded75ecc7a35e0c406",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_023.dds"
+  },
+  {
+   "name": "custom_template_024",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_024.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "a8ca54747511de150ca0418fc5255995",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_024.dds"
+  },
+  {
+   "name": "custom_template_025",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_025.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "47c77a265a5d754df16fe5af1ee774d3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_025.dds"
+  },
+  {
+   "name": "custom_template_026",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_026.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6c917c4dfbc3f8868f239d4478a90b46",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_026.dds"
+  },
+  {
+   "name": "custom_template_027",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_027.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "52f8e084d548eec762e58e7bced79e43",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_027.dds"
+  },
+  {
+   "name": "custom_template_028",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_028.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "a2d4809ee7cfeb17d3fbd1eb8eea2461",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_028.dds"
+  },
+  {
+   "name": "custom_template_029",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_029.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "3d9a7f8dfeeba4cd45c8fb23c5bdace4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_029.dds"
+  },
+  {
+   "name": "custom_template_030",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_030.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "45653f5fcd4c38900e8dceef774c885d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_030.dds"
+  },
+  {
+   "name": "custom_template_031",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_031.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "694883af838cc3a7110c1bad9ff77682",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_031.dds"
+  },
+  {
+   "name": "custom_template_032",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_032.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6c6b32f8344082cfabe1c078ba7580ce",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_032.dds"
+  },
+  {
+   "name": "custom_template_033",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_033.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "2aa0bf6b7bc4870ab8b60ab9fd6b7e8b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_033.dds"
+  },
+  {
+   "name": "custom_template_034",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_034.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "599c53be2b68bf2e55367386aab99401",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_034.dds"
+  },
+  {
+   "name": "custom_template_035",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_035.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "a6af5efac543c1638e7ee1ba8b09a5d9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_035.dds"
+  },
+  {
+   "name": "custom_template_036",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_036.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "d1899fc45407cff776bb7d2ca74c641c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_036.dds"
+  },
+  {
+   "name": "custom_template_037",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_037.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "05cb0245092e9251fc4136db2f5b061d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_037.dds"
+  },
+  {
+   "name": "custom_template_038",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_038.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6c24b9e50a9efc0bb574ce045631c828",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_038.dds"
+  },
+  {
+   "name": "custom_template_039",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_039.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "8fc4d5cd9e695bf4ea7308df423a9c96",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_039.dds"
+  },
+  {
+   "name": "custom_template_040",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_040.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "fee0cd2a026949bee0cb3c4fded0cd04",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_040.dds"
+  },
+  {
+   "name": "custom_template_041",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_041.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "c7f1d04e1d69209f8aca0bd62f599576",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_041.dds"
+  },
+  {
+   "name": "custom_template_042",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_042.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "8b8de5de57f2e10fe50c91cad79c6f0b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_042.dds"
+  },
+  {
+   "name": "custom_template_043",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_043.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "18648d29448ea28480f446dac3eaed23",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_043.dds"
+  },
+  {
+   "name": "custom_template_065",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_065.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "e619afd05700ee613e0c222728172931",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_065.dds"
+  },
+  {
+   "name": "custom_template_066",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_066.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "78a03260f084532232469312d4c6aae0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_066.dds"
+  },
+  {
+   "name": "custom_template_067",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_067.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7955df19e1e3c9b79b3b624da9075946",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_067.dds"
+  },
+  {
+   "name": "custom_template_068",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_068.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "38ebbc244bffd04c619062f6e34f4246",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_068.dds"
+  },
+  {
+   "name": "custom_template_069",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_069.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "bed22b20a6bf4640440462631f602b65",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_069.dds"
+  },
+  {
+   "name": "custom_template_070",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_070.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "988d0fa46a966723b4d0b932b759f055",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_070.dds"
+  },
+  {
+   "name": "custom_template_071",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_071.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "0a2d598bae701a86261bb2f240d87cb7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_071.dds"
+  },
+  {
+   "name": "custom_template_072",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_072.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "0d6c6e635dc74c152ff465188862c28c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_072.dds"
+  },
+  {
+   "name": "custom_template_073",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_073.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "f13b705922f11e59534946798cf80d81",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_073.dds"
+  },
+  {
+   "name": "custom_template_074",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_074.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "39d83c114847cc1290ed7b2d8cbd54aa",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_074.dds"
+  },
+  {
+   "name": "custom_template_075",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_075.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "0611d04ffd70ad2c8ab209629d2003b4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_075.dds"
+  },
+  {
+   "name": "custom_template_076",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_076.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "11d6336e7a8b36c70c2d0455c2b2638f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_076.dds"
+  },
+  {
+   "name": "custom_template_077",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_077.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "62bf8627fda7fba14fc5b024ab10f599",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_077.dds"
+  },
+  {
+   "name": "custom_template_078",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_078.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "0cf3295e439e36c99268b1e0541554a6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_078.dds"
+  },
+  {
+   "name": "custom_template_079",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_079.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6e6dae9c9ffe0da641d8aa20d7d46cb8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_079.dds"
+  },
+  {
+   "name": "custom_template_080",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_080.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6486e78e2c1197d1f31ed78b25f3829a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_080.dds"
+  },
+  {
+   "name": "custom_template_081",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_081.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "36cdf774afb2a3816bb97533c7bca3f5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_081.dds"
+  },
+  {
+   "name": "custom_template_082",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_082.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "5e1efa1e3f01efa7eca2c4c61543f764",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_082.dds"
+  },
+  {
+   "name": "custom_template_083",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_083.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "5c3f04e05a8e961b8de6d0b6f614ecae",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_083.dds"
+  },
+  {
+   "name": "custom_template_084",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_084.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7959b7ab6a66e11454046977051350a8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_084.dds"
+  },
+  {
+   "name": "custom_template_085",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_085.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "bc14fab27bad72e8d94c020ed6bcfed5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_085.dds"
+  },
+  {
+   "name": "custom_template_086",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_086.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "efbdfb50fe4988c48801b843dc8dd0ef",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_086.dds"
+  },
+  {
+   "name": "custom_template_087",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_087.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "dc8c837520e9e52067adf362a3231f27",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_087.dds"
+  },
+  {
+   "name": "custom_template_088",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_088.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "da3814a357381d1e8f874f8f69baaa1f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_088.dds"
+  },
+  {
+   "name": "custom_template_089",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_089.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "22e226f2ef917d272564a8b2626e6c31",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_089.dds"
+  },
+  {
+   "name": "custom_template_090",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_090.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "e503c62b1fc994cf4fdc7fe3ba3cbb0a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_090.dds"
+  },
+  {
+   "name": "custom_template_091",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_091.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "ffe1c550844ff4db5b22e9e3b6121efd",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_091.dds"
+  },
+  {
+   "name": "custom_template_092",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_092.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "6d23c60b3c3d3e7ae3ee690241f8ff6e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_092.dds"
+  },
+  {
+   "name": "custom_template_093",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_093.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "a99340c96da4d739e315c0f2e825f1f4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_093.dds"
+  },
+  {
+   "name": "custom_template_094",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_094.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "9be2c1d21aa77b0bcec112a4859d3b14",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_094.dds"
+  },
+  {
+   "name": "custom_template_095",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_095.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7c72db6751b343daad6ad27e4db8c7b8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_095.dds"
+  },
+  {
+   "name": "custom_template_096",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_096.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "609aa29d888e41c8900a47ca4a8d0eb3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_096.dds"
+  },
+  {
+   "name": "custom_template_097",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_097.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "2ec8d60775a5085a15eaff6a3018b0ff",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_097.dds"
+  },
+  {
+   "name": "custom_template_098",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_098.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "4fae4841055f7db14c42e4369f1ba768",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_098.dds"
+  },
+  {
+   "name": "custom_template_099",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_099.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7ac6b0b9b513ad0b763acc0a0b7cbf9b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_099.dds"
+  },
+  {
+   "name": "custom_template_100",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_100.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "187881fc32767f7776576803f18da5e2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_100.dds"
+  },
+  {
+   "name": "custom_template_101",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_101.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "b1d86abe7c32cd8f4917fa53509aaa1e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_101.dds"
+  },
+  {
+   "name": "custom_template_102",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_102.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "9b845eb7835d7cece58c79072da2ccb5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_102.dds"
+  },
+  {
+   "name": "custom_template_103",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_103.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "b116d643d99c68e4b7c45711bfc6e56c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_103.dds"
+  },
+  {
+   "name": "custom_template_104",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_104.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "426504fcae82a62dc255430798aa9a5a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_104.dds"
+  },
+  {
+   "name": "custom_template_105",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_105.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7cb0683fbb915b87d23c2a72a8fabc6e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_105.dds"
+  },
+  {
+   "name": "custom_template_106",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_106.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "4d1127e3f6dc88793e34c4a6f3671535",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_106.dds"
+  },
+  {
+   "name": "custom_template_107",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_107.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "d6923730fbf7d59718b2b5e9c4daec3b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_107.dds"
+  },
+  {
+   "name": "custom_template_108",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_108.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "c5c143820128c8bce5e5a5add6d176f1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_108.dds"
+  },
+  {
+   "name": "custom_template_109",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_109.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "503a1502a16993f67cfbafae9067dfbe",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_109.dds"
+  },
+  {
+   "name": "custom_template_110",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_110.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "714021186b5044ed61c65fe770fae06d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_110.dds"
+  },
+  {
+   "name": "custom_template_111",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_111.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7e77cb8f20fe39cf226923941ab62b56",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_111.dds"
+  },
+  {
+   "name": "custom_template_112",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_112.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "434886628eb5075ce1b52e22de76bdd0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_112.dds"
+  },
+  {
+   "name": "custom_template_113",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_113.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "661c0bc09240882f101fabcedc8bee53",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_113.dds"
+  },
+  {
+   "name": "custom_template_114",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_114.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "7021346a7ef7ef84758f87fdd5282255",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_114.dds"
+  },
+  {
+   "name": "custom_template_115",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_115.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "d47822215890060eafcf56c2de1b63d1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_115.dds"
+  },
+  {
+   "name": "custom_template_116",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_116.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "96d6b378b34fe86f818fe7603aead8e4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_116.dds"
+  },
+  {
+   "name": "custom_template_117",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_117.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "17d65e8a64168178644a1d78bdcb3ae1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_117.dds"
+  },
+  {
+   "name": "custom_template_118",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_118.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "c0dd9a0164af63a5386b5392463debf0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_118.dds"
+  },
+  {
+   "name": "custom_template_119",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_119.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "3c06b9b1aa0e3b451e7860d25f7461ad",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_119.dds"
+  },
+  {
+   "name": "custom_template_120",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_120.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "bb068ce482809342be2e7a61a5d5dc91",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_120.dds"
+  },
+  {
+   "name": "custom_template_121",
+   "category": "division_templates_large",
+   "file": "icon/division_templates_large/custom_template_121.png",
+   "size": [
+    76,
+    42
+   ],
+   "md5": "64acdf71006079067cdee12224b1f97b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_large/custom_template_121.dds"
+  },
+  {
+   "name": "custom_template_000",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_000.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "8e26adaea966c388fd90d52ad8870c52",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_000.dds"
+  },
+  {
+   "name": "custom_template_001",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_001.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "9556e0e3c9d33fd1d35b9970e4e81658",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_001.dds"
+  },
+  {
+   "name": "custom_template_002",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_002.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "701bd0bbbbc6278f5791287d56d6cd51",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_002.dds"
+  },
+  {
+   "name": "custom_template_003",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_003.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "010ed24f97a89cd2573742ffb84b0809",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_003.dds"
+  },
+  {
+   "name": "custom_template_004",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_004.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "6b84270e2c52091db8ef13ec9f4c15f7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_004.dds"
+  },
+  {
+   "name": "custom_template_005",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_005.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "973bd3ea644f7ed9657d5dc5cd93de0a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_005.dds"
+  },
+  {
+   "name": "custom_template_006",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_006.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "67c008c1c02c5fdd1d7c601b89df5019",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_006.dds"
+  },
+  {
+   "name": "custom_template_007",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_007.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "999c8591922ac7e428f3e4a1f7395479",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_007.dds"
+  },
+  {
+   "name": "custom_template_008",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_008.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "07412087612c7a439f42bcfb07224499",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_008.dds"
+  },
+  {
+   "name": "custom_template_009",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_009.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "5fc7fe83360a49f48430953eddcc4b64",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_009.dds"
+  },
+  {
+   "name": "custom_template_010",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_010.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "bd28116861a3e232dd3cc73b1d4483c6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_010.dds"
+  },
+  {
+   "name": "custom_template_011",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_011.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "8b4c0ad4739a74b53a546b0caa261433",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_011.dds"
+  },
+  {
+   "name": "custom_template_012",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_012.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "4f9c87606144ec3f874055f3a2d6ed43",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_012.dds"
+  },
+  {
+   "name": "custom_template_013",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_013.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "fbca5b85f533c9e483fd6b13a8928f83",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_013.dds"
+  },
+  {
+   "name": "custom_template_014",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_014.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "610e00cdef714a18f29414b7b109347d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_014.dds"
+  },
+  {
+   "name": "custom_template_015",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_015.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "2c917f1022fa9503bdc2d4d53d95d7d8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_015.dds"
+  },
+  {
+   "name": "custom_template_016",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_016.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "01e5b306de65b0e11a5ae55ed1a06d1d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_016.dds"
+  },
+  {
+   "name": "custom_template_017",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_017.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "8e18a1dfe5ac7e2400896e510d1632c6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_017.dds"
+  },
+  {
+   "name": "custom_template_018",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_018.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "6399d6e80350f43106f7e2795fad84c1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_018.dds"
+  },
+  {
+   "name": "custom_template_019",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_019.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "5036e621917ea08493ec47ee8c912907",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_019.dds"
+  },
+  {
+   "name": "custom_template_020",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_020.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "3288cd68433bcd7c86a5a865af845051",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_020.dds"
+  },
+  {
+   "name": "custom_template_021",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_021.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "a72de43f2ae09937503464fdd9d19f4b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_021.dds"
+  },
+  {
+   "name": "custom_template_022",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_022.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "9132eab63a976b26d0138b278b3055d0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_022.dds"
+  },
+  {
+   "name": "custom_template_023",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_023.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "051d628850d58546cb6e49163fcce772",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_023.dds"
+  },
+  {
+   "name": "custom_template_024",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_024.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "36f3b817853c361c7871c1d202660174",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_024.dds"
+  },
+  {
+   "name": "custom_template_025",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_025.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "be35339bece99e1e5de1fd86e8f1ff4c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_025.dds"
+  },
+  {
+   "name": "custom_template_026",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_026.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "4aa8b3d58a1f49a65cb643c78d1c0058",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_026.dds"
+  },
+  {
+   "name": "custom_template_027",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_027.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "038c64d3fe323112f175e4118c07f3b4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_027.dds"
+  },
+  {
+   "name": "custom_template_028",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_028.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "995b3c53c7016e78247d7d053ee406c9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_028.dds"
+  },
+  {
+   "name": "custom_template_029",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_029.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "9fc2867b2b3ccb46dd872cb046503389",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_029.dds"
+  },
+  {
+   "name": "custom_template_030",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_030.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "ee92c313d1643395803ef762de37c7a2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_030.dds"
+  },
+  {
+   "name": "custom_template_031",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_031.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "f30dca6804f4c93f5b51268e66368d76",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_031.dds"
+  },
+  {
+   "name": "custom_template_032",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_032.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "be74aafd834a5103d1c887722b29ba21",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_032.dds"
+  },
+  {
+   "name": "custom_template_033",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_033.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "9d4b26147f612129c9fd1fd160ca7122",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_033.dds"
+  },
+  {
+   "name": "custom_template_034",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_034.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d4d4b6a36f66e13a19cacfb970a56ddf",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_034.dds"
+  },
+  {
+   "name": "custom_template_035",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_035.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "760f553ce466c5b522ef33c3ed8cf3d8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_035.dds"
+  },
+  {
+   "name": "custom_template_036",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_036.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "b75b5572e10c05befbd52d0c53903df0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_036.dds"
+  },
+  {
+   "name": "custom_template_037",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_037.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "131c6c0b6a09e4c2c0dd14e084662eb3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_037.dds"
+  },
+  {
+   "name": "custom_template_038",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_038.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "edd28ba7c40ff0444eedad4ce967b7ef",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_038.dds"
+  },
+  {
+   "name": "custom_template_039",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_039.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "4f1726cc8a11ade9920e9c4e259768c0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_039.dds"
+  },
+  {
+   "name": "custom_template_040",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_040.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "59c43d32f405d5aa870187f3e06763ad",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_040.dds"
+  },
+  {
+   "name": "custom_template_041",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_041.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "a12577eaa73044579733d5a86196f918",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_041.dds"
+  },
+  {
+   "name": "custom_template_042",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_042.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "f54b388bf6c4d30c8dded0f7ffdd771c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_042.dds"
+  },
+  {
+   "name": "custom_template_043",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_043.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d2e34f34cfff2549499b6accb6c96511",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_043.dds"
+  },
+  {
+   "name": "custom_template_065",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_065.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "f07eb2cf2501f689e33ead22b4448bb9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_065.dds"
+  },
+  {
+   "name": "custom_template_066",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_066.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "0c12bccccab5bd169646e9ddc7a4f894",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_066.dds"
+  },
+  {
+   "name": "custom_template_067",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_067.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "8a8b9fa8bd0a2844af9c696f4a33bb0e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_067.dds"
+  },
+  {
+   "name": "custom_template_068",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_068.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "06f3445a92415345b40843f1d96404bb",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_068.dds"
+  },
+  {
+   "name": "custom_template_069",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_069.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "00160ff008aa202259e6e7eef99e7e89",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_069.dds"
+  },
+  {
+   "name": "custom_template_070",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_070.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "ca38c80e7230ff4a2ea0cfeec18d5bc8",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_070.dds"
+  },
+  {
+   "name": "custom_template_071",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_071.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "21ac5b68be57e013b8c5f7b0e56d196e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_071.dds"
+  },
+  {
+   "name": "custom_template_072",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_072.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "2604a81bb809d5335f84588ca92bd4c9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_072.dds"
+  },
+  {
+   "name": "custom_template_073",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_073.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "e2d9814e4e7fa08d46658bfb2506f696",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_073.dds"
+  },
+  {
+   "name": "custom_template_074",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_074.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "63d7dc41dd24bce40edc33bf0d5068e7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_074.dds"
+  },
+  {
+   "name": "custom_template_075",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_075.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "02e51a7a80a61a43f79d8dccc12a241c",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_075.dds"
+  },
+  {
+   "name": "custom_template_076",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_076.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "74fa350958701b495dabafdcf8072aca",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_076.dds"
+  },
+  {
+   "name": "custom_template_077",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_077.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "1c8c827d19bd2cee0f1614ed4447bfb4",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_077.dds"
+  },
+  {
+   "name": "custom_template_078",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_078.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "f73188c9c6c07ed3469a0b841b6d677e",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_078.dds"
+  },
+  {
+   "name": "custom_template_079",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_079.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d3c734094eb55f0cfad82c0f5ce76a87",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_079.dds"
+  },
+  {
+   "name": "custom_template_080",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_080.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "ddccc032a85308245bf006ecb329c647",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_080.dds"
+  },
+  {
+   "name": "custom_template_081",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_081.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "58971bb2b6319867b31467a9644b28a2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_081.dds"
+  },
+  {
+   "name": "custom_template_082",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_082.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "41c5d539abf7ee6a259019379856d1b9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_082.dds"
+  },
+  {
+   "name": "custom_template_083",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_083.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "b2770c094710a82906a2dca30dba43c9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_083.dds"
+  },
+  {
+   "name": "custom_template_084",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_084.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "3fbda34b54157686597d5c1caf73b5ad",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_084.dds"
+  },
+  {
+   "name": "custom_template_085",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_085.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "1678c817e47f97ad6ee1a32e6430a270",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_085.dds"
+  },
+  {
+   "name": "custom_template_086",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_086.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d3340ef8aaefaeb919f309744953f6c5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_086.dds"
+  },
+  {
+   "name": "custom_template_087",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_087.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "0c5fc19a74d35ed7dad6dd4ce49432af",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_087.dds"
+  },
+  {
+   "name": "custom_template_088",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_088.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "039e3be979f773f0667b0f491e9dbde0",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_088.dds"
+  },
+  {
+   "name": "custom_template_089",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_089.png",
+   "size": [
+    31,
+    12
+   ],
+   "md5": "37804b10a22079beb09f928f42fedf08",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_089.dds"
+  },
+  {
+   "name": "custom_template_090",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_090.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "edfa95fa9779f971a3cd9496e6dbd580",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_090.dds"
+  },
+  {
+   "name": "custom_template_091",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_091.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "1d7baca14b34571500a96996aa492674",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_091.dds"
+  },
+  {
+   "name": "custom_template_092",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_092.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "1ad62b16e895f4624d983d7359f45ec7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_092.dds"
+  },
+  {
+   "name": "custom_template_093",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_093.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "b9bed9e88735af30c9b6a87aafdb76d7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_093.dds"
+  },
+  {
+   "name": "custom_template_094",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_094.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "def0a841c48eaff4f54bd37242a94394",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_094.dds"
+  },
+  {
+   "name": "custom_template_095",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_095.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "8627384aaf074d25f9aa4df940624817",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_095.dds"
+  },
+  {
+   "name": "custom_template_096",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_096.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "416f10bd23881c376955f199e6bb2f99",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_096.dds"
+  },
+  {
+   "name": "custom_template_097",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_097.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "2a1e6b5483cf783aca45b8b188756981",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_097.dds"
+  },
+  {
+   "name": "custom_template_098",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_098.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "32d753f3e70f0f2132a94ec3460e491f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_098.dds"
+  },
+  {
+   "name": "custom_template_099",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_099.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "8bc5b9780668bfa3eb159c95f5e9c0c5",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_099.dds"
+  },
+  {
+   "name": "custom_template_100",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_100.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "e8f96231e394929b99383fa7baf5102a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_100.dds"
+  },
+  {
+   "name": "custom_template_101",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_101.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "ef92f7459f2bc2c9432e96e437da3456",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_101.dds"
+  },
+  {
+   "name": "custom_template_102",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_102.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "06419768e0e09c6ca3d6e9172d113917",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_102.dds"
+  },
+  {
+   "name": "custom_template_103",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_103.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "519dde8dbaf795e3c9fbbcee9a64e6e1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_103.dds"
+  },
+  {
+   "name": "custom_template_104",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_104.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "10348d3ec6c538e4195cdbd4a4136c88",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_104.dds"
+  },
+  {
+   "name": "custom_template_105",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_105.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "bf24d0d637c9a2fd558337ad849f9c80",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_105.dds"
+  },
+  {
+   "name": "custom_template_106",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_106.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "6072314d40006ba038b827f8da20c417",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_106.dds"
+  },
+  {
+   "name": "custom_template_107",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_107.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "59b5ee54ef0f018167ddb398bfea1745",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_107.dds"
+  },
+  {
+   "name": "custom_template_108",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_108.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d8de3bf8644daaa2ea48453fe384a031",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_108.dds"
+  },
+  {
+   "name": "custom_template_109",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_109.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "1d1d4e35433b96cdbf9637de8e0618b3",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_109.dds"
+  },
+  {
+   "name": "custom_template_110",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_110.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "72e279d35f0c5e82401046a787cde1cf",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_110.dds"
+  },
+  {
+   "name": "custom_template_111",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_111.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "1fc29abc57e97b66e2bc4e5c4b81feb2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_111.dds"
+  },
+  {
+   "name": "custom_template_112",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_112.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "0c532957d1bc631c1181e1047815a330",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_112.dds"
+  },
+  {
+   "name": "custom_template_113",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_113.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "3111d5e3ca5bcb9008d4bc12d859f26d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_113.dds"
+  },
+  {
+   "name": "custom_template_114",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_114.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "9fef25c1c6bc87bd13044b2c510c2d71",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_114.dds"
+  },
+  {
+   "name": "custom_template_115",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_115.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "be81269c6c08b85ae16c0f46c78c6d28",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_115.dds"
+  },
+  {
+   "name": "custom_template_116",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_116.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "f3de51cfcaa193ae617a0df6a7b19e58",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_116.dds"
+  },
+  {
+   "name": "custom_template_117",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_117.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "5f583a22b928692f59ac1293d37600e6",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_117.dds"
+  },
+  {
+   "name": "custom_template_118",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_118.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "b36983ea6209f9eabd11f760f1e4cc34",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_118.dds"
+  },
+  {
+   "name": "custom_template_119",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_119.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "c02c647802a5a6e73429bcc5f382a008",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_119.dds"
+  },
+  {
+   "name": "custom_template_120",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_120.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "707ca3d4d88577d6865cd1ee3b2ad686",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_120.dds"
+  },
+  {
+   "name": "custom_template_121",
+   "category": "division_templates_small",
+   "file": "icon/division_templates_small/custom_template_121.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "ab26695cdc624d8f275b2377cb34e28f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/division_templates_small/custom_template_121.dds"
+  },
+  {
+   "name": "onmap_battlecruiser",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_battlecruiser.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "605f394d8085036ef5e0d88d6eb1fe73",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_battlecruiser.dds"
+  },
+  {
+   "name": "onmap_battlecruiser_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_battlecruiser_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "6bf257111208fb789a39014884f394aa",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_battlecruiser_inverted.dds"
+  },
+  {
+   "name": "onmap_battleship",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_battleship.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "be3e96841f91bfc64204292513e95b4b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_battleship.dds"
+  },
+  {
+   "name": "onmap_battleship_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_battleship_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "893b5876b7ca8900b9cc85b2194423d7",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_battleship_inverted.dds"
+  },
+  {
+   "name": "onmap_carrier",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_carrier.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "b018d4e23f25304a0791fad4eae634bd",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_carrier.dds"
+  },
+  {
+   "name": "onmap_carrier_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_carrier_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "6b1ecb13f08fa14e760a7d7633936a91",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_carrier_inverted.dds"
+  },
+  {
+   "name": "onmap_destroyer",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_destroyer.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "a06c28f371f96a2d45812d919168ead9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_destroyer.dds"
+  },
+  {
+   "name": "onmap_destroyer_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_destroyer_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "ac4b189bf054d5a98de0606381b5de54",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_destroyer_inverted.dds"
+  },
+  {
+   "name": "onmap_general_support_ship",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_general_support_ship.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d15333df2cca284240ad4e35e7e9d027",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_general_support_ship.dds"
+  },
+  {
+   "name": "onmap_general_support_ship_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_general_support_ship_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "f4384e2f3d3896dcab83ea9182b70cd9",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_general_support_ship_inverted.dds"
+  },
+  {
+   "name": "onmap_heavy_cruiser",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_heavy_cruiser.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "3d1471bd3efe7aa08425a86b3feb8063",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_heavy_cruiser.dds"
+  },
+  {
+   "name": "onmap_heavy_cruiser_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_heavy_cruiser_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "5a87fbe063a47c7ccc4977f85f9076aa",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_heavy_cruiser_inverted.dds"
+  },
+  {
+   "name": "onmap_light_cruiser",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_light_cruiser.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "e9bd6d049bbf8000a2293a7bfd757a66",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_light_cruiser.dds"
+  },
+  {
+   "name": "onmap_light_cruiser_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_light_cruiser_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d69547514fa8ec19560f48101fd08bcb",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_light_cruiser_inverted.dds"
+  },
+  {
+   "name": "onmap_repair_support_ship",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_repair_support_ship.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "4368d594fd8d43d8b48ad34ea99cd60b",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_repair_support_ship.dds"
+  },
+  {
+   "name": "onmap_repair_support_ship_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_repair_support_ship_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "6a165f5a0f3f63ff6207eac6d291dea1",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_repair_support_ship_inverted.dds"
+  },
+  {
+   "name": "onmap_sh_battleship",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_sh_battleship.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "8ff639fbedd895c65495d5f9edaad7f2",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_sh_battleship.dds"
+  },
+  {
+   "name": "onmap_sh_battleship_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_sh_battleship_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "d42c58daefa1e46c7d8734638a558337",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_sh_battleship_inverted.dds"
+  },
+  {
+   "name": "onmap_submarine",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_submarine.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "767523a0de099700aeea331a13aba00d",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_submarine.dds"
+  },
+  {
+   "name": "onmap_submarine_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_submarine_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "07fb60d81d8a0f7ce89d74643dc8474a",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_submarine_inverted.dds"
+  },
+  {
+   "name": "onmap_transport",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_transport.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "13c3dbb5ea526d176d506841c3682a6f",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_transport.dds"
+  },
+  {
+   "name": "onmap_transport_inverted",
+   "category": "ships_small",
+   "file": "icon/ships_small/onmap_transport_inverted.png",
+   "size": [
+    30,
+    12
+   ],
+   "md5": "7cf025febb80d88fa899f8d0362be474",
+   "source": "vanilla",
+   "source_file": "gfx/interface/counters/ships_small/onmap_transport_inverted.dds"
+  }
+ ]
+}

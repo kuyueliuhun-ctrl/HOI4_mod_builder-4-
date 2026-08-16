@@ -1,0 +1,3 @@
+arms_factory = {
+	# 建筑字段：cost / time / icon / 修正
+}

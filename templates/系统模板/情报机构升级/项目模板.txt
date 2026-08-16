@@ -1,0 +1,9 @@
+upgrade_custom = {
+	picture = GFX_agency_custom
+	frame = GFX_upgrade_frame_custom
+	ai_will_do = {
+		factor = 1
+	}
+	modifiers_during_progress = {
+	}
+}

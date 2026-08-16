@@ -242,17 +242,15 @@ def _apply_single_icon_field(content, block_start, block_end, field_path, icon_v
 
 
 def write_file_utf8(path, text):
-    """以 UTF-8 无 BOM 写回文件（HOI4 脚本解析器对 BOM 敏感，BOM 会破坏整文件解析）。"""
-    try:
-        with open(path, "w", encoding="utf-8", newline="") as f:
-            f.write(text)
-    except PermissionError:
-        try:
-            os.chmod(path, 0o666)
-            with open(path, "w", encoding="utf-8", newline="") as f:
-                f.write(text)
-        except Exception:
-            raise
+    """以 UTF-8 无 BOM 原子写回文件（HOI4 脚本解析器对 BOM 敏感，BOM 会破坏整文件解析）。
+
+    实现委托 write_utils.atomic_write_text：
+      - 原子写（临时文件 + os.replace），写入失败不破坏原文件
+      - 写前自动快照到撤销管理器（画布 Ctrl+Z / 工具菜单可撤销本次写入）
+      - 文本以 BOM 开头时拒绝写入（WriteContractError）
+    """
+    from write_utils import atomic_write_text
+    return atomic_write_text(path, text)
 
 
 def update_gfx_file(gfx_path, sprite_name, texture_rel):
@@ -280,8 +278,8 @@ def update_gfx_file(gfx_path, sprite_name, texture_rel):
         lines.append(f'\t\ttexturefile = "{tx}"')
         lines.append("\t}")
     lines.append("}")
-    with open(gfx_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + "\n")
+    from write_utils import atomic_write_text
+    atomic_write_text(gfx_path, "\n".join(lines) + "\n")
 
 
 def upload_icon(mod_path, image_path, icon_base, type_cfg):

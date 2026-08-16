@@ -1,0 +1,10 @@
+ideologies = {
+	democratic = {
+		types = {
+			conservatism = {
+			}
+		}
+		color = { 0 0 255 }
+		# 意识形态规则（rules = { ... }）
+	}
+}

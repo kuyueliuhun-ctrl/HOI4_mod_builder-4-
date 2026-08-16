@@ -127,7 +127,7 @@ class NodeEditDialog(QDialog):
         key_input_layout.addWidget(self.key_edit)
         # 中文翻译实时预览
         self.key_cn_label = QLabel("")
-        self.key_cn_label.setStyleSheet("color: #666; font-size: 11px;")
+        self.key_cn_label.setStyleSheet("color: #5d6b7a; font-size: 11px;")
         key_input_layout.addWidget(self.key_cn_label)
         self.key_edit.textChanged.connect(self._on_key_changed)
         key_form.addRow("键名:", key_input_layout)
@@ -160,7 +160,7 @@ class NodeEditDialog(QDialog):
         val_form.addRow("值:", self.value_edit)
         # 值的翻译预览
         self.val_cn_label = QLabel("")
-        self.val_cn_label.setStyleSheet("color: #666; font-size: 11px;")
+        self.val_cn_label.setStyleSheet("color: #5d6b7a; font-size: 11px;")
         val_form.addRow("", self.val_cn_label)
         value_layout.addLayout(val_form)
 
