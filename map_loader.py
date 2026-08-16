@@ -274,6 +274,43 @@ class MapData:
                      QImage.Format.Format_RGBA8888).copy()
         return QPixmap.fromImage(img)
 
+    def theater_outline_pixmap(self, province_ids):
+        """AI 派系战区红色描边图层：只描 selected province 的外边界。
+
+        Args:
+            province_ids (iterable[int]): 属于战区的全部地块 ID
+        """
+        empty = QPixmap()
+        if self.id_map is None:
+            return empty
+        idm = self.id_map
+        h, w = idm.shape
+        n = int(idm.max()) + 1
+        mask = np.zeros(n, dtype=bool)
+        for pid in province_ids:
+            try:
+                pid = int(pid)
+                if 0 < pid < n:
+                    mask[pid] = True
+            except Exception:
+                continue
+        m = mask[idm]
+        edge = np.zeros((h, w), dtype=bool)
+        dh = m[:, :-1] != m[:, 1:]
+        edge[:, :-1] |= dh
+        edge[:, 1:] |= dh
+        dv = m[:-1, :] != m[1:, :]
+        edge[:-1, :] |= dv
+        edge[1:, :] |= dv
+        rgba = np.zeros((h, w, 4), dtype=np.uint8)
+        rgba[..., 3] = np.where(edge, 255, 0)
+        rgba[..., 0] = 255
+        rgba[..., 1] = 20
+        rgba[..., 2] = 20
+        img = QImage(rgba.data, w, h, w * 4,
+                     QImage.Format.Format_RGBA8888).copy()
+        return QPixmap.fromImage(img)
+
     # ---------- 国家着色 ----------
 
     def invalidate_country_overlays(self):

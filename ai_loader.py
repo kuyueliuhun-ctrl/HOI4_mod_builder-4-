@@ -213,6 +213,70 @@ def replace_ai_strategy_entries(content, group_id, entries):
     return content
 
 
+def parse_ai_target_variant(target_text):
+    """解析 `target_variant = { ... }` → {"type": str, "modules": {slot: mod}}。"""
+    if not target_text:
+        return {"type": "", "modules": {}}
+    f = _fields(target_text)
+    modules = _map_values_in_block(target_text, "modules")
+    return {"type": f.get("type", ""), "modules": modules}
+
+
+def replace_ai_equipment_target_variant(content, group_id, variant_id,
+                                        variant_type, modules):
+    """替换 AI 装备指定变体的 `target_variant` 块。"""
+    lines = ["target_variant = {"]
+    if variant_type:
+        lines.append("\ttype = %s" % variant_type)
+    lines.append("\tmodules = {")
+    for slot, mod in modules.items():
+        lines.append("\t\t%s = %s" % (slot, mod))
+    lines.append("\t}")
+    lines.append("}")
+    new_text = "\n".join(lines)
+
+    for key, depth, start, _end in _block_ranges(content):
+        if depth != 0 or key != group_id:
+            continue
+        group_start, group_end = _find_block_bounds(content, start)
+        group_text = content[group_start:group_end]
+        for ck, cd, cs, _ce in _block_ranges(group_text):
+            if cd == 1 and ck == variant_id:
+                var_start, var_end = _find_block_bounds(content, group_start + cs)
+                var_text = content[var_start:var_end]
+                for tk, td, ts, _te in _block_ranges(var_text):
+                    if td == 1 and tk == "target_variant":
+                        child_start, child_end = _find_block_bounds(
+                            content, var_start + ts)
+                        return (content[:child_start] + new_text
+                                + content[child_end:])
+    return content
+
+
+def replace_top_block_fields(content, block_id, fields, quoted_fields=()):
+    """替换顶层块内多个简单字段（value 不自动加引号；quoted_fields 里的加引号）。"""
+    for key, depth, start, _end in _block_ranges(content):
+        if depth != 0 or key != block_id:
+            continue
+        block_start, block_end = _find_block_bounds(content, start)
+        block_text = content[block_start:block_end]
+        new_text = block_text
+        for field, value in fields.items():
+            quoted = '"%s"' % str(value).replace('"', '\\"') if field in quoted_fields else str(value)
+            new_text, n = re.subn(
+                r"(\b%s\s*=\s*)[^\n#]+" % re.escape(field),
+                lambda m, _v=quoted: m.group(1) + _v,
+                new_text, count=1)
+            if n == 0:
+                # 字段不存在：在块开头插入
+                brace = new_text.find("{")
+                if brace >= 0:
+                    new_text = (new_text[:brace + 1] + "\n\t%s = %s" % (field, quoted)
+                                + new_text[brace + 1:])
+        return content[:block_start] + new_text + content[block_end:]
+    return content
+
+
 def replace_ai_template_target_template(content, role_id, target_id, target_template_text):
     """替换 AI 师模板中指定目标模板的 `target_template` 块。"""
     for key, depth, start, _end in _block_ranges(content):

@@ -27,6 +27,8 @@ from PyQt6.QtWidgets import (
 from map_canvas import (MapCanvas, MODE_PAN, MODE_POINT, MODE_PAINT,
                         MODE_RECT, MODE_MULTI)
 from building_lib import load_building_types, load_country_colors
+from ai_loader import load_ai_faction_theaters
+from map_region_ops import parse_region_file
 
 
 class MapEditorDialog(QDialog):
@@ -93,12 +95,17 @@ class MapEditorDialog(QDialog):
         self.chk_border.setChecked(True)
         self.chk_terrain = QCheckBox("地形类型")
         self.chk_hillshade = QCheckBox("地形立体感")
+        self.chk_ai_theaters = QCheckBox("AI派系战区")
         for chk, slot in ((self.chk_country, self._rebuild_layers),
                           (self.chk_border, self._rebuild_layers),
                           (self.chk_terrain, self._rebuild_layers),
-                          (self.chk_hillshade, self._rebuild_layers)):
+                          (self.chk_hillshade, self._rebuild_layers),
+                          (self.chk_ai_theaters, self._rebuild_layers)):
             chk.toggled.connect(slot)
             bar.addWidget(chk)
+        theater_btn = QPushButton("战区列表")
+        theater_btn.clicked.connect(self._open_theater_list)
+        bar.addWidget(theater_btn)
         bar.addStretch(1)
 
         self.loc_edit = QLineEdit()
@@ -296,6 +303,49 @@ class MapEditorDialog(QDialog):
                 self.chk_hillshade.blockSignals(True)
                 self.chk_hillshade.setChecked(False)
                 self.chk_hillshade.blockSignals(False)
+        if self.chk_ai_theaters.isChecked():
+            pids = self._ai_theater_province_ids()
+            if pids:
+                pm = self.map_data.theater_outline_pixmap(pids)
+                self.canvas.set_overlay("ai_theaters", pm, z=14)
+
+    def _ai_theater_province_ids(self):
+        """返回所有 AI 派系战区覆盖的地块 ID 集合。"""
+        theaters = load_ai_faction_theaters(self.mod_path, self.game_path)
+        if not theaters:
+            return set()
+        # 战略区域 ID -> 地块 ID
+        region_pids = {}
+        for base in (self.mod_path, self.game_path):
+            if not base:
+                continue
+            d = os.path.join(base, "map", "strategicregions")
+            if not os.path.isdir(d):
+                continue
+            for name in sorted(os.listdir(d)):
+                if not name.lower().endswith(".txt"):
+                    continue
+                try:
+                    with open(os.path.join(d, name), "r", encoding="utf-8-sig",
+                              errors="ignore") as f:
+                        content = f.read()
+                except Exception:
+                    continue
+                for r in parse_region_file(content, "strategic_region"):
+                    region_pids.setdefault(r["id"], set()).update(r["provinces"])
+        out = set()
+        for t in theaters.values():
+            for rid in t.get("regions", []):
+                try:
+                    out.update(region_pids.get(int(rid), set()))
+                except Exception:
+                    continue
+        return out
+
+    def _open_theater_list(self):
+        from ai_faction_theater_dialog import open_ai_faction_theater_list
+        open_ai_faction_theater_list(
+            self.mod_path, self.game_path, parent=self)
 
     def _setup_vector_borders(self):
         """构建矢量层（放大不模糊；带磁盘缓存，首次构建后秒开）。

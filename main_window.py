@@ -883,6 +883,53 @@ class MyWindow(QMainWindow):
             traceback.print_exc()
             QMessageBox.critical(self, "错误", f"AI 师模板编辑器打开失败: {e}")
             return
+        # AI 海军 → 专用编辑器
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/common/ai_navy/" in norm:
+                from ai_navy_editor_dialog import open_ai_navy_editor
+                open_ai_navy_editor(
+                    file_path,
+                    mod_path=mod,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
+                    entity_id=entity_id,
+                    parent=self)
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"AI 海军编辑器打开失败: {e}")
+            return
+        # AI 派系战区 → 列表（双击战区打开树编辑器；地图中红色描边）
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/common/ai_faction_theaters/" in norm:
+                from ai_faction_theater_dialog import open_ai_faction_theater_list
+                open_ai_faction_theater_list(
+                    mod, self.settings.get("HOI4_path", ""), parent=self)
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"AI 派系战区列表打开失败: {e}")
+            return
+        # AI 装备 → 专用选择器（调用飞机/坦克/舰艇设计器）
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/common/ai_equipment/" in norm:
+                from ai_equipment_editor_dialog import open_ai_equipment_editor
+                open_ai_equipment_editor(
+                    file_path,
+                    mod_path=mod,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
+                    entity_id=entity_id,
+                    parent=self)
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"AI 装备编辑器打开失败: {e}")
+            return
         try:
             with open(file_path, 'r', encoding='utf-8-sig') as f:
                 content = f.read()

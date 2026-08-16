@@ -107,10 +107,10 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
 - **静态扫描**：`python tools/check_write_discipline.py` 用 AST 检出绕过原子写的
   新增直写（豁免登记在 `tools/write_discipline_allowlist.json`）
 - **契约验证**：`python tools/verify_contracts.py` 一键运行——全模块语法编译
-  （Python 3.8/3.13 双版本）+ 179 个契约单元测试（`tests/test_contracts.py`：
+  （Python 3.8/3.13 双版本）+ 206 个契约单元测试（`tests/test_contracts.py`：
   原子写/BOM 拒绝/撤销恢复/健康检查检出/扫描器检出/地图渲染/地图编辑/建筑系统/
   编制/舰艇/飞机/坦克设计器/设计器模板/OOB 路由/工作台分组/动态修正模板/
-  力量平衡数据与编辑器等 41 个测试类）+ 写入纪律扫描
+  力量平衡数据与编辑器/AI 数据层与编辑器等 41 个测试类）+ 写入纪律扫描
 - 详细规范见 验证契约.md
 
 ### 全局主题（亮色专业工具风，对齐 Scenario Forge 设计令牌）
@@ -164,6 +164,34 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
   - 每个动作行「✏」打开对应决策文件树编辑器并定位该动作
 - **文件模式**：双击 `common/bop/*.txt` 直接打开；**无文件模式**：双击力量平衡
   实体同样打开；工作台类型列表已将该类型置顶
+
+### AI 内容编辑器（AI 战略计划 / 战略倾向 / 师模板 / 装备 / 海军 / 派系战区）
+
+工作台 AI 类型已从通用树形编辑器升级为专用编辑器，并支持文件模式/无文件模式：
+
+- **AI 战略计划 `ai_strategy_plans`**：`ai_plan_editor_dialog.py`
+  - 左侧计划列表，右侧名称/描述/国策顺序
+  - 「🎯 编辑国策顺序」打开**国策绘图点选器** `focus_order_picker.py`
+    - 点击未选国策追加顺序；点击已选国策无动作
+    - 右键已选国策：从该国策开始顺序 / 退出该状态 / 删除该顺序（含后续依赖国策）
+    - 国策图标右下角黑框红底白字数字角标
+  - 保存写回 `ai_national_focuses`、name、desc
+- **AI 战略倾向 `ai_strategy`**：`ai_strategy_editor_dialog.py`
+  - 策略组列表 + `ai_strategy` 表格（type/id/value），支持增删改
+- **AI 师模板 `ai_templates`**：`ai_template_editor_dialog.py`
+  - 角色模板/目标模板列表
+  - 「✏ 编辑目标编制」调用现有**师编制编辑器**，保存写回 `target_template`
+- **AI 装备 `ai_equipment`**：`ai_equipment_editor_dialog.py`
+  - 设计组/变体列表
+  - 「✏ 编辑设计」按 category 调用**飞机/坦克/舰艇设计器**，保存写回 `target_variant`
+- **AI 海军 `ai_navy`**：`ai_navy_editor_dialog.py`
+  - 三页签：目标 / 舰队 / 特遣队
+  - 目标页可编辑 objective_type/min/max priority；复杂块走树编辑器
+- **AI 派系战区 `ai_faction_theaters`**：地图红色描边 + 战区列表
+  - 地图编辑器新增「AI派系战区」图层，红色描边标出覆盖区域
+  - 「战区列表」双击战区打开树形编辑器并定位
+- **内容少的 AI 类型**：AI区域/科研权重/态度/人格
+  - 不建专用界面，提供系统模板 + 通用树形编辑器
 
 ### 地图编辑与区域划分（工具菜单 → 地图编辑… / 区域编辑…）
 
@@ -397,7 +425,7 @@ python main.py
 ├── translations/           # 外部翻译包 / 词条文件
 ├── bop_loader.py           # 力量平衡数据层（common/bop + 决策动作）
 ├── bop_editor_dialog.py    # 力量平衡专用工作台（深色历史政治军事 UI）
-├── tests/test_contracts.py # 契约测试（179 个用例）
+├── tests/test_contracts.py # 契约测试（206 个用例）
 └── unit_counter_library/   # 从游戏导入的单位标牌库（icon/ + manifest.json）
 ```
 

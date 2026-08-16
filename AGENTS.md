@@ -42,7 +42,7 @@
 python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 + 写入纪律扫描
 .venv\Scripts\python.exe tools/verify_contracts.py   :: 3.8 同样跑一遍
 ```
-退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（179 个用例 / 41 个测试类）。
+退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（206 个用例 / 41 个测试类）。
 
 ## 3. 架构地图（模块清单）
 
@@ -57,6 +57,7 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 | `tech_view.py` | 科技树布局工具（BFS 树形布局，非对话框） |
 | `generic_tree_editor.py` | 通用 PDX 树形编辑器（保存走原子写） |
 | `bop_loader.py` / `bop_editor_dialog.py` | 力量平衡（Balance of Power）数据层与专用工作台（本地化/修正展示/动作编辑） |
+| `ai_loader.py` / `ai_*_editor_dialog.py` / `focus_order_picker.py` | AI 内容数据层与编辑器（战略计划/战略倾向/师模板/装备/海军/派系战区） |
 | `translation_editor.py` / `localization_mgr.py` | 本地化编辑（yml 带 BOM 惯例） |
 | `division_editor.py` / `oob_loader.py` / `initial_oob_editor.py` | 师编制/初始部队编辑器 |
 | `ship_design.py` / `ship_design_dialog.py` | 舰艇设计器（hull/modules/variants + upgrades 写回） |
@@ -700,6 +701,47 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
      并定位动作节点。
    - **验证**：新增 `find_active_range` 及本地化/修正/保存/编辑入口回归测试
      共 6 个用例，全量 179 测试绿。
+
+### 6.18 已完成：AI 内容编辑器（2026-08-16）
+
+用户要求为游戏 AI 内容制作完整编辑器，全量落地：
+
+1. ✅ **AI 数据层 `ai_loader.py`**：
+   - 统一解析 `common/ai_*`：战略计划、战略倾向、师模板、装备、海军、
+     区域、科研权重、派系战区；mod 优先 + 缓存。
+   - 写回辅助：计划国策顺序/字段、战略倾向条目、师模板 target_template、
+     装备 target_variant、海军目标字段等。
+2. ✅ **工作台路由与无文件模式**：
+   - `CONTENT_TYPES` 拆分 `ai_strategy_plans` / `ai_strategy`；
+   - `SPECIAL_TYPE_KEYS` 加入全部 AI 类型置顶；
+   - 文件/无文件双击均直接 `generic_file_selected`，由主窗口分发到专用编辑器。
+3. ✅ **AI 战略计划编辑器 `ai_plan_editor_dialog.py`**：
+   - 计划列表 + 名称/描述编辑 + 保存；
+   - 「🎯 编辑国策顺序」调用 `focus_order_picker.py`：
+     - 国策绘图点选、黑框红底白字顺序角标；
+     - 点击已选无效；右键「从该国策开始顺序/退出该状态/删除该顺序」；
+     - 删除时同时删除后续依赖国策顺序。
+4. ✅ **AI 战略倾向编辑器 `ai_strategy_editor_dialog.py`**：
+   - 策略组列表 + type/id/value 表格增删改，保存写回。
+5. ✅ **AI 师模板编辑器 `ai_template_editor_dialog.py`**：
+   - 角色/目标模板列表；「✏ 编辑目标编制」调用师编制编辑器；
+   - 保存写回 `target_template`。
+6. ✅ **AI 装备编辑器 `ai_equipment_editor_dialog.py`**：
+   - 设计组/变体列表；按 category 调用飞机/坦克/舰艇设计器；
+   - 保存写回 `target_variant` 的 modules。
+7. ✅ **AI 海军编辑器 `ai_navy_editor_dialog.py`**：
+   - 三页签：目标/舰队/特遣队；目标页可编辑，复杂块走树编辑器。
+8. ✅ **AI 派系战区地图联动**：
+   - `map_loader.theater_outline_pixmap` 红色描边；
+   - 地图编辑器新增「AI派系战区」图层与「战区列表」；
+   - 双击战区打开树形编辑器并定位。
+9. ✅ **内容少的 AI 类型模板**：
+   - 新增 `templates/系统模板/AI区域|AI科研权重|AI态度|AI人格|AI派系战区`
+     基础/项目模板；`template_dialog.CATEGORIES` 注册。
+10. ✅ 验证：新增 AiLoaderTest / AiWorkbenchRouteTest / FocusOrderPickerTest /
+    AiPlanEditorTest / AiStrategyEditorTest / AiTemplateEditorTest /
+    AiEquipmentEditorTest / AiNavyEditorTest / AiFactionTheaterTest，
+    全量 206 测试绿，`verify_contracts.py` 退出码 0。
 
 ### 6.17 遗留/可选后续
 - 兵牌图标可考虑接入单位标牌库（当前 OOB 用 GFX_unit_<type>_icon_medium

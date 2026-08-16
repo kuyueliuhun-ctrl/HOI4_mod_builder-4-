@@ -4911,6 +4911,178 @@ class AiTemplateEditorTest(unittest.TestCase):
         m.assert_called_once()
 
 
+class AiNavyEditorTest(unittest.TestCase):
+    """AI 海军编辑器：表格与保存。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_ainavy_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_navy", "goals"), exist_ok=True)
+        os.makedirs(os.path.join(mod, "common", "ai_navy", "fleet"), exist_ok=True)
+        os.makedirs(os.path.join(mod, "common", "ai_navy", "taskforce"), exist_ok=True)
+        goal = os.path.join(mod, "common", "ai_navy", "goals", "goals_GER.txt")
+        with open(goal, "w", encoding="utf-8") as f:
+            f.write("GER_convoy_protection = {\n"
+                    "\tobjective_type = convoy_protection\n"
+                    "\tmin_priority = 3\n"
+                    "\tmax_priority = 8\n"
+                    "}\n")
+        return mod, goal
+
+    def test_dialog_rows_and_save_goals(self):
+        from unittest.mock import patch
+        from ai_loader import load_ai_navy
+        from ai_navy_editor_dialog import AiNavyEditorDialog
+        mod, goal = self._make_env()
+        navy = load_ai_navy(mod, "")
+        dlg = AiNavyEditorDialog(navy, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.goals_table.rowCount(), 1)
+        dlg.goals_table.item(0, 2).setText("5")
+        with patch("PyQt6.QtWidgets.QMessageBox.information"):
+            dlg._save_goals()
+        with open(goal, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("min_priority = 5", content)
+        dlg.close()
+
+    def test_open_tree_editor_routes_ai_navy(self):
+        from unittest.mock import MagicMock, patch
+        from main_window import MyWindow
+        mod, goal = self._make_env()
+        fake = MagicMock()
+        fake.settings = {"mod_path": mod, "HOI4_path": ""}
+        with patch("ai_navy_editor_dialog.open_ai_navy_editor") as m:
+            MyWindow._open_tree_editor(fake, goal)
+        m.assert_called_once()
+
+
+class AiFactionTheaterTest(unittest.TestCase):
+    """AI 派系战区：地图描边数据 + 列表对话框。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aith_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_faction_theaters"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_faction_theaters",
+                            "ai_faction_theaters.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("western_europe = {\n"
+                    "\tname = theater_western_europe\n"
+                    "\tregions = { 1 2 }\n"
+                    "}\n")
+        return mod, path
+
+    def test_theater_outline_pixmap(self):
+        import numpy as np
+        from map_loader import MapData
+        md = MapData.__new__(MapData)
+        md.id_map = np.array([[1, 1, 0], [1, 2, 0]], dtype=np.int32)
+        pm = md.theater_outline_pixmap([1])
+        self.assertFalse(pm.isNull(), "红色描边图层应生成")
+
+    def test_dialog_lists_theaters(self):
+        from ai_faction_theater_dialog import AiFactionTheaterListDialog
+        mod, path = self._make_env()
+        dlg = AiFactionTheaterListDialog(mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.list.count(), 1)
+        dlg.close()
+
+    def test_open_tree_editor_routes_faction_theater(self):
+        from unittest.mock import MagicMock, patch
+        from main_window import MyWindow
+        mod, path = self._make_env()
+        fake = MagicMock()
+        fake.settings = {"mod_path": mod, "HOI4_path": ""}
+        with patch("ai_faction_theater_dialog.open_ai_faction_theater_list") as m:
+            MyWindow._open_tree_editor(fake, path)
+        m.assert_called_once()
+
+
+class AiEquipmentEditorTest(unittest.TestCase):
+    """AI 装备：解析与写回。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aieq_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_equipment"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_equipment", "GER.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("GER_fighter = {\n"
+                    "\tcategory = air\n"
+                    "\tavailable_for = { GER }\n"
+                    "\tbasic_fighter = {\n"
+                    "\t\ttarget_variant = { type = small_plane_airframe_1 modules = { fixed_main_weapon_slot = light_mg_2x } }\n"
+                    "\t}\n"
+                    "}\n")
+        return mod, path
+
+    def test_parse_and_replace_target_variant(self):
+        from ai_loader import parse_ai_target_variant, replace_ai_equipment_target_variant
+        parsed = parse_ai_target_variant(
+            "target_variant = { type = small_plane_airframe_1 modules = { fixed_main_weapon_slot = light_mg_2x } }")
+        self.assertEqual(parsed["type"], "small_plane_airframe_1")
+        self.assertEqual(parsed["modules"]["fixed_main_weapon_slot"], "light_mg_2x")
+        mod, path = self._make_env()
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        out = replace_ai_equipment_target_variant(
+            content, "GER_fighter", "basic_fighter", "small_plane_airframe_1",
+            {"fixed_main_weapon_slot": "aircraft_cannon_1_1x"})
+        self.assertIn("aircraft_cannon_1_1x", out)
+        self.assertNotIn("light_mg_2x", out)
+
+    def test_dialog_lists_groups_and_variants(self):
+        from ai_loader import load_ai_equipment
+        from ai_equipment_editor_dialog import AiEquipmentEditorDialog
+        mod, path = self._make_env()
+        groups = load_ai_equipment(mod, "")
+        dlg = AiEquipmentEditorDialog(groups, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.group_list.count(), 1)
+        self.assertEqual(dlg.variant_list.count(), 1)
+        self.assertEqual(dlg._current_variant["id"], "basic_fighter")
+        dlg.close()
+
+    def test_open_tree_editor_routes_ai_equipment(self):
+        from unittest.mock import MagicMock, patch
+        from main_window import MyWindow
+        mod, path = self._make_env()
+        fake = MagicMock()
+        fake.settings = {"mod_path": mod, "HOI4_path": ""}
+        with patch("ai_equipment_editor_dialog.open_ai_equipment_editor") as m:
+            MyWindow._open_tree_editor(fake, path)
+        m.assert_called_once()
+
+
 class AiWorkbenchRouteTest(unittest.TestCase):
     """AI 类型：文件模式/无文件模式双击直接走 generic_file_selected。"""
 

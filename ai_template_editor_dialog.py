@@ -188,8 +188,8 @@ class AiTemplateEditorDialog(QDialog):
         tmp_dir = tempfile.mkdtemp(prefix="dsh_ai_tpl_")
         tmp_path = os.path.join(tmp_dir, "ai_target.txt")
         try:
-            with open(tmp_path, "w", encoding="utf-8") as f:
-                f.write(_target_template_to_division_text(target_text))
+            from write_utils import atomic_write_text
+            atomic_write_text(tmp_path, _target_template_to_division_text(target_text))
             oob = OobFile(tmp_path)
         except Exception as e:
             QMessageBox.warning(self, "无法打开", "转换 AI 目标编制失败：%s" % e)
