@@ -42,7 +42,7 @@
 python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 + 写入纪律扫描
 .venv\Scripts\python.exe tools/verify_contracts.py   :: 3.8 同样跑一遍
 ```
-退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（163 个用例 / 38 个测试类）。
+退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（167 个用例 / 38 个测试类）。
 
 ## 3. 架构地图（模块清单）
 
@@ -643,7 +643,27 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    是间战基础战斗机 small_plane_airframe_0 的标准初始配置；大量空配件设计
    是「默认设计」（只写 type、引擎用 default_modules），非解析问题。
 
-### 6.15 遗留/可选后续
+### 6.15 已完成：地编州轮廓提示 + 建筑图标区放大（2026-08-16）
+
+用户反馈：地编选中地块后缺少醒目的“省份”提示；建筑图标要放大、左侧加宽、
+底部不出滚动条、右侧滚动条不遮挡按钮。全部落地：
+
+1. ✅ **州轮廓高亮**（`map_canvas.py` + `map_editor_dialog.py`）：
+   - `MapCanvas._state_outline_overlay`：按州地块集合生成**外扩 2px 黄色描边**
+     （只描边不填充，numpy 4 邻域膨胀，alpha=255）。
+   - `MapCanvas.set_state_outlines / clear_state_outlines`：每个州一个独立
+     QGraphicsPixmapItem（z=55，在选中层之上），QPixmap 按州集合缓存。
+   - 地图编辑器 `_update_state_outline`：点选/框选/多选/定位时自动圈出
+     选中地块涉及的全部州边界；清空选区时清除。
+2. ✅ **建筑图标区布局**（`map_editor_dialog.py`）：
+   - 纯图标按钮 40×40 → **56×56**，图标缩放 32 → **48**；
+     可建造网格 4 列 → **5 列**，左侧滚动区最小宽 260 → **320**（最大 360）。
+   - 隐藏水平滚动条（底部不再出现）；垂直滚动条按需显示且保留在内容区右侧，
+     加宽面板补偿滚动条宽度，不遮挡按钮。
+3. ✅ 验证：新增 4 个契约测试（州轮廓纯函数/设置清除、建筑面板布局/选中显示州轮廓），
+   全量 167 测试绿。
+
+### 6.16 遗留/可选后续
 - 兵牌图标可考虑接入单位标牌库（当前 OOB 用 GFX_unit_<type>_icon_medium
   解析，失败回退黑底占位）
 - Scenario Forge 移植剩余方向（§9 报告 B/C/D 部分条目）：导出前校验面板

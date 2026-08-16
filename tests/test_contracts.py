@@ -866,6 +866,48 @@ class MapEditorDialogSmokeTest(unittest.TestCase):
         dlg.close()
         _STATE_CACHE.clear()
 
+    def test_building_panel_layout(self):
+        """建筑选区：图标放大、面板加宽、隐藏水平滚动条。"""
+        from PyQt6.QtCore import Qt
+        from map_editor_dialog import MapEditorDialog
+        from oob_map_editor import _STATE_CACHE
+        mod, game = self._make_env()
+        _STATE_CACHE.clear()
+        dlg = MapEditorDialog(mod_path=mod, game_path=game)
+        dlg.show()
+        self.app.processEvents()
+        # 图标按钮放大（>= 56px）
+        icon_only = [b for b in dlg.building_group.buttons()
+                     if b.text() == ""]
+        self.assertTrue(icon_only)
+        self.assertGreaterEqual(icon_only[0].width(), 56)
+        self.assertGreaterEqual(icon_only[0].height(), 56)
+        # 左侧滚动区加宽 + 底部无水平滚动条
+        self.assertGreaterEqual(dlg.building_scroll.minimumWidth(), 320)
+        self.assertEqual(
+            dlg.building_scroll.horizontalScrollBarPolicy(),
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        dlg.close()
+        _STATE_CACHE.clear()
+
+    def test_selection_shows_state_outline(self):
+        """选中地块后出现州轮廓高亮；清空选区后消失。"""
+        from map_editor_dialog import MapEditorDialog
+        from oob_map_editor import _STATE_CACHE
+        mod, game = self._make_env()
+        _STATE_CACHE.clear()
+        dlg = MapEditorDialog(mod_path=mod, game_path=game)
+        dlg.show()
+        self.app.processEvents()
+        dlg._on_province_clicked(1, 0, 0)
+        self.assertEqual(len(dlg.canvas._state_outline_items), 1,
+                         "选中州内地块后应显示 1 个州轮廓")
+        dlg.canvas.clear_selection()
+        self.assertEqual(len(dlg.canvas._state_outline_items), 0,
+                         "清空选区后应清除州轮廓")
+        dlg.close()
+        _STATE_CACHE.clear()
+
 
 class RegionScanTest(unittest.TestCase):
     """scan_region_files mod 优先契约。"""
@@ -1540,6 +1582,46 @@ class MapCanvasSmokeTest(unittest.TestCase):
         c.grab()
         self.assertNotAlmostEqual(c.base_item._tile[0], z0, places=3,
                                   msg="flush 后应按新 zoom 重渲染")
+
+    def test_state_outline_overlay_draws_yellow_edge(self):
+        """州轮廓纯函数：只画黄色外扩描边，内部不填充。"""
+        from map_canvas import MapCanvas
+        md = self._make_map()
+        pm, x0, y0 = MapCanvas._state_outline_overlay(
+            md.id_map, [1], (255, 200, 90), 255, width=2)
+        self.assertIsNotNone(pm)
+        self.assertEqual((x0, y0), (0, 0))
+        img = pm.toImage()
+        found_yellow = False
+        for yy in range(img.height()):
+            for xx in range(img.width()):
+                c = img.pixelColor(xx, yy)
+                if (c.alpha() == 255 and c.red() > 200
+                        and 150 < c.green() < 250):
+                    found_yellow = True
+                    break
+            if found_yellow:
+                break
+        self.assertTrue(found_yellow, "州轮廓应包含黄色描边像素")
+        # pid1 内部（不在外扩边）应透明，即只描边不填充
+        c_in = img.pixelColor(1, 1)
+        self.assertEqual(c_in.alpha(), 0, "州轮廓内部不应填充")
+
+    def test_set_state_outlines_and_clear(self):
+        """set_state_outlines 添加州轮廓 item；clear 全部移除。"""
+        from map_canvas import MapCanvas
+        md = self._make_map()
+        c = MapCanvas(md)
+        c.resize(400, 300)
+        c.show()
+        self.app.processEvents()
+        c.set_state_outlines([[1]])
+        self.assertEqual(len(c._state_outline_items), 1,
+                         "应创建一个州轮廓 item")
+        c.clear_state_outlines()
+        self.assertEqual(len(c._state_outline_items), 0,
+                         "清除后不应残留州轮廓 item")
+        c.close()
 
 
 class MapCanvasExtensionsTest(unittest.TestCase):

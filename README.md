@@ -107,7 +107,7 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
 - **静态扫描**：`python tools/check_write_discipline.py` 用 AST 检出绕过原子写的
   新增直写（豁免登记在 `tools/write_discipline_allowlist.json`）
 - **契约验证**：`python tools/verify_contracts.py` 一键运行——全模块语法编译
-  （Python 3.8/3.13 双版本）+ 163 个契约单元测试（`tests/test_contracts.py`：
+  （Python 3.8/3.13 双版本）+ 167 个契约单元测试（`tests/test_contracts.py`：
   原子写/BOM 拒绝/撤销恢复/健康检查检出/扫描器检出/地图渲染/地图编辑/建筑系统/
   编制/舰艇/飞机/坦克设计器/设计器模板/OOB 路由/工作台分组/动态修正模板等
   38 个测试类）+ 写入纪律扫描
@@ -166,11 +166,11 @@ province_clicked/hovered/paint_province/rect_selected，供编辑/点选/框选�
 - 三栏布局：左=建筑类型图标按钮区（可建造纯图标网格 + 不可建造地标列表），
   中=画布，右=地块信息面板（地块/州/建筑/归属/国家颜色等，固定宽度）
 - 模式：手型平移（兼点选）/ 点选 / 涂色 / 框选 / **多选**；悬停省份青色高亮，
-  选中省份黄色高亮 + 白色描边
+  选中省份黄色高亮 + 白色描边，**选中地块所属州以黄色粗描边圈出**（州轮廓提示）
 - 图层开关：国家色（按州归属着色 + 边界线 + 国界线）/ 地块边界 / 地形类型
   （terrain.bmp）/ 地形立体感（heightmap.bmp → hillshade 伪 3D，取巧零生成成本）
-- **建筑系统**：59 种建筑类型（中文名/图标/悬停描述/效果），可放置省/州级建筑，
-  原版州文件自动复制到 mod 后原子写回
+- **建筑系统**：59 种建筑类型（中文名/图标/悬停描述/效果），图标放大、
+  左侧面板加宽、底部无水平滚动条；可放置省/州级建筑，原版州文件自动复制到 mod 后原子写回
 - **国家颜色**：读取 mod+游戏 common/countries 的 color，可修改并写回 mod
 - 涂色改归属：点击地块 → 选择国家 → 块级写回 mod 州文件（原子写 + 撤销快照，
   州在游戏本体时自动复制到 mod）
@@ -375,7 +375,7 @@ python main.py
 ├── templates/              # 模板库（按类型分目录）
 ├── design_templates/       # 设计器模板（编制/舰艇/飞机/坦克）
 ├── translations/           # 外部翻译包 / 词条文件
-├── tests/test_contracts.py # 契约测试（163 个用例）
+├── tests/test_contracts.py # 契约测试（167 个用例）
 └── unit_counter_library/   # 从游戏导入的单位标牌库（icon/ + manifest.json）
 ```
 

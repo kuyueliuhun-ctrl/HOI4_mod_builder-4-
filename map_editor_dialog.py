@@ -142,19 +142,27 @@ class MapEditorDialog(QDialog):
     def _build_left_panel(self):
         """左侧：建筑类型按钮。
 
-        可建造（is_buildable 非 no）→ 上方 4 列纯图标网格（悬停显示
+        可建造（is_buildable 非 no）→ 上方 5 列纯图标网格（悬停显示
         中文名+描述）；不可建造（地标/水坝等）→ 下方文本按钮一行一个。
+        图标放大、面板加宽；隐藏水平滚动条（底部不出滚动条），垂直滚动条
+        按需出现并保留在内容区右侧（不压缩按钮，加宽面板补偿）。
         """
         panel = QGroupBox("建筑类型")
         vl = QVBoxLayout(panel)
         vl.addWidget(QLabel("选中建筑后，点选地块并在右侧点「放置」"))
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setMaximumWidth(260)
+        self.building_scroll = QScrollArea()
+        self.building_scroll.setWidgetResizable(True)
+        self.building_scroll.setMinimumWidth(320)
+        self.building_scroll.setMaximumWidth(360)
+        # 底部不出现水平滚动条；垂直滚动条按需显示
+        self.building_scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.building_scroll.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         body = QWidget()
         col = QVBoxLayout(body)
-        col.setContentsMargins(4, 4, 4, 4)
-        col.setSpacing(2)
+        col.setContentsMargins(6, 6, 6, 6)
+        col.setSpacing(4)
         self.building_group = QButtonGroup(self)
         self.building_group.setExclusive(True)
 
@@ -163,19 +171,21 @@ class MapEditorDialog(QDialog):
                          if not b.get("buildable", True)]
         if buildable:
             grid = QGridLayout()
-            grid.setSpacing(2)
+            grid.setSpacing(4)
             for i, b in enumerate(buildable):
                 btn = self._make_building_button(b, icon_only=True)
-                grid.addWidget(btn, i // 4, i % 4)
+                grid.addWidget(btn, i // 5, i % 5)
             col.addLayout(grid)
         if not_buildable:
             col.addWidget(QLabel("不可建造（地标/设施）"))
             for b in not_buildable:
-                col.addWidget(self._make_building_button(b))
+                btn = self._make_building_button(b)
+                btn.setMinimumHeight(44)
+                col.addWidget(btn)
         col.addStretch(1)
         body.setLayout(col)
-        scroll.setWidget(body)
-        vl.addWidget(scroll)
+        self.building_scroll.setWidget(body)
+        vl.addWidget(self.building_scroll)
         return panel
 
     def _make_building_button(self, b, icon_only=False):
@@ -187,7 +197,7 @@ class MapEditorDialog(QDialog):
             btn.setIcon(QIcon(icon))
         if icon_only:
             btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
-            btn.setFixedSize(40, 40)
+            btn.setFixedSize(56, 56)
         else:
             btn.setToolButtonStyle(
                 Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
@@ -431,7 +441,7 @@ class MapEditorDialog(QDialog):
                 continue
             icon = pm.copy(x, 0, min(w, pm.width() - x), fh)
             self._building_icons[b["key"]] = icon.scaled(
-                32, 32, Qt.AspectRatioMode.KeepAspectRatio,
+                48, 48, Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation)
 
     def _building_name(self, key):
@@ -655,9 +665,26 @@ class MapEditorDialog(QDialog):
                "：%s" % ", ".join(str(s) for s in states[:12])
                if states else ""))
 
+    def _update_state_outline(self, pids):
+        """根据选中地块更新州轮廓高亮（黄色描边圈出涉及的州）。"""
+        states_pids = []
+        seen = set()
+        for p in pids:
+            sid = self.state_data.state_of_province(p)
+            if sid and sid not in seen:
+                seen.add(sid)
+                info = self.state_data.states.get(sid)
+                if info and info.get("provinces"):
+                    states_pids.append(info["provinces"])
+        if states_pids:
+            self.canvas.set_state_outlines(states_pids)
+        else:
+            self.canvas.clear_state_outlines()
+
     def _on_selection_changed(self, pids):
-        """选区变化（框选/多选）：更新反馈按钮与提示。"""
+        """选区变化（框选/多选）：更新反馈按钮、提示与州轮廓高亮。"""
         self._last_pids = list(pids)
+        self._update_state_outline(pids)
         has = bool(pids)
         self.copy_btn.setVisible(has)
         self.clear_sel_btn.setVisible(has)
@@ -698,6 +725,7 @@ class MapEditorDialog(QDialog):
             if c:
                 self.canvas.center_on_pixel(c[0], c[1])
                 self.canvas.highlight_pids([pid])
+                self._update_state_outline([pid])
                 self.info_label.setText(self._province_desc(pid))
             return
         tag = text.upper()
@@ -709,6 +737,7 @@ class MapEditorDialog(QDialog):
         cx, cy = centroids[tag]
         self.canvas.center_on_pixel(cx, cy)
         self.canvas.highlight_pids(owner.get(tag, []))
+        self._update_state_outline(owner.get(tag, []))
         self.info_label.setText("已定位到 %s 领土（%d 个地块）"
                                 % (tag, len(owner.get(tag, []))))
 

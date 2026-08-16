@@ -74,6 +74,8 @@ _PATH_CACHE_MAX = 2048
 
 _HIGHLIGHT_CACHE_MAX = 8
 _HOVER_CACHE_MAX = 16
+# 州轮廓高亮（地编圈出所选省份）缓存上限
+_STATE_OUTLINE_CACHE_MAX = 32
 
 
 def read_map_settings(path=None):
@@ -679,6 +681,10 @@ class MapCanvas(QGraphicsView):
         self._hover_enabled = False
         self._hover_cache = []       # [(pid, holder)] LRU
 
+        # 州轮廓高亮层（地编：黄色描边圈出所选地块所属的省份）
+        self._state_outline_items = []   # [QGraphicsPixmapItem]
+        self._state_outline_cache = {}   # key -> (QPixmap, x0, y0)
+
         # 矢量边界层（放大不模糊；drawForeground 绘制，视口裁剪）
         self._vsegs = None            # (N,4) int32 [x0,y0,x1,y1]
         self._vector_border_enabled = True
@@ -849,6 +855,90 @@ class MapCanvas(QGraphicsView):
 
     def clear_highlight(self):
         self.highlight_item.hide()
+
+    # ------------------------------------------------------------ 州轮廓高亮
+
+    @staticmethod
+    def _state_outline_overlay(idm, pids, color, alpha, width=2):
+        """州地块集合 -> (QPixmap, x0, y0)：仅外扩黄色描边（不填充）。
+
+        用于地编中圈出所选地块所属的省份（state）边界：比地块级高亮更醒目。
+        width 为外扩像素圈数（默认 2，形成较粗黄边）。
+        """
+        lut = np.zeros(int(idm.max()) + 1, dtype=bool)
+        for p in pids:
+            if 0 < p < lut.size:
+                lut[p] = True
+        mask = lut[idm]
+        ys, xs = np.nonzero(mask)
+        if xs.size == 0:
+            return None, 0, 0
+        width = max(1, int(width))
+        d = mask.copy()
+        for _ in range(width):
+            prev = d.copy()
+            d[1:, :] |= prev[:-1, :]
+            d[:-1, :] |= prev[1:, :]
+            d[:, 1:] |= prev[:, :-1]
+            d[:, :-1] |= prev[:, 1:]
+        edge = d & ~mask
+        x0 = max(0, int(xs.min()) - width)
+        x1 = min(idm.shape[1] - 1, int(xs.max()) + width)
+        y0 = max(0, int(ys.min()) - width)
+        y1 = min(idm.shape[0] - 1, int(ys.max()) + width)
+        sub = edge[y0:y1 + 1, x0:x1 + 1]
+        h, w = sub.shape
+        rgba = np.zeros((h, w, 4), dtype=np.uint8)
+        rgba[..., 0] = np.where(sub, color[0], 0)
+        rgba[..., 1] = np.where(sub, color[1], 0)
+        rgba[..., 2] = np.where(sub, color[2], 0)
+        rgba[..., 3] = np.where(sub, alpha, 0)
+        img = QImage(rgba.data, w, h, w * 4,
+                     QImage.Format.Format_RGBA8888).copy()
+        return QPixmap.fromImage(img), x0, y0
+
+    def set_state_outlines(self, states_pids, color=SELECTION_COLOR,
+                           alpha=255, width=2):
+        """设置州轮廓高亮：每个州一个独立 outline item（黄色描边）。
+
+        states_pids: list[list[int]]，每个元素是一个州的地块 id 列表。
+        会先清除旧轮廓；QPixmap 按 (州地块集合, 颜色, 宽度) 缓存。
+        """
+        self.clear_state_outlines()
+        idm = self.map_data.id_map
+        if idm is None or not states_pids:
+            return
+        for pids in states_pids:
+            pids = [int(p) for p in pids if int(p) > 0]
+            if not pids:
+                continue
+            key = (tuple(sorted(pids)), tuple(color), int(alpha), int(width))
+            hit = self._state_outline_cache.get(key)
+            if hit is None:
+                pm, x0, y0 = self._state_outline_overlay(
+                    idm, pids, color, alpha, width)
+                if pm is None:
+                    continue
+                hit = (pm, x0, y0)
+                self._state_outline_cache[key] = hit
+                if len(self._state_outline_cache) > _STATE_OUTLINE_CACHE_MAX:
+                    self._state_outline_cache.pop(
+                        next(iter(self._state_outline_cache)))
+            pm, x0, y0 = hit
+            item = QGraphicsPixmapItem(pm)
+            item.setZValue(55)
+            item.setPos(x0, y0)
+            item.setCacheMode(QGraphicsItem.CacheMode.DeviceCoordinateCache)
+            self.scene().addItem(item)
+            self._state_outline_items.append(item)
+        self.viewport().update()
+
+    def clear_state_outlines(self):
+        """清除全部州轮廓高亮。"""
+        for item in self._state_outline_items:
+            self.scene().removeItem(item)
+        self._state_outline_items = []
+        self.viewport().update()
 
     # ------------------------------------------------------------ 目标省高亮
 
