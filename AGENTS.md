@@ -42,7 +42,7 @@
 python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 + 写入纪律扫描
 .venv\Scripts\python.exe tools/verify_contracts.py   :: 3.8 同样跑一遍
 ```
-退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（34 个用例）。
+退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（163 个用例 / 38 个测试类）。
 
 ## 3. 架构地图（模块清单）
 
@@ -58,6 +58,10 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 | `generic_tree_editor.py` | 通用 PDX 树形编辑器（保存走原子写） |
 | `translation_editor.py` / `localization_mgr.py` | 本地化编辑（yml 带 BOM 惯例） |
 | `division_editor.py` / `oob_loader.py` / `initial_oob_editor.py` | 师编制/初始部队编辑器 |
+| `ship_design.py` / `ship_design_dialog.py` | 舰艇设计器（hull/modules/variants + upgrades 写回） |
+| `plane_design.py` / `plane_design_dialog.py` | 飞机设计器（airframe/modules/variants + modules 写回） |
+| `tank_design.py` / `tank_design_dialog.py` | 坦克设计器（chassis/modules/variants + modules 写回） |
+| `design_template.py` | 设计器模板（独立 `design_templates/`，原子写） |
 | `oob_map_editor.py` | 初始部队地图放置窗口（**含 `get_map_data`/`get_state_data` 单例缓存**） |
 
 ### 3.2 地图系统（2026-08 新增）
@@ -71,6 +75,7 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 | `region_editor_dialog.py` | 区域编辑界面（框选划分区域） |
 | `state_loader.py` | `StateData`：states 解析（owner/provinces/基地），`owner_province_map()` 返回 **tag→pids** |
 | `state_edit_ops.py` | 州归属写回（块级 owner 替换，只写 mod 内 state 文件） |
+| `state_build_ops.py` / `building_lib.py` | 州建筑/州类别/国家颜色写回与数据（`ensure_file_in_mod` 原版自动落 mod） |
 
 ### 3.3 工程基础设施
 | 模块 | 职责 |
@@ -170,7 +175,7 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    必须用 `drawPixmap(QPointF(...), pixmap)`（旧实现此路径一直会抛错，
    真实数据渲染才暴露）。
 3. ✅ **阈值/防抖可调**：settings.json 新增 `map_zoom_threshold`（默认 2.5）
-   与 `map_zoom_settle_ms`（默认 1000），`read_map_settings()` 读取，
+   与 `map_zoom_settle_ms`（默认 300，早期为 1000），`read_map_settings()` 读取，
    MapCanvas 构造参数可覆盖。
 4. ✅ **Scenario Forge 移植 4 子项**：
    - **规则分层 + delta 增量模型** `overlay_rules.py`：显式规则链
