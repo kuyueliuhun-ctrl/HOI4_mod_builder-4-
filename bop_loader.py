@@ -248,13 +248,26 @@ def load_bop_actions(mod_path, hoi4_path, decision_category,
     return actions
 
 
-def _state_label(bop, value):
-    """根据 BOP 当前值返回所在 side/range 的展示标签。"""
+def find_active_range(bop, value):
+    """返回当前值命中的 (side, range)；无命中返回 (None, None)。
+
+    side 为 side dict（可能为 None 表示 BOP 顶层 range）。
+    """
     for side in bop.get("sides", []):
         for rng in side.get("ranges", []):
             if rng["min"] <= value <= rng["max"]:
-                return side.get("id", "") or rng.get("id", "")
+                return side, rng
     for rng in bop.get("ranges", []):
         if rng["min"] <= value <= rng["max"]:
-            return rng.get("id", "")
+            return None, rng
+    return None, None
+
+
+def _state_label(bop, value):
+    """根据 BOP 当前值返回所在 side/range 的展示标签。"""
+    side, rng = find_active_range(bop, value)
+    if side is not None:
+        return side.get("id", "") or (rng or {}).get("id", "")
+    if rng is not None:
+        return rng.get("id", "")
     return ""

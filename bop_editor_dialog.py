@@ -7,7 +7,12 @@
 支持：
   - 文件模式：双击 common/bop/*.txt 打开
   - 无文件模式：力量平衡实体双击打开
-  - 滑块可拖动修改 initial_value，保存时原版自动复制到 mod（原子写）
+  - 本地化：BOP 名称 / 势力 / 区间 / 动作 / 修正名 显示中文（mod 优先）
+  - 编辑：滑块 + 基础字段（left/right/decision_category）保存；
+    「编辑定义」打开 BOP 文件树编辑器（势力/区间/修正完整编辑）；
+    每个动作行「✏」打开对应决策文件树编辑器并定位动作
+  - 修正展示：滑块下方实时显示当前区间修正；「势力与修正」页展示全部
+  - 保存时原版自动复制到 mod（原子写）
 """
 
 from __future__ import annotations
@@ -17,11 +22,11 @@ import re
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QPushButton, QScrollArea, QSlider,
-    QVBoxLayout, QWidget,
+    QDialog, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QMessageBox,
+    QPushButton, QScrollArea, QSlider, QTabWidget, QVBoxLayout, QWidget,
 )
 
-from bop_loader import _state_label, load_bop_actions
+from bop_loader import _state_label, find_active_range, load_bop_actions
 
 _BOP_QSS = """
 QDialog {
@@ -114,6 +119,55 @@ QDialog {
     background-color: #3d4530;
     border-color: #64a050;
 }
+#BopEditBtn {
+    color: #f0ebd7;
+    background-color: #2f3526;
+    border: 1px solid #826e50;
+    font-size: 13px;
+    padding: 4px 12px;
+}
+#BopEditBtn:hover {
+    background-color: #3d4530;
+    border-color: #64a050;
+}
+#BopActionEditBtn {
+    color: #f0ebd7;
+    background-color: transparent;
+    border: 1px solid #826e50;
+    min-width: 26px;
+    max-width: 26px;
+    min-height: 26px;
+    max-height: 26px;
+}
+#BopActionEditBtn:hover {
+    background-color: #3d4530;
+    border-color: #64a050;
+}
+#BopSideSection {
+    background-color: #1a1a17;
+    border: 1px solid #826e50;
+    border-radius: 2px;
+    margin: 2px;
+}
+#BopSideTitle {
+    color: #f0ebd7;
+    font-size: 14px;
+    font-weight: bold;
+}
+#BopRangeRow {
+    background-color: #24281d;
+    border: 1px solid #4a443a;
+    border-radius: 2px;
+}
+#BopRangeName {
+    color: #d2b446;
+    font-size: 12px;
+    font-weight: bold;
+}
+#BopModifierText {
+    color: #c8c3af;
+    font-size: 12px;
+}
 QScrollArea {
     border: 1px solid #826e50;
     background-color: #141210;
@@ -147,7 +201,70 @@ QSlider::handle:horizontal {
     background: #64a050;
     border: 2px solid #f0ebd7;
 }
+QLineEdit {
+    background-color: #1e1c18;
+    color: #f0ebd7;
+    border: 1px solid #826e50;
+    padding: 3px 6px;
+    selection-background-color: #64a050;
+}
+QTabWidget::pane {
+    border: 1px solid #826e50;
+    background-color: #141210;
+}
+QTabBar::tab {
+    background: #1e1c18;
+    color: #c8c3af;
+    padding: 6px 14px;
+    border: 1px solid #826e50;
+}
+QTabBar::tab:selected {
+    background: #2f3526;
+    color: #f0ebd7;
+}
 """
+
+
+_ICON_TOKEN_RE = re.compile(r"^\s*£[^\s]*\s*")
+_VAR_REF_RE = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*)\$")
+
+
+def _strip_icon_token(text):
+    """去掉本地化文本开头的 HOI4 图标 token（如 £BoP_right_texticon）。"""
+    return _ICON_TOKEN_RE.sub("", text or "").strip()
+
+
+def _loc_text(loc, key):
+    """返回本地化名称；无翻译回退 key。支持 $KEY$ 引用替换。"""
+    if not key:
+        return ""
+    if loc is None:
+        return key
+    raw = loc.get_name(key) or ""
+    if not raw:
+        return key
+    raw = _strip_icon_token(raw)
+
+    def repl(m):
+        ref = m.group(1)
+        val = loc.get_name(ref) or ""
+        return _strip_icon_token(val) if val else m.group(0)
+
+    raw = _VAR_REF_RE.sub(repl, raw)
+    return raw or key
+
+
+def _fmt_modifier_value(v):
+    """修正值格式化：小数值显示百分比，整数/大数保留原值。"""
+    try:
+        fv = float(v)
+    except Exception:
+        return str(v)
+    if fv == 0:
+        return "0"
+    if abs(fv) < 1:
+        return "%+.0f%%" % (fv * 100)
+    return "%+.4g" % fv
 
 
 def _action_icon(key):
@@ -170,11 +287,6 @@ def _action_icon(key):
     return "📜"
 
 
-def _side_label(bop, side_id):
-    """side id 转展示名（保留 id，后续可接本地化）。"""
-    return side_id or "—"
-
-
 class BopEditorDialog(QDialog):
     """力量平衡（Balance of Power）专用编辑器。"""
 
@@ -185,20 +297,63 @@ class BopEditorDialog(QDialog):
         self.hoi4_path = hoi4_path or ""
         self.setWindowTitle("Balance of Power - %s" % bop.get("tag", ""))
         self.setModal(True)
-        self.resize(720, 720)
+        self.resize(780, 760)
         self.setStyleSheet(_BOP_QSS)
 
+        self._loc = self._load_loc_manager()
+        self.actions = load_bop_actions(
+            self.mod_path, self.hoi4_path,
+            bop.get("decision_category", ""), self._loc)
+
+        self._build_ui()
+        self._refresh_slider_text()
+
+    # ------------------------------------------------------------ 本地化
+    def _load_loc_manager(self):
         from localization_mgr import get_localization_manager
         try:
             loc = get_localization_manager()
         except Exception:
-            loc = None
-        self.actions = load_bop_actions(
-            self.mod_path, self.hoi4_path,
-            bop.get("decision_category", ""), loc)
+            return None
+        try:
+            if self.hoi4_path:
+                loc.add_game_path(self.hoi4_path)
+            if self.mod_path:
+                loc.add_mod_path(self.mod_path)
+        except Exception:
+            pass
+        return loc
 
-        self._build_ui()
-        self._refresh_slider_text()
+    def _modifier_name(self, key):
+        """修饰键中文名：MODIFIER_<KEY> / raw key / 英语 yml，逐级回退。"""
+        if self._loc is not None:
+            for cand in ("MODIFIER_" + key.upper(), key):
+                try:
+                    raw = self._loc.get_name(cand)
+                    if raw:
+                        return _strip_icon_token(raw)
+                except Exception:
+                    pass
+        for base in (self.mod_path, self.hoi4_path):
+            if not base:
+                continue
+            fp = os.path.join(base, "localisation", "english",
+                              "modifiers_l_english.yml")
+            if not os.path.isfile(fp):
+                continue
+            try:
+                with open(fp, "r", encoding="utf-8-sig",
+                          errors="ignore") as f:
+                    for line in f:
+                        m = re.match(
+                            r'\s*(?:MODIFIER_%s|%s)\s*:\s*"(.*)"\s*$'
+                            % (re.escape(key.upper()), re.escape(key)),
+                            line)
+                        if m:
+                            return m.group(1)
+            except Exception:
+                pass
+        return key
 
     # ------------------------------------------------------------ UI
     def _build_ui(self):
@@ -211,7 +366,12 @@ class BopEditorDialog(QDialog):
         title_box = QVBoxLayout()
         title = QLabel("Balance of Power")
         title.setObjectName("BopTitle")
-        subtitle = QLabel("国家权力平衡 - %s" % self.bop.get("tag", ""))
+        loc_name = _loc_text(self._loc, self.bop.get("id", ""))
+        if loc_name and loc_name != "国家权力平衡":
+            subtitle = QLabel("国家权力平衡 · %s（%s）" % (
+                loc_name, self.bop.get("tag", "")))
+        else:
+            subtitle = QLabel("国家权力平衡 · %s" % self.bop.get("tag", ""))
         subtitle.setObjectName("BopSubtitle")
         title_box.addWidget(title)
         title_box.addWidget(subtitle)
@@ -232,9 +392,9 @@ class BopEditorDialog(QDialog):
         slider_box.addWidget(self.status_label)
 
         sides = QHBoxLayout()
-        left_label = QLabel(_side_label(self.bop, self.bop.get("left_side", "")))
+        left_label = QLabel(_loc_text(self._loc, self.bop.get("left_side", "")))
         left_label.setObjectName("BopSideLabel")
-        right_label = QLabel(_side_label(self.bop, self.bop.get("right_side", "")))
+        right_label = QLabel(_loc_text(self._loc, self.bop.get("right_side", "")))
         right_label.setObjectName("BopSideLabel")
         right_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         sides.addWidget(left_label)
@@ -255,38 +415,83 @@ class BopEditorDialog(QDialog):
         self.value_label.setObjectName("BopValue")
         self.value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         slider_box.addWidget(self.value_label)
+
+        self.modifiers_label = QLabel("当前修正：—")
+        self.modifiers_label.setObjectName("BopModifierText")
+        self.modifiers_label.setWordWrap(True)
+        self.modifiers_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        slider_box.addWidget(self.modifiers_label)
+
+        # 基础字段编辑
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(8)
+        grid.setVerticalSpacing(4)
+        left_cap = QLabel("左势力 ID")
+        left_cap.setObjectName("BopSideLabel")
+        right_cap = QLabel("右势力 ID")
+        right_cap.setObjectName("BopSideLabel")
+        cat_cap = QLabel("决策分类")
+        cat_cap.setObjectName("BopSideLabel")
+        self.left_edit = QLineEdit(self.bop.get("left_side", ""))
+        self.right_edit = QLineEdit(self.bop.get("right_side", ""))
+        self.decision_edit = QLineEdit(self.bop.get("decision_category", ""))
+        grid.addWidget(left_cap, 0, 0)
+        grid.addWidget(self.left_edit, 0, 1)
+        grid.addWidget(right_cap, 0, 2)
+        grid.addWidget(self.right_edit, 0, 3)
+        grid.addWidget(cat_cap, 1, 0)
+        grid.addWidget(self.decision_edit, 1, 1, 1, 3)
+        slider_box.addLayout(grid)
         root.addLayout(slider_box)
 
-        # 下方动作列表区
-        section = QLabel("动作")
-        section.setObjectName("BopSectionTitle")
-        root.addWidget(section)
+        # 下方：动作 / 势力与修正
+        self.tabs = QTabWidget()
+        root.addWidget(self.tabs, 1)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        body = QWidget()
-        col = QVBoxLayout(body)
-        col.setContentsMargins(4, 4, 4, 4)
-        col.setSpacing(2)
+        # 动作页
+        actions_tab = QWidget()
+        actions_col = QVBoxLayout(actions_tab)
+        actions_col.setContentsMargins(4, 4, 4, 4)
+        actions_col.setSpacing(2)
         if self.actions:
             for a in self.actions:
-                col.addWidget(self._make_action_row(a))
+                actions_col.addWidget(self._make_action_row(a))
         else:
             empty = QLabel("未找到关联动作（decision_category 为空或决议文件缺失）")
             empty.setStyleSheet("color:#80756b;")
-            col.addWidget(empty)
-        col.addStretch(1)
-        body.setLayout(col)
-        scroll.setWidget(body)
-        root.addWidget(scroll, 1)
+            actions_col.addWidget(empty)
+        actions_col.addStretch(1)
+        self.tabs.addTab(actions_tab, "动作")
+
+        # 势力与修正页
+        sides_tab = QWidget()
+        sides_col = QVBoxLayout(sides_tab)
+        sides_col.setContentsMargins(4, 4, 4, 4)
+        sides_col.setSpacing(4)
+        bop_sides = self.bop.get("sides", [])
+        if bop_sides:
+            for side in bop_sides:
+                sides_col.addWidget(self._make_side_section(side))
+        else:
+            empty = QLabel("未解析到 side 块")
+            empty.setStyleSheet("color:#80756b;")
+            sides_col.addWidget(empty)
+        sides_col.addStretch(1)
+        self.tabs.addTab(sides_tab, "势力与修正")
 
         # 底部保存
         footer = QHBoxLayout()
-        save_btn = QPushButton("💾 保存初始值")
-        save_btn.setObjectName("BopSaveBtn")
-        save_btn.setToolTip("把滑块当前值写回 BOP 文件（原版自动复制到 mod）")
-        save_btn.clicked.connect(self._save_initial_value)
+        edit_btn = QPushButton("✏ 编辑定义")
+        edit_btn.setObjectName("BopEditBtn")
+        edit_btn.setToolTip("打开 BOP 文件树编辑器（可编辑势力/区间/修正）")
+        edit_btn.clicked.connect(self._edit_bop_file)
+        footer.addWidget(edit_btn)
         footer.addStretch(1)
+        save_btn = QPushButton("💾 保存修改")
+        save_btn.setObjectName("BopSaveBtn")
+        save_btn.setToolTip(
+            "保存滑块当前值及左/右势力、决策分类（原版自动复制到 mod）")
+        save_btn.clicked.connect(self._save_changes)
         footer.addWidget(save_btn)
         root.addLayout(footer)
 
@@ -301,8 +506,9 @@ class BopEditorDialog(QDialog):
         icon.setStyleSheet("font-size:20px; color:#f0ebd7;")
         h.addWidget(icon)
 
-        name = QLabel(action.get("name", action.get("key", "")))
+        name = QLabel(_loc_text(self._loc, action.get("key", "")))
         name.setObjectName("BopActionName")
+        name.setToolTip(action.get("key", ""))
         h.addWidget(name, 1)
 
         cost = action.get("cost")
@@ -324,9 +530,54 @@ class BopEditorDialog(QDialog):
             else "BopActionValue")
         h.addWidget(value)
 
+        edit_btn = QPushButton("✏")
+        edit_btn.setObjectName("BopActionEditBtn")
+        edit_btn.setToolTip("编辑动作（打开决策文件树编辑器）")
+        edit_btn.clicked.connect(
+            lambda checked=False, a=action: self._edit_action(a))
+        h.addWidget(edit_btn)
+
         dot = QLabel("●")
         dot.setObjectName("BopStatusDot")
         h.addWidget(dot)
+        return row
+
+    def _make_side_section(self, side):
+        box = QWidget()
+        box.setObjectName("BopSideSection")
+        v = QVBoxLayout(box)
+        v.setContentsMargins(8, 6, 8, 6)
+        v.setSpacing(3)
+        raw_id = side.get("id", "")
+        title = QLabel("%s  %s" % (_loc_text(self._loc, raw_id), raw_id))
+        title.setObjectName("BopSideTitle")
+        v.addWidget(title)
+        for rng in side.get("ranges", []):
+            v.addWidget(self._make_range_row(rng))
+        return box
+
+    def _make_range_row(self, rng):
+        row = QWidget()
+        row.setObjectName("BopRangeRow")
+        h = QHBoxLayout(row)
+        h.setContentsMargins(8, 4, 8, 4)
+        h.setSpacing(8)
+        name = QLabel("%s  [%+.2f ~ %+.2f]" % (
+            _loc_text(self._loc, rng.get("id", "")),
+            float(rng.get("min", 0.0)), float(rng.get("max", 0.0))))
+        name.setObjectName("BopRangeName")
+        h.addWidget(name)
+        mods = rng.get("modifier") or {}
+        if mods:
+            mod_text = "，".join(
+                "%s %s" % (self._modifier_name(k), _fmt_modifier_value(v))
+                for k, v in mods.items())
+        else:
+            mod_text = "无修正"
+        mod_label = QLabel(mod_text)
+        mod_label.setObjectName("BopModifierText")
+        mod_label.setWordWrap(True)
+        h.addWidget(mod_label, 1)
         return row
 
     # ------------------------------------------------------------ 交互
@@ -338,22 +589,41 @@ class BopEditorDialog(QDialog):
         self.value_label.setText("当前值：%+.2f" % v)
         state = _state_label(self.bop, v)
         if state:
-            self.status_label.setText("当前状态：%s" % state)
+            self.status_label.setText("当前状态：%s" % _loc_text(self._loc, state))
         else:
             self.status_label.setText("当前状态：—")
+        self._refresh_modifiers(v)
 
+    def _refresh_modifiers(self, v=None):
+        if v is None:
+            v = self._current_value()
+        _, rng = find_active_range(self.bop, v)
+        mods = (rng or {}).get("modifier") or {}
+        if mods:
+            text = "当前修正：%s" % "，".join(
+                "%s %s" % (self._modifier_name(k), _fmt_modifier_value(v))
+                for k, v in mods.items())
+        else:
+            text = "当前修正：—"
+        self.modifiers_label.setText(text)
+
+    # ------------------------------------------------------------ 保存
     def _save_initial_value(self):
-        """保存 initial_value：原版文件自动复制到 mod，然后原子写。"""
+        """兼容旧调用：仅保存滑块初始值（实际走 _save_changes）。"""
+        self._save_changes()
+
+    def _save_changes(self):
+        """保存基础字段：initial_value / left_side / right_side / decision_category。"""
         from write_utils import atomic_write_text
         from state_build_ops import ensure_file_in_mod
 
         rel = self.bop.get("rel", "")
         if not rel:
+            QMessageBox.warning(self, "保存失败", "无法定位 BOP 文件相对路径")
             return
         mod_fp, copied = ensure_file_in_mod(
             self.mod_path, self.hoi4_path, rel)
         if not mod_fp:
-            from PyQt6.QtWidgets import QMessageBox
             QMessageBox.warning(self, "保存失败", "无法定位 mod/游戏中的 BOP 文件")
             return
         try:
@@ -361,31 +631,143 @@ class BopEditorDialog(QDialog):
                       errors="ignore") as f:
                 content = f.read()
         except Exception as e:
-            from PyQt6.QtWidgets import QMessageBox
             QMessageBox.warning(self, "保存失败", "读取文件失败：%s" % e)
             return
-        new_val = "%.4f" % self._current_value()
-        new_content, n = re.subn(
-            r"(\binitial_value\s*=\s*)[-0-9.]+",
-            lambda m: m.group(1) + new_val,
-            content, count=1)
+
+        replacements = {
+            "initial_value": "%.4f" % self._current_value(),
+            "left_side": self.left_edit.text().strip(),
+            "right_side": self.right_edit.text().strip(),
+            "decision_category": self.decision_edit.text().strip(),
+        }
+        new_content = content
+        n = 0
+        for field, val in replacements.items():
+            if field == "initial_value":
+                pattern = r"(\binitial_value\s*=\s*)[-0-9.]+"
+            else:
+                pattern = r"(\b%s\s*=\s*)[^\s#]+" % re.escape(field)
+            new_content, cnt = re.subn(
+                pattern, lambda m: m.group(1) + val, new_content, count=1)
+            n += cnt
         if n == 0:
-            from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, "保存失败", "未找到 initial_value 字段")
+            QMessageBox.warning(self, "保存失败", "未找到任何可保存的 BOP 字段")
             return
         try:
             atomic_write_text(mod_fp, new_content)
         except Exception as e:
-            from PyQt6.QtWidgets import QMessageBox
             QMessageBox.warning(self, "保存失败", "写入失败：%s" % e)
             return
+
         self.bop["file"] = mod_fp
         self.bop["initial_value"] = self._current_value()
-        from PyQt6.QtWidgets import QMessageBox
-        msg = "已保存 initial_value = %s" % new_val
+        self.bop["left_side"] = replacements["left_side"]
+        self.bop["right_side"] = replacements["right_side"]
+        self.bop["decision_category"] = replacements["decision_category"]
+
+        msg = "已保存 BOP 修改（%d 个字段）" % n
         if copied:
             msg += "\n原版文件已自动复制到 mod"
         QMessageBox.information(self, "已保存", msg)
+
+    # ------------------------------------------------------------ 树编辑器
+    def _ensure_writable_file(self, fp):
+        """确保编辑目标在 mod 内；原版文件自动复制到 mod。"""
+        if not fp:
+            return None, False
+        fp = os.path.normpath(fp)
+        if self.mod_path and os.path.normcase(fp).startswith(
+                os.path.normcase(os.path.normpath(self.mod_path))):
+            return fp, False
+        if not self.mod_path:
+            return None, False
+        if self.hoi4_path:
+            try:
+                rel = os.path.relpath(fp, self.hoi4_path)
+                if not rel.startswith(".."):
+                    from state_build_ops import ensure_file_in_mod
+                    mod_fp, copied = ensure_file_in_mod(
+                        self.mod_path, self.hoi4_path,
+                        rel.replace("\\", "/"))
+                    if mod_fp:
+                        return mod_fp, copied
+            except Exception:
+                pass
+        return None, False
+
+    def _edit_bop_file(self):
+        fp = self.bop.get("file", "")
+        if not fp:
+            QMessageBox.warning(self, "无法编辑", "未找到 BOP 文件路径")
+            return
+        self._open_tree_editor_for_file(
+            fp, "BOP 定义编辑 - %s" % self.bop.get("tag", ""),
+            entity_id=self.bop.get("id", ""))
+
+    def _edit_action(self, action):
+        fp = action.get("file", "")
+        if not fp:
+            QMessageBox.warning(self, "无法编辑", "未找到动作文件路径")
+            return
+        self._open_tree_editor_for_file(
+            fp, "动作编辑 - %s" % action.get("key", ""),
+            entity_id=action.get("key", ""))
+
+    def _open_tree_editor_for_file(self, fp, title, entity_id=None):
+        """打开通用 PDX 树编辑器；原版文件先复制到 mod。"""
+        mod_fp, copied = self._ensure_writable_file(fp)
+        if not mod_fp:
+            QMessageBox.warning(
+                self, "无法编辑",
+                "请先打开 mod 目录；原版文件只读，需复制到 mod 后才能编辑")
+            return
+        try:
+            with open(mod_fp, "r", encoding="utf-8-sig",
+                      errors="ignore") as f:
+                content = f.read()
+        except Exception as e:
+            QMessageBox.warning(self, "无法编辑", "读取文件失败：%s" % e)
+            return
+
+        from tree_node import tree_from_pdx_text
+        from generic_tree_editor import GenericTreeEditor
+        from gui_translator import get_translator
+        from focus_view import CUSTOM_STATEMENT_PATH
+
+        file_lines = content.splitlines()
+        root = tree_from_pdx_text(content)
+        editor = GenericTreeEditor(
+            root_node=root,
+            file_path=mod_fp,
+            file_lines=file_lines,
+            block_range=(1, len(file_lines) + 1),
+            translator=get_translator(),
+            custom_statement_path=CUSTOM_STATEMENT_PATH,
+            loc_manager=self._loc,
+            parent=self,
+            title=title,
+            hoi4_path=self.hoi4_path,
+            mod_path=self.mod_path,
+        )
+        editor.show()
+        if copied:
+            # 原版复制到 mod 后，后续保存应指向 mod 文件
+            if self.bop.get("file") and os.path.normpath(self.bop["file"]) == os.path.normpath(fp):
+                self.bop["file"] = mod_fp
+        if entity_id:
+            self._locate_entity_in_editor(editor, entity_id)
+
+    def _locate_entity_in_editor(self, editor, entity_id):
+        try:
+            model = getattr(editor, "model", None)
+            if model is None:
+                return
+            results = model.find_nodes(entity_id)
+            if results:
+                editor.tree_view.setCurrentIndex(results[0])
+                editor.tree_view.scrollTo(results[0])
+        except Exception:
+            pass
 
 
 def open_bop_editor(file_path, mod_path="", hoi4_path="", parent=None):

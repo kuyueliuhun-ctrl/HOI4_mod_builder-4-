@@ -42,7 +42,7 @@
 python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 + 写入纪律扫描
 .venv\Scripts\python.exe tools/verify_contracts.py   :: 3.8 同样跑一遍
 ```
-退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（173 个用例 / 41 个测试类）。
+退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（179 个用例 / 41 个测试类）。
 
 ## 3. 架构地图（模块清单）
 
@@ -56,6 +56,7 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 | `focus_renderer.py` | 国策树图形渲染（节点卡片/连线） |
 | `tech_view.py` | 科技树布局工具（BFS 树形布局，非对话框） |
 | `generic_tree_editor.py` | 通用 PDX 树形编辑器（保存走原子写） |
+| `bop_loader.py` / `bop_editor_dialog.py` | 力量平衡（Balance of Power）数据层与专用工作台（本地化/修正展示/动作编辑） |
 | `translation_editor.py` / `localization_mgr.py` | 本地化编辑（yml 带 BOM 惯例） |
 | `division_editor.py` / `oob_loader.py` / `initial_oob_editor.py` | 师编制/初始部队编辑器 |
 | `ship_design.py` / `ship_design_dialog.py` | 舰艇设计器（hull/modules/variants + upgrades 写回） |
@@ -687,6 +688,18 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    - `SPECIAL_TYPE_KEYS` 加入 `"bop"`（专用类型置顶）。
 4. ✅ 验证：新增 3 个测试类（BopLoaderTest / BopEditorDialogSmokeTest /
    BopWorkbenchRouteTest）共 6 个用例，全量 173 测试绿。
+5. ✅ **用户反馈补强（2026-08-16）**：
+   - **本地化**：BOP 名称 / 势力 / 区间 / 动作 / 修正名自动显示中文
+     （mod 优先；自动去除 `£BoP_*` 图标 token、解析 `$KEY$` 引用）；
+     编辑器构造时自动补加载 mod/game 本地化目录。
+   - **修正展示**：滑块下方实时显示当前区间修正（中文修饰名 + 百分比值）；
+     新增「势力与修正」页列出全部 side/range/modifier。
+   - **编辑功能**：新增左势力/右势力/决策分类输入框，保存走
+     `ensure_file_in_mod` + 原子写；「✏ 编辑定义」打开 BOP 文件树编辑器
+     （势力/区间/修正完整编辑）；每个动作行「✏」打开对应决策文件树编辑器
+     并定位动作节点。
+   - **验证**：新增 `find_active_range` 及本地化/修正/保存/编辑入口回归测试
+     共 6 个用例，全量 179 测试绿。
 
 ### 6.17 遗留/可选后续
 - 兵牌图标可考虑接入单位标牌库（当前 OOB 用 GFX_unit_<type>_icon_medium

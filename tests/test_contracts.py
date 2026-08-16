@@ -4260,6 +4260,19 @@ class BopLoaderTest(unittest.TestCase):
         self.assertAlmostEqual(
             by_key["ITA_bop_slander_the_duce"]["delta"], -0.1, places=3)
 
+    def test_find_active_range(self):
+        from bop_loader import find_active_range
+        mod = self._make_env()
+        from bop_loader import load_bop_definitions
+        bop = load_bop_definitions(mod, "")["ITA"]
+        side, rng = find_active_range(bop, -0.2)
+        self.assertIsNotNone(side)
+        self.assertEqual(side["id"], "ITA_grand_council_side")
+        self.assertEqual(rng["id"], "ITA_grand_council_low_control_range")
+        side, rng = find_active_range(bop, 0.0)
+        self.assertIsNone(side)
+        self.assertEqual(rng["id"], "ITA_balance_range")
+
 
 class BopEditorDialogSmokeTest(unittest.TestCase):
     """力量平衡专用编辑器冒烟（offscreen）：滑块/动作/保存。"""
@@ -4324,6 +4337,121 @@ class BopEditorDialogSmokeTest(unittest.TestCase):
             content = f.read()
         self.assertIn("initial_value = 0.5000", content,
                       "保存应写回滑块对应 initial_value")
+        dlg.close()
+
+    def test_dialog_localizes_and_has_edit_controls(self):
+        from bop_loader import load_bop_definitions
+        from bop_editor_dialog import BopEditorDialog, _loc_text
+        mod = self._make_env()
+        loc_dir = os.path.join(mod, "localisation", "simp_chinese")
+        os.makedirs(loc_dir, exist_ok=True)
+        with open(os.path.join(loc_dir, "bop_l_simp_chinese.yml"),
+                  "w", encoding="utf-8") as f:
+            f.write("l_simp_chinese:\n"
+                    " ITA_power_balance: \"国家权力平衡\"\n"
+                    " ITA_grand_council_side: \"大议会\"\n"
+                    " ITA_mussolini_side: \"墨索里尼\"\n"
+                    " ITA_balance_range: \"平衡区间\"\n"
+                    " ITA_bop_military_parade: \"£BoP_right_texticon 举行阅兵式\"\n"
+                    " ITA_bop_slander_the_duce: \"诋毁领袖\"\n"
+                    " MODIFIER_POLITICAL_ADVISOR_COST_FACTOR: \"政治顾问花费\"\n")
+        bop = load_bop_definitions(mod, "")["ITA"]
+        dlg = BopEditorDialog(bop, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        dlg.slider.setValue(-20)  # 命中大议会的低控制区间
+        self.app.processEvents()
+        self.assertEqual(dlg.status_label.text(), "当前状态：大议会",
+                         "状态应显示本地化势力名")
+        self.assertEqual(dlg.tabs.count(), 2, "应有动作/势力与修正两个页")
+        self.assertEqual(_loc_text(dlg._loc, "ITA_bop_military_parade"),
+                         "举行阅兵式", "动作名应去除 HOI4 图标 token 并显示中文")
+        self.assertTrue(hasattr(dlg, "left_edit"))
+        self.assertTrue(hasattr(dlg, "right_edit"))
+        self.assertTrue(hasattr(dlg, "decision_edit"))
+        dlg.close()
+
+    def test_dialog_shows_current_modifiers(self):
+        from bop_loader import load_bop_definitions
+        from bop_editor_dialog import BopEditorDialog
+        mod = self._make_env()
+        loc_dir = os.path.join(mod, "localisation", "simp_chinese")
+        os.makedirs(loc_dir, exist_ok=True)
+        with open(os.path.join(loc_dir, "bop_l_simp_chinese.yml"),
+                  "w", encoding="utf-8") as f:
+            f.write("l_simp_chinese:\n"
+                    " MODIFIER_POLITICAL_ADVISOR_COST_FACTOR: \"政治顾问花费\"\n")
+        # 给大议会的低控制区间加修正
+        bop_fp = os.path.join(mod, "common", "bop", "ITA.txt")
+        with open(bop_fp, "w", encoding="utf-8") as f:
+            f.write("ITA_power_balance = {\n"
+                    "\tinitial_value = 0.35\n"
+                    "\tleft_side = ITA_grand_council_side\n"
+                    "\tright_side = ITA_mussolini_side\n"
+                    "\tdecision_category = ITA_balance_of_power_category\n"
+                    "\trange = { id = ITA_balance_range min = -0.10 max = 0.10 modifier = { } }\n"
+                    "\tside = { id = ITA_grand_council_side icon = GFX_x\n"
+                    "\t\trange = { id = r1 min = -0.3 max = -0.1 modifier = { political_advisor_cost_factor = -0.1 } }\n"
+                    "\t}\n"
+                    "}\n")
+        bop = load_bop_definitions(mod, "")["ITA"]
+        dlg = BopEditorDialog(bop, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        dlg.slider.setValue(-20)
+        self.app.processEvents()
+        self.assertIn("政治顾问花费", dlg.modifiers_label.text(),
+                      "当前区间修正应显示本地化修饰名")
+        self.assertIn("当前修正", dlg.modifiers_label.text())
+        dlg.close()
+
+    def test_save_changes_updates_basic_fields(self):
+        from unittest.mock import patch
+        from bop_loader import load_bop_definitions
+        from bop_editor_dialog import BopEditorDialog
+        mod = self._make_env()
+        bop = load_bop_definitions(mod, "")["ITA"]
+        dlg = BopEditorDialog(bop, mod, "")
+        dlg.left_edit.setText("NEW_LEFT")
+        dlg.right_edit.setText("NEW_RIGHT")
+        dlg.decision_edit.setText("NEW_CAT")
+        with patch("PyQt6.QtWidgets.QMessageBox.information"):
+            dlg._save_changes()
+        with open(os.path.join(mod, "common", "bop", "ITA.txt"),
+                  "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("left_side = NEW_LEFT", content)
+        self.assertIn("right_side = NEW_RIGHT", content)
+        self.assertIn("decision_category = NEW_CAT", content)
+        dlg.close()
+
+    def test_edit_action_opens_tree_editor(self):
+        from unittest.mock import patch
+        from bop_loader import load_bop_definitions
+        from bop_editor_dialog import BopEditorDialog
+        mod = self._make_env()
+        bop = load_bop_definitions(mod, "")["ITA"]
+        dlg = BopEditorDialog(bop, mod, "")
+        action = dlg.actions[0]
+        with patch("bop_editor_dialog.BopEditorDialog._open_tree_editor_for_file") as m:
+            dlg._edit_action(action)
+        self.assertEqual(m.call_count, 1)
+        self.assertEqual(m.call_args[0][0], action["file"])
+        self.assertEqual(m.call_args[1]["entity_id"], action["key"])
+        dlg.close()
+
+    def test_edit_bop_file_opens_tree_editor(self):
+        from unittest.mock import patch
+        from bop_loader import load_bop_definitions
+        from bop_editor_dialog import BopEditorDialog
+        mod = self._make_env()
+        bop = load_bop_definitions(mod, "")["ITA"]
+        dlg = BopEditorDialog(bop, mod, "")
+        with patch("bop_editor_dialog.BopEditorDialog._open_tree_editor_for_file") as m:
+            dlg._edit_bop_file()
+        self.assertEqual(m.call_count, 1)
+        self.assertEqual(m.call_args[0][0], bop["file"])
+        self.assertEqual(m.call_args[1]["entity_id"], bop["id"])
         dlg.close()
 
 

@@ -107,7 +107,7 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
 - **静态扫描**：`python tools/check_write_discipline.py` 用 AST 检出绕过原子写的
   新增直写（豁免登记在 `tools/write_discipline_allowlist.json`）
 - **契约验证**：`python tools/verify_contracts.py` 一键运行——全模块语法编译
-  （Python 3.8/3.13 双版本）+ 173 个契约单元测试（`tests/test_contracts.py`：
+  （Python 3.8/3.13 双版本）+ 179 个契约单元测试（`tests/test_contracts.py`：
   原子写/BOM 拒绝/撤销恢复/健康检查检出/扫描器检出/地图渲染/地图编辑/建筑系统/
   编制/舰艇/飞机/坦克设计器/设计器模板/OOB 路由/工作台分组/动态修正模板/
   力量平衡数据与编辑器等 41 个测试类）+ 写入纪律扫描
@@ -153,9 +153,15 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
   left_side / right_side / decision_category / range / side；并关联
   `common/decisions/*.txt` 中对应分类块内的决议动作（过滤 DEBUG_*）
 - 深色历史政治军事 UI（`bop_editor_dialog.py`）：黑绿配色、米白文字、
-  中央滑块展示/编辑初始值、下方动作列表（图标/名称/费用/增减方向）、
-  右上角关闭按钮
-- 保存 `initial_value`：原版文件自动复制到 mod 后原子写
+  中央滑块展示/编辑初始值、下方「动作」与「势力与修正」双页
+- **本地化**：BOP 名称 / 势力 / 区间 / 动作 / 修正名自动显示中文
+  （mod 优先；自动去除 `£BoP_*` 图标 token、解析 `$KEY$` 引用）
+- **修正展示**：滑块下方实时显示当前区间修正；「势力与修正」页列出全部
+  势力的每个区间与修正（含中文修饰名和百分比值）
+- **编辑**：
+  - 滑块 + 左势力/右势力/决策分类输入框，保存后原版自动复制到 mod 后原子写
+  - 「✏ 编辑定义」打开 BOP 文件树编辑器，可完整编辑势力/区间/修正
+  - 每个动作行「✏」打开对应决策文件树编辑器并定位该动作
 - **文件模式**：双击 `common/bop/*.txt` 直接打开；**无文件模式**：双击力量平衡
   实体同样打开；工作台类型列表已将该类型置顶
 
@@ -391,7 +397,7 @@ python main.py
 ├── translations/           # 外部翻译包 / 词条文件
 ├── bop_loader.py           # 力量平衡数据层（common/bop + 决策动作）
 ├── bop_editor_dialog.py    # 力量平衡专用工作台（深色历史政治军事 UI）
-├── tests/test_contracts.py # 契约测试（173 个用例）
+├── tests/test_contracts.py # 契约测试（179 个用例）
 └── unit_counter_library/   # 从游戏导入的单位标牌库（icon/ + manifest.json）
 ```
 
