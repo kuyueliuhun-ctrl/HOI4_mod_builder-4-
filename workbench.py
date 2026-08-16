@@ -23,7 +23,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 
 # 有专门制作/编辑功能的类型（放在类型列表上方；其余为通用树形编辑）
-SPECIAL_TYPE_KEYS = ("focus", "tech", "initial_oob")
+SPECIAL_TYPE_KEYS = ("focus", "tech", "initial_oob", "bop")
 
 
 # 内容类型定义：key -> (显示名, 图标, 相对 mod 目录的文件夹列表, 基础模板类型或 None, 扩展名或扩展名列表)
@@ -1420,6 +1420,10 @@ class WorkbenchDock(QDockWidget):
         elif self._current_type in ICON_RULES:
             self.entity_gallery_requested.emit(self._current_type, fp)
         else:
+            # 力量平衡（common/bop）→ 直接弹专用编辑器
+            if self._current_type == "bop":
+                self.generic_file_selected.emit(fp, None)
+                return
             # 初始部队（history/units）→ 直接弹设计器（编制/地编），不先进画廊
             norm_fp = fp.replace("\\", "/")
             if self._current_type == "initial_oob" or "/history/units/" in norm_fp:
@@ -1457,9 +1461,14 @@ class WorkbenchDock(QDockWidget):
             if fp:
                 self.focus_file_selected.emit(fp)
             return
-        # 初始部队（history/units）→ 直接弹设计器（无文件模式也支持）
+        # 力量平衡（common/bop）→ 直接弹专用编辑器（无文件模式也支持）
         fp = meta.get("file", "") if isinstance(meta, dict) else ""
         norm_fp = (fp or "").replace("\\", "/")
+        if self._current_type == "bop":
+            if fp:
+                self.generic_file_selected.emit(fp, meta.get("key"))
+            return
+        # 初始部队（history/units）→ 直接弹设计器（无文件模式也支持）
         if self._current_type == "initial_oob" or "/history/units/" in norm_fp:
             if fp:
                 self.generic_file_selected.emit(fp, meta.get("key"))

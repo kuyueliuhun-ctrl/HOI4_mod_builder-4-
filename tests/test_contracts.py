@@ -3930,7 +3930,7 @@ class WorkbenchTypeListGroupTest(unittest.TestCase):
         return wb
 
     def test_special_types_on_top_and_separator(self):
-        """国策/科技/初始部队在顶部；分隔线不可选；其后为通用类型。"""
+        """专门类型在顶部；分隔线不可选；其后为通用类型。"""
         from PyQt6.QtCore import Qt
         wb = self._make()
         keys = []
@@ -3938,19 +3938,19 @@ class WorkbenchTypeListGroupTest(unittest.TestCase):
             it = wb.type_list.item(i)
             keys.append((i, it.data(Qt.ItemDataRole.UserRole),
                          bool(it.flags() & Qt.ItemFlag.ItemIsSelectable)))
-        self.assertEqual([k for _i, k, _s in keys[:3]],
-                         ["focus", "tech", "initial_oob"])
-        sep = keys[3]
+        self.assertEqual([k for _i, k, _s in keys[:4]],
+                         ["focus", "tech", "initial_oob", "bop"])
+        sep = keys[4]
         self.assertIsNone(sep[1], "分隔线无类型 data")
         self.assertFalse(sep[2], "分隔线不可选")
-        self.assertIsNotNone(keys[4][1], "分隔线后应有通用类型")
+        self.assertIsNotNone(keys[5][1], "分隔线后应有通用类型")
 
     def test_clicking_separator_ignored(self):
         """点击分隔线不改变当前类型。"""
         from PyQt6.QtCore import Qt
         wb = self._make()
         wb._current_type = "focus"
-        sep = wb.type_list.item(3)
+        sep = wb.type_list.item(4)
         wb._on_type_clicked(sep)
         self.assertEqual(wb._current_type, "focus", "分隔线点击应被忽略")
 
@@ -4174,6 +4174,231 @@ class DesignLayoutSyncTest(unittest.TestCase):
         self.assertIn("fixed_main_weapon_slot = fighter_weapon_1", content,
                       "同步应把当前模块写入 BBB 的同名设计")
         dlg.close()
+
+
+class BopLoaderTest(unittest.TestCase):
+    """力量平衡数据层：解析 common/bop + 关联决策分类动作。"""
+
+    def _make_env(self):
+        from bop_loader import _BOP_CACHE
+        _BOP_CACHE.clear()
+        mod = _mkdtemp("dsh_bop_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "bop"), exist_ok=True)
+        os.makedirs(os.path.join(mod, "common", "decisions"), exist_ok=True)
+        with open(os.path.join(mod, "common", "bop", "ITA.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("ITA_power_balance = {\n"
+                    "\tinitial_value = 0.35\n"
+                    "\tleft_side = ITA_grand_council_side\n"
+                    "\tright_side = ITA_mussolini_side\n"
+                    "\tdecision_category = ITA_balance_of_power_category\n"
+                    "\trange = {\n"
+                    "\t\tid = ITA_balance_range\n"
+                    "\t\tmin = -0.10\n"
+                    "\t\tmax = 0.10\n"
+                    "\t\tmodifier = { }\n"
+                    "\t}\n"
+                    "\tside = {\n"
+                    "\t\tid = ITA_grand_council_side\n"
+                    "\t\ticon = GFX_bop_ITA_grand_council_side\n"
+                    "\t\trange = {\n"
+                    "\t\t\tid = ITA_grand_council_low_control_range\n"
+                    "\t\t\tmin = -0.3\n"
+                    "\t\t\tmax = -0.1\n"
+                    "\t\t\tmodifier = { political_advisor_cost_factor = -0.1 }\n"
+                    "\t\t}\n"
+                    "\t}\n"
+                    "}\n")
+        with open(os.path.join(mod, "common", "decisions", "ITA.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("ITA_balance_of_power_category = {\n"
+                    "\tDEBUG_debug_action = {\n"
+                    "\t\tpriority = 1\n"
+                    "\t\tcomplete_effect = { }\n"
+                    "\t}\n"
+                    "\tITA_bop_military_parade = {\n"
+                    "\t\tcost = ITA_bop_generic_council_cost\n"
+                    "\t\tcomplete_effect = { ITA_bop_very_low_increase_effect = yes }\n"
+                    "\t}\n"
+                    "\tITA_bop_slander_the_duce = {\n"
+                    "\t\tcost = 25\n"
+                    "\t\tcomplete_effect = { add_power_balance_value = { id = ITA_power_balance value = -0.1 } }\n"
+                    "\t}\n"
+                    "}\n")
+        return mod
+
+    def test_parse_bop_file(self):
+        from bop_loader import parse_bop_file
+        mod = self._make_env()
+        with open(os.path.join(mod, "common", "bop", "ITA.txt"),
+                  "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        bop = parse_bop_file(content)
+        self.assertIsNotNone(bop)
+        self.assertEqual(bop["id"], "ITA_power_balance")
+        self.assertAlmostEqual(bop["initial_value"], 0.35)
+        self.assertEqual(bop["left_side"], "ITA_grand_council_side")
+        self.assertEqual(bop["right_side"], "ITA_mussolini_side")
+        self.assertEqual(len(bop["ranges"]), 1)
+        self.assertEqual(len(bop["sides"]), 1)
+        self.assertEqual(bop["sides"][0]["ranges"][0]["modifier"]
+                         .get("political_advisor_cost_factor"), -0.1)
+
+    def test_load_bop_actions_filters_debug(self):
+        from bop_loader import load_bop_definitions, load_bop_actions
+        mod = self._make_env()
+        bop = load_bop_definitions(mod, "")["ITA"]
+        acts = load_bop_actions(mod, "", bop["decision_category"])
+        keys = [a["key"] for a in acts]
+        self.assertIn("ITA_bop_military_parade", keys)
+        self.assertIn("ITA_bop_slander_the_duce", keys)
+        self.assertFalse(any(k.startswith("DEBUG_") for k in keys),
+                         "应过滤 DEBUG 决议")
+        by_key = {a["key"]: a for a in acts}
+        self.assertEqual(by_key["ITA_bop_military_parade"]["delta"], 1)
+        self.assertAlmostEqual(
+            by_key["ITA_bop_slander_the_duce"]["delta"], -0.1, places=3)
+
+
+class BopEditorDialogSmokeTest(unittest.TestCase):
+    """力量平衡专用编辑器冒烟（offscreen）：滑块/动作/保存。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from bop_loader import _BOP_CACHE
+        _BOP_CACHE.clear()
+        mod = _mkdtemp("dsh_boped_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "bop"), exist_ok=True)
+        os.makedirs(os.path.join(mod, "common", "decisions"), exist_ok=True)
+        with open(os.path.join(mod, "common", "bop", "ITA.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("ITA_power_balance = {\n"
+                    "\tinitial_value = 0.35\n"
+                    "\tleft_side = ITA_grand_council_side\n"
+                    "\tright_side = ITA_mussolini_side\n"
+                    "\tdecision_category = ITA_balance_of_power_category\n"
+                    "\trange = { id = ITA_balance_range min = -0.10 max = 0.10 modifier = { } }\n"
+                    "\tside = { id = ITA_grand_council_side icon = GFX_x\n"
+                    "\t\trange = { id = r1 min = -0.3 max = -0.1 modifier = { } }\n"
+                    "\t}\n"
+                    "}\n")
+        with open(os.path.join(mod, "common", "decisions", "ITA.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("ITA_balance_of_power_category = {\n"
+                    "\tITA_bop_military_parade = {\n"
+                    "\t\tcost = ITA_bop_generic_council_cost\n"
+                    "\t\tcomplete_effect = { ITA_bop_very_low_increase_effect = yes }\n"
+                    "\t}\n"
+                    "\tITA_bop_slander_the_duce = {\n"
+                    "\t\tcost = 25\n"
+                    "\t\tcomplete_effect = { add_power_balance_value = { id = ITA_power_balance value = -0.1 } }\n"
+                    "\t}\n"
+                    "}\n")
+        return mod
+
+    def test_dialog_builds_and_saves(self):
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QMessageBox
+        from bop_loader import load_bop_definitions
+        from bop_editor_dialog import BopEditorDialog
+        mod = self._make_env()
+        bop = load_bop_definitions(mod, "")["ITA"]
+        dlg = BopEditorDialog(bop, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(len(dlg.actions), 2, "应解析出 2 个非 DEBUG 动作")
+        self.assertIsNotNone(dlg.slider)
+        # 拖动滑块到 0.5 并保存
+        dlg.slider.setValue(50)
+        with patch("PyQt6.QtWidgets.QMessageBox.information"):
+            dlg._save_initial_value()
+        with open(os.path.join(mod, "common", "bop", "ITA.txt"),
+                  "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("initial_value = 0.5000", content,
+                      "保存应写回滑块对应 initial_value")
+        dlg.close()
+
+
+class BopWorkbenchRouteTest(unittest.TestCase):
+    """力量平衡：文件模式/无文件模式双击应直达专用编辑器。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from workbench import WorkbenchDock
+        mod = _mkdtemp("dsh_wbbop_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "bop"), exist_ok=True)
+        path = os.path.join(mod, "common", "bop", "ITA.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("ITA_power_balance = {\n"
+                    "\tinitial_value = 0.35\n"
+                    "\tleft_side = A\n"
+                    "\tright_side = B\n"
+                    "\tdecision_category = C\n"
+                    "}\n")
+        wb = WorkbenchDock(mod_path=mod)
+        wb._current_type = "bop"
+        wb.show()
+        self.app.processEvents()
+        return wb, path
+
+    def test_file_mode_double_click_opens_bop(self):
+        from PyQt6.QtWidgets import QListWidgetItem
+        from PyQt6.QtCore import Qt
+        wb, path = self._make_env()
+        received = []
+        gallery = []
+        wb.generic_file_selected.connect(
+            lambda fp, eid: received.append((fp, eid)))
+        wb.entity_gallery_requested.connect(
+            lambda t, fp: gallery.append((t, fp)))
+        it = QListWidgetItem("ITA")
+        it.setData(Qt.ItemDataRole.UserRole, path)
+        wb._on_file_double_clicked(it)
+        self.assertEqual(len(received), 1, "应请求打开 BOP 专用编辑器")
+        self.assertEqual(gallery, [], "不得只进实体画廊")
+
+    def test_nofile_entity_double_click_opens_bop(self):
+        from PyQt6.QtWidgets import QListWidgetItem
+        from PyQt6.QtCore import Qt
+        wb, path = self._make_env()
+        wb.set_nofile_mode(True)
+        received = []
+        wb.generic_file_selected.connect(
+            lambda fp, eid: received.append((fp, eid)))
+        it = QListWidgetItem("ITA")
+        it.setData(Qt.ItemDataRole.UserRole,
+                   {"file": path, "key": "ITA_power_balance"})
+        wb._on_entity_double_clicked(it)
+        self.assertEqual(len(received), 1, "无文件模式双击 BOP 应请求打开编辑器")
+
+    def test_open_tree_editor_routes_bop(self):
+        from unittest.mock import MagicMock, patch
+        from main_window import MyWindow
+        mod = _mkdtemp("dsh_boproute_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "bop"), exist_ok=True)
+        path = os.path.join(mod, "common", "bop", "ITA.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("ITA_power_balance = { initial_value = 0.35 }\n")
+        fake = MagicMock()
+        fake.settings = {"mod_path": mod, "HOI4_path": ""}
+        with patch("bop_editor_dialog.open_bop_editor") as m:
+            MyWindow._open_tree_editor(fake, path)
+        m.assert_called_once()
 
 
 if __name__ == "__main__":

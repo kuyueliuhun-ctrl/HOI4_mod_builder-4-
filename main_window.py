@@ -816,6 +816,22 @@ class MyWindow(QMainWindow):
             traceback.print_exc()
             QMessageBox.critical(self, "错误", f"初始部队编辑器打开失败: {e}")
             return
+        # common/bop → 力量平衡专用编辑器（文件模式/经典树双击共用）
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/common/bop/" in norm:
+                from bop_editor_dialog import open_bop_editor
+                open_bop_editor(
+                    file_path,
+                    mod_path=mod,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
+                    parent=self)
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"力量平衡编辑器打开失败: {e}")
+            return
         try:
             with open(file_path, 'r', encoding='utf-8-sig') as f:
                 content = f.read()

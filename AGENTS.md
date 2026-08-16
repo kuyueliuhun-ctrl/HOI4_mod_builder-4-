@@ -42,7 +42,7 @@
 python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 + 写入纪律扫描
 .venv\Scripts\python.exe tools/verify_contracts.py   :: 3.8 同样跑一遍
 ```
-退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（167 个用例 / 38 个测试类）。
+退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（173 个用例 / 41 个测试类）。
 
 ## 3. 架构地图（模块清单）
 
@@ -664,7 +664,31 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 3. ✅ 验证：新增 4 个契约测试（州轮廓纯函数/设置清除、建筑面板布局/选中显示州轮廓），
    全量 167 测试绿。
 
-### 6.16 遗留/可选后续
+### 6.16 已完成：力量平衡（Balance of Power）专用工作台（2026-08-16）
+
+用户要求：把工作台中的「力量平衡」从通用树形编辑器升级为仿游戏内 BOP 弹窗，
+并适配有文件/无文件模式。全部落地：
+
+1. ✅ **数据层 `bop_loader.py`**：
+   - `load_bop_definitions`：扫描 `common/bop/*.txt`（mod 优先），解析
+     initial_value / left_side / right_side / decision_category / range / side。
+   - `load_bop_actions`：定位 `common/decisions/*.txt` 中与 decision_category
+     同名的**分类块**，取其深度 1 子块作为动作（过滤 DEBUG_*），提取
+     cost / add_power_balance_value 或 *_increase/decrease_effect 方向。
+2. ✅ **深色工作台 `bop_editor_dialog.py`**：
+   - 黑绿历史政治军事 UI：米白标题/副标题、金色棕色描边、深橄榄绿动作行、
+     绿色状态圆点、右上角关闭按钮；中央 QSlider 展示/编辑初始值。
+   - 动作列表展示决议图标（emoji 猜测）、名称、费用与增减方向。
+   - 保存 `initial_value`：`ensure_file_in_mod` 原版自动复制到 mod + 原子写。
+3. ✅ **文件模式/无文件模式适配**：
+   - workbench 文件模式双击 `common/bop/*.txt` → 直接弹 BOP 编辑器；
+   - 无文件模式双击力量平衡实体 → 同样弹 BOP 编辑器；
+   - `main_window._open_tree_editor` 按路径识别 `common/bop/` 分发；
+   - `SPECIAL_TYPE_KEYS` 加入 `"bop"`（专用类型置顶）。
+4. ✅ 验证：新增 3 个测试类（BopLoaderTest / BopEditorDialogSmokeTest /
+   BopWorkbenchRouteTest）共 6 个用例，全量 173 测试绿。
+
+### 6.17 遗留/可选后续
 - 兵牌图标可考虑接入单位标牌库（当前 OOB 用 GFX_unit_<type>_icon_medium
   解析，失败回退黑底占位）
 - Scenario Forge 移植剩余方向（§9 报告 B/C/D 部分条目）：导出前校验面板
