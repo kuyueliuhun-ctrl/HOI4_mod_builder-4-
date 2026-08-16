@@ -1,0 +1,21 @@
+# AI 派系战区模板 — common/ai_faction_theaters/ 文件
+theater_example = {
+	name = theater_example
+	regions = {
+		1
+		2
+	}
+	cancel = {
+		has_war = no
+	}
+	ai_will_do = {
+		base = 0
+		modifier = {
+			add = 1
+			is_historical_focus_on = yes
+		}
+	}
+	can_skip_first_region = no
+	preferred_countries = {
+	}
+}

@@ -1,0 +1,12 @@
+# AI 区域模板 — common/ai_areas/ 文件
+#
+# areas 块内每个区域 = 一组战略区域 ID，供 AI 理解地理区域。
+areas = {
+	my_area = {
+		strategic_regions = {
+			1
+			2
+			3
+		}
+	}
+}

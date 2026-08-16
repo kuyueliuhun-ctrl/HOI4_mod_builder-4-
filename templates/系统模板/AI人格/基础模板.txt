@@ -1,0 +1,3 @@
+# AI 人格模板 — common/ai_personalities.txt 追加块
+ai_example = {
+}

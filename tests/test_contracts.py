@@ -3938,19 +3938,22 @@ class WorkbenchTypeListGroupTest(unittest.TestCase):
             it = wb.type_list.item(i)
             keys.append((i, it.data(Qt.ItemDataRole.UserRole),
                          bool(it.flags() & Qt.ItemFlag.ItemIsSelectable)))
-        self.assertEqual([k for _i, k, _s in keys[:4]],
-                         ["focus", "tech", "initial_oob", "bop"])
-        sep = keys[4]
+        self.assertEqual(
+            [k for _i, k, _s in keys[:12]],
+            ["focus", "tech", "initial_oob", "bop",
+             "ai_strategy_plans", "ai_strategy", "ai_division", "ai_areas",
+             "ai_equipment", "ai_faction_theaters", "ai_focuses", "ai_navy"])
+        sep = keys[12]
         self.assertIsNone(sep[1], "分隔线无类型 data")
         self.assertFalse(sep[2], "分隔线不可选")
-        self.assertIsNotNone(keys[5][1], "分隔线后应有通用类型")
+        self.assertIsNotNone(keys[13][1], "分隔线后应有通用类型")
 
     def test_clicking_separator_ignored(self):
         """点击分隔线不改变当前类型。"""
         from PyQt6.QtCore import Qt
         wb = self._make()
         wb._current_type = "focus"
-        sep = wb.type_list.item(4)
+        sep = wb.type_list.item(12)
         wb._on_type_clicked(sep)
         self.assertEqual(wb._current_type, "focus", "分隔线点击应被忽略")
 
@@ -4527,6 +4530,442 @@ class BopWorkbenchRouteTest(unittest.TestCase):
         with patch("bop_editor_dialog.open_bop_editor") as m:
             MyWindow._open_tree_editor(fake, path)
         m.assert_called_once()
+
+
+class AiLoaderTest(unittest.TestCase):
+    """AI 数据层：解析 plans/strategy/templates/equipment/navy/areas/focuses/theaters。"""
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_ai_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+
+        def w(rel, text):
+            p = os.path.join(mod, rel)
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(text)
+
+        w("common/ai_strategy_plans/GER.txt",
+          "GER_historical = {\n"
+          "\tname = \"German historical plan\"\n"
+          "\tallowed = { original_tag = GER }\n"
+          "\tai_national_focuses = { A B C }\n"
+          "\tweight = { factor = 1.0 }\n"
+          "}\n")
+        w("common/ai_strategy/GER.txt",
+          "GER_unit_production = {\n"
+          "\tenable = { always = yes }\n"
+          "\tai_strategy = { type = role_ratio id = infantry value = 75 }\n"
+          "\tai_strategy = { type = unit_ratio id = capital_ship value = 15 }\n"
+          "}\n")
+        w("common/ai_templates/generic.txt",
+          "infantry_generic = {\n"
+          "\trole = infantry\n"
+          "\tblocked_for = { GER JAP }\n"
+          "\tinfantry_1 = {\n"
+          "\t\ttarget_template = { regiments = { infantry = 6 } }\n"
+          "\t\treplace_with = infantry_2\n"
+          "\t}\n"
+          "}\n")
+        w("common/ai_equipment/GER.txt",
+          "GER_fighter = {\n"
+          "\tcategory = air\n"
+          "\tavailable_for = { GER }\n"
+          "\tbasic_fighter = {\n"
+          "\t\ttarget_variant = { type = small_plane_airframe_1 modules = { } }\n"
+          "\t\tallowed_modules = { engine_1_1x }\n"
+          "\t}\n"
+          "}\n")
+        w("common/ai_navy/goals/goals_GER.txt",
+          "GER_convoy_protection = {\n"
+          "\tobjective_type = convoy_protection\n"
+          "\tmin_priority = 3\n"
+          "\tmax_priority = 8\n"
+          "}\n")
+        w("common/ai_navy/fleet/fleets_GER.txt",
+          "GER_home_fleet = {\n"
+          "\trequired_taskforces = { GER_StrikeForce_1 = 1 }\n"
+          "}\n")
+        w("common/ai_navy/taskforce/taskforces_GER.txt",
+          "GER_StrikeForce_1 = {\n"
+          "\tmission = { naval_strike }\n"
+          "\tmin_composition = { destroyer = { amount = 1 } }\n"
+          "}\n")
+        w("common/ai_areas/default.txt",
+          "areas = {\n"
+          "\teurope = { strategic_regions = { 1 2 } }\n"
+          "}\n")
+        w("common/ai_focuses/GER.txt",
+          "ai_focus_defense_GER = {\n"
+          "\tresearch = { defensive = 5.0 radar_tech = 1.0 }\n"
+          "}\n")
+        w("common/ai_faction_theaters/ai_faction_theaters.txt",
+          "western_europe = {\n"
+          "\tname = theater_western_europe\n"
+          "\tregions = { 1 2 3 }\n"
+          "}\n")
+        return mod
+
+    def test_parse_ai_plans(self):
+        from ai_loader import parse_ai_plans
+        mod = self._make_env()
+        with open(os.path.join(mod, "common", "ai_strategy_plans", "GER.txt"),
+                  "r", encoding="utf-8") as f:
+            plans = parse_ai_plans(f.read())
+        self.assertIn("GER_historical", plans)
+        self.assertEqual(plans["GER_historical"]["ai_national_focuses"],
+                         ["A", "B", "C"])
+        self.assertIn("original_tag = GER", plans["GER_historical"]["allowed"])
+
+    def test_parse_ai_strategies(self):
+        from ai_loader import parse_ai_strategies
+        mod = self._make_env()
+        with open(os.path.join(mod, "common", "ai_strategy", "GER.txt"),
+                  "r", encoding="utf-8") as f:
+            groups = parse_ai_strategies(f.read())
+        self.assertIn("GER_unit_production", groups)
+        self.assertEqual(len(groups["GER_unit_production"]["strategies"]), 2)
+        self.assertEqual(
+            groups["GER_unit_production"]["strategies"][0]["id"], "infantry")
+
+    def test_parse_ai_templates_and_equipment(self):
+        from ai_loader import parse_ai_templates, parse_ai_equipment
+        mod = self._make_env()
+        with open(os.path.join(mod, "common", "ai_templates", "generic.txt"),
+                  "r", encoding="utf-8") as f:
+            roles = parse_ai_templates(f.read())
+        self.assertIn("infantry_generic", roles)
+        self.assertEqual(roles["infantry_generic"]["role"], "infantry")
+        self.assertEqual(roles["infantry_generic"]["blocked_for"], ["GER", "JAP"])
+        self.assertEqual(roles["infantry_generic"]["targets"][0]["id"], "infantry_1")
+        with open(os.path.join(mod, "common", "ai_equipment", "GER.txt"),
+                  "r", encoding="utf-8") as f:
+            eqs = parse_ai_equipment(f.read())
+        self.assertIn("GER_fighter", eqs)
+        self.assertEqual(eqs["GER_fighter"]["category"], "air")
+        self.assertEqual(eqs["GER_fighter"]["variants"][0]["id"], "basic_fighter")
+
+    def test_parse_ai_navy(self):
+        from ai_loader import (
+            parse_ai_navy_goals, parse_ai_navy_fleets, parse_ai_navy_taskforces)
+        mod = self._make_env()
+        with open(os.path.join(mod, "common", "ai_navy", "goals", "goals_GER.txt"),
+                  "r", encoding="utf-8") as f:
+            goals = parse_ai_navy_goals(f.read())
+        self.assertEqual(goals["GER_convoy_protection"]["objective_type"],
+                         "convoy_protection")
+        with open(os.path.join(mod, "common", "ai_navy", "fleet", "fleets_GER.txt"),
+                  "r", encoding="utf-8") as f:
+            fleets = parse_ai_navy_fleets(f.read())
+        self.assertEqual(fleets["GER_home_fleet"]["required_taskforces"],
+                         {"GER_StrikeForce_1": "1"})
+        with open(os.path.join(mod, "common", "ai_navy", "taskforce", "taskforces_GER.txt"),
+                  "r", encoding="utf-8") as f:
+            tfs = parse_ai_navy_taskforces(f.read())
+        self.assertEqual(tfs["GER_StrikeForce_1"]["mission"], ["naval_strike"])
+
+    def test_parse_ai_areas_focuses_theaters(self):
+        from ai_loader import (
+            parse_ai_areas, parse_ai_focuses, parse_ai_faction_theaters)
+        mod = self._make_env()
+        with open(os.path.join(mod, "common", "ai_areas", "default.txt"),
+                  "r", encoding="utf-8") as f:
+            areas = parse_ai_areas(f.read())
+        self.assertEqual(areas["europe"]["strategic_regions"], ["1", "2"])
+        with open(os.path.join(mod, "common", "ai_focuses", "GER.txt"),
+                  "r", encoding="utf-8") as f:
+            focuses = parse_ai_focuses(f.read())
+        self.assertEqual(focuses["ai_focus_defense_GER"]["research"]["defensive"],
+                         "5.0")
+        with open(os.path.join(mod, "common", "ai_faction_theaters",
+                               "ai_faction_theaters.txt"),
+                  "r", encoding="utf-8") as f:
+            theaters = parse_ai_faction_theaters(f.read())
+        self.assertEqual(theaters["western_europe"]["regions"], ["1", "2", "3"])
+
+
+class FocusOrderPickerTest(unittest.TestCase):
+    """国策顺序点选：依赖删除、插入、顺序操作。"""
+
+    def _data(self):
+        return {
+            "a": {"draw": {"prerequisite": []}},
+            "b": {"draw": {"prerequisite": ["a"]}},
+            "c": {"draw": {"prerequisite": ["b"]}},
+            "d": {"draw": {"prerequisite": []}},
+        }
+
+    def test_dependent_focuses(self):
+        from focus_order_picker import dependent_focuses
+        deps = dependent_focuses(self._data(), "a")
+        self.assertEqual(deps, {"b", "c"})
+
+    def test_insert_after(self):
+        from focus_order_picker import insert_after
+        self.assertEqual(insert_after(["a", "d"], "a", "b"),
+                         ["a", "b", "d"])
+        self.assertEqual(insert_after(["a"], "x", "b"), ["a", "b"])
+
+    def test_remove_focus_with_dependents(self):
+        from focus_order_picker import remove_focus_with_dependents
+        ordered = ["a", "b", "c", "d"]
+        self.assertEqual(
+            remove_focus_with_dependents(ordered, self._data(), "a"), ["d"])
+
+
+class AiPlanEditorTest(unittest.TestCase):
+    """AI 战略计划编辑器：写回与打开。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aiplan_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_strategy_plans"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_strategy_plans", "GER.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("GER_historical = {\n"
+                    "\tname = \"German historical plan\"\n"
+                    "\tdesc = \"desc\"\n"
+                    "\tallowed = { original_tag = GER }\n"
+                    "\tai_national_focuses = { A B C }\n"
+                    "}\n")
+        return mod, path
+
+    def test_replace_helpers(self):
+        from ai_loader import replace_ai_plan_focus_order, replace_ai_plan_field
+        content = ("GER_historical = {\n"
+                   "\tname = \"x\"\n"
+                   "\tai_national_focuses = { A B }\n"
+                   "}\n")
+        out = replace_ai_plan_focus_order(content, "GER_historical", ["C", "D"])
+        self.assertIn("ai_national_focuses = {\n\tC\n\tD\n}", out)
+        out2 = replace_ai_plan_field(content, "GER_historical", "name", "New")
+        self.assertIn('name = "New"', out2)
+
+    def test_dialog_save_writes_order_and_fields(self):
+        from unittest.mock import patch
+        from ai_loader import load_ai_plans
+        from ai_plan_editor_dialog import AiPlanEditorDialog
+        mod, path = self._make_env()
+        plans = load_ai_plans(mod, "")
+        dlg = AiPlanEditorDialog(plans, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        dlg._ordered = ["D", "A"]
+        dlg.name_edit.setText("New Plan")
+        with patch("PyQt6.QtWidgets.QMessageBox.information"):
+            dlg._save()
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn('name = "New Plan"', content)
+        self.assertIn("ai_national_focuses = {\n\tD\n\tA\n}", content)
+        dlg.close()
+
+    def test_open_tree_editor_routes_ai_plan(self):
+        from unittest.mock import MagicMock, patch
+        from main_window import MyWindow
+        mod, path = self._make_env()
+        fake = MagicMock()
+        fake.settings = {"mod_path": mod, "HOI4_path": ""}
+        with patch("ai_plan_editor_dialog.open_ai_plan_editor") as m:
+            MyWindow._open_tree_editor(fake, path)
+        m.assert_called_once()
+
+
+class AiStrategyEditorTest(unittest.TestCase):
+    """AI 战略倾向编辑器：表格写回。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aistrat_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_strategy"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_strategy", "GER.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("GER_unit_production = {\n"
+                    "\tenable = { always = yes }\n"
+                    "\tai_strategy = { type = role_ratio id = infantry value = 75 }\n"
+                    "\tai_strategy = { type = unit_ratio id = capital_ship value = 15 }\n"
+                    "}\n")
+        return mod, path
+
+    def test_replace_helper(self):
+        from ai_loader import replace_ai_strategy_entries
+        content = ("GER_unit_production = {\n"
+                   "\tenable = { always = yes }\n"
+                   "\tai_strategy = { type = role_ratio id = infantry value = 75 }\n"
+                   "}\n")
+        out = replace_ai_strategy_entries(
+            content, "GER_unit_production",
+            [{"type": "role_ratio", "id": "armor", "value": "10"}])
+        self.assertIn("id = armor", out)
+        self.assertNotIn("infantry", out)
+
+    def test_dialog_save(self):
+        from unittest.mock import patch
+        from ai_loader import load_ai_strategies
+        from ai_strategy_editor_dialog import AiStrategyEditorDialog
+        mod, path = self._make_env()
+        groups = load_ai_strategies(mod, "")
+        dlg = AiStrategyEditorDialog(groups, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        # 修改第一行 id
+        dlg.table.item(0, 1).setText("armor")
+        with patch("PyQt6.QtWidgets.QMessageBox.information"):
+            dlg._save()
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn("id = armor", content)
+        self.assertNotIn("id = infantry", content)
+        dlg.close()
+
+
+class AiTemplateEditorTest(unittest.TestCase):
+    """AI 师模板：转换与写回。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aitpl_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_templates"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_templates", "generic.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("infantry_generic = {\n"
+                    "\trole = infantry\n"
+                    "\tinfantry_1 = {\n"
+                    "\t\ttarget_template = { regiments = { infantry = 6 } }\n"
+                    "\t\treplace_with = infantry_2\n"
+                    "\t}\n"
+                    "}\n")
+        return mod, path
+
+    def test_conversions(self):
+        from ai_template_editor_dialog import (
+            _target_template_to_division_text, _division_template_to_target_text)
+        from oob_loader import DivisionTemplate
+        div = _target_template_to_division_text(
+            "target_template = { regiments = { infantry = 6 } }")
+        self.assertIn("division_template", div)
+        self.assertIn('name = "ai_target"', div)
+        tpl = DivisionTemplate(name="ai_target", regiments=[("infantry", 0, 0)])
+        target = _division_template_to_target_text(tpl)
+        self.assertIn("target_template = {", target)
+        self.assertIn("infantry", target)
+
+    def test_replace_helper(self):
+        from ai_loader import replace_ai_template_target_template
+        mod, path = self._make_env()
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        out = replace_ai_template_target_template(
+            content, "infantry_generic", "infantry_1",
+            "target_template = { regiments = { infantry = 9 } }")
+        self.assertIn("infantry = 9", out)
+        self.assertNotIn("infantry = 6", out)
+
+    def test_dialog_lists_roles_and_targets(self):
+        from ai_loader import load_ai_templates
+        from ai_template_editor_dialog import AiTemplateEditorDialog
+        mod, path = self._make_env()
+        roles = load_ai_templates(mod, "")
+        dlg = AiTemplateEditorDialog(roles, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.role_list.count(), 1)
+        self.assertEqual(dlg.target_list.count(), 1)
+        self.assertEqual(dlg._current_target, "infantry_1")
+        dlg.close()
+
+    def test_open_tree_editor_routes_ai_template(self):
+        from unittest.mock import MagicMock, patch
+        from main_window import MyWindow
+        mod, path = self._make_env()
+        fake = MagicMock()
+        fake.settings = {"mod_path": mod, "HOI4_path": ""}
+        with patch("ai_template_editor_dialog.open_ai_template_editor") as m:
+            MyWindow._open_tree_editor(fake, path)
+        m.assert_called_once()
+
+
+class AiWorkbenchRouteTest(unittest.TestCase):
+    """AI 类型：文件模式/无文件模式双击直接走 generic_file_selected。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from workbench import WorkbenchDock
+        mod = _mkdtemp("dsh_aiwb_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_strategy_plans"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_strategy_plans", "GER.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("GER_historical = {\n"
+                    "\tname = \"German historical plan\"\n"
+                    "\tai_national_focuses = { A B C }\n"
+                    "}\n")
+        wb = WorkbenchDock(mod_path=mod)
+        wb._current_type = "ai_strategy_plans"
+        wb.show()
+        self.app.processEvents()
+        return wb, path
+
+    def test_file_mode_double_click_ai_direct(self):
+        from PyQt6.QtWidgets import QListWidgetItem
+        from PyQt6.QtCore import Qt
+        wb, path = self._make_env()
+        received = []
+        gallery = []
+        wb.generic_file_selected.connect(
+            lambda fp, eid: received.append((fp, eid)))
+        wb.entity_gallery_requested.connect(
+            lambda t, fp: gallery.append((t, fp)))
+        it = QListWidgetItem("GER.txt")
+        it.setData(Qt.ItemDataRole.UserRole, path)
+        wb._on_file_double_clicked(it)
+        self.assertEqual(len(received), 1, "AI 文件应直接请求打开")
+        self.assertEqual(gallery, [], "AI 不应进实体画廊")
+
+    def test_nofile_entity_double_click_ai_direct(self):
+        from PyQt6.QtWidgets import QListWidgetItem
+        from PyQt6.QtCore import Qt
+        wb, path = self._make_env()
+        wb.set_nofile_mode(True)
+        received = []
+        wb.generic_file_selected.connect(
+            lambda fp, eid: received.append((fp, eid)))
+        it = QListWidgetItem("GER_historical")
+        it.setData(Qt.ItemDataRole.UserRole,
+                   {"file": path, "key": "GER_historical"})
+        wb._on_entity_double_clicked(it)
+        self.assertEqual(len(received), 1, "无文件模式 AI 实体应直接请求打开")
 
 
 if __name__ == "__main__":

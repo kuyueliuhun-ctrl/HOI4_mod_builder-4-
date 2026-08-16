@@ -1,0 +1,7 @@
+	my_area = {
+		strategic_regions = {
+			1
+			2
+			3
+		}
+	}

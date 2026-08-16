@@ -23,7 +23,17 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 
 # 有专门制作/编辑功能的类型（放在类型列表上方；其余为通用树形编辑）
-SPECIAL_TYPE_KEYS = ("focus", "tech", "initial_oob", "bop")
+SPECIAL_TYPE_KEYS = (
+    "focus", "tech", "initial_oob", "bop",
+    "ai_strategy_plans", "ai_strategy", "ai_division", "ai_equipment",
+    "ai_navy", "ai_faction_theaters", "ai_areas", "ai_focuses",
+)
+
+# AI 内容类型：文件/实体双击直接走 generic_file_selected（主窗口再分发到专用/树编辑器）
+AI_TYPES = {
+    "ai_strategy_plans", "ai_strategy", "ai_division", "ai_equipment",
+    "ai_navy", "ai_faction_theaters", "ai_areas", "ai_focuses",
+}
 
 
 # 内容类型定义：key -> (显示名, 图标, 相对 mod 目录的文件夹列表, 基础模板类型或 None, 扩展名或扩展名列表)
@@ -112,13 +122,14 @@ CONTENT_TYPES = [
     ("modifier_definition", "修正量定义", "📐", ["common/modifier_definitions"], "修正量定义", ".txt"),
     ("modifier_type", "修正类型", "🧮", ["common/modifiers"], "修正类型", ".txt"),
     # ── AI ──
-    ("ai_strategy", "AI战略计划", "🤖", ["common/ai_strategy_plans", "common/ai_strategy"], "ai_strategy", ".txt"),
-    ("ai_division", "AI师模板", "🤖", ["common/ai_templates"], "ai_strategy", ".txt"),
-    ("ai_areas", "AI区域", "🗺️", ["common/ai_areas"], None, ".txt"),
-    ("ai_equipment", "AI装备", "🎯", ["common/ai_equipment"], None, ".txt"),
-    ("ai_faction_theaters", "AI战区", "🎭", ["common/ai_faction_theaters"], None, ".txt"),
-    ("ai_focuses", "AI国策", "🌳", ["common/ai_focuses"], None, ".txt"),
-    ("ai_navy", "AI海军", "⚓", ["common/ai_navy"], None, ".txt"),
+    ("ai_strategy_plans", "AI战略计划", "🤖", ["common/ai_strategy_plans"], "ai_strategy_plan", ".txt"),
+    ("ai_strategy", "AI战略倾向", "🤖", ["common/ai_strategy"], "ai_strategy", ".txt"),
+    ("ai_division", "AI师模板", "🤖", ["common/ai_templates"], "ai_template", ".txt"),
+    ("ai_areas", "AI区域", "🗺️", ["common/ai_areas"], "ai_area", ".txt"),
+    ("ai_equipment", "AI装备", "🎯", ["common/ai_equipment"], "ai_equipment", ".txt"),
+    ("ai_faction_theaters", "AI派系战区", "🎭", ["common/ai_faction_theaters"], "ai_faction_theater", ".txt"),
+    ("ai_focuses", "AI科研权重", "🌳", ["common/ai_focuses"], "ai_focus", ".txt"),
+    ("ai_navy", "AI海军", "⚓", ["common/ai_navy"], "ai_navy", ".txt"),
     # ── 国家定义 / 其他 ──
     ("country_setup", "国家定义", "🏷️", ["common/country_tags", "common/countries"], "国家定义", ".txt"),
     ("wargoal", "战争目标", "⚔️", ["common/wargoals"], "战争目标", ".txt"),
@@ -1419,6 +1430,9 @@ class WorkbenchDock(QDockWidget):
             self.tech_file_selected.emit(fp)
         elif self._current_type in ICON_RULES:
             self.entity_gallery_requested.emit(self._current_type, fp)
+        elif self._current_type in AI_TYPES:
+            # AI 内容：直接交给主窗口分发（专用编辑器或树形编辑器）
+            self.generic_file_selected.emit(fp, None)
         else:
             # 力量平衡（common/bop）→ 直接弹专用编辑器
             if self._current_type == "bop":
@@ -1461,9 +1475,14 @@ class WorkbenchDock(QDockWidget):
             if fp:
                 self.focus_file_selected.emit(fp)
             return
-        # 力量平衡（common/bop）→ 直接弹专用编辑器（无文件模式也支持）
+        # AI 内容（无文件模式也支持）：直接交给主窗口分发
         fp = meta.get("file", "") if isinstance(meta, dict) else ""
         norm_fp = (fp or "").replace("\\", "/")
+        if self._current_type in AI_TYPES:
+            if fp:
+                self.generic_file_selected.emit(fp, meta.get("key") if isinstance(meta, dict) else None)
+            return
+        # 力量平衡（common/bop）→ 直接弹专用编辑器（无文件模式也支持）
         if self._current_type == "bop":
             if fp:
                 self.generic_file_selected.emit(fp, meta.get("key"))

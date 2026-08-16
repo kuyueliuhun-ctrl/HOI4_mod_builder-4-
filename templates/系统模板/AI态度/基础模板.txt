@@ -1,0 +1,14 @@
+# AI 态度模板 — common/ai_attitudes.txt 追加块
+attitude_example = {
+	antagonize = no
+	annex = no
+	weaken = no
+	coalition = no
+	vassalize = no
+	ally = no
+	befriend = no
+	protect = no
+	threat = no
+	ignore = no
+	warn = no
+}

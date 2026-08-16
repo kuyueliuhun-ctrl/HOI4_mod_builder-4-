@@ -832,6 +832,57 @@ class MyWindow(QMainWindow):
             traceback.print_exc()
             QMessageBox.critical(self, "错误", f"力量平衡编辑器打开失败: {e}")
             return
+        # AI 战略计划 → 专用编辑器（国策顺序点选）
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/common/ai_strategy_plans/" in norm:
+                from ai_plan_editor_dialog import open_ai_plan_editor
+                open_ai_plan_editor(
+                    file_path,
+                    mod_path=mod,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
+                    entity_id=entity_id,
+                    parent=self)
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"AI 战略计划编辑器打开失败: {e}")
+            return
+        # AI 战略倾向 → 专用表格编辑器
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/common/ai_strategy/" in norm:
+                from ai_strategy_editor_dialog import open_ai_strategy_editor
+                open_ai_strategy_editor(
+                    file_path,
+                    mod_path=mod,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
+                    entity_id=entity_id,
+                    parent=self)
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"AI 战略倾向编辑器打开失败: {e}")
+            return
+        # AI 师模板 → 专用选择器（调用师编制编辑器）
+        try:
+            norm = os.path.normpath(file_path).replace("\\", "/")
+            if "/common/ai_templates/" in norm:
+                from ai_template_editor_dialog import open_ai_template_editor
+                open_ai_template_editor(
+                    file_path,
+                    mod_path=mod,
+                    hoi4_path=self.settings.get("HOI4_path", ""),
+                    entity_id=entity_id,
+                    parent=self)
+                return
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(self, "错误", f"AI 师模板编辑器打开失败: {e}")
+            return
         try:
             with open(file_path, 'r', encoding='utf-8-sig') as f:
                 content = f.read()

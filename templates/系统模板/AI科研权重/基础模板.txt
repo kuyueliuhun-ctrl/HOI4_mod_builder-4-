@@ -1,0 +1,7 @@
+# AI 科研权重模板 — common/ai_focuses/ 文件
+ai_focus_example = {
+	research = {
+		infantry_weapons = 10.0
+		artillery = 5.0
+	}
+}

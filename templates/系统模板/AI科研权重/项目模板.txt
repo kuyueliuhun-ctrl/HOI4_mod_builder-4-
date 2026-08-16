@@ -1,0 +1,6 @@
+	ai_focus_example = {
+		research = {
+			infantry_weapons = 10.0
+			artillery = 5.0
+		}
+	}
