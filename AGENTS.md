@@ -30,7 +30,7 @@
 ## 2. 运行与验证
 
 ```bat
-启动.bat          :: 正常启动（.venv\Scripts\python.exe main.py）
+启动.bat          :: 正常启动（.venv\Scripts\python.exe src\main.py）
 ```
 
 **两个 Python 环境（重要）**：
@@ -46,10 +46,12 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 
 ## 3. 架构地图（模块清单）
 
+> 全部 Python 源码已归档到 `src/` 目录；下表中模块路径均相对 `src/`。
+
 ### 3.1 核心 UI
 | 模块 | 职责 |
 | --- | --- |
-| `main.py` | 入口：QApplication + 字体 + 主题 + MyWindow |
+| `src/main.py` | 入口：QApplication + 字体 + 主题 + MyWindow |
 | `main_window.py` | 主窗口：菜单/文件树/工作台/画布装配，工具菜单入口 |
 | `workbench.py` | 工作台 Dock：类型列表/文件列表/实体提取（`_quick_*_scan` 是实体解析器） |
 | `focus_view.py` | 国策树/科技树画布（QGraphicsView 自绘） |
@@ -110,6 +112,39 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 6. **契约测试**：新功能必须配套 `tests/test_contracts.py` 的用例
    （纯函数优先可测；GUI 逻辑用 offscreen 冒烟）。bug 修复必须补回归测试。
 7. **写 mod 文件 = 可能破坏游戏**：任何批量写操作先小样本验证。
+8. **游戏机制详解文档契约（重要）**：AI 代理在**主动或被动**了解游戏机制时——
+   无论是自己读游戏/ mod 文件、解析字段，还是用户讲解、识图规格、调研查证得出的
+   结论——都必须把**游戏文件内容详解**持久化写入项目文档（推荐维护 `游戏机制详解.md`，
+   或对应类型章节），**不得只留在对话或内存里**。详解至少包含：
+   - 涉及的文件路径与相关键/块结构（附**真实示例片段**，切勿臆造字段）；
+   - 字段语义、默认值、嵌套关系、缺失/回退行为，以及踩坑（沿用 §5 的记录风格）；
+   - 解析/写回时须遵守的规则（块级替换、引用联动、是否可删等）。
+   目的：让下一个接手代理能直接复用这些结论，避免重复调研或凭记忆编造不存在的
+   游戏字段/机制。
+9. **四层分离开发规范（重要）**：所有新代码与重构必须遵守四层职责分离，
+   依赖方向单向向下：
+   ```
+   算法层（Core Algo） ← 绘图层（Render） ← UI 层（Widget/Layout） ← 信号槽层（Controller/Binding）
+   ```
+   上层可依赖下层，下层**禁止**反向 import/依赖上层。
+   - **算法层**：纯逻辑、无 Qt 控件。解析/序列化、坐标换算、布局计算、数据变换、
+     校验。可依赖 `QPointF/QColor` 等纯值类型与 `TreeNode`/数据类；禁止 `QWidget`、
+     `QPainter`、`connect`、直接写文件（写文件属于信号槽层编排）。
+   - **绘图层**：把数据/算法结果变成 `QGraphicsItem/QPixmap/painter` 图形项与几何
+     计算。禁止弹对话框、改业务数据、持有布局。
+   - **UI 层**：搭建控件/布局/样式，把用户动作翻译成语义信号。禁止直接写文件、
+     直接跑算法、直接 `QPainter` 绘图。
+   - **信号槽层**：最薄，只做接线与编排：`connect`、弹窗、调用算法/写文件、
+     刷新 UI/绘图。禁止在槽里塞大段算法或 UI 细节。
+   判定顺序：**算法 > 绘图 > UI > 信号槽**（命中上层即归上层，信号槽是兜底薄层）。
+   命名约定：大型模块按 `<域>_algo.py` / `<域>_render.py` / `<域>_view.py` /
+   `<域>_ctrl.py` 分文件；小对话框可用类后缀（`XxxDialog` + `XxxController` +
+   模块顶层纯函数）分职责，不强制拆文件。新增方法先判层再写。
+   已有良好先例：`focus_processor.py`（算法）、`focus_renderer.py`（绘图）、
+   `tech_view.py`（算法+图元）、`tree_model.py`（模型）。当前主要违规标本：
+   `focus_view.py`（2476 行/101 方法/133 状态字段，五合一），按本规范应逐步拆为
+   `FocusView` 瘦壳 + `focus_algo.py` + `focus_render.py` + `focus_view_ctrl.py`。
+   分层重构计划见 `分层重构计划.md`。
 
 ## 5. 给 AI 代理的踩坑清单（环境/技术事实）
 
@@ -742,6 +777,83 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
     AiPlanEditorTest / AiStrategyEditorTest / AiTemplateEditorTest /
     AiEquipmentEditorTest / AiNavyEditorTest / AiFactionTheaterTest，
     全量 206 测试绿，`verify_contracts.py` 退出码 0。
+
+### 6.19 已完成：AI 内容编辑器改造为完全专用 UI + 固定侧边栏（2026-08-16 追加）
+
+用户要求 AI 内容专用界面不要再依赖树形编辑器页面，且 UI 需要固定侧边栏、避免
+侧边栏横向滚动。全部落地：
+
+1. ✅ **公共 UI 组件 `ai_ui_common.py`**：
+   - `EntityListSidebar`：固定 300px 侧边栏（搜索 + 列表省略号/tooltip + 新建/
+     复制/重命名/删除），`QListWidget` 横向滚动条强制关闭。
+   - `KeyValueTableEditor`：两列键值表（research / taskforces/mission 等映射）。
+   - `ScriptBlockEditorDialog`：单个高级脚本块编辑器（非树形页面），复用
+     `NodeEditDialog`（词条/模板/自定义语句搜索 + 原始 PDX 高级模式）、
+     `TemplateDialog`、`CustomStatementDialog`、`TermDialog`，支持面包屑进入子块、
+     添加/编辑/删除/排序/存为模板。
+2. ✅ **`ai_loader.py` 实体级 CRUD**：
+   - 全部 AI 类型补 `insert / delete / rename / duplicate` 写回；
+   - 通用顶层/嵌套块替换与 upsert（`replace_top_block_child` /
+     `upsert_top_block_child` / `replace_or_upsert_nested_child` /
+     `replace_top_block_field` / `replace_ai_area_regions` 等）；
+   - 未知字段保留；全走 `ensure_file_in_mod` + 原子写。
+3. ✅ **AI 类型全部改为专用 UI，移除 GenericTreeEditor 页面依赖**：
+   - 战略计划 / 战略倾向 / 师模板 / 装备 / 海军 / 派系战区 / **区域** /
+     **科研权重** 均有固定侧边栏专用编辑器；
+   - 高级脚本块统一用 `ScriptBlockEditorDialog`；
+   - 原「✏ 编辑定义（树编辑器）」入口已移除。
+4. ✅ **测试**：新增 AiCrudWriteTest（各类型 CRUD roundtrip）、
+   AiSimpleEditorSmokeTest（固定侧边栏 300px + 无横向滚动断言 + 各区打开）、
+   AiUiCommonTest（ScriptBlockEditor roundtrip / EntityListSidebar 无横向滚动）。
+   全量 `verify_contracts.py` 退出码 0。
+
+### 6.20 已完成：四层分离分层重构（2026-08-16 立项，2026-08-18 落地）
+
+开发规范已写入 §4 第 9 条；详细执行计划见 **`分层重构计划.md`**。
+当前状态：**已完成（跳过未制作专属 UI 的工作台）**。要点：
+
+1. ✅ 四层分离开发规范已写入 AGENTS.md §4.9（算法 ← 绘图 ← UI ← 信号槽，单向依赖）。
+2. ✅ `分层重构计划.md` 已创建，按工作台逐个定位（focus_view 试点 → 全工作台收敛 → 自动化门禁）。
+3. ✅ P1 `focus_view.py` 拆分：
+   - 2476 行 → **1188 行**；
+   - 科技树 → `TechTreeControllerMixin`（focus_view_ctrl.py）+ `focus_render.render_tech_tree`；
+   - 实体画廊 → `EntityGalleryControllerMixin`（focus_view_ctrl.py）；
+   - 算法纯函数 → `focus_algo.py`（坐标/块查找/文本构建/实体块边界等，FocusView 保留薄委托）；
+   - 绘图 → `focus_render.py`。
+4. ✅ P2 工作台收敛：
+   - `workbench.py` 纯数据 → `content_types.py`；实体扫描 → `entity_scanner.py`（WorkbenchDock 保留薄委托）；
+   - `main_window.py` 路由 → `app_routes.py`；工具菜单构建 → `menu_factory.py`；
+   - `division_editor.py` 格式化 → `oob_format.py`；
+   - 设计器三件套公共 `ModulePickerDialog` → `designer_common.py`；
+   - 地图编辑器检查：未发现需下沉的内嵌纯算法（已由 map_*_ops / state_* 承担）；
+   - AI/BOP/翻译/模板/图标库等已有专属 UI 工作台维持现状，通过契约测试。
+5. ✅ P3 自动化门禁：
+   - 新增 `tools/check_layer_deps.py`（算法/绘图层禁止反向依赖 UI/信号槽层）；
+   - 已并入 `tools/verify_contracts.py`（第 4 步）；
+   - 新增 `.github/workflows/verify.yml`（CI 跑 `verify_contracts.py`）。
+6. ✅ 全量 `verify_contracts.py` 退出码 0（语法编译 / 契约测试 / 写入纪律扫描 / 四层依赖检查）。
+7. ⚠️ 未处理：未制作专属 UI 的通用内容类型工作台（仍走 GenericTreeEditor），按用户要求跳过。
+
+### 6.21 已完成：项目文件整理归档 + src/ 包化（2026-08-18）
+
+用户要求整理归档并执行方案 B 代码包化。全部落地：
+
+1. ✅ **启动脚本**：`启动.bat` 与 `启动.sh` 已改为运行 `src/main.py`（修复路径指向）。
+2. ✅ **`.gitignore` 补充**：新增 `.venv*/`、`.idea/`、`.jspace/`、`.opensquilla*`、
+   `settings.json`、`*.log`、`*.tmp`、`build/`/`dist/` 等；并执行
+   `git rm --cached settings.json` 与 `.idea` 下文件（保留本地文件，停止版本跟踪）。
+3. ✅ **缓存与空目录清理**：删除 `.runtime/`、全项目 `__pycache__/`（不含 `.venv`）、
+   空目录 `.agents/`、`.codex/`。测试/运行后缓存会按需重建，已被 gitignore。
+4. ✅ **方案 B `src/` 包化**：
+   - 全部 110 个 Python 源码移入 `src/`；
+   - 新增 `src/project_paths.py`（`PROJECT_ROOT` / `project_path()`），统一修正
+     基于 `__file__` 的资源定位（settings.json / templates / translations /
+     unit_counter_library / .runtime 等），避免 src/ 后路径错位；
+   - `tools/*.py` 与 `tests/test_contracts.py` 已把 `src/` 加入 `sys.path`；
+   - `api_server.py` / `mcp_server.py` 的 ROOT/sys.path 适配；
+   - 写入纪律豁免表 `tools/write_discipline_allowlist.json` 已更新为 `src/` 前缀；
+   - README / AGENTS 已更新启动命令与架构说明。
+5. ✅ 全量 `verify_contracts.py` 退出码 0（语法编译 / 契约测试 / 写入纪律扫描 / 四层依赖检查）。
 
 ### 6.17 遗留/可选后续
 - 兵牌图标可考虑接入单位标牌库（当前 OOB 用 GFX_unit_<type>_icon_medium

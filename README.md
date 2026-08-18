@@ -165,33 +165,35 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
 - **文件模式**：双击 `common/bop/*.txt` 直接打开；**无文件模式**：双击力量平衡
   实体同样打开；工作台类型列表已将该类型置顶
 
-### AI 内容编辑器（AI 战略计划 / 战略倾向 / 师模板 / 装备 / 海军 / 派系战区）
+### AI 内容编辑器（战略计划 / 战略倾向 / 师模板 / 装备 / 海军 / 派系战区 / 区域 / 科研权重）
 
-工作台 AI 类型已从通用树形编辑器升级为专用编辑器，并支持文件模式/无文件模式：
+工作台 AI 类型已全部升级为**完全专用 UI**：统一「固定侧边栏（300px，无横向滚动）+ 主内容」布局，
+不依赖通用树形编辑器页面；高级脚本块（allowed/enable/abort/ai_will_do/focus_factors/weight 等）
+通过 `ScriptBlockEditorDialog` 编辑（复用 NodeEditDialog / 模板 / 自定义语句 / 词条能力）。文件模式/无文件模式均支持。
 
 - **AI 战略计划 `ai_strategy_plans`**：`ai_plan_editor_dialog.py`
-  - 左侧计划列表，右侧名称/描述/国策顺序
-  - 「🎯 编辑国策顺序」打开**国策绘图点选器** `focus_order_picker.py`
-    - 点击未选国策追加顺序；点击已选国策无动作
-    - 右键已选国策：从该国策开始顺序 / 退出该状态 / 删除该顺序（含后续依赖国策）
-    - 国策图标右下角黑框红底白字数字角标
-  - 保存写回 `ai_national_focuses`、name、desc
+  - 左侧固定计划列表 + 新建/复制/重命名/删除
+  - 页签：基本信息（name/desc）、国策顺序（可直接编辑 + `focus_order_picker.py` 点选）、高级脚本块
 - **AI 战略倾向 `ai_strategy`**：`ai_strategy_editor_dialog.py`
-  - 策略组列表 + `ai_strategy` 表格（type/id/value），支持增删改
+  - 左侧固定策略组列表 + CRUD；`ai_strategy` 表格（type/id/value）支持增删行/排序
+  - 高级块 allowed/enable/abort
 - **AI 师模板 `ai_templates`**：`ai_template_editor_dialog.py`
-  - 角色模板/目标模板列表
-  - 「✏ 编辑目标编制」调用现有**师编制编辑器**，保存写回 `target_template`
+  - 左侧固定角色列表 + 中间目标列表（均支持 CRUD）
+  - 「✏ 编辑目标编制」调用**师编制编辑器**；replace 字段 + 高级块 enable/can_upgrade_in_field
 - **AI 装备 `ai_equipment`**：`ai_equipment_editor_dialog.py`
-  - 设计组/变体列表
-  - 「✏ 编辑设计」按 category 调用**飞机/坦克/舰艇设计器**，保存写回 `target_variant`
+  - 左侧设计组 + 中间变体（均支持 CRUD）；「✏ 编辑设计」调用**飞机/坦克/舰艇设计器**
+  - category/history/allowed_modules/priority + target_variant 写回
 - **AI 海军 `ai_navy`**：`ai_navy_editor_dialog.py`
-  - 三页签：目标 / 舰队 / 特遣队
-  - 目标页可编辑 objective_type/min/max priority；复杂块走树编辑器
-- **AI 派系战区 `ai_faction_theaters`**：地图红色描边 + 战区列表
-  - 地图编辑器新增「AI派系战区」图层，红色描边标出覆盖区域
-  - 「战区列表」双击战区打开树形编辑器并定位
-- **内容少的 AI 类型**：AI区域/科研权重/态度/人格
-  - 不建专用界面，提供系统模板 + 通用树形编辑器
+  - 三页签目标/舰队/特遣队，每页固定侧边栏 + CRUD
+  - 目标页表格可编辑并存档；各实体「完整编辑（高级块）」覆盖全部内容
+- **AI 派系战区 `ai_faction_theaters`**：`ai_faction_theater_editor_dialog.py`
+  - 固定侧边栏 + name/regions/preferred_countries + 高级块 cancel/ai_will_do
+  - 地图编辑器「AI派系战区」红色描边联动保持不变
+- **AI 区域 `ai_areas`**：`ai_area_editor_dialog.py`
+  - 固定侧边栏 + strategic_regions 列表 + 原始块编辑
+- **AI 科研权重 `ai_focuses`**：`ai_focus_editor_dialog.py`
+  - 固定侧边栏 + research 键值表 + 原始块编辑
+- **内容少/无专用 UI 的 AI 态度/人格**：仍提供系统模板 + 通用树形编辑器
 
 ### 地图编辑与区域划分（工具菜单 → 地图编辑… / 区域编辑…）
 
@@ -336,10 +338,10 @@ python -m venv .venv
 .venv\Scripts\pip install PyQt6 Pillow numpy
 
 :: 启动（也可直接双击 启动.bat）
-python main.py
+python src/main.py
 ```
 
-`启动.bat` 会自动激活 `.venv` 虚拟环境并启动主程序。
+`启动.bat` 会自动激活 `.venv` 虚拟环境并启动 `src/main.py`。
 
 ## 首次使用配置
 
@@ -361,8 +363,11 @@ python main.py
 
 ## 目录结构
 
+> 全部 Python 源码已归档到 `src/` 目录；`main.py` 入口位于 `src/main.py`。
+
 ```
-├── main.py                 # 程序入口
+├── src/                    # 全部 Python 源码
+│   ├── main.py             # 程序入口
 ├── main_window.py          # 主窗口：菜单、设置、文件树、工作台对接
 ├── workbench.py            # 工作台停靠面板：类型/文件导航、内容类型配置
 ├── focus_view.py           # 国策设计视图 + 实体图标画廊

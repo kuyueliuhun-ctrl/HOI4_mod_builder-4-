@@ -16,4 +16,4 @@ fi
 
 # 关闭 GUI 时可用 QT_QPA_PLATFORM=offscreen 无头运行：
 #   QT_QPA_PLATFORM=offscreen bash 启动.sh
-exec "$VENV/bin/python" -X utf8 main.py
+exec "$VENV/bin/python" -X utf8 src/main.py

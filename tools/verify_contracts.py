@@ -5,6 +5,7 @@
     2. 单元契约测试：tests/test_contracts.py
        （原子写 / BOM 拒绝 / 撤销快照 / 健康检查检出 / 纪律扫描）
     3. 写入纪律静态扫描：tools/check_write_discipline.py
+    4. 四层分离依赖方向检查：tools/check_layer_deps.py
 
 用法：
     python tools/verify_contracts.py
@@ -82,6 +83,11 @@ def main():
     results.append(("写入纪律扫描",
                     run_step("写入纪律扫描",
                              [PYTHON, os.path.join("tools", "check_write_discipline.py")])))
+
+    # 4. 四层分离依赖方向检查（算法/绘图层禁止反向依赖 UI/信号槽层）
+    results.append(("四层依赖检查",
+                    run_step("四层依赖检查",
+                             [PYTHON, os.path.join("tools", "check_layer_deps.py")])))
 
     print("\n" + "=" * 46)
     all_ok = True

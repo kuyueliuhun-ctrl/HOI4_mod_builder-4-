@@ -1,5 +1,30 @@
-
+# ── Python 缓存 ──
 __pycache__/
-*.pyc
-.runtime/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
 
+# ── 虚拟环境 / IDE ──
+.venv*/
+venv*/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── 运行/本地配置与隐私 ──
+settings.json
+*.log
+*.tmp
+
+# ── 项目运行缓存 ──
+.runtime/
+.opensquilla-cache/
+.opensquilla/
+
+# ── Agent/工具工作区（若不需要入库） ──
+.jspace/
+.agents/
+.codex/

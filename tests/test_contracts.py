@@ -16,6 +16,9 @@ import unittest
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+SRC = os.path.join(PROJECT_ROOT, "src")
+if SRC not in sys.path:
+    sys.path.insert(0, SRC)
 
 
 def _mkdtemp(prefix):
@@ -4999,12 +5002,15 @@ class AiFactionTheaterTest(unittest.TestCase):
         self.assertFalse(pm.isNull(), "红色描边图层应生成")
 
     def test_dialog_lists_theaters(self):
-        from ai_faction_theater_dialog import AiFactionTheaterListDialog
+        from ai_faction_theater_editor_dialog import AiFactionTheaterEditorDialog
+        from ai_loader import load_ai_faction_theaters
         mod, path = self._make_env()
-        dlg = AiFactionTheaterListDialog(mod, "")
+        theaters = load_ai_faction_theaters(mod, "")
+        dlg = AiFactionTheaterEditorDialog(theaters, mod, "")
         dlg.show()
         self.app.processEvents()
-        self.assertEqual(dlg.list.count(), 1)
+        self.assertEqual(dlg.sidebar.list.count(), 1)
+        self.assertEqual(dlg.sidebar.width(), 300)
         dlg.close()
 
     def test_open_tree_editor_routes_faction_theater(self):
@@ -5013,7 +5019,7 @@ class AiFactionTheaterTest(unittest.TestCase):
         mod, path = self._make_env()
         fake = MagicMock()
         fake.settings = {"mod_path": mod, "HOI4_path": ""}
-        with patch("ai_faction_theater_dialog.open_ai_faction_theater_list") as m:
+        with patch("ai_faction_theater_editor_dialog.open_ai_faction_theater_list") as m:
             MyWindow._open_tree_editor(fake, path)
         m.assert_called_once()
 
@@ -5069,7 +5075,10 @@ class AiEquipmentEditorTest(unittest.TestCase):
         self.app.processEvents()
         self.assertEqual(dlg.group_list.count(), 1)
         self.assertEqual(dlg.variant_list.count(), 1)
-        self.assertEqual(dlg._current_variant["id"], "basic_fighter")
+        self.assertEqual(dlg._current_variant, "basic_fighter")
+        variant = dlg._find_variant("basic_fighter")
+        self.assertIsNotNone(variant)
+        self.assertEqual(variant["id"], "basic_fighter")
         dlg.close()
 
     def test_open_tree_editor_routes_ai_equipment(self):
@@ -5142,3 +5151,492 @@ class AiWorkbenchRouteTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AiCrudWriteTest(unittest.TestCase):
+    """AI 数据层实体级 CRUD 写回。"""
+
+    def test_strategy_crud(self):
+        from ai_loader import (
+            insert_ai_strategy_group, delete_ai_strategy_group,
+            rename_ai_strategy_group, duplicate_ai_strategy_group)
+        content = ("A = {\n"
+                   "\tai_strategy = { type = role_ratio id = infantry value = 1 }\n"
+                   "}\n")
+        out = insert_ai_strategy_group(
+            content, "B", [{"type": "role_ratio", "id": "armor", "value": "2"}])
+        self.assertIn("B = {", out)
+        out = delete_ai_strategy_group(out, "A")
+        self.assertNotIn("A = {", out)
+        out = insert_ai_strategy_group(
+            content, "B", [{"type": "role_ratio", "id": "armor", "value": "2"}])
+        out = rename_ai_strategy_group(out, "B", "C")
+        self.assertIn("C = {", out)
+        self.assertNotIn("B = {", out)
+        out = duplicate_ai_strategy_group(out, "C", "D")
+        self.assertIn("D = {", out)
+
+    def test_focus_crud(self):
+        from ai_loader import (
+            insert_ai_focus, delete_ai_focus, rename_ai_focus,
+            duplicate_ai_focus, replace_top_block_child)
+        content = "A = {\n\tresearch = { tech1 = 1.0 }\n}\n"
+        out = insert_ai_focus(content, "B", {"tech2": "2.0"})
+        self.assertIn("B = {", out)
+        out = delete_ai_focus(out, "A")
+        self.assertNotIn("A = {", out)
+        out = rename_ai_focus(out, "B", "C")
+        self.assertIn("C = {", out)
+        out = duplicate_ai_focus(out, "C", "D")
+        self.assertIn("D = {", out)
+        out = replace_top_block_child(
+            out, "C", "research", "research = {\n\ttech9 = 9.0\n}")
+        self.assertIn("tech9 = 9.0", out)
+
+    def test_area_crud_and_replace(self):
+        from ai_loader import (
+            insert_ai_area, delete_ai_area, rename_ai_area,
+            duplicate_ai_area, replace_ai_area_regions, replace_ai_area_block)
+        content = "areas = {\n\teurope = { strategic_regions = { 1 2 } }\n}\n"
+        out = insert_ai_area(content, "asia", ["3", "4"])
+        self.assertIn("asia = {", out)
+        self.assertIn("3", out)
+        out = replace_ai_area_regions(out, "asia", ["5"])
+        self.assertIn("5", out)
+        self.assertNotIn("4", out)
+        out = delete_ai_area(out, "europe")
+        self.assertNotIn("europe = {", out)
+        out = insert_ai_area(content, "asia", ["3"])
+        out = rename_ai_area(out, "asia", "africa")
+        self.assertIn("africa = {", out)
+        self.assertNotIn("asia = {", out)
+        out = duplicate_ai_area(out, "africa", "america")
+        self.assertIn("america = {", out)
+        out = replace_ai_area_block(out, "africa", "africa = { strategic_regions = { 99 } }")
+        self.assertIn("99", out)
+
+    def test_template_crud_and_replace(self):
+        from ai_loader import (
+            insert_ai_template_role, delete_ai_template_role,
+            rename_ai_template_role, duplicate_ai_template_role,
+            insert_ai_template_target, delete_ai_template_target,
+            rename_ai_template_target, duplicate_ai_template_target,
+            replace_ai_template_target_field, replace_ai_template_target_template)
+        content = ("infantry_generic = {\n"
+                   "\trole = infantry\n"
+                   "\tinfantry_1 = {\n"
+                   "\t\ttarget_template = { regiments = { infantry = 6 } }\n"
+                   "\t\treplace_with = infantry_2\n"
+                   "\t}\n"
+                   "}\n")
+        out = insert_ai_template_role(content, "armor_generic", "armor")
+        self.assertIn("armor_generic = {", out)
+        out = insert_ai_template_target(out, "infantry_generic", "infantry_2")
+        self.assertIn("infantry_2 = {", out)
+        out = replace_ai_template_target_field(
+            out, "infantry_generic", "infantry_2", "target_min_match", "0.5")
+        self.assertIn("target_min_match = 0.5", out)
+        out = replace_ai_template_target_template(
+            out, "infantry_generic", "infantry_2",
+            "target_template = { regiments = { infantry = 9 } }")
+        self.assertIn("infantry = 9", out)
+        out = rename_ai_template_target(
+            out, "infantry_generic", "infantry_2", "infantry_3")
+        self.assertIn("infantry_3 = {", out)
+        out = duplicate_ai_template_target(
+            out, "infantry_generic", "infantry_3", "infantry_4")
+        self.assertIn("infantry_4 = {", out)
+        out = delete_ai_template_target(out, "infantry_generic", "infantry_4")
+        self.assertNotIn("infantry_4 = {", out)
+        out = rename_ai_template_role(out, "armor_generic", "armor_gen")
+        self.assertIn("armor_gen = {", out)
+        out = duplicate_ai_template_role(out, "infantry_generic", "infantry_gen2")
+        self.assertIn("infantry_gen2 = {", out)
+        out = delete_ai_template_role(out, "armor_gen")
+        self.assertNotIn("armor_gen = {", out)
+
+    def test_equipment_crud_and_replace(self):
+        from ai_loader import (
+            insert_ai_equipment_group, delete_ai_equipment_group,
+            rename_ai_equipment_group, duplicate_ai_equipment_group,
+            insert_ai_equipment_variant, delete_ai_equipment_variant,
+            rename_ai_equipment_variant, duplicate_ai_equipment_variant,
+            replace_ai_equipment_variant_field,
+            replace_ai_equipment_allowed_modules,
+            replace_ai_equipment_target_variant)
+        content = ("GER = {\n"
+                   "\tcategory = air\n"
+                   "\tbasic = {\n"
+                   "\t\ttarget_variant = { type = small_plane_airframe_1 modules = { } }\n"
+                   "\t}\n"
+                   "}\n")
+        out = insert_ai_equipment_group(content, "ENG", "tank")
+        self.assertIn("ENG = {", out)
+        out = insert_ai_equipment_variant(out, "GER", "advanced")
+        self.assertIn("advanced = {", out)
+        out = replace_ai_equipment_variant_field(
+            out, "GER", "advanced", "history", "h1")
+        self.assertIn("history = h1", out)
+        out = replace_ai_equipment_allowed_modules(
+            out, "GER", "advanced", ["engine_1", "weapon_1"])
+        self.assertIn("engine_1", out)
+        out = replace_ai_equipment_target_variant(
+            out, "GER", "advanced", "small_plane_airframe_2",
+            {"slot": "mod"})
+        self.assertIn("small_plane_airframe_2", out)
+        out = rename_ai_equipment_variant(out, "GER", "advanced", "adv2")
+        self.assertIn("adv2 = {", out)
+        out = duplicate_ai_equipment_variant(out, "GER", "adv2", "adv3")
+        self.assertIn("adv3 = {", out)
+        out = delete_ai_equipment_variant(out, "GER", "adv3")
+        self.assertNotIn("adv3 = {", out)
+        out = rename_ai_equipment_group(out, "ENG", "ENG2")
+        self.assertIn("ENG2 = {", out)
+        out = duplicate_ai_equipment_group(out, "GER", "GER2")
+        self.assertIn("GER2 = {", out)
+        out = delete_ai_equipment_group(out, "ENG2")
+        self.assertNotIn("ENG2 = {", out)
+
+    def test_plan_crud_and_replace(self):
+        from ai_loader import (
+            insert_ai_plan, delete_ai_plan, rename_ai_plan,
+            duplicate_ai_plan, replace_ai_plan_focus_order,
+            upsert_top_block_child)
+        content = ("GER = {\n"
+                   "\tname = \"X\"\n"
+                   "\tai_national_focuses = { A B }\n"
+                   "}\n")
+        out = insert_ai_plan(content, "ENG", "East", "d")
+        self.assertIn("ENG = {", out)
+        out = replace_ai_plan_focus_order(out, "ENG", ["C", "D"])
+        self.assertIn("ai_national_focuses = {\n\tC\n\tD\n}", out)
+        out = upsert_top_block_child(out, "ENG", "weight", "weight = { factor = 1.0 }")
+        self.assertIn("factor = 1.0", out)
+        out = delete_ai_plan(out, "GER")
+        self.assertNotIn("GER = {", out)
+        out = insert_ai_plan(content, "ENG", "East")
+        out = rename_ai_plan(out, "ENG", "FRA")
+        self.assertIn("FRA = {", out)
+        out = duplicate_ai_plan(out, "FRA", "ITA")
+        self.assertIn("ITA = {", out)
+
+    def test_navy_crud(self):
+        from ai_loader import (
+            insert_ai_navy_goal, delete_ai_navy_goal, rename_ai_navy_goal,
+            duplicate_ai_navy_goal, insert_ai_navy_fleet,
+            insert_ai_navy_taskforce, delete_ai_navy_fleet,
+            rename_ai_navy_taskforce)
+        content = ("GER_convoy = {\n"
+                   "\tobjective_type = convoy_protection\n"
+                   "\tmin_priority = 3\n"
+                   "\tmax_priority = 8\n"
+                   "}\n")
+        out = insert_ai_navy_goal(content, "GER_patrol", "patrol", "1", "5")
+        self.assertIn("GER_patrol = {", out)
+        out = rename_ai_navy_goal(out, "GER_patrol", "GER_escort")
+        self.assertIn("GER_escort = {", out)
+        out = duplicate_ai_navy_goal(out, "GER_escort", "GER_escort2")
+        self.assertIn("GER_escort2 = {", out)
+        out = delete_ai_navy_goal(out, "GER_convoy")
+        self.assertNotIn("GER_convoy = {", out)
+        out = insert_ai_navy_fleet(out, "GER_home")
+        self.assertIn("GER_home = {", out)
+        out = delete_ai_navy_fleet(out, "GER_home")
+        self.assertNotIn("GER_home = {", out)
+        out = insert_ai_navy_taskforce(out, "GER_tf")
+        self.assertIn("GER_tf = {", out)
+        out = rename_ai_navy_taskforce(out, "GER_tf", "GER_tf2")
+        self.assertIn("GER_tf2 = {", out)
+
+    def test_theater_crud_and_replace(self):
+        from ai_loader import (
+            insert_ai_faction_theater, delete_ai_faction_theater,
+            rename_ai_faction_theater, duplicate_ai_faction_theater,
+            replace_top_block_field, replace_ai_region_list,
+            upsert_top_block_child)
+        content = ("western = {\n"
+                   "\tname = \"W\"\n"
+                   "\tregions = { 1 2 }\n"
+                   "}\n")
+        out = insert_ai_faction_theater(content, "eastern", "East", ["3"])
+        self.assertIn("eastern = {", out)
+        out = replace_ai_region_list(out, "eastern", "regions", ["9"])
+        self.assertIn("9", out)
+        self.assertNotIn("3", out)
+        out = replace_top_block_field(
+            out, "eastern", "can_skip_first_region", "yes")
+        self.assertIn("can_skip_first_region = yes", out)
+        out = upsert_top_block_child(
+            out, "eastern", "cancel", "cancel = { always = yes }")
+        self.assertIn("always = yes", out)
+        out = delete_ai_faction_theater(out, "western")
+        self.assertNotIn("western = {", out)
+        out = insert_ai_faction_theater(content, "eastern", "East")
+        out = rename_ai_faction_theater(out, "eastern", "southern")
+        self.assertIn("southern = {", out)
+        out = duplicate_ai_faction_theater(out, "southern", "northern")
+        self.assertIn("northern = {", out)
+
+
+class AiSimpleEditorSmokeTest(unittest.TestCase):
+    """简单 AI 专用编辑器：固定侧边栏、无横向滚动、打开与保存。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aisimple_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+
+        def w(rel, text):
+            p = os.path.join(mod, rel)
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(text)
+
+        w("common/ai_strategy/GER.txt",
+          "GER = {\n"
+          "\tallowed = { always = yes }\n"
+          "\tai_strategy = { type = role_ratio id = infantry value = 75 }\n"
+          "}\n")
+        w("common/ai_areas/default.txt",
+          "areas = {\n"
+          "\teurope = { strategic_regions = { 1 2 } }\n"
+          "}\n")
+        w("common/ai_focuses/GER.txt",
+          "ai_focus_defense_GER = {\n"
+          "\tresearch = { defensive = 5.0 radar = 1.0 }\n"
+          "}\n")
+        w("common/ai_templates/generic.txt",
+          "infantry_generic = {\n"
+          "\trole = infantry\n"
+          "\tinfantry_1 = {\n"
+          "\t\ttarget_template = { regiments = { infantry = 6 } }\n"
+          "\t\treplace_with = infantry_2\n"
+          "\t}\n"
+          "}\n")
+        w("common/ai_equipment/GER.txt",
+          "GER_fighter = {\n"
+          "\tcategory = air\n"
+          "\tbasic_fighter = {\n"
+          "\t\ttarget_variant = { type = small_plane_airframe_1 modules = { } }\n"
+          "\t\tallowed_modules = { engine_1_1x }\n"
+          "\t}\n"
+          "}\n")
+        w("common/ai_strategy_plans/GER.txt",
+          "GER_historical = {\n"
+          "\tname = \"German historical plan\"\n"
+          "\tallowed = { original_tag = GER }\n"
+          "\tai_national_focuses = { A B C }\n"
+          "}\n")
+        w("common/ai_navy/goals/goals_GER.txt",
+          "GER_convoy = {\n"
+          "\tobjective_type = convoy_protection\n"
+          "\tmin_priority = 3\n"
+          "\tmax_priority = 8\n"
+          "}\n")
+        return mod
+
+    def test_strategy_sidebar_fixed_no_horizontal_scroll(self):
+        from ai_loader import load_ai_strategies
+        from ai_strategy_editor_dialog import AiStrategyEditorDialog
+        mod = self._make_env()
+        groups = load_ai_strategies(mod, "")
+        dlg = AiStrategyEditorDialog(groups, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.sidebar.width(), 300)
+        self.assertEqual(dlg.sidebar.list.horizontalScrollBar().maximum(), 0)
+        dlg.close()
+
+    def test_area_editor_opens(self):
+        from ai_loader import load_ai_areas
+        from ai_area_editor_dialog import AiAreaEditorDialog
+        mod = self._make_env()
+        areas = load_ai_areas(mod, "")
+        dlg = AiAreaEditorDialog(areas, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.regions_list.count(), 2)
+        self.assertEqual(dlg.sidebar.width(), 300)
+        dlg.close()
+
+    def test_focus_editor_opens(self):
+        from ai_loader import load_ai_focuses
+        from ai_focus_editor_dialog import AiFocusEditorDialog
+        mod = self._make_env()
+        focuses = load_ai_focuses(mod, "")
+        dlg = AiFocusEditorDialog(focuses, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.table.data().get("defensive"), "5.0")
+        self.assertEqual(dlg.sidebar.width(), 300)
+        dlg.close()
+
+    def test_template_editor_opens(self):
+        from ai_loader import load_ai_templates
+        from ai_template_editor_dialog import AiTemplateEditorDialog
+        mod = self._make_env()
+        roles = load_ai_templates(mod, "")
+        dlg = AiTemplateEditorDialog(roles, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.role_list.count(), 1)
+        self.assertEqual(dlg.target_list.count(), 1)
+        self.assertEqual(dlg.sidebar.width(), 300)
+        self.assertEqual(dlg.target_list.horizontalScrollBar().maximum(), 0)
+        dlg.close()
+
+    def test_navy_editor_opens(self):
+        from ai_loader import load_ai_navy
+        from ai_navy_editor_dialog import AiNavyEditorDialog
+        mod = self._make_env()
+        navy = load_ai_navy(mod, "")
+        dlg = AiNavyEditorDialog(navy, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.goals_table.rowCount(), 1)
+        self.assertEqual(dlg.goals_sidebar.width(), 300)
+        self.assertEqual(dlg.goals_sidebar.list.horizontalScrollBar().maximum(), 0)
+        dlg.close()
+
+    def test_plan_editor_opens(self):
+        from ai_loader import load_ai_plans
+        from ai_plan_editor_dialog import AiPlanEditorDialog
+        mod = self._make_env()
+        plans = load_ai_plans(mod, "")
+        dlg = AiPlanEditorDialog(plans, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.sidebar.list.count(), 1)
+        self.assertEqual(dlg.sidebar.width(), 300)
+        self.assertEqual(dlg.name_edit.text(), "German historical plan")
+        dlg.close()
+
+    def test_equipment_editor_opens(self):
+        from ai_loader import load_ai_equipment
+        from ai_equipment_editor_dialog import AiEquipmentEditorDialog
+        mod = self._make_env()
+        groups = load_ai_equipment(mod, "")
+        dlg = AiEquipmentEditorDialog(groups, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.group_list.count(), 1)
+        self.assertEqual(dlg.variant_list.count(), 1)
+        self.assertEqual(dlg.sidebar.width(), 300)
+        self.assertEqual(dlg.variant_list.horizontalScrollBar().maximum(), 0)
+        dlg.close()
+
+
+class AiUiCommonTest(unittest.TestCase):
+    """公共 UI 组件：高级块编辑器 roundtrip 与侧边栏约束。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def test_script_block_editor_roundtrip(self):
+        from ai_ui_common import ScriptBlockEditorDialog
+        dlg = ScriptBlockEditorDialog(
+            "allowed = {\n\talways = yes\n\tnorway = { tag = NOR }\n}",
+            block_key="allowed")
+        text = dlg.get_block_text()
+        self.assertIn("always = yes", text)
+        self.assertIn("norway = {", text)
+        dlg.close()
+
+    def test_entity_sidebar_no_horizontal_scroll(self):
+        from ai_ui_common import EntityListSidebar
+        sb = EntityListSidebar("测试")
+        sb.set_entities([("a", "A" * 500)])
+        sb.show()
+        self.app.processEvents()
+        self.assertEqual(sb.width(), 300)
+        self.assertEqual(sb.list.horizontalScrollBar().maximum(), 0)
+        sb.close()
+
+
+class PdxCompareOperatorTest(unittest.TestCase):
+    """比较运算符支持：触发/效果块中的 `key OP value` 语句。
+
+    覆盖 tree_node（树编辑器）与 pdx_parser（字典输出）两条解析路径：
+    - 六种运算符（>= <= == != > <）都能被识别；
+    - 树解析将语句合并为单节点并 round-trip 保真（不加引号、不加等号）；
+    - 字典解析将语句存入块内 'list'（不污染具名键）。
+    """
+
+    def setUp(self):
+        self.app = None
+        try:
+            from PyQt6.QtWidgets import QApplication
+            self.app = QApplication.instance() or QApplication([])
+        except Exception:
+            pass
+
+    def _tree_roundtrip(self, block_text):
+        from tree_node import tree_from_pdx_text
+        src = "available = {\n%s\n}" % "\n".join(block_text)
+        root = tree_from_pdx_text(src)
+        return root.to_pdx()
+
+    def test_tree_all_operators_roundtrip(self):
+        block = [
+            "has_political_power > 100",
+            "date > 1936.1.1",
+            "num_of_controlled_states >= 5",
+            "has_war_with != GER",
+            "prestige < 50",
+            "anything <= 3",
+            "exact == 7",
+        ]
+        out = self._tree_roundtrip(block)
+        for stmt in block:
+            self.assertIn(stmt, out)
+        # 不得加引号或插入等号
+        self.assertNotIn('"> 100"', out)
+        self.assertNotIn("= >", out)
+        self.assertNotIn("= =", out)
+
+    def test_tree_single_statement_node_not_fragmented(self):
+        # 语句应合并为单个（空键、raw_lines 保真）节点，而非三个空值节点。
+        from tree_node import tree_from_pdx_text
+        root = tree_from_pdx_text("available = {\nhas_pp > 10\n}")
+        avail = root.children[0]
+        stmt_nodes = [c for c in avail.children if c.value == "has_pp > 10"]
+        self.assertEqual(len(stmt_nodes), 1)
+        self.assertEqual(stmt_nodes[0].key, "")
+        # 不存在被拆成多个空值节点的残留
+        empty_keys = [c.key for c in avail.children if c.key]
+        self.assertNotIn("has_pp", empty_keys)
+
+    def test_dict_parser_comparison_in_list(self):
+        from pdx_parser import parse_pdx_script
+        d = parse_pdx_script(
+            "available = { has_political_power >= 100 exact == 7 tag = GER }")
+        self.assertIn("has_political_power >= 100", d["available"]["list"])
+        self.assertIn("exact == 7", d["available"]["list"])
+        # 具名键不受影响
+        self.assertEqual(d["available"]["tag"], "GER")
+
+    def test_dict_parser_operator_order_vs_equals(self):
+        # `==` 不能被 `=` 抢先切成两个 token（多字符运算符优先匹配）。
+        from pdx_parser import parse_pdx_script
+        d = parse_pdx_script("a = { x == 3 }")
+        self.assertIn("x == 3", d["a"]["list"])
+        self.assertNotIn("x = =", d["a"])
+
+    def test_tree_equals_statement_not_queried(self):
+        # `exact == 7` 不能被解析成空值键 `exact` + 额外 token。
+        from tree_node import tree_from_pdx_text
+        root = tree_from_pdx_text("available = {\nexact == 7\n}")
+        avail = root.children[0]
+        keys = [c.key for c in avail.children if c.key]
+        self.assertNotIn("exact", keys)
+        self.assertTrue(any(c.value == "exact == 7" for c in avail.children))
