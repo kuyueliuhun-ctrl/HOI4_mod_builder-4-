@@ -145,6 +145,12 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    `focus_view.py`（2476 行/101 方法/133 状态字段，五合一），按本规范应逐步拆为
    `FocusView` 瘦壳 + `focus_algo.py` + `focus_render.py` + `focus_view_ctrl.py`。
    分层重构计划见 `docs/分层重构计划.md`。
+10. **禁止输出预览图（重要）**：不得生成/保存 UI 预览截图（如 `*_预览.png`、
+    `主题预览.png`、`地编_*.png` 等）到项目目录或提交到仓库。需要验证界面时，
+    使用 offscreen 冒烟/统计方式，或直接让用户查看实际窗口；不产出截图产物。
+11. **UI/工作台 UI 设计必须先问用户或给方案（重要）**：设计或改造任何 UI /
+    工作台 UI 时，必须先向用户提问需要什么样的 UI，或给出 2~3 个可选方案让用户
+    做决断；**不得**未经确认直接按自己假设实现界面形态。用户拍板后再动代码。
 
 ## 5. 给 AI 代理的踩坑清单（环境/技术事实）
 
@@ -476,7 +482,7 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    （mod 无该国家文件 → 写 mod 且游戏本体字节不变）。
 5. ✅ 验证：9 个新契约测试（ShipDesignLoaderTest 5 + ShipDesignDialogSmokeTest
    4），全量 124 测试绿 + 真实数据冒烟（56 船体/120 模块/JAP 38 设计/
-   Akagi Class 属性估算）+ 截图 `舰艇设计_预览.png`。
+   Akagi Class 属性估算）。
 
 ### 6.7 已完成：飞机设计器（参考游戏内 Plane Designer，2026-08-15 本轮）
 
@@ -510,7 +516,7 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    属性仅显示模块贡献部分。
 3. ✅ 入口：initial_oob_editor 加「✈ 飞机设计」按钮（与舰艇并列）。
 4. ✅ 验证：8 个新契约测试（PlaneDesignLoaderTest 5 + PlaneDesignDialogSmokeTest
-   3），全量 132 测试绿 + 真实数据冒烟 + 截图 `飞机设计_预览.png`。
+   3），全量 132 测试绿 + 真实数据冒烟。
 
 ### 6.8 已完成：坦克设计器（参考游戏内 Tank Designer，2026-08-15 本轮）
 
@@ -533,7 +539,7 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    其他 7）+ 底部重置 + 生产/改装花费。保存 = **原版自动落 mod**。
 3. ✅ 入口：initial_oob_editor 加「🛡 坦克设计」按钮（与舰艇/飞机并列）。
 4. ✅ 验证：8 个新契约测试（TankDesignLoaderTest 5 + TankDesignDialogSmokeTest
-   3），全量 140 测试绿 + 真实数据冒烟 + 截图 `坦克设计_预览.png`。
+   3），全量 140 测试绿 + 真实数据冒烟。
 
 ### 6.9 已完成：设计器模板 + 无文件模式/工具菜单入口（2026-08-15 本轮）
 
@@ -871,4 +877,4 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
   它的 `AGENTS.md`（SF-ATS 验证契约）是本文档的参考模板。
 - 关键文档：`docs/验证契约.md`（写入纪律/契约清单）、`docs/科技图标存储规则.md`、
   `README.md`（功能全览）、`docs/接口复现报告.md`。
-- 截图产物：`主题预览.png`、`地编_*.png`（效果验收用，可删除重建）。
+- 按 §4.10 规范，不再产出/提交 UI 预览截图。

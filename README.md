@@ -121,7 +121,7 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
   （`setProperty("class", ...)`：card/title/sev_*/map_accent）
 - 全项目内联颜色已统一到主题色阶（21 处次要色 + 师编制按钮/树编辑器标签/
   图标上传预览等暗色样式改为亮色）；画布内部绘制色（国策树/科技树/兵牌）保留
-- 主题预览：`python tools/preview_theme.py` 生成「主题预览.png」
+- 主题预览：`python tools/preview_theme.py`（仅本地调试用，不提交截图）
 
 ### 编制与装备设计器（师编制 / 舰艇 / 飞机 / 坦克）
 
