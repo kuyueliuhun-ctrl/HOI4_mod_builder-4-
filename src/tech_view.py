@@ -7,7 +7,7 @@
   BFS 深度分层，兄弟横向铺开、链纵向延伸；忽略 folder.position 坐标）
 - _TechNodeItem / _SubTechSlot: 画布节点图形项（图标 + 名称 + 标注）
 
-科技图标规则见 科技图标存储规则.md：GFX_<科技id>_medium sprite 注册在
+科技图标规则见 docs/科技图标存储规则.md：GFX_<科技id>_medium sprite 注册在
 interface/*.gfx，纹理在 gfx/interface/technologies/。
 """
 from project_paths import PROJECT_ROOT

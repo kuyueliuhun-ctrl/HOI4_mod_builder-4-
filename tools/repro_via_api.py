@@ -5,7 +5,7 @@
   1. 启动两个本地 API 服务：源服务（原 mod，只读）+ 目标服务（空目录，写入）
   2. 对每个内容类型：list_entities 读源 → get_entity 取块 → create_entity 写入目标
   3. 文件级类型（localisation/mod_descriptor/defines）用 create+update 两段式复现
-  4. 输出：复现统计 + 接口缺口清单（保存为 接口复现报告.md）
+  4. 输出：复现统计 + 接口缺口清单（保存为 docs/接口复现报告.md）
 
 运行：
     python tools/repro_via_api.py --source E:\\mods\\3228475937 [--target E:\\mods\\3228475937_repro]
@@ -251,7 +251,7 @@ def main():
         lines.append(f"- list_templates：{'可用' if tpl_ok else '不可用'}（返回 {tpl.get('count', 0)} 条）")
         lines.append("")
         report_text = "\n".join(lines)
-        with open(os.path.join(ROOT, "接口复现报告.md"), "w", encoding="utf-8") as f:
+        with open(os.path.join(ROOT, "docs/接口复现报告.md"), "w", encoding="utf-8") as f:
             f.write(report_text)
         print(report_text)
     finally:

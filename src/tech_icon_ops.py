@@ -1,7 +1,7 @@
 """
 科技图标上传与自动 gfx 注册（无 GUI 依赖，GUI / HTTP API / MCP 共用）。
 
-HOI4 科技图标规则（见 科技图标存储规则.md）：
+HOI4 科技图标规则（见 docs/科技图标存储规则.md）：
 - 图标由 interface/*.gfx 中的 spriteType 注册，名字必须是 GFX_<科技id>_medium
 - 纹理放在 gfx/interface/technologies/（扁平目录），文件名任意，dds/png 均可
 - 科技定义文件本身不写任何图片字段
