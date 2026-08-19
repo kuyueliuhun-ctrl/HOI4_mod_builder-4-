@@ -1,0 +1,67 @@
+# ─────────────────────────────────────────────
+# 国家历史文件模板（history/countries/TAG - Name.txt）
+# 用途：file（创建国家历史文件）
+# 参考真实游戏：LUX / ALB / GER 等国家文件摘要归纳
+# 替换说明：TAG = 国家代码（如 ALB）；所有 TAG_ 前缀占位换为你的 mod 前缀
+# ─────────────────────────────────────────────
+capital = 44                       # 首都省份 ID（查 map/definition.csv）
+
+# ── 初始部队（OOB）引用 ──
+OOB = "TAG_1936"                   # 陆军 OOB（定义在 history/units/）
+# set_oob = "TAG_1936_nsb"        # 不同 DLC 版本可换用不同 OOB
+# set_air_oob = "TAG_1936_air_bba"  # 空军专用 OOB（BBA DLC）
+#if = {
+#	limit = {
+#		NOT = { has_dlc = "By Blood Alone" }
+#	}
+#	set_air_oob = "TAG_1936_air_legacy"
+#	set_technology = {
+#		early_fighter = 1
+#	}
+#}
+
+# ── 政治 / 意识形态 ──
+set_politics = {
+	ruling_party = neutrality       # fascism / democratic / communism / neutrality
+	last_election = "1936.1.1"
+	election_frequency = 48         # 月
+	elections_allowed = no
+}
+set_popularities = {
+	neutrality = 100
+}
+
+# ── 国家精神 / 理念 ──
+add_ideas = TAG_national_spirit
+# add_ideas = {                       # 多个可写列表
+#	TAG_spirit_2
+#	TAG_spirit_3
+#}
+
+# ── 稳定 / 战争支持 ──
+set_stability = 0.5
+set_war_support = 0.5
+
+# ── 科技 ──
+set_technology = {
+	infantry_weapons = 1
+	tech_trucks = 1
+	tech_support = 1
+}
+
+# ── 角色（角色定义在 common/characters/）──
+recruit_character = TAG_leader_01
+recruit_character = TAG_general_01
+recruit_character = TAG_advisor_01
+
+# ── 开局装备 / 商船 ──
+set_convoys = 5
+# add_equipment_to_stockpile = {
+#	type = infantry_equipment_0
+#	amount = 1000
+#}
+
+# ── 其他历史设置（按需追加）──
+# set_grand_doctrine = new_mobile_warfare
+# add_breakthrough_progress = { specialization = specialization_land value = 1.0 }
+# add_opinion_modifier = { country = TAG_X value = -20 }

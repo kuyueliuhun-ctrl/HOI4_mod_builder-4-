@@ -144,8 +144,8 @@
 | HOI4 0代码事件生成器 | 事件模板生成 | 事件工作台 / 模板 / `src/event_gen.py` | 已完成（2026-08-19） | `tools/event_generator.py` |
 | HOI4 0代码文本格式化工具 | PDX 格式化/缩进 | `pdx_parser.py` / `pdx_format.py` | 已完成（2026-08-19） | `tools/pdx_formatter.py` |
 | HOI4 图标GFX自动化生成工具 | spriteType 自动生成 | `icon_ops.py` / `tech_icon_ops.py` / `icon_manifest.py` | 合并增强 | 补批量注册 |
-| HOI4 错误日志分析工具 | 解析游戏错误日志 | 无 | 需复刻 | `tools/error_log_analyzer.py` + 结果对话框 |
-| interface 注册 | GUI/GFX 注册 | `icon_ops.py` / 树编辑 | 需复刻 | `tools/interface_registrar.py` |
+| HOI4 错误日志分析工具 | 解析游戏错误日志 | `src/error_log.py` / `tools/error_log_analyzer.py` | 已完成（2026-08-19） | 含子系统归类 `classify_by_subsystem` |
+| interface 注册 | GUI/GFX 注册 | `src/interface_reg.py` | 已完成（2026-08-19） | 合并增强 |
 | 本地化生成（IRIS） | 批量生成本地化 | `translation_editor.py` / `localization_mgr.py` / `validation.py` | **已覆盖（重叠）** | 现有“一键补写本地化/缺失检测”已覆盖批量生成；待验证其特有功能后再决定是否增强 |
 | MOD文件夹生成 | 创建 mod 目录结构 | `mod_creator_dialog.py` / `project_wizard.py` | 已覆盖 | 不重复 |
 | 文件夹比较器 | mod/原版差异 | `overlay_rules.py` / `overlay_report_dialog.py` | 已覆盖 | 可补命令行版 |
@@ -156,6 +156,7 @@
 | 批量转 dds | DDS ↔ PNG | `dds_loader.py` / `src/dds_convert.py` | 已完成（2026-08-19） | `tools/dds_convert.py`（DDS→PNG） |
 | 图像批处理系统（PS 插件） | PS 批量处理 | 无 | 暂缓 | 外部插件，保留 |
 | 系统预览插件 | 资源缩略图 | `dds_loader.py` / 图标库 | 保留外部 | 系统级插件不入库 |
+| 大众脸生成器 | 大众脸/人脸生成 | 无 | 保留外部 | GitHub 外部（`工具/通用/…大众脸生成器.url`），人脸生成依赖外部引擎/素材 |
 | VModer 代码插件 | VSCode 插件 | `custom_statement_dialog.py` / 词条 | 调研 | 可借鉴词条/语法提示 |
 
 ### 3.5 高级类
@@ -246,16 +247,15 @@
 | 国策全套生成 | `工具/国策/国策树相关文件自动生成整合工具` | `src/focus_package_gen.py` / `tools/content_generators.py focus` | 已完成（2026-08-19） | 树+本地化+图标 GFX 文本 |
 | 国家批量创建 | `工具/国家/批量创建国家Tag` | `src/country_boot.py` / `tools/content_generators.py country` | 已完成（2026-08-19） | 历史文件+tag 行+本地化 |
 | 角色/将领生成 | `工具/国家/人物工具` | `src/character_gen.py` / `src/general_gen.py` | 已完成（2026-08-19） | `tools/content_generators.py character / general` |
-| 错误日志分析 | `工具/通用/HOI4错误日志分析工具` | `tools/error_log_analyzer.py` | 待开始 | 第二批 |
 | RHoiScribe | `工具/智能/RHoiScribe` | MCP/API + 知识吸收 | 已完成（2026-08-19） | 知识映射与补全文档 + 接口/工具增强 |
 
 ---
 
 ## 6. 下一步建议
 
-1. 按“第一批”顺序，从**事件生成器 + PDX 格式化**开始复刻（纯脚本、无 UI、价值高）；本地化生成已被现有翻译编辑器覆盖，不再作为独立复刻项。
-2. 同步推进 **OOB / AI 模板与机制文档**，完善 `docs/游戏文件内容详解.md`。
-3. 第二批工具存在界面，按 AGENTS.md 规则**先向用户提问 UI 需求或给出方案**后再实现。
-4. RHoiScribe 单独拉取 GitHub 仓库评估，不占用主线复刻批次。
+> **未完成条目的唯一总表 = `docs/未完成计划.md`**（整合本矩阵未完成行 +
+> `docs/RHoiScribe知识映射与补全.md` 剩余主题 + `AGENTS.md §6.17` 遗留，按 P0~P4 批次编排；
+> 含需用户拍板清单）。第一、二批与 RHoiScribe 已全部落地，剩下以「需调研 / 需转模板文档 /
+> 专用 UI（待拍板）」为主。完成某项时：改本矩阵对应状态 + 同步 `未完成计划.md`。
 
 > 本文件后续随复刻进度持续更新。

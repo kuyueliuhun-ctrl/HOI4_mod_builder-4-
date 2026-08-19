@@ -1,0 +1,10 @@
+	# 单个补给区域块（插入到 map/supplyareas/*.txt）
+	# ID 全局唯一；name 指向 SUPPLYAREA_<ID> 本地化
+	supply_area = {
+		id = <唯一ID>
+		name = "SUPPLYAREA_<ID>"
+		value = 12
+		states = {
+			<州ID列表>
+		}
+	}

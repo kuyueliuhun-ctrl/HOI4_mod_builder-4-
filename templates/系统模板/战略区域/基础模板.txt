@@ -1,0 +1,28 @@
+# ─────────────────────────────────────────────
+# 战略区域文件模板（map/strategicregions/*.txt）
+# 用途：file（创建/追加战略区域）
+# 参考真实游戏：1-Southern England.txt 等归纳
+# 战略区域：定义省份归属 + 天气（影响战斗惩罚/补给）；name 指向本地化
+# ─────────────────────────────────────────────
+strategic_region = {
+	id = <唯一ID>
+	name = "STRATEGICREGION_<ID>"
+	provinces = {
+		<省ID列表，空格分隔>
+	}
+	weather = {
+		period = {
+			between = { 0.0 30.0 }
+			temperature = { 5.0 25.0 }
+			no_phenomenon = 0.500
+			rain_light = 1.000
+			rain_heavy = 0.150
+			snow = 0.200
+			blizzard = 0.000
+			arctic_water = 0.000
+			mud = 0.300
+		}
+	}
+}
+
+# 本地化：STRATEGICREGION_<ID>:0 "区域名"

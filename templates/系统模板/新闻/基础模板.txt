@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────
+# 新闻事件文件模板（events/<前缀>_NewsEvents.txt）
+# 用途：file（创建新闻事件文件）
+# 参考真实游戏：AAT_NewsEvents.txt / BBA_NewsEvents.txt 归纳
+# TAG = 命名空间前缀（如 aat_news）；新闻不进入普通事件日志，
+# 通过 news_event 专门播放（major = yes 表示头版新闻）
+# ─────────────────────────────────────────────
+add_namespace = TAG_news
+
+# 标题/描述/按钮本地化键（见下方注释 demo）
+news_event = {
+	id = TAG_news.1
+	title = TAG_news.1.t
+	desc = TAG_news.1.desc
+	picture = GFX_news_event_generic_sign_treaty3
+
+	major = yes
+	is_triggered_only = yes
+
+	option = {
+		name = TAG_news.1.a
+	}
+}
+
+# 触发方式示例（在普通事件中用 country_event 或 effects 触发新闻）：
+# country_event = { id = TAG_news.1 days = 1 }
+# 本地化（localisation/）：
+# TAG_news.1.t:0 "新闻标题"
+# TAG_news.1.desc:0 "新闻正文"
+# TAG_news.1.a:0 "知道了"

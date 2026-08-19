@@ -876,7 +876,32 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    - README / AGENTS 已更新启动命令与架构说明。
 5. ✅ 全量 `verify_contracts.py` 退出码 0（语法编译 / 契约测试 / 写入纪律扫描 / 四层依赖检查）。
 
+### 6.22 已完成：本地化 + QIUQI 词条库 + 实体资源工作台 + 工具复刻 + RHoiScribe 吸收（2026-08-19 批次）
+
+本批成果摘要；逐项细节见 `docs/QIUQI-LIBRARY映射与复刻矩阵.md` 状态表与 `docs/RHoiScribe知识映射与补全.md`：
+
+1. ✅ 本地化编辑器（全量/修正词条/搜索增删改）、批量补写缺失 + 多语言（默认中文、英文仅选择才显示）、
+   各编辑器右键快速本地化（BOP 含名称+描述）、词条分类筛选。
+2. ✅ QIUQI 词条库整合：`tools/import_qiqi_terms.py` + `src/qiqi_term_import.py` →
+   `translations/qiqi_terms.json`(1887) + modcode(939)/diplo(11)/tfr(50)/tno(210)；
+   `term_registry.TERM_FILES` 末尾加载、同键冲突 QIUQI 胜出（`translate_key` 里为最低回退）。
+3. ✅ 实体配套资源工作台（`entity_resource_data.py` / `entity_resource_dialog.py`）：
+   批量本地化 + 图标上传 + 一键补全缺失光效 GFX（已有不改，游戏内素材）。
+4. ✅ 第一、二批工具复刻：event_gen / pdx_format / icon_batch / state_batch / dds_convert / vp_loc /
+   pdx_sorter / interface_reg / error_log（含子系统归类）/ idea / ideology / character / general /
+   country_boot / focus_package 生成器。
+5. ✅ 角色专用编辑器（`character_editor_dialog.py`：只替换 name/portraits 区，保留 roles）；
+   内容生成器工作台（`content_generator_dialog.py`）+ 独立工具对话框。
+6. ✅ RHoiScribe 吸收：ApiCore 新增 format_pdx / vp_loc_dry_run / analyze_error_log / register_icon_batch；
+   知识映射进 `docs/RHoiScribe知识映射与补全.md`（A~M 补全）；错误日志子系统归类。
+7. ✅ 本地化 wiki → `docs/游戏文件内容详解.md` §17.1；QIUQI 映射矩阵同步。
+8. ✅ 全量 `verify_contracts.py` 退出码 0，已 commit + push（f0395c1）。
+
 ### 6.17 遗留/可选后续
+
+> **遗留/未完成条目的唯一总表 = `docs/未完成计划.md`**（按 P0~P4 批次，含需用户拍板清单）。
+> 下方为历史摘要，具体状态以该文档与 `QIUQI-LIBRARY映射与复刻矩阵.md` 为准。
+
 - 兵牌图标可考虑接入单位标牌库（当前 OOB 用 GFX_unit_<type>_icon_medium
   解析，失败回退黑底占位）
 - Scenario Forge 移植剩余方向（§9 报告 B/C/D 部分条目）：导出前校验面板

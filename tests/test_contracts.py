@@ -4132,6 +4132,150 @@ class DynamicModifierTemplateTest(unittest.TestCase):
         self.assertIn(("动态修正", "动态修正"), CATEGORIES)
 
 
+class P3aTemplateFillTest(unittest.TestCase):
+    """P3a 模板落库：国家历史/新闻/战略区域/补给区域/初始部队完全版。
+
+    断言模板能被 TemplateScheduler 搜索到且包含真实游戏字段（对照游戏本体格式）。
+    """
+
+    def _sched(self):
+        from template_scheduler import TemplateScheduler
+        return TemplateScheduler(
+            templates_dir=os.path.join(os.path.dirname(
+                os.path.abspath(__file__)), "..", "templates"))
+
+    def _read_base(self, sched, template_type):
+        hits = sched.search_templates(template_type=template_type)
+        base = next(h for h in hits if h["name"] == "基础模板")
+        with open(base["filepath"], "r", encoding="utf-8-sig") as f:
+            return f.read()
+
+    def test_country_history_templates(self):
+        """国家历史文件分类（原为空目录）现含基础+项目模板，内容含真实语句。"""
+        sched = self._sched()
+        hits = sched.search_templates(template_type="country_history")
+        names = {h["name"]: h["usage"] for h in hits}
+        self.assertIn("基础模板", names)
+        self.assertIn("项目模板", names)
+        base = self._read_base(sched, "country_history")
+        for key in ("set_politics", "set_popularities", "set_technology",
+                    "recruit_character", "add_ideas", "set_stability"):
+            self.assertIn(key, base)
+
+    def test_news_templates(self):
+        """新闻：基础(file)+项目(node)，含 news_event 与图片字段。"""
+        sched = self._sched()
+        hits = sched.search_templates(template_type="新闻")
+        names = {h["name"]: h["usage"] for h in hits}
+        self.assertIn("基础模板", names)
+        self.assertIn("项目模板", names)
+        self.assertEqual(names["基础模板"], "file")
+        self.assertEqual(names["项目模板"], "node")
+        base = self._read_base(sched, "新闻")
+        for key in ("add_namespace", "news_event", "picture", "major = yes"):
+            self.assertIn(key, base)
+
+    def test_strategic_region_templates(self):
+        """战略区域：strategic_region + provinces + weather。"""
+        sched = self._sched()
+        base = self._read_base(sched, "战略区域")
+        for key in ("strategic_region", "provinces", "weather", "period"):
+            self.assertIn(key, base)
+
+    def test_supply_area_templates(self):
+        """补给区域：supply_area + states。"""
+        sched = self._sched()
+        base = self._read_base(sched, "补给区域")
+        for key in ("supply_area", "value", "states"):
+            self.assertIn(key, base)
+
+    def test_initial_oob_full_template(self):
+        """初始部队完全版：含 instant_effect 生产 + 海军舰队 + 空军联队。"""
+        sched = self._sched()
+        hits = sched.search_templates(template_type="初始部队")
+        full = next((h for h in hits if h["name"] == "完整版模板"), None)
+        self.assertIsNotNone(full, "初始部队应有完整版模板")
+        with open(full["filepath"], "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        for key in ("division_names_group", "air_wings", "fleet = {",
+                    "task_force", "add_equipment_production",
+                    "instant_effect", "start_equipment_factor"):
+            self.assertIn(key, content)
+
+    def test_dialog_categories_registered(self):
+        """模板搜索对话框分类已注册 新闻/战略区域/补给区域。"""
+        from template_dialog import CATEGORIES
+        for entry in (("新闻", "新闻"), ("战略区域", "战略区域"),
+                      ("补给区域", "补给区域")):
+            self.assertIn(entry, CATEGORIES)
+
+
+class UniqueIdScannerTest(unittest.TestCase):
+    """唯一标识符扫描器：跨 mod+game 检出重复国策/决议/事件/角色等。"""
+
+    def _mkroots(self):
+        mod = _mkdtemp("uid_mod_")
+        game = _mkdtemp("uid_game_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        self.addCleanup(shutil.rmtree, game, ignore_errors=True)
+        return mod, game
+
+    def _put(self, root, rel, content):
+        path = os.path.join(root, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+    def test_detects_focus_node_and_tree_conflicts(self):
+        """国策节点 ID 与国策树 ID 分开统计，跨文件检出重复。"""
+        from unique_id_scanner import scan_duplicates
+        mod, game = self._mkroots()
+        self._put(mod, "common/national_focus/a.txt",
+                  'focus_tree = { id = GER_focus }\n'
+                  'focus = { id = GER_DUP }\n')
+        self._put(game, "common/national_focus/b.txt",
+                  'focus = { id = GER_DUP }\n'
+                  'focus_tree = { id = GER_focus }\n')
+        dups = scan_duplicates(mod, game, ["focus", "focus_tree", "decision"])
+        self.assertIn("GER_DUP", dups.get("focus", {}))
+        self.assertIn("GER_focus", dups.get("focus_tree", {}))
+        # 节点 ID 与树 ID 不属于同一类型：互不污染
+        self.assertNotIn("GER_focus", dups.get("focus", {}))
+        self.assertNotIn("GER_DUP", dups.get("focus_tree", {}))
+
+    def test_detects_event_duplicates(self):
+        """事件用 命名空间.编号 汇总，跨文件检出重复。"""
+        from unique_id_scanner import scan_duplicates
+        mod, game = self._mkroots()
+        self._put(mod, "events/a.txt", 'add_namespace = my_mod\n'
+                  'country_event = { id = my_mod.1 }')
+        self._put(game, "events/b.txt", 'country_event = { id = my_mod.1 }')
+        dups = scan_duplicates(mod, game, ["event"])
+        self.assertIn("my_mod.1", dups.get("event", {}))
+
+    def test_no_duplicates_returns_empty(self):
+        """无重复时返回空字典（不误报）。"""
+        from unique_id_scanner import scan_duplicates
+        mod, game = self._mkroots()
+        self._put(mod, "events/a.txt", 'country_event = { id = my_mod.1 }')
+        self._put(game, "events/b.txt", 'country_event = { id = my_mod.2 }')
+        self.assertNotIn("my_mod.1", scan_duplicates(mod, game, ["event"]))
+
+    def test_cli_returns_one_on_dup(self):
+        """CLI 退出码：有重复即 1。"""
+        import subprocess
+        mod = _mkdtemp("uid_cli_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        self._put(mod, "events/a.txt", 'country_event = { id = cli.1 }')
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        script = os.path.join(root, "tools", "unique_id_scanner.py")
+        out = subprocess.run(
+            [sys.executable, script, "--mod", mod, "--game", mod,
+             "--types", "event"],
+            capture_output=True, text=True)
+        self.assertEqual(out.returncode, 1)
+
+
 class DesignLayoutSyncTest(unittest.TestCase):
     """设计器布局/锁定槽/空配件提示/同款跨国家同步。"""
 

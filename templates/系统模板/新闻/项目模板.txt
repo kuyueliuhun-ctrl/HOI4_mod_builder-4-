@@ -1,0 +1,15 @@
+	# 单个新闻事件块（插入到新闻事件文件）
+	# TAG = 命名空间前缀；news_event 用 country_event = { id = TAG_news.N days = 1 } 触发
+	news_event = {
+		id = TAG_news.1
+		title = TAG_news.1.t
+		desc = TAG_news.1.desc
+		picture = GFX_news_event_generic_sign_treaty3
+
+		major = yes
+		is_triggered_only = yes
+
+		option = {
+			name = TAG_news.1.a
+		}
+	}

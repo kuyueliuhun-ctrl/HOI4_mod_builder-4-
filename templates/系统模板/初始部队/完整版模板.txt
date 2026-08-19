@@ -1,0 +1,92 @@
+# ─────────────────────────────────────────────
+# 开局部队与生产线设置（完全版）history/units/TAG_1936.txt
+# 用途：both（创建文件 / 追加块）
+# 参考真实游戏：AFA_1936.txt / ARG_1936_naval_mtg.txt / AFG_1939_air_bba.txt 归纳
+# TAG 全部替换为你的国家代码
+# 组成：①师编制 ②陆军部署 ③海军舰队 ④空军联队 ⑤开局装备/生产
+# ─────────────────────────────────────────────
+
+# ① 师编制（division_template，regiments 带 x/y 网格坐标）
+division_template = {
+	name = "TAG 步兵师"
+	division_names_group = TAG_INF_01        # 命名组（effects 里用）
+	regiments = {
+		infantry = { x = 0 y = 0 }
+		infantry = { x = 0 y = 1 }
+		infantry = { x = 1 y = 0 }
+		infantry = { x = 1 y = 1 }
+	}
+	support = {
+		engineer = { x = 0 y = 0 }
+	}
+	priority = 2
+}
+
+# ② 陆军部署（units）
+units = {
+	division = {
+		division_name = {                    # 自动命名顺序
+			is_name_ordered = yes
+			name_order = 1
+		}
+		location = 13240                     # 起始省份 ID
+		division_template = "TAG 步兵师"
+		start_experience_factor = 0.2
+		start_equipment_factor = 1
+	}
+	division = {
+		name = "TAG 第二师"                   # 或用固定名
+		location = 13240
+		division_template = "TAG 步兵师"
+		start_experience_factor = 0.2
+	}
+
+	# ③ 海军舰队（fleet / task_force / ship）
+	fleet = {
+		name = "TAG 舰队"
+		naval_base = 12364
+		task_force = {
+			name = "TAG 特遣队"
+			location = 12364
+			ship = {
+				name = "TAG 战列舰 1"
+				pride_of_the_fleet = yes
+				definition = battleship
+				equipment = {
+					ship_hull_heavy_1 = { amount = 1 owner = TAG version_name = "TAG Class" }
+				}
+			}
+			ship = {
+				name = "TAG 驱逐舰 1"
+				definition = destroyer
+				equipment = {
+					ship_hull_light_1 = { amount = 1 owner = TAG version_name = "TAG Class" }
+				}
+			}
+		}
+	}
+}
+
+# ④ 空军联队（air_wings 顶层块：省ID = { 机型 = { owner amount creator version_name } }）
+air_wings = {
+	1000 = {
+		small_plane_fighter_1 = { owner = "TAG" amount = 20 creator = "TAG" version_name = "TAG 战斗机" }
+	}
+}
+
+# ⑤ 开局装备与生产线（instant_effect 开局立即执行）
+instant_effect = {
+	add_equipment_production = {
+		equipment = {
+			type = infantry_equipment_0
+			creator = "TAG"
+		}
+		requested_factories = 3
+		progress = 0.50
+		efficiency = 80
+	}
+	# add_equipment_to_stockpile = {
+	#	type = infantry_equipment_0
+	#	amount = 1000
+	# }
+}
