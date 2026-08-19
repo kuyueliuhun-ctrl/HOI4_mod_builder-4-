@@ -6874,6 +6874,179 @@ class CharacterEditorSmokeTest(unittest.TestCase):
         self.assertIn('AAA_gen: "新名字"', content)
 
 
+class CharacterStructuredDataTest(unittest.TestCase):
+    """批 A：角色 roles 结构化（字段/traits/desc/未知块）+ 肖像槽位无损 round-trip。"""
+
+    def _file(self, content):
+        tmp = _mkdtemp("char_struct_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        fp = os.path.join(tmp, "mod", "common", "characters", "C.txt")
+        os.makedirs(os.path.dirname(fp), exist_ok=True)
+        with open(fp, "w", encoding="utf-8") as f:
+            f.write(content)
+        return fp
+
+    def test_parse_roles_structured(self):
+        from character_data import load_file, role_get_field, role_get_block
+        fp = self._file(
+            "characters = {\n"
+            "\tAAA = {\n"
+            "\t\tname = \"AAA\"\n"
+            "\t\tcountry_leader = {\n"
+            "\t\t\tideology = democratic\n"
+            "\t\t\texpire = 1.1.1.1\n"
+            "\t\t\ttraits = { bold genius }\n"
+            "\t\t\tdesc = AAA_ldr_desc\n"
+            "\t\t}\n"
+            "\t\tadvisor = {\n"
+            "\t\t\tslot = political_advisor\n"
+            "\t\t\tidea_token = AAA_adv\n"
+            "\t\t\tallowed = { always = yes }\n"
+            "\t\t}\n"
+            "\t}\n"
+            "}\n")
+        _h, metas, _t = load_file(fp)
+        m = metas[0]
+        self.assertEqual([r["role_type"] for r in m["role_entries"]],
+                         ["country_leader", "advisor"])
+        cl = m["role_entries"][0]
+        self.assertEqual(role_get_field(cl, "ideology"), "democratic")
+        self.assertEqual(cl["traits"], ["bold", "genius"])
+        self.assertEqual(role_get_field(cl, "desc"), "AAA_ldr_desc")
+        ad = m["role_entries"][1]
+        self.assertTrue(role_get_block(ad, "allowed") is not None)
+
+    def test_parse_portraits_slots_inline_and_multiline(self):
+        from character_data import load_file
+        fp = self._file(
+            "characters = {\n"
+            "\tAAA = {\n"
+            "\t\tname = \"AAA\"\n"
+            "\t\tportraits = {\n"
+            "\t\t\tcivilian = { large = GFX_A small = GFX_B }\n"
+            "\t\t\tarmy = {\n"
+            "\t\t\t\tlarge = GFX_C\n"
+            "\t\t\t}\n"
+            "\t\t}\n"
+            "\t}\n"
+            "}\n")
+        _h, metas, _t = load_file(fp)
+        slots = metas[0]["portraits_slots"]
+        self.assertEqual(len(slots), 3)
+        self.assertEqual(slots[0]["texture"], "GFX_A")
+        self.assertEqual(slots[1]["size"], "small")
+        self.assertEqual(slots[2]["scope"], "army")
+
+    def test_v2_save_roundtrip_preserves_fields_and_unknown(self):
+        from character_data import load_file, save_file_v2, role_get_field, role_set_field
+        src = (
+            "characters = {\n"
+            "\tAAA = {\n"
+            "\t\tname = \"AAA\"\n"
+            "\t\tcan_be_captured = no\n"
+            "\t\tportraits = { civilian = { large = GFX_A } }\n"
+            "\t\tcountry_leader = {\n"
+            "\t\t\tideology = democratic\n"
+            "\t\t\ttraits = { bold }\n"
+            "\t\t\tdesc = AAA_desc\n"
+            "\t\t}\n"
+            "\t\tarea_defense_leader = { skill = 3 }\n"
+            "\t}\n"
+            "}\n")
+        fp = self._file(src)
+        h, metas, t = load_file(fp)
+        cl = metas[0]["role_entries"][0]
+        role_set_field(cl, "ideology", "communism")
+        cl["traits"] = ["bold", "iron_will"]
+        save_file_v2(fp, h, metas, t)
+        _h2, m2, _t2 = load_file(fp)
+        self.assertEqual(m2[0]["name_loc"], "AAA")
+        self.assertEqual(len(m2[0]["portraits_slots"]), 1)
+        cl2 = [r for r in m2[0]["role_entries"] if r["role_type"] == "country_leader"][0]
+        self.assertEqual(role_get_field(cl2, "ideology"), "communism")
+        self.assertEqual(cl2["traits"], ["bold", "iron_will"])
+        self.assertEqual(role_get_field(cl2, "desc"), "AAA_desc")
+        self.assertTrue(any(x[1] == "can_be_captured" for x in m2[0]["others_lines"]))
+        self.assertEqual(
+            [r["role_type"] for r in m2[0]["role_entries"]
+             if r["role_type"] == "area_defense_leader"][0], "area_defense_leader")
+
+
+class CharacterEditorStructSmokeTest(unittest.TestCase):
+    """批 A：角色编辑器单页三栏 + 结构化 roles 编辑 offscreen 冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def setUp(self):
+        self.tmp = _mkdtemp("char_editor2_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "common", "characters"))
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        self.file = os.path.join(self.mod, "common", "characters", "AAA.txt")
+        with open(self.file, "w", encoding="utf-8") as f:
+            f.write("characters = {\n"
+                    "\tAAA_gen = {\n"
+                    "\t\tname = \"AAA_gen\"\n"
+                    "\t\tportraits = {\n"
+                    "\t\t\tcivilian = { large = GFX_P }\n"
+                    "\t\t}\n"
+                    "\t\tcountry_leader = {\n"
+                    "\t\t\tideology = democratic\n"
+                    "\t\t\ttraits = { bold }\n"
+                    "\t\t}\n"
+                    "\t}\n"
+                    "}\n")
+
+    def _open(self):
+        from character_editor_dialog import CharacterEditorDialog
+        return CharacterEditorDialog(mod_path=self.mod, hoi4_path="")
+
+    def test_roles_shown_and_column_layout(self):
+        dlg = self._open()
+        self.app.processEvents()
+        self.assertEqual(dlg.role_list.count(), 1)
+        self.assertIsNotNone(dlg.portraits_table)
+        self.assertEqual(dlg.portraits_table.rowCount(), 1)
+        self.assertTrue(dlg.name_loc_edit.text())
+        self.assertIn("ideology", dlg.role_fields)
+        dlg.close()
+
+    def test_edit_role_field_and_save(self):
+        from unittest import mock
+        dlg = self._open()
+        self.app.processEvents()
+        dlg.role_fields["ideology"].setText("communism")
+        with mock.patch("character_editor_dialog.QMessageBox.information"), \
+             mock.patch("character_editor_dialog.QMessageBox.warning"):
+            dlg._save()
+        content = open(self.file, "r", encoding="utf-8").read()
+        self.assertIn("ideology = communism", content)
+        dlg.close()
+
+    def test_add_portrait_and_save(self):
+        from unittest import mock
+        from PyQt6.QtWidgets import QTableWidgetItem
+        dlg = self._open()
+        self.app.processEvents()
+        r = dlg.portraits_table.rowCount()
+        dlg.portraits_table.insertRow(r)
+        dlg.portraits_table.setItem(r, 0, QTableWidgetItem("navy"))
+        dlg.portraits_table.setItem(r, 1, QTableWidgetItem("large"))
+        dlg.portraits_table.setItem(r, 2, QTableWidgetItem("GFX_N"))
+        with mock.patch("character_editor_dialog.QMessageBox.information"), \
+             mock.patch("character_editor_dialog.QMessageBox.warning"):
+            dlg._save()
+        content = open(self.file, "r", encoding="utf-8").read()
+        self.assertIn("GFX_N", content)
+        self.assertIn("GFX_P", content)
+        dlg.close()
+
+
 class ErrorLogSubsystemTest(unittest.TestCase):
     """"错误日志：按子系统归类。"""
 

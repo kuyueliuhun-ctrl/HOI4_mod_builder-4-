@@ -12,8 +12,8 @@
 ### 类型一 🔴 词条展示缺失（字段被隐藏、只剩计数/只读摘要）
 | # | 编辑器 | 模块:行 | 缺失的词条（字段） |
 | --- | --- | --- | --- |
-| 1 | 角色编辑器 | `character_editor_dialog.py:166` | **roles 整块只显示计数**：「角色内其余块 N 个」——country_leader/advisor/leader 的 ideology / traits / desc / expire / skill / attack_skill / can_be_captured **全部不可见** |
-| 2 | 角色编辑器 | 同上 | 角色的 `desc`（<角色id>_desc 本地化）**无展示** |
+| 1 | 角色编辑器 | 🔊 已修复（2026-08-19，批 A） | roles 结构化为可编辑职责（类型/ideology/traits/desc/expire/skill…），未知块保留显示计数 |
+| 2 | 角色编辑器 | 🔊 已修复（批 A） | 角色 desc 键 + 中文可展示/编辑（保存写本地化） |
 | 3 | 地图编辑器 | `map_editor_dialog.py:234-237` | 州字段 `resources / victory_points / manpower / name / state_category 名` **只读展示**（TextSelectable），无编辑 |
 | 4 | 师编制 | `division_editor.py` | 营的**名称/兵种组 group/description**、`division_names_group` 只读或缺失 |
 | 5 | 设计器三件套 | `ship/plane/tank_design_dialog.py` | 变体 `description/自定义 stats/版本注释` 无结构化展示（仅派生估算面板） |
@@ -25,7 +25,7 @@
 ### 类型二 🔴 词条编辑缺失（能看不能改，或根本没有入口）
 | # | 编辑器 | 缺的编辑 | 后果 |
 | --- | --- | --- | --- |
-| 1 | 角色编辑器 | 角色 `desc`、roles 内 ideology/traits/skill… | 改角色必须切树编辑器/原始文本 |
+| 1 | 角色编辑器 | 🔊 已修复（批 A）desc/roles 字段表单 + traits/desc 中文 | ✅ 不再需要切树编辑器改这些字段 |
 | 2 | 地图编辑器 | resources / victory_points / manpower / 州名 | 改州数据必须去找 raw |
 | 3 | 师编制 | 营字段/组名/描述 | 同上 |
 | 4 | 设计器 | 变体描述/自定义字段 | 同上 |
@@ -34,7 +34,7 @@
 ### 类型三 🔴 直接让用户对原始文本进行操作
 | # | 位置（模块:行） | 现状 | 应改方向 |
 | --- | --- | --- | --- |
-| 1 | `character_editor_dialog.py:104-107` | 肖像直接编辑 `civilian = {...}` 原文 | 结构化为「肖像槽列表」：槽(大/小/民服/军装) + 贴图选择器 |
+| 1 | `character_editor_dialog.py` | 🔊 已修复（批 A）肖像槽位表（类型/尺寸/贴图，行可增删），告别 raw 原文；inline/多行均解析 | ✅ 已按「肖像槽列表」实现 |
 | 2 | `advisor_assign_dialog.py:618-620, 894-896` | traits / available 直接编辑 raw | 拆成结构化列表（trait 选择器 / 触发器编辑） |
 | 3 | `ai_plan_editor_dialog.py:183-217` | desc、focus_order 用 QPlainTextEdit raw | desc 单行/多行词条 + 国策顺序用点选器（已有 focus_order_picker 却未接） |
 | 4 | `ai_*_editor_dialog.py: _edit_raw` ×7（area/equipment/faction_theater/focus/navy/plan/template） | 每个高级块都给了「原始 PDX」入口 | 结构化字段优先，raw 降级为末选项 |
@@ -60,10 +60,10 @@
 
 ## 2. 修复方案（按批次，标注改动面与是否需设计确认）
 
-### 批 A — 🔴 角色编辑器（补 roles/desc 结构化 + 肖像字段化）
-- `character_data.py`：拆解 roles 为结构化条目（role 类型/country_leader.ideology/traits/desc/expire/leader skill…），解析+序列化，**仍保留未知块 raw 余量**。
-- `character_editor_dialog.py`：新增「角色职责 roles」页（列表 + 字段表单，增删改）；`desc` 行接本地化；肖像从 raw 文本改为「槽位列表 + 贴图路径」。
-- 改动面：数据层 + 对话框 UI。**需设计确认**（表单形态）。
+### 批 A — 角色编辑器（✅ 已完成 2026-08-19，方案 B 单页三栏）
+- `character_data.py`：roles 拆为结构化条目（类型/字段/traits/desc/未知块无损）；肖像槽位表；`render_character_block_v2` + `save_file_v2` 原子写。
+- `character_editor_dialog.py`：单页三栏（左角色列表 / 中基本信息+角色描述+肖像表 / 右职责表单）；保存 upsert 名称/角色/职责 desc 本地化。
+- 新增 `CharacterStructuredDataTest`(3)+`CharacterEditorStructSmokeTest`(3)；真实数据 160 文件/3448 角色/0 错误。
 
 ### 批 B — 🔴 地图编辑器补州字段编辑
 - `state_loader/state_build_ops`：新增 `resources / victory_points / manpower / state_name` 的读写。
@@ -97,4 +97,4 @@
 - 但按新口径，**§4.12「展示 100% + 完整读写」在角色/地图/事件/科技/AI 高级块/顾问/编制/设计器多处不达标，且大量路径把用户推向原始文本** —— 均列为 🔴 严重。
 - `docs/未完成计划.md` 已并入本清单（P0/P1），先修角色→地图→事件/科技，再降级 raw 兜底。
 
-> 修复涉及 UI 形态，按 AGENTS §4.11 需你裁定：批 A/B/C 先做哪个？或先给其中一项的具体方案？
+> 进展：批 A 已完成；待你拍板项 = 批 B（地图州字段）/ 批 C（事件+科技专用 UI）/ 批 D / 批 E。
