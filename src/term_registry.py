@@ -26,6 +26,12 @@ TERM_FILES = [
     os.path.join(TRANSLATIONS_DIR, "effect_terms.json"),
     os.path.join(TRANSLATIONS_DIR, "custom_terms.json"),
     os.path.join(TRANSLATIONS_DIR, "vmoder_modifiers_terms.json"),
+    # QIUQI-LIBRARY 导入词条：排在最后 → 同键冲突以 QIUQI 为正确项目
+    os.path.join(TRANSLATIONS_DIR, "qiqi_terms.json"),
+    os.path.join(TRANSLATIONS_DIR, "qiqi_modcode_terms.json"),
+    os.path.join(TRANSLATIONS_DIR, "qiqi_diplo_terms.json"),
+    os.path.join(TRANSLATIONS_DIR, "qiqi_tfr_terms.json"),
+    os.path.join(TRANSLATIONS_DIR, "qiqi_tno_terms.json"),
 ]
 
 NODE_TYPE_NAMES = {
@@ -64,8 +70,14 @@ class TermRegistry:
                 term.setdefault("tags", [])
                 term.setdefault("description", "")
                 term.setdefault("source", "user")
-                self.by_key[key] = term
-                self.terms.append(term)
+                if key in self.by_key:
+                    # 同键冲突：后出现（QIUQI 在最后）替换已有词条，保持单条不重复
+                    existing = self.by_key[key]
+                    existing.clear()
+                    existing.update(term)
+                else:
+                    self.by_key[key] = term
+                    self.terms.append(term)
         self._loaded = True
 
     def ensure_loaded(self):

@@ -27,6 +27,7 @@ from PyQt6.QtWidgets import (
 )
 
 from bop_loader import _state_label, find_active_range, load_bop_actions
+from quick_loc_menu import install_context_menu
 
 _BOP_QSS = """
 QDialog {
@@ -373,6 +374,14 @@ class BopEditorDialog(QDialog):
         else:
             subtitle = QLabel("国家权力平衡 · %s" % self.bop.get("tag", ""))
         subtitle.setObjectName("BopSubtitle")
+        # 右键：BOP 名称 + 描述本地化编辑
+        install_context_menu(
+            subtitle, self.mod_path, self.hoi4_path,
+            key_provider=lambda: self.bop.get("id", "") or "",
+            desc_key_provider=lambda: (
+                (self.bop.get("id", "") + "_desc")
+                if self.bop.get("id") else ""),
+            parent=self)
         title_box.addWidget(title)
         title_box.addWidget(subtitle)
         header.addLayout(title_box)
@@ -397,6 +406,15 @@ class BopEditorDialog(QDialog):
         right_label = QLabel(_loc_text(self._loc, self.bop.get("right_side", "")))
         right_label.setObjectName("BopSideLabel")
         right_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        # 左右势力：右键快速编辑本地化
+        install_context_menu(
+            left_label, self.mod_path, self.hoi4_path,
+            key_provider=lambda: self.bop.get("left_side", "") or "",
+            parent=self)
+        install_context_menu(
+            right_label, self.mod_path, self.hoi4_path,
+            key_provider=lambda: self.bop.get("right_side", "") or "",
+            parent=self)
         sides.addWidget(left_label)
         sides.addStretch(1)
         sides.addWidget(right_label)
@@ -551,6 +569,11 @@ class BopEditorDialog(QDialog):
         raw_id = side.get("id", "")
         title = QLabel("%s  %s" % (_loc_text(self._loc, raw_id), raw_id))
         title.setObjectName("BopSideTitle")
+        # 势力名：右键快速编辑本地化
+        install_context_menu(
+            title, self.mod_path, self.hoi4_path,
+            key_provider=lambda raw_id=raw_id: raw_id or "",
+            parent=self)
         v.addWidget(title)
         for rng in side.get("ranges", []):
             v.addWidget(self._make_range_row(rng))
@@ -566,6 +589,11 @@ class BopEditorDialog(QDialog):
             _loc_text(self._loc, rng.get("id", "")),
             float(rng.get("min", 0.0)), float(rng.get("max", 0.0))))
         name.setObjectName("BopRangeName")
+        # 区间名：右键快速编辑本地化
+        install_context_menu(
+            name, self.mod_path, self.hoi4_path,
+            key_provider=lambda rng=rng: rng.get("id", "") or "",
+            parent=self)
         h.addWidget(name)
         mods = rng.get("modifier") or {}
         if mods:

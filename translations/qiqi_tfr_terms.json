@@ -1,0 +1,544 @@
+{
+  "version": 1,
+  "terms": [
+    {
+      "key": "academic_development_monthly",
+      "cn": "教育发展系数",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: 0.005",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "add_debt_with_inflation",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "增加/减少债务"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "add_ideas",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "这部分是切换经济体制的自定义效果"
+      ],
+      "description": "示例值: tfx_economy",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "add_income_with_inflation",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "增加/减少流动金"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "add_inflation",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "加通胀/减通胀"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "air_doctrine_cost_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: 0.2",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "always",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "business_value",
+      "cn": "商业产值",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 12",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "business_value_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: 0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "change_economy_type_XXX",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "change_economy_type_capitalist_economy",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "change_government_type_communist_party_state",
+      "cn": "将国家切换成共产党国家",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "切换政治体制"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "consumer_goods_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: -0.02",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "custom_effect_tooltip",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "这部分是切换经济体制的自定义效果"
+      ],
+      "description": "示例值: change_economy_type_tfx_economy_tt",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "dtg_threshold",
+      "cn": "债务负担上限",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0.3",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "expense_growth_factor",
+      "cn": "月度支出",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "farming_development_monthly",
+      "cn": "农业发展系数",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: 0.15",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "has_idea",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "示例值: ZZZ_tfx_economy",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "income_growth_factor",
+      "cn": "月度收入增长",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: -0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "industrial_development_monthly",
+      "cn": "工业发展系数",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: 0.02",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "inflation_monthly",
+      "cn": "月度通胀率",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0.002",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "inflation_var_temp",
+      "cn": "-0.5（正代表增加，负代表减少）",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "加通胀/减通胀"
+      ],
+      "description": "",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "interest_rate",
+      "cn": "利率",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "land_doctrine_cost_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: 0.2",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "legacy_lazy_load",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "示例值: no",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "localization_key",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "示例值: ZZZ_tfx_economy",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "military_development_monthly",
+      "cn": "军事发展系数",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: 0.015",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "misc_income",
+      "cn": "杂项收入",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "name",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "示例值: GetEconomyType",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "naval_doctrine_cost_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: 0.2",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "pdx_tooltip",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "示例值: \"TFX_tfx_TT\"",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "pdx_tooltip_delayed",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "示例值: \"TFR_tfx_TT_LONG\"",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "personal_expense",
+      "cn": "私人消费",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: -0.01",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "personal_expense_factor",
+      "cn": "私人消费系数",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0.15",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "personal_value_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: -0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "poverty_development_monthly",
+      "cn": "贫困发展系数",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: -0.02",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "production_factory_efficiency_gain_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: 0.02",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "production_speed_energy_farm_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "发电站 核电站 办公园区 能源农场 建造速度"
+      ],
+      "description": "示例值: 0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "production_speed_infrastructure_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: -0.015",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "production_speed_nuclear_reactor_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "发电站 核电站 办公园区 能源农场 建造速度"
+      ],
+      "description": "示例值: 0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "production_speed_office_park_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "在tfr1.05版本更新了经济体制，经济体制只是简单的民族精神，体制如下："
+      ],
+      "description": "示例值: 0.015",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "production_speed_power_plant_factor",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "发电站 核电站 办公园区 能源农场 建造速度"
+      ],
+      "description": "示例值: 0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "remove_economy_types",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "这部分是切换经济体制的自定义效果"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "society_development_monthly",
+      "cn": "社会发展系数",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "陆军海军空军维护费（正数代表减维护费，负数代表加维护费）"
+      ],
+      "description": "示例值: -0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "spriteType",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "示例值: \"GFX_tfx_economy\"",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "tax_business_rate",
+      "cn": "商业税税率",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0.1",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "tax_personal_rate",
+      "cn": "个人税税率",
+      "node_type": "value",
+      "tags": [
+        "TFR"
+      ],
+      "description": "示例值: 0.05",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "texturefile",
+      "cn": "\"(这里为图标路径）\"",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "图标注册在TFR_interface_economy.gfx:"
+      ],
+      "description": "",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "value",
+      "cn": "1500（正代表增加，负代表减少）",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "增加/减少流动金"
+      ],
+      "description": "",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    },
+    {
+      "key": "var",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TFR",
+        "增加/减少流动金"
+      ],
+      "description": "示例值: income_var_temp",
+      "source": "qiqi:TFR常用代码合集（TFX制作组制）"
+    }
+  ]
+}

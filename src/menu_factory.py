@@ -18,7 +18,15 @@ def build_tool_actions(menu):
     """
     a = {}
     a["coverage_report"] = menu.addAction("文件类型覆盖报告…")
+    a["localisation_editor"] = menu.addAction("🌐 本地化编辑器…")
+    a["entity_resource_workbench"] = menu.addAction("🗂 实体配套资源工作台…")
     a["health_check"] = menu.addAction("导出前健康检查…")
+    a["content_generators"] = menu.addAction("🧰 内容生成器…")
+    a["character_editor"] = menu.addAction("👤 角色编辑器…")
+    a["pdx_format"] = menu.addAction("📐 PDX 格式化…")
+    a["dds_convert"] = menu.addAction("🖼 批量 DDS 转换…")
+    a["vp_loc"] = menu.addAction("📍 VP 本地化生成…")
+    a["error_log"] = menu.addAction("🧾 错误日志分析…")
     a["map_editor"] = menu.addAction("🗺 地图编辑…")
     a["region_editor"] = menu.addAction("🗺 区域编辑（框选划分）…")
     a["overlay_report"] = menu.addAction(

@@ -3971,7 +3971,7 @@ class OobKindDetectTest(unittest.TestCase):
         cls.app = QApplication.instance() or QApplication([])
 
     def test_detect_oob_kinds(self):
-        """detect_oob_kinds 正确识别 division/ship/air_wing。"""
+        """detect_oob_kinds 正确识别 division/ship/air_wings。"""
         from oob_loader import detect_oob_kinds
         self.assertEqual(detect_oob_kinds("division_template = {\n}\n"),
                          {"army": True, "navy": False, "air": False})
@@ -3982,7 +3982,13 @@ class OobKindDetectTest(unittest.TestCase):
             detect_oob_kinds("units = {\n\tair_wing = { name = \"W\" }\n}\n"),
             {"army": False, "navy": False, "air": True})
         self.assertEqual(
-            detect_oob_kinds("division = {\n}\nship = {\n}\nair_wing = {\n}\n"),
+            detect_oob_kinds("air_wings = {\n\t278 = {}\n}\n"),
+            {"army": False, "navy": False, "air": True})
+        self.assertEqual(
+            detect_oob_kinds("units = {\n\tfleet = { task_force = {} }\n}\n"),
+            {"army": False, "navy": True, "air": False})
+        self.assertEqual(
+            detect_oob_kinds("division = {\n}\nship = {\n}\nair_wings = {\n}\n"),
             {"army": True, "navy": True, "air": True})
 
     def _open_kind(self, content):
@@ -4012,6 +4018,89 @@ class OobKindDetectTest(unittest.TestCase):
         self.app.processEvents()
         self.assertEqual(dlg.__class__.__name__, "PlaneDesignDialog")
         dlg.close()
+
+
+class OobOtherContentDetectTest(unittest.TestCase):
+    """OOB 其他内容检测：文件含未覆盖顶层块时，打开前让用户选择。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_oob(self, content):
+        from initial_oob_editor import open_oob_designer
+        mod = _mkdtemp("dsh_oobother_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "history", "units"), exist_ok=True)
+        path = os.path.join(mod, "history", "units", "other.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return open_oob_designer, mod, path
+
+    def test_detect_oob_other_content(self):
+        from oob_loader import detect_oob_other_content
+        self.assertEqual(
+            detect_oob_other_content('division_template = {\n}\n'), [])
+        self.assertEqual(
+            detect_oob_other_content('air_wings = {\n}\n'), [])
+        self.assertEqual(
+            detect_oob_other_content(
+                'division_template = {\n}\ninstant_effect = {\n}\n'),
+            ["instant_effect"])
+        self.assertEqual(
+            detect_oob_other_content(
+                'create_colonial_division_template = {\n\tsubject = COG\n}\n'),
+            ["create_colonial_division_template"])
+
+    def test_open_with_other_and_choose_designer(self):
+        from unittest.mock import patch
+        open_oob_designer, mod, path = self._make_oob(
+            'division_template = {\n\tname = "A"\n}\n'
+            'instant_effect = {\n\tadd_equipment_production = {}\n}\n')
+        with patch("initial_oob_editor._ask_oob_open_mode",
+                   return_value="designer"):
+            dlg = open_oob_designer(path, mod_path=mod, hoi4_path="")
+        self.app.processEvents()
+        self.assertEqual(dlg.__class__.__name__, "DivisionEditor")
+        dlg.close()
+
+    def test_open_with_other_and_choose_tree(self):
+        from unittest.mock import patch
+        open_oob_designer, mod, path = self._make_oob(
+            'division_template = {\n}\ninstant_effect = {\n}\n')
+        with patch("initial_oob_editor._ask_oob_open_mode",
+                   return_value="tree"):
+            dlg = open_oob_designer(path, mod_path=mod, hoi4_path="")
+        self.app.processEvents()
+        self.assertEqual(dlg.__class__.__name__, "GenericTreeEditor")
+        dlg.close()
+
+    def test_open_with_other_and_cancel(self):
+        from unittest.mock import patch
+        open_oob_designer, mod, path = self._make_oob(
+            'division_template = {\n}\ninstant_effect = {\n}\n')
+        with patch("initial_oob_editor._ask_oob_open_mode",
+                   return_value=None):
+            result = open_oob_designer(path, mod_path=mod, hoi4_path="")
+        self.assertIsNone(result)
+
+    def test_open_with_other_and_choose_both(self):
+        from unittest.mock import patch
+        open_oob_designer, mod, path = self._make_oob(
+            'division_template = {\n\tname = "A"\n}\n'
+            'instant_effect = {\n}\n')
+        with patch("initial_oob_editor._ask_oob_open_mode",
+                   return_value="both"):
+            result = open_oob_designer(path, mod_path=mod, hoi4_path="")
+        self.app.processEvents()
+        self.assertIsInstance(result, list)
+        names = [getattr(x, "__class__", None).__name__ for x in result]
+        self.assertIn("GenericTreeEditor", names)
+        self.assertIn("DivisionEditor", names)
+        for x in result:
+            x.close()
 
 
 class DynamicModifierTemplateTest(unittest.TestCase):
@@ -5640,3 +5729,1072 @@ class PdxCompareOperatorTest(unittest.TestCase):
         keys = [c.key for c in avail.children if c.key]
         self.assertNotIn("exact", keys)
         self.assertTrue(any(c.value == "exact == 7" for c in avail.children))
+
+
+class LocalisationEditorDataTest(unittest.TestCase):
+    """本地化编辑器数据层：扫描/合并/upsert/delete/修正筛选。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("loc_edit_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        self.game = os.path.join(self.tmp, "game")
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        os.makedirs(os.path.join(self.game, "localisation", "simp_chinese"))
+
+    def _write(self, root, filename, content):
+        path = os.path.join(root, "localisation", "simp_chinese", filename)
+        with open(path, "w", encoding="utf-8-sig") as f:
+            f.write(content)
+        return path
+
+    def test_list_loc_files_finds_yml(self):
+        from localisation_editor_data import list_loc_files
+        self._write(self.mod, "test_l_simp_chinese.yml", "l_simp_chinese:\n FOO: \"foo\"\n")
+        files = list_loc_files(self.mod)
+        self.assertEqual(len(files), 1)
+        self.assertTrue(files[0].endswith("test_l_simp_chinese.yml"))
+
+    def test_build_entries_merges_mod_and_game(self):
+        from localisation_editor_data import build_entries
+        self._write(self.game, "game_l_simp_chinese.yml",
+                    "l_simp_chinese:\n FOCUS_A: \"Game Name\"\n MODIFIER_X: \"Game Mod\"\n")
+        self._write(self.mod, "mod_l_simp_chinese.yml",
+                    "l_simp_chinese:\n FOCUS_A: \"Mod Name\"\n")
+        entries = build_entries(self.mod, self.game)
+        by_key = {e["key"]: e for e in entries}
+        self.assertIn("FOCUS_A", by_key)
+        self.assertEqual(by_key["FOCUS_A"]["value"], "Mod Name")
+        self.assertEqual(by_key["FOCUS_A"]["game_value"], "Game Name")
+        self.assertEqual(by_key["FOCUS_A"]["source"], "mod")
+        self.assertIn("MODIFIER_X", by_key)
+        self.assertEqual(by_key["MODIFIER_X"]["source"], "game")
+        self.assertTrue(by_key["MODIFIER_X"]["file"] is None)
+
+    def test_upsert_creates_and_updates_preserving_order(self):
+        from localisation_editor_data import upsert_loc_entry
+        target = self._write(self.mod, "mod_l_simp_chinese.yml",
+                             "l_simp_chinese:\n A: \"a\"\n")
+        self.assertTrue(upsert_loc_entry(target, "B", "b"))
+        self.assertTrue(upsert_loc_entry(target, "A", "a2"))
+        with open(target, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn('A: "a2"', content)
+        self.assertIn('B: "b"', content)
+        self.assertLess(content.index("A"), content.index("B"))
+
+    def test_delete_removes_only_target_key(self):
+        from localisation_editor_data import delete_loc_entry
+        target = self._write(self.mod, "mod_l_simp_chinese.yml",
+                             "l_simp_chinese:\n A: \"a\"\n B: \"b\"\n")
+        self.assertTrue(delete_loc_entry(target, "A"))
+        with open(target, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertNotIn('A: "a"', content)
+        self.assertIn('B: "b"', content)
+
+    def test_is_modifier_key(self):
+        from localisation_editor_data import is_modifier_key
+        self.assertTrue(is_modifier_key("MODIFIER_POPULARITY_SCORE"))
+        self.assertTrue(is_modifier_key("opinion_relation"))
+        self.assertTrue(is_modifier_key("dynamic_modifier_ab"))
+        self.assertFalse(is_modifier_key("focus_war_plan"))
+
+
+class LocalisationEditorDialogSmokeTest(unittest.TestCase):
+    """本地化编辑器对话框 offscreen 冒烟：构建、筛选、新增。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def setUp(self):
+        self.tmp = _mkdtemp("loc_dlg_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        path = os.path.join(self.mod, "localisation", "simp_chinese",
+                            "mod_l_simp_chinese.yml")
+        with open(path, "w", encoding="utf-8-sig") as f:
+            f.write("l_simp_chinese:\n FOCUS_A: \"国策A\"\n MODIFIER_X: \"修正X\"\n")
+
+    def test_dialog_construct_and_filter_modifier(self):
+        from localisation_editor_dialog import LocalisationEditorDialog
+        dlg = LocalisationEditorDialog(mod_path=self.mod, hoi4_path="", parent=None)
+        self.app.processEvents()
+        self.assertGreaterEqual(dlg.table.rowCount(), 2)
+        dlg.modifier_check.setChecked(True)
+        self.app.processEvents()
+        self.assertEqual(dlg.table.rowCount(), 1)
+        key_item = dlg.table.item(0, 0)
+        self.assertEqual(key_item.text(), "MODIFIER_X")
+
+    def test_dialog_add_entry_creates_file(self):
+        from localisation_editor_dialog import LocalisationEditorDialog
+        from localisation_editor_data import upsert_loc_entry
+        dlg = LocalisationEditorDialog(mod_path=self.mod, hoi4_path="", parent=None)
+        self.app.processEvents()
+        target = os.path.join(self.mod, "localisation", "simp_chinese",
+                              "mod_l_simp_chinese.yml")
+        self.assertTrue(dlg._target_filepath())
+        ok = upsert_loc_entry(target, "NEW_KEY", "新值")
+        self.assertTrue(ok)
+        with open(target, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("NEW_KEY", content)
+
+
+class LocalisationEditorLanguageTest(unittest.TestCase):
+    """本地化编辑器多语言：默认中文、英文可选、批量补写。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("loc_lang_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        self.game = os.path.join(self.tmp, "game")
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        os.makedirs(os.path.join(self.mod, "localisation", "english"))
+        os.makedirs(os.path.join(self.game, "localisation", "simp_chinese"))
+        os.makedirs(os.path.join(self.game, "localisation", "english"))
+
+    def _write_loc(self, root, lang, filename, content):
+        path = os.path.join(root, "localisation", lang, filename)
+        with open(path, "w", encoding="utf-8-sig") as f:
+            f.write(content)
+        return path
+
+    def test_effective_dict_default_chinese(self):
+        from localisation_editor_data import load_effective_dict
+        self._write_loc(self.game, "simp_chinese", "game_l_simp_chinese.yml",
+                        "l_simp_chinese:\n FOO: \"游戏中文\"\n")
+        self._write_loc(self.mod, "simp_chinese", "mod_l_simp_chinese.yml",
+                        "l_simp_chinese:\n FOO: \"mod中文\"\n BAR: \"酒吧\"\n")
+        d = load_effective_dict(self.mod, self.game, "simp_chinese")
+        self.assertEqual(d["FOO"], "mod中文")
+        self.assertEqual(d["BAR"], "酒吧")
+
+    def test_build_entries_english_with_chinese_reference(self):
+        from localisation_editor_data import build_entries, load_effective_dict
+        self._write_loc(self.mod, "english", "mod_l_english.yml",
+                        "l_english:\n FOO: \"Mod English\"\n")
+        self._write_loc(self.mod, "simp_chinese", "mod_l_simp_chinese.yml",
+                        "l_simp_chinese:\n FOO: \"Mod 中文\"\n")
+        self._write_loc(self.game, "english", "game_l_english.yml",
+                        "l_english:\n BAR: \"Game English\"\n")
+        entries = build_entries(self.mod, self.game, "english")
+        by_key = {e["key"]: e for e in entries}
+        self.assertEqual(by_key["FOO"]["value"], "Mod English")
+        self.assertEqual(by_key["FOO"]["source"], "mod")
+        self.assertEqual(by_key["BAR"]["value"], "Game English")
+        self.assertEqual(by_key["BAR"]["source"], "game")
+        chinese = load_effective_dict(self.mod, self.game, "simp_chinese")
+        self.assertEqual(chinese["FOO"], "Mod 中文")
+
+    def test_batch_fill_missing_chinese(self):
+        from localisation_editor_data import batch_fill_missing_loc
+        # 创建含实体 key 的修正定义文件
+        mod_dir = os.path.join(self.mod, "common", "opinion_modifiers")
+        os.makedirs(mod_dir, exist_ok=True)
+        with open(os.path.join(mod_dir, "mod.txt"), "w", encoding="utf-8") as f:
+            f.write("opinion_modifiers = {\n\tTEST_MOD = { value = 10 }\n}\n")
+        written, target = batch_fill_missing_loc(self.mod, self.game, "simp_chinese")
+        self.assertGreaterEqual(written, 1)
+        self.assertTrue(os.path.isfile(target))
+        with open(target, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("TEST_MOD", content)
+
+    def test_upsert_english_file(self):
+        from localisation_editor_data import upsert_loc_entry
+        target = self._write_loc(self.mod, "english", "mod_l_english.yml",
+                                 "l_english:\n A: \"a\"\n")
+        self.assertTrue(upsert_loc_entry(target, "B", "bee", "english"))
+        with open(target, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn('B: "bee"', content)
+        self.assertIn('l_english:', content)
+
+
+class LocalisationCategoryTest(unittest.TestCase):
+    """本地化词条分类筛选。"""
+
+    def test_categorise_key(self):
+        from localisation_editor_data import categorise_key
+        self.assertEqual(categorise_key("focus_war_plan"), "国策")
+        self.assertEqual(categorise_key("decision_test"), "决议")
+        self.assertEqual(categorise_key("event_test.title"), "事件")
+        self.assertEqual(categorise_key("idea_xxx"), "理念")
+        self.assertEqual(categorise_key("tech_infantry"), "科技")
+        self.assertEqual(categorise_key("MODIFIER_AAA"), "修正")
+        self.assertEqual(categorise_key("opinion_bbb"), "修正")
+        self.assertEqual(categorise_key("GER_leader_hitler"), "人物")
+        self.assertEqual(categorise_key("TOOLTIP_TRAIN"), "界面/辅助")
+        self.assertEqual(categorise_key("random_key"), "其他")
+
+    def test_dialog_category_filter(self):
+        import os
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        app = QApplication.instance() or QApplication([])
+        tmp = _mkdtemp("loc_cat_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        mod = os.path.join(tmp, "mod")
+        os.makedirs(os.path.join(mod, "localisation", "simp_chinese"))
+        path = os.path.join(mod, "localisation", "simp_chinese", "mod_l_simp_chinese.yml")
+        with open(path, "w", encoding="utf-8-sig") as f:
+            f.write("l_simp_chinese:\n focus_aa: \"国策\"\n modifier_bb: \"修正\"\n")
+        from localisation_editor_dialog import LocalisationEditorDialog
+        dlg = LocalisationEditorDialog(mod_path=mod, hoi4_path="", parent=None)
+        app.processEvents()
+        self.assertGreaterEqual(dlg.table.rowCount(), 2)
+        idx = dlg.category_combo.findData("国策")
+        dlg.category_combo.setCurrentIndex(idx)
+        app.processEvents()
+        self.assertEqual(dlg.table.rowCount(), 1)
+        self.assertEqual(dlg.table.item(0, 0).text(), "focus_aa")
+
+
+class QuickLocalisationEditSmokeTest(unittest.TestCase):
+    """快速本地化编辑小窗口 offscreen 冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def setUp(self):
+        self.tmp = _mkdtemp("quick_loc_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        path = os.path.join(self.mod, "localisation", "simp_chinese", "mod_l_simp_chinese.yml")
+        with open(path, "w", encoding="utf-8-sig") as f:
+            f.write("l_simp_chinese:\n FOO: \"旧值\"\n")
+        self.path = path
+
+    def test_quick_dialog_prefills_existing_value(self):
+        from quick_localisation_edit import QuickLocalisationEditDialog
+        dlg = QuickLocalisationEditDialog(
+            key="FOO", mod_path=self.mod, hoi4_path="", parent=None)
+        self.app.processEvents()
+        self.assertEqual(dlg.value_edit.text(), "旧值")
+        self.assertEqual(dlg._target_filepath(), self.path)
+
+    def test_quick_dialog_switch_language_uses_english_dir(self):
+        from quick_localisation_edit import QuickLocalisationEditDialog
+        os.makedirs(os.path.join(self.mod, "localisation", "english"), exist_ok=True)
+        en_path = os.path.join(self.mod, "localisation", "english", "mod_l_english.yml")
+        with open(en_path, "w", encoding="utf-8-sig") as f:
+            f.write("l_english:\n FOO: \"Old English\"\n")
+        dlg = QuickLocalisationEditDialog(
+            key="FOO", mod_path=self.mod, hoi4_path="", parent=None)
+        self.app.processEvents()
+        self.assertEqual(dlg.value_edit.text(), "旧值")
+        idx = dlg.lang_combo.findData("english")
+        dlg.lang_combo.setCurrentIndex(idx)
+        self.app.processEvents()
+        self.assertEqual(dlg.value_edit.text(), "Old English")
+        self.assertEqual(dlg._target_filepath(), en_path)
+
+
+class QuickLocalisationDescTest(unittest.TestCase):
+    """快速本地化编辑：BOP 名称+描述。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("quick_loc_desc_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        path = os.path.join(self.mod, "localisation", "simp_chinese", "mod_l_simp_chinese.yml")
+        with open(path, "w", encoding="utf-8-sig") as f:
+            f.write("l_simp_chinese:\n FOO: \"名称\"\n FOO_desc: \"旧描述\"\n")
+        self.path = path
+
+    def test_desc_dialog_prefills_both_fields(self):
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import QApplication
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        app = QApplication.instance() or QApplication([])
+        from quick_localisation_edit import QuickLocalisationEditDialog
+        dlg = QuickLocalisationEditDialog(
+            key="FOO", mod_path=self.mod, hoi4_path="",
+            desc_key="FOO_desc", parent=None)
+        app.processEvents()
+        self.assertEqual(dlg.value_edit.text(), "名称")
+        self.assertIsNotNone(dlg.desc_edit)
+        self.assertEqual(dlg.desc_edit.text(), "旧描述")
+        result = dlg.get_result()
+        self.assertEqual(result["desc_key"], "FOO_desc")
+        self.assertEqual(result["desc_value"], "旧描述")
+
+
+class QuickLocMenuHelperTest(unittest.TestCase):
+    """快速本地化右键菜单安装辅助。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def test_install_context_menu_sets_policy(self):
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import QLabel
+        from quick_loc_menu import install_context_menu
+        label = QLabel("test")
+        install_context_menu(label, mod_path="/tmp/mod", hoi4_path="",
+                             key_provider=lambda: "FOO")
+        self.assertEqual(label.contextMenuPolicy(),
+                         Qt.ContextMenuPolicy.CustomContextMenu)
+
+    def test_install_combo_context_menu_default_key(self):
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import QComboBox
+        from quick_loc_menu import install_combo_context_menu
+        combo = QComboBox()
+        combo.addItem("显示", "BAR")
+        install_combo_context_menu(combo, mod_path="/tmp/mod", hoi4_path="")
+        self.assertEqual(combo.contextMenuPolicy(),
+                         Qt.ContextMenuPolicy.CustomContextMenu)
+
+
+class QiqiTermImportTest(unittest.TestCase):
+    """QIUQI 词条导入解析与合并。"""
+
+    def test_parse_tech_list_keeps_empty_and_section(self):
+        from qiqi_term_import import parse_tech_list
+        terms = parse_tech_list(
+            "1.步兵科技\n\tinfantry_weapons = 1918步枪\n\tinfantry_at2 = \n")
+        by_key = {t["key"]: t for t in terms}
+        self.assertEqual(by_key["infantry_weapons"]["cn"], "1918步枪")
+        self.assertEqual(by_key["infantry_at2"]["cn"], "")
+        self.assertIn("原表未填中文", by_key["infantry_at2"]["description"])
+        self.assertIn("1.步兵科技", by_key["infantry_weapons"]["tags"])
+
+    def test_parse_traits_pairs_comment_and_value(self):
+        from qiqi_term_import import parse_traits
+        terms = parse_traits(
+            "#领袖\n    #政治类\n        #意识形态\n"
+            "            #communism_drift = 0.25\n"
+            "            #共产主义理念每日新增支持率: +0.25（原版最高0.1）\n")
+        by_key = {t["key"]: t for t in terms}
+        t = by_key["communism_drift"]
+        self.assertIn("共产主义理念", t["cn"])
+        self.assertIn("0.25", t["description"])
+        self.assertIn("意识形态", t["tags"])
+
+    def test_parse_navy_and_spirit_and_cabinet(self):
+        from qiqi_term_import import parse_navy, parse_national_spirit, parse_cabinet
+        navy = parse_navy("####船体####\n固定主炮 fixed_ship_battery_slot\n")
+        self.assertEqual(navy[0]["key"], "fixed_ship_battery_slot")
+        self.assertEqual(navy[0]["cn"], "固定主炮")
+        self.assertIn("船体", navy[0]["tags"])
+        spirit = parse_national_spirit("#陆军\noffence #攻击\n")
+        self.assertEqual(spirit[0]["key"], "offence")
+        self.assertEqual(spirit[0]["cn"], "攻击")
+        cab = parse_cabinet("backroom_backstabber 密谋的暗害者 政治点+5% 意识形态抵制+15%\n")
+        self.assertEqual(cab[0]["key"], "backroom_backstabber")
+        self.assertIn("政治点+5%", cab[0]["description"])
+
+    def test_parse_commands_gbk_decode(self):
+        from qiqi_term_import import parse_commands
+        raw = "political_power_gain = 1\t#每日获得的政治点数\n".encode("gbk")
+        terms = parse_commands(raw.decode("gbk"))
+        self.assertEqual(terms[0]["cn"], "每日获得的政治点数")
+
+    def test_build_terms_qiuqi_conflict_last_wins(self):
+        from qiqi_term_import import build_terms_from_texts
+        terms = build_terms_from_texts({
+            "原版科技种类.txt": "light_air = 分类名\ninfantry_weapons = 旧名\n",
+            "科技列表（截至抗战DLC）.txt": "1.步兵科技\n\tinfantry_weapons = 1918步枪\n",
+        })
+        by_key = {t["key"]: t for t in terms}
+        self.assertEqual(by_key["infantry_weapons"]["cn"], "1918步枪")
+        self.assertEqual(by_key["light_air"]["cn"], "分类名")
+
+    def test_write_qiqi_terms_output(self):
+        import json
+        from qiqi_term_import import write_qiqi_terms
+        tmp = _mkdtemp("qiqi_import_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        src = os.path.join(tmp, "src")
+        os.makedirs(src, exist_ok=True)
+        with open(os.path.join(src, "装备类型汇总.txt"), "w", encoding="utf-8") as f:
+            f.write("anti_air_equipment = 牵引式防空炮\n")
+        out = os.path.join(tmp, "out.json")
+        n = write_qiqi_terms(out, src)
+        self.assertGreaterEqual(n, 1)
+        with open(out, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.assertEqual(data["terms"][0]["key"], "anti_air_equipment")
+
+
+class TermRegistryQiqiWinsTest(unittest.TestCase):
+    """词条注册表：QIUQI 文件在后 → 同键冲突 QIUQI 胜出且不重复。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("term_reg_qiqi_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def _write(self, name, terms):
+        path = os.path.join(self.tmp, name)
+        with open(path, "w", encoding="utf-8") as f:
+            import json
+            json.dump({"terms": terms}, f, ensure_ascii=False)
+        return path
+
+    def test_qiqi_last_wins_and_no_duplicate(self):
+        from term_registry import TermRegistry
+        f1 = self._write("effect_terms.json", [
+            {"key": "infantry_weapons", "cn": "旧译", "tags": ["装备"]}])
+        f2 = self._write("qiqi_terms.json", [
+            {"key": "infantry_weapons", "cn": "1918步枪", "tags": ["科技"]}])
+        reg = TermRegistry(term_files=[f1, f2])
+        reg.load()
+        self.assertEqual(reg.get_cn("infantry_weapons"), "1918步枪")
+        res = reg.search("infantry_weapons")
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0]["cn"], "1918步枪")
+
+
+class QiqiGroupImportTest(unittest.TestCase):
+    """QIUQI 分文件导入：mod常用代码 / 外交 / TFR / TNO。"""
+
+    def test_parse_collection_hash_and_trailing_cn(self):
+        from qiqi_term_import import parse_collection
+        text = (
+            "#外交\n"
+            "is_major = yes 是主要国家\n"
+            "income_growth_factor = -0.05 #月度收入增长\n"
+            "set_temp_variable = { var = x } #设定临时变量\n"
+            "has_war_with = TAG 与某国战争中\n"
+        )
+        terms = parse_collection(text, tags=["常用代码"])
+        by_key = {t["key"]: t for t in terms}
+        self.assertEqual(by_key["is_major"]["cn"], "是主要国家")
+        self.assertEqual(by_key["income_growth_factor"]["cn"], "月度收入增长")
+        self.assertEqual(by_key["set_temp_variable"]["cn"], "设定临时变量")
+        self.assertIn("外交", by_key["is_major"]["tags"])
+        self.assertIn("常用代码", by_key["is_major"]["tags"])
+
+    def test_import_all_writes_separate_files(self):
+        import json
+        from qiqi_term_import import import_all
+        tmp = _mkdtemp("qiqi_group_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        src = os.path.join(tmp, "qsrc")
+        code_dir = os.path.join(src, "资料", "基础代码", "代码提词")
+        os.makedirs(code_dir, exist_ok=True)
+        with open(os.path.join(code_dir, "mod常用代码（dream修订）.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("has_war_with = TAG 与某国战争中\n")
+        out = os.path.join(tmp, "out")
+        results = import_all(out, src)
+        names = [n for n, _c in results]
+        self.assertIn("qiqi_terms.json", names)
+        self.assertIn("qiqi_modcode_terms.json", names)
+        self.assertIn("qiqi_diplo_terms.json", names)
+        self.assertIn("qiqi_tfr_terms.json", names)
+        self.assertIn("qiqi_tno_terms.json", names)
+        with open(os.path.join(out, "qiqi_modcode_terms.json"), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        keys = [t["key"] for t in data["terms"]]
+        self.assertIn("has_war_with", keys)
+
+    def test_term_registry_loads_all_qiqi_files(self):
+        from term_registry import TERM_FILES
+        names = [os.path.basename(p) for p in TERM_FILES]
+        for expected in ("qiqi_terms.json", "qiqi_modcode_terms.json",
+                         "qiqi_diplo_terms.json", "qiqi_tfr_terms.json",
+                         "qiqi_tno_terms.json"):
+            self.assertIn(expected, names)
+
+
+class EntityResourceDataTest(unittest.TestCase):
+    """实体配套资源数据层测试。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("entity_res_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "common", "national_focus"))
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        os.makedirs(os.path.join(self.mod, "gfx", "interface", "goals"))
+        os.makedirs(os.path.join(self.mod, "interface"), exist_ok=True)
+
+        with open(os.path.join(self.mod, "common", "national_focus", "ger.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write(
+                "focus_tree = {\n"
+                " id = GER_proj\n"
+                " country = { factor = 0 }\n"
+                " focus = { id = GER_focus1 icon = GFX_test_icon }\n"
+                "}\n")
+
+        # 注册普通 GFX（无光效）
+        with open(os.path.join(self.mod, "interface", "goals_mod.gfx"),
+                  "w", encoding="utf-8") as f:
+            f.write('spriteTypes = {\n'
+                    '\tspriteType = {\n'
+                    '\t\tname = "GFX_test_icon"\n'
+                    '\t\ttexturefile = "gfx/interface/goals/GFX_test_icon.png"\n'
+                    '\t}\n'
+                    '}\n')
+        # 贴图文件存在
+        open(os.path.join(self.mod, "gfx", "interface", "goals", "GFX_test_icon.png"), "w").close()
+
+        with open(os.path.join(self.mod, "localisation", "simp_chinese", "ger_l_simp_chinese.yml"),
+                  "w", encoding="utf-8-sig") as f:
+            f.write("l_simp_chinese:\n GER_focus1: \"已有名\"\n")
+
+    def test_collect_resource_item(self):
+        from entity_resource_data import collect_resource_items
+        items = collect_resource_items(
+            self.mod, "", filepath="common/national_focus/ger.txt")
+        self.assertTrue(items)
+        item = items[0]
+        self.assertEqual(item["key"], "GER_focus1")
+        self.assertEqual(item["icon"], "GFX_test_icon")
+        self.assertTrue(item["icon_registered"])
+        self.assertTrue(item["icon_file_exists"])
+        self.assertFalse(item["shine_registered"])
+
+    def test_ensure_shine_writes_once(self):
+        from entity_resource_data import ensure_shine_gfx
+        ok = ensure_shine_gfx(self.mod, "GFX_test_icon", "gfx/interface/goals/GFX_test_icon.png")
+        self.assertTrue(ok)
+        shine_path = os.path.join(self.mod, "interface", "goals_shine_mod.gfx")
+        self.assertTrue(os.path.isfile(shine_path))
+        content = open(shine_path, "r", encoding="utf-8").read()
+        self.assertIn("GFX_test_icon_shine", content)
+        # 二次调用：已有，返回 False 不修改
+        self.assertFalse(ensure_shine_gfx(self.mod, "GFX_test_icon", "gfx/interface/goals/GFX_test_icon.png"))
+
+    def test_save_loc_edits_writes_mod(self):
+        from entity_resource_data import save_loc_edits
+        written = save_loc_edits(self.mod, [
+            {"key": "GER_focus1_desc", "value": "新描述", "lang": "simp_chinese"},
+        ])
+        self.assertEqual(written, 1)
+        target = os.path.join(self.mod, "localisation", "simp_chinese", "generic_mod_l_simp_chinese.yml")
+        self.assertTrue(os.path.isfile(target))
+        content = open(target, "r", encoding="utf-8-sig").read()
+        self.assertIn('GER_focus1_desc: "新描述"', content)
+
+
+class EntityResourceDialogSmokeTest(unittest.TestCase):
+    """实体配套资源工作台 offscreen 冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def setUp(self):
+        self.tmp = _mkdtemp("entity_res_dlg_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "common", "national_focus"))
+        os.makedirs(os.path.join(self.mod, "gfx", "interface", "goals"))
+        with open(os.path.join(self.mod, "common", "national_focus", "x.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("focus_tree = {\n id = ABC_pj\n country = { factor = 0 }\n"
+                    " focus = { id = ABC_f1 icon = GFX_abc }\n}\n")
+        self.gfx = os.path.join(self.mod, "interface", "goals_mod.gfx")
+        os.makedirs(os.path.dirname(self.gfx), exist_ok=True)
+        with open(self.gfx, "w", encoding="utf-8") as f:
+            f.write('spriteTypes = {\n spriteType = {\n name = "GFX_abc"\n'
+                    ' texturefile = "gfx/interface/goals/GFX_abc.png"\n}\n}\n')
+        open(os.path.join(self.mod, "gfx", "interface", "goals", "GFX_abc.png"), "w").close()
+
+    def test_dialog_builds_and_fill_shine(self):
+        from entity_resource_dialog import EntityResourceDialog
+        dlg = EntityResourceDialog(
+            mod_path=self.mod, hoi4_path="",
+            initial_file="common/national_focus/x.txt")
+        self.app.processEvents()
+        self.assertGreaterEqual(dlg.table.rowCount(), 1)
+        # 自动勾选补光效（mock 掉模态提示框，避免阻塞）
+        from unittest import mock
+        with mock.patch("entity_resource_dialog.QMessageBox.information"), \
+             mock.patch("entity_resource_dialog.QMessageBox.warning"):
+            dlg.auto_shine_check.setChecked(True)
+            dlg._on_fill_shine()
+        self.app.processEvents()
+        shine = os.path.join(self.mod, "interface", "goals_shine_mod.gfx")
+        self.assertTrue(os.path.isfile(shine))
+
+
+class PdxFormatTest(unittest.TestCase):
+    """PDX 格式化。"""
+
+    def test_format_indents_by_braces(self):
+        from pdx_format import format_text
+        text = "focus_tree = {\nid = A\nfocus = {\nid = B\n}\n}\n"
+        out = format_text(text)
+        lines = out.splitlines()
+        self.assertEqual(lines[0], "focus_tree = {")
+        self.assertEqual(lines[1], "\tid = A")
+        self.assertEqual(lines[2], "\tfocus = {")
+        self.assertEqual(lines[3], "\t\tid = B")
+        self.assertEqual(lines[4], "\t}")
+
+    def test_format_ignores_braces_in_strings(self):
+        from pdx_format import format_text
+        text = 'x = {\n  name = "a { b } c"\n}\n'
+        out = format_text(text)
+        # 字符串内的花括号不应影响缩进计数
+        self.assertIn('\tname = "a { b } c"', out)
+        self.assertEqual(out.splitlines()[-1], "}")
+
+    def test_format_file_writes(self):
+        import os
+        from pdx_format import format_file
+        tmp = _mkdtemp("pdx_fmt_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        p = os.path.join(tmp, "a.txt")
+        with open(p, "w", encoding="utf-8") as f:
+            f.write("x = {\ny = 1\n}\n")
+        self.assertTrue(format_file(p))
+        with open(p, "r", encoding="utf-8") as f:
+            out = f.read()
+        self.assertIn("\ty = 1", out)
+
+
+class IconBatchTest(unittest.TestCase):
+    """图标 GFX 批量注册。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("icon_batch_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "common", "national_focus"))
+        os.makedirs(os.path.join(self.mod, "gfx", "interface", "goals"))
+        os.makedirs(os.path.join(self.mod, "interface"))
+
+    def _write_focus(self, icon_field):
+        body = ("focus_tree = {\n id = TG_pj\n country = { factor = 0 }\n"
+                " focus = { id = TG_a ICONFIELD\n}\n")
+        body = body.replace("ICONFIELD", "icon = " + icon_field)
+        with open(os.path.join(self.mod, "common", "national_focus", "f.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write(body)
+
+    def test_register_missing_registers_and_skips(self):
+        from icon_batch import register_missing_gfx
+        # 有贴图的图标应注册
+        open(os.path.join(self.mod, "gfx", "interface", "goals", "GFX_goal_in.svg"), "w").close()
+        open(os.path.join(self.mod, "gfx", "interface", "goals", "GFX_goal_have.dds"), "w").close()
+        self._write_focus("GFX_goal_have")
+        r = register_missing_gfx(self.mod, "common/national_focus/f.txt", "focus")
+        self.assertEqual(r["registered"], 1)
+        gfx = os.path.join(self.mod, "interface", "goals_mod.gfx")
+        self.assertTrue(os.path.isfile(gfx))
+        content = open(gfx, "r", encoding="utf-8").read()
+        self.assertIn('name = "GFX_goal_have"', content)
+        # 再次调用：已是已注册 → 不再写
+        r2 = register_missing_gfx(self.mod, "common/national_focus/f.txt", "focus")
+        self.assertEqual(r2["registered"], 0)
+
+    def test_skip_when_no_texture(self):
+        from icon_batch import register_missing_gfx
+        self._write_focus("GFX_goal_missing")
+        r = register_missing_gfx(self.mod, "common/national_focus/f.txt", "focus")
+        self.assertEqual(r["registered"], 0)
+        self.assertEqual(r["skipped_no_texture"], 1)
+
+
+class EventGeneratorTest(unittest.TestCase):
+    """事件生成器。"""
+
+    def test_generate_event(self):
+        from event_gen import generate_event
+        r = generate_event("my_event", namespace="MYNS")
+        self.assertIn("add_namespace = MYNS", r["text"])
+        self.assertIn("country_event = {", r["text"])
+        self.assertIn("id = MYNS.my_event", r["text"])
+        self.assertIn("title = MYNS.my_event.t", r["text"])
+        self.assertEqual(len(r["loc"]), 4)
+        keys = {x["key"] for x in r["loc"]}
+        self.assertIn("MYNS.my_event.t", keys)
+
+
+class DdsConvertTest(unittest.TestCase):
+    """批量 DDS 转换。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("dds_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def test_dds_to_png_roundtrip(self):
+        from PIL import Image
+        from dds_convert import dds_to_png, convert_dir
+        src_dir = os.path.join(self.tmp, "in")
+        os.makedirs(src_dir)
+        dds = os.path.join(src_dir, "a.dds")
+        Image.new("RGBA", (4, 4), (0, 128, 255, 255)).save(dds, "DDS")
+        img = dds_to_png(dds)
+        self.assertTrue(img and os.path.isfile(img))
+        self.assertTrue(img.endswith(".png"))
+        out = convert_dir(src_dir)
+        self.assertEqual(out["count"], 1)
+        self.assertTrue(os.path.isfile(os.path.join(src_dir, "a.png")))
+
+
+class VpLocTest(unittest.TestCase):
+    """胜利点本地化生成。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("vp_loc_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "history", "states"))
+        with open(os.path.join(self.mod, "history", "states", "01.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("state = {\n\tid = 1\n\tvictory_points = { 10 2 11 1 }\n}\n")
+        with open(os.path.join(self.mod, "history", "states", "02.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("state = {\n\tid = 2\n\tvictory_points = { 20 5 }\n}\n")
+
+    def test_collect_and_build(self):
+        from vp_loc import collect_vps, build_vp_loc_text
+        vps = collect_vps(self.mod)
+        self.assertEqual(len(vps), 3)
+        text = build_vp_loc_text(vps, lang="simp_chinese")
+        self.assertIn("l_simp_chinese:", text)
+        self.assertIn("VICTORY_POINTS_10", text)
+        self.assertIn("VICTORY_POINTS_11", text)
+        self.assertIn("VICTORY_POINTS_20", text)
+
+
+class PdxSorterTest(unittest.TestCase):
+    """state/province 排序。"""
+
+    def test_sort_state_file_by_id(self):
+        from pdx_sorter import sort_state_file
+        text = ("state = { id = 3 owner = ENG }\n"
+                "state = { id = 1 owner = FRA }\n"
+                "state = { id = 2 owner = GER }\n")
+        out = sort_state_file(text)
+        self.assertLess(out.index("id = 1"), out.index("id = 2"))
+        self.assertLess(out.index("id = 2"), out.index("id = 3"))
+
+
+class InterfaceRegTest(unittest.TestCase):
+    """interface / gfx 批量注册。"""
+
+    def test_register_sprites_missing_only(self):
+        from interface_reg import register_sprites
+        tmp = _mkdtemp("iface_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        gfx = os.path.join(tmp, "m.gfx")
+        with open(gfx, "w", encoding="utf-8") as f:
+            f.write('spriteTypes = {\n spriteType = { name = "A" texturefile = "a.png" }\n}\n')
+        n = register_sprites(gfx, {"A": "a.png", "B": "b.png"})
+        self.assertEqual(n, 1)  # A 已有 → 只注册 B
+        content = open(gfx, "r", encoding="utf-8").read()
+        self.assertIn('name = "B"', content)
+
+
+class ErrorLogTest(unittest.TestCase):
+    """错误日志分析。"""
+
+    def test_analyze_categories(self):
+        from error_log import analyze, summarize
+        text = ("[18:00] loc key not found: FOO\n"
+                "Could not find coloring for character 'M'\n"
+                "unexpected }\n")
+        res = analyze(text)
+        self.assertTrue(any(r["category"] == "缺本地化键" for r in res))
+        self.assertTrue(any(r["category"] == "着色字符错误" for r in res))
+        self.assertTrue(any(r["category"] == "括号/引用不匹配" for r in res))
+        self.assertEqual(len(res), 3)
+        s = summarize(res)
+        self.assertEqual(sum(s.values()), 3)
+
+
+class StateBatchTest(unittest.TestCase):
+    """州批量写。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("state_batch_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "history", "states"))
+        self.file = os.path.join(self.mod, "history", "states", "01.txt")
+        with open(self.file, "w", encoding="utf-8") as f:
+            f.write("state = {\n\tid = 1\n\towner = ENG\n}\n"
+                    "state = {\n\tid = 2\n\towner = FRA\n}\n")
+
+    def test_set_manpower_batch(self):
+        from state_batch import batch_write
+        r = batch_write(self.mod, manpower={"1": 123, "2": 456})
+        self.assertEqual(r["manpower"], 2)
+        content = open(self.file, "r", encoding="utf-8").read()
+        self.assertIn("manpower = 123", content)
+        self.assertIn("manpower = 456", content)
+
+
+class SecondBatchGeneratorTest(unittest.TestCase):
+    """第二批内容生成器。"""
+
+    def test_idea_gen(self):
+        from idea_gen import generate_ideas
+        r = generate_ideas([{"id": "MY_IDEA", "picture": "GFX_p", "modifier": "stability = 0.1"}])
+        self.assertIn("MY_IDEA = {", r["text"])
+        self.assertIn("picture = GFX_p", r["text"])
+        self.assertIn("stability = 0.1", r["text"])
+        keys = {x["key"] for x in r["loc"]}
+        self.assertIn("MY_IDEA", keys)
+        self.assertIn("MY_IDEA_desc", keys)
+
+    def test_ideology_gen(self):
+        from ideology_gen import generate_ideologies
+        r = generate_ideologies([{"id": "MY_IDEOLOGY"}])
+        self.assertIn("MY_IDEOLOGY = {", r["text"])
+        self.assertIn("color = {", r["text"])
+
+    def test_character_gen(self):
+        from character_gen import generate_characters
+        r = generate_characters([{"tag": "AAA", "characters": [{"id": "gen1"}]}])
+        self.assertIn("AAA = {", r["text"])
+        self.assertIn("gen1 = {", r["text"])
+
+    def test_general_gen(self):
+        from general_gen import generate_leader_blocks
+        r = generate_leader_blocks([{"name_loc": "AAA_gen1", "ideology": "democratic"}])
+        self.assertIn("leader = {", r["text"])
+        self.assertIn("ideology = democratic", r["text"])
+
+    def test_country_boot(self):
+        from country_boot import generate_country_bootstrap, country_tag_line
+        r = generate_country_bootstrap([{"tag": "AAA", "name": "Testland"}])
+        self.assertTrue(r["histories"])
+        text = next(iter(r["histories"].values()))
+        self.assertIn("AAA = {", text)
+        self.assertIn('AAA:0 "countries/Testland.txt"', r["tag_lines"])
+        self.assertEqual(r["loc"][0]["value"], "Testland")
+        self.assertEqual(country_tag_line("BBB", "Bland"), 'BBB:0 "countries/Bland.txt"')
+
+    def test_focus_package_gen(self):
+        from focus_package_gen import generate_package, generate_icon_gfx
+        focuses = [{"id": "AAA_f1", "icon": "GFX_goal_aaa"}]
+        pkg = generate_package(focuses, tree_id="AAA_proj")
+        self.assertIn("AAA_f1", pkg["tree"]["text"])
+        self.assertIn("focus_tree = {", pkg["tree"]["text"])
+        keys = {x["key"] for x in pkg["loc"]}
+        self.assertIn("AAA_f1_desc", keys)
+        gfx = generate_icon_gfx(focuses)
+        self.assertIn('name = "GFX_goal_aaa"', gfx)
+
+
+class ContentGeneratorDialogSmokeTest(unittest.TestCase):
+    """内容生成器工作台 offscreen 冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def test_generate_ideas_writes_file(self):
+        from content_generator_dialog import ContentGeneratorDialog
+        from unittest import mock
+        tmp = _mkdtemp("gen_dlg_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        dlg = ContentGeneratorDialog(mod_path=tmp)
+        self.app.processEvents()
+        idx = dlg.type_combo.findData("ideas")
+        dlg.type_combo.setCurrentIndex(idx)
+        dlg.id_edit.setText("TST_IDEA")
+        out = os.path.join(tmp, "ideas.txt")
+        dlg.out_edit.setText(out)
+        with mock.patch("content_generator_dialog.QMessageBox.information"):
+            dlg._on_generate()
+        self.assertTrue(os.path.isfile(out))
+        content = open(out, "r", encoding="utf-8").read()
+        self.assertIn("TST_IDEA = {", content)
+
+    def test_generate_focus_writes_file(self):
+        from content_generator_dialog import ContentGeneratorDialog
+        from unittest import mock
+        tmp = _mkdtemp("gen_dlg_f_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        dlg = ContentGeneratorDialog(mod_path=tmp)
+        idx = dlg.type_combo.findData("focus")
+        dlg.type_combo.setCurrentIndex(idx)
+        dlg.id_edit.setText("AAA_f1,AAA_f2")
+        dlg.extra2_edit.setText("AAA_pj")
+        out = os.path.join(tmp, "focus.txt")
+        dlg.out_edit.setText(out)
+        with mock.patch("content_generator_dialog.QMessageBox.information"):
+            dlg._on_generate()
+        content = open(out, "r", encoding="utf-8").read()
+        self.assertIn("AAA_f1", content)
+
+
+class CharacterDataTest(unittest.TestCase):
+    """角色数据层。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("char_data_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "common", "characters"))
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        self.file = os.path.join(self.mod, "common", "characters", "AAA.txt")
+        with open(self.file, "w", encoding="utf-8") as f:
+            f.write("characters = {\n"
+                    "\tAAA_gen = {\n"
+                    "\t\tname = \"AAA_gen\"\n"
+                    "\t\tportraits = {\n"
+                    "\t\t\tcivilian = {\n"
+                    "\t\t\t\tlarge = GFX_P\n"
+                    "\t\t\t}\n"
+                    "\t\t}\n"
+                    "\t\tcountry_leader = {\n"
+                    "\t\t\tideology = democratic\n"
+                    "\t\t}\n"
+                    "\t}\n"
+                    "}\n")
+
+    def test_parse_and_render_preserves_roles(self):
+        from character_data import load_file, render_character_block
+        header, metas, tail = load_file(self.file)
+        self.assertEqual(len(metas), 1)
+        self.assertEqual(metas[0]["id"], "AAA_gen")
+        self.assertEqual(metas[0]["name_loc"], "AAA_gen")
+        self.assertIn("civilian", metas[0]["portraits_inner"])
+        self.assertEqual(len(metas[0]["roles"]), 1)
+        out = render_character_block(metas[0])
+        self.assertIn("country_leader", out)  # roles 保留
+        self.assertIn("name = \"AAA_gen\"", out)
+
+    def test_save_roundtrip(self):
+        from character_data import load_file, save_file
+        header, metas, tail = load_file(self.file)
+        metas[0]["name_loc"] = "AAA_gen_new"
+        save_file(self.file, header, metas, tail)
+        content = open(self.file, "r", encoding="utf-8").read()
+        self.assertIn('name = "AAA_gen_new"', content)
+        self.assertIn("country_leader", content)  # 角色块未丢
+        self.assertIn("ideology = democratic", content)
+
+
+class CharacterEditorSmokeTest(unittest.TestCase):
+    """角色专用编辑器 offscreen 冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def setUp(self):
+        self.tmp = _mkdtemp("char_editor_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "common", "characters"))
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        self.file = os.path.join(self.mod, "common", "characters", "AAA.txt")
+        with open(self.file, "w", encoding="utf-8") as f:
+            f.write("characters = {\n"
+                    "\tAAA_gen = {\n"
+                    "\t\tname = \"AAA_gen\"\n"
+                    "\t\tportraits = {\n"
+                    "\t\t\tcivilian = {\n"
+                    "\t\t\t\tlarge = GFX_P\n"
+                    "\t\t\t}\n"
+                    "\t\t}\n"
+                    "\t}\n"
+                    "}\n")
+
+    def test_dialog_lists_and_edits_name(self):
+        from character_editor_dialog import CharacterEditorDialog
+        from unittest import mock
+        dlg = CharacterEditorDialog(mod_path=self.mod, hoi4_path="")
+        self.app.processEvents()
+        self.assertEqual(dlg.list.count(), 1)
+        # 修改中文名并保存
+        dlg.cn_edit.setText("新名字")
+        with mock.patch("character_editor_dialog.QMessageBox.information"), \
+             mock.patch("character_editor_dialog.QMessageBox.warning"):
+            dlg._save()
+        loc_file = os.path.join(self.mod, "localisation", "simp_chinese", "generic_mod_l_simp_chinese.yml")
+        self.assertTrue(os.path.isfile(loc_file))
+        content = open(loc_file, "r", encoding="utf-8-sig").read()
+        self.assertIn('AAA_gen: "新名字"', content)
+
+
+class ErrorLogSubsystemTest(unittest.TestCase):
+    """"错误日志：按子系统归类。"""
+
+    def test_classify_by_subsystem(self):
+        from error_log import analyze, classify_by_subsystem
+        text = ("missing localisation for key X\n"
+                "duplicate decision id MY_DEC\n"
+                "Could not find texture gfx/interface/goals/x.dds\n")
+        res = analyze(text)
+        subs = classify_by_subsystem(res)
+        self.assertIn("localisation", subs)
+        self.assertIn("decision", subs)
+        self.assertIn("gfx/gui", subs)
+        total = sum(subs.values())
+        self.assertEqual(total, len(res))
+
+
+class ApiCoreToolTest(unittest.TestCase):
+    """接口：第一批工具的 ApiCore 端点。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("api_tools_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "common", "national_focus"))
+        os.makedirs(os.path.join(self.mod, "gfx", "interface", "goals"))
+        os.makedirs(os.path.join(self.mod, "history", "states"))
+        os.makedirs(os.path.join(self.mod, "localisation", "simp_chinese"))
+        self.focus = os.path.join(self.mod, "common", "national_focus", "f.txt")
+        with open(self.focus, "w", encoding="utf-8") as f:
+            f.write("focus_tree = {\n id = TG_pj\n focus = { id = TG_a }\n}\n")
+        with open(os.path.join(self.mod, "history", "states", "01.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("state = {\n\tid = 1\n\tvictory_points = { 10 2 }\n}\n")
+        from api_server import ApiCore
+        self.core = ApiCore(mod_path=self.mod, game_path="")
+        # 建一个格式化用的临时文件（相对 mod）
+        self.target_rel = "common/national_focus/ugly.txt"
+        with open(os.path.join(self.mod, self.target_rel), "w", encoding="utf-8") as f:
+            f.write("x = {\ny = 1\n}\n")
+
+    def test_format_pdx(self):
+        r = self.core.format_pdx({"path": self.target_rel})
+        self.assertTrue(r["ok"])
+        content = open(os.path.join(self.mod, self.target_rel), "r", encoding="utf-8").read()
+        self.assertIn("\ty = 1", content)
+
+    def test_vp_loc_dry_run(self):
+        r = self.core.vp_loc_dry_run()
+        self.assertTrue(r["ok"])
+        self.assertGreaterEqual(r["count"], 1)
+        self.assertIn("VICTORY_POINTS_10", r["text"])
+
+    def test_register_icon_batch_and_error_log(self):
+        # 图标：放一张贴图并引用它
+        open(os.path.join(self.mod, "gfx", "interface", "goals", "GFX_g.dds"), "w").close()
+        with open(self.focus, "w", encoding="utf-8") as f:
+            f.write("focus_tree = {\n id = TG_pj\n"
+                    " focus = { id = TG_a icon = GFX_g }\n}\n")
+        r = self.core.register_icon_batch({"path": "common/national_focus/f.txt", "type": "focus"})
+        self.assertEqual(r["registered"], 1)
+        # 错误日志
+        log = os.path.join(self.mod, "error.log")
+        with open(log, "w", encoding="utf-8") as f:
+            f.write("missing localisation for key X\n")
+        r2 = self.core.analyze_error_log({"absolute_path": log})
+        self.assertTrue(r2["ok"])
+        self.assertIn("localisation", r2["subsystems"])

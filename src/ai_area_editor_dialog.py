@@ -52,6 +52,7 @@ class AiAreaEditorDialog(QDialog):
         root.setSpacing(8)
 
         self.sidebar = EntityListSidebar("AI 区域", self)
+        self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_area_changed)
         self.sidebar.createRequested.connect(self._create_area)
         self.sidebar.duplicateRequested.connect(self._duplicate_area)

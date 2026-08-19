@@ -128,6 +128,12 @@ class TankDesignDialog(QDialog):
         self.design_combo.currentIndexChanged.connect(self._on_design_changed)
         bar.addWidget(QLabel("设计:"))
         bar.addWidget(self.design_combo)
+        # 右键快速编辑本地化（当前设计名）
+        from quick_loc_menu import install_combo_context_menu
+        install_combo_context_menu(
+            self.design_combo, self.mod_path, self.hoi4_path,
+            key_provider=lambda: getattr(self, "current_name", "") or "",
+            parent=self)
 
         self.name_edit = QLineEdit()
         self.name_edit.setFixedWidth(200)

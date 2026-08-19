@@ -121,6 +121,7 @@ class AiTemplateEditorDialog(QDialog):
 
         # 左：角色侧边栏
         self.sidebar = EntityListSidebar("角色模板", self)
+        self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_role_changed)
         self.sidebar.createRequested.connect(self._create_role)
         self.sidebar.duplicateRequested.connect(self._duplicate_role)

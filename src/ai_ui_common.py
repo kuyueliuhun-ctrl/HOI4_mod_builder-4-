@@ -46,9 +46,11 @@ class EntityListSidebar(QWidget):
     deleteRequested = pyqtSignal()
 
     def __init__(self, title="实体", parent=None, width=SIDEBAR_WIDTH,
-                 enable_crud=True):
+                 enable_crud=True, mod_path="", hoi4_path=""):
         super().__init__(parent)
         self._items = []  # [(entity_id, label)]
+        self._mod_path = mod_path
+        self._hoi4_path = hoi4_path
         self.setFixedWidth(width)
         self.setMinimumWidth(width)
         self.setMaximumWidth(width)
@@ -71,6 +73,8 @@ class EntityListSidebar(QWidget):
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.list.setItemDelegate(_ElideDelegate(self.list))
         self.list.currentItemChanged.connect(self._on_current_changed)
+        self.list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.list.customContextMenuRequested.connect(self._on_context_menu)
         root.addWidget(self.list, 1)
 
         if enable_crud:
@@ -131,6 +135,34 @@ class EntityListSidebar(QWidget):
     def selected_item_text(self):
         item = self.list.currentItem()
         return item.text() if item is not None else ""
+
+    def set_paths(self, mod_path="", hoi4_path=""):
+        """设置 mod/游戏路径，供右键快速本地化编辑使用。"""
+        self._mod_path = mod_path or ""
+        self._hoi4_path = hoi4_path or ""
+
+    def _on_context_menu(self, pos):
+        """列表项右键菜单：快速编辑本地化。"""
+        item = self.list.itemAt(pos)
+        if item is None:
+            return
+        entity_id = item.data(Qt.ItemDataRole.UserRole) or ""
+        if not entity_id or not self._mod_path:
+            return
+        menu = QMenu(self.list)
+        act = menu.addAction("✎ 快速编辑本地化（{}）…".format(entity_id))
+        act.triggered.connect(lambda _=False: self._open_quick_loc(entity_id))
+        menu.exec(self.list.viewport().mapToGlobal(pos))
+
+    def _open_quick_loc(self, entity_id):
+        """弹出快速本地化编辑小窗口。"""
+        from quick_localisation_edit import QuickLocalisationEditDialog
+        dlg = QuickLocalisationEditDialog(
+            key=entity_id,
+            mod_path=self._mod_path,
+            hoi4_path=self._hoi4_path,
+            parent=self)
+        dlg.show()
 
     def _apply_filter(self, text):
         text = (text or "").strip().lower()

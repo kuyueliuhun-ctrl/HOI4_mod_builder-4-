@@ -1,0 +1,2315 @@
+{
+  "version": 1,
+  "terms": [
+    {
+      "key": "TNO_improve_academic_base_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_admin_efficiency_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_agriculture_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_army_professionalism_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_conscription_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_draft_exemptions_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_education_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_gender_rights_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_health_care_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_healthcare_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_immigration_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_income_taxation_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_industrial_equipment_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_industrial_expertise_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_max_workhours_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_military_supervision_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_minimum_wage_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_penal_system_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_pensions_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_political_parties_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_poverty_big",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_press_rights_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_public_meetings_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: ye",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_regulations_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_religious_rights_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_research_facilities_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_security_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_slavery_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_trade_laws_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_trade_unions_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_training_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_unemployment_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_improve_vote_franchise_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_unlock_nuclear_tech",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "成为超级大国"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_academic_base_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_admin_efficiency_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_agriculture_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_army_professionalism_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_conscription_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_draft_exemptions_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_gender_rights_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_health_care_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_healthcare_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_immigration_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_income_taxation_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_industrial_equipment_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_industrial_expertise_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_max_workhours_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_military_supervision_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_minimum_wage_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_penal_system_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_pensions_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_political_parties_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_poverty_big",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_poverty_catastrophic",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "灾难性增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_press_rights_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_public_meetings_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_regulations_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_religious_rights_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_research_facilities_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_security_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_slavery_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_trade_laws_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_trade_unions_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_training_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_unemployment_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "TNO_worsen_vote_franchise_policy_effectiveness_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_command_power",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "指挥点数"
+      ],
+      "description": "示例值: 100",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_extra_state_shared_building_slots",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "建筑槽"
+      ],
+      "description": "示例值: 5",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_manpower",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "人力"
+      ],
+      "description": "示例值: 1000",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_political_power",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "政治点数"
+      ],
+      "description": "示例值: 50",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_research_slot",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "科研槽"
+      ],
+      "description": "示例值: 1",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_stability",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "稳定度"
+      ],
+      "description": "示例值: 0.1",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_to_variable",
+      "cn": "注)_expenditures_maximal_pct = <数值> }",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "自定义开支上限下限的脚本写法---写在scripted_effects下"
+      ],
+      "description": "示例值: { econ_(开支类型",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "add_war_support",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "战争支持度"
+      ],
+      "description": "示例值: 0.1",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "admin_funding_maximal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "行政开支上限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "admin_funding_maximal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "行政开支上限上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "admin_funding_minimal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "行政开支下限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "admin_funding_minimal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "行政开支下限提高"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "air_experience",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "空军经验"
+      ],
+      "description": "示例值: 100",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "army_experience",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "陆军经验"
+      ],
+      "description": "示例值: 100",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "army_funding_maximal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "陆军开支上限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "army_funding_maximal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "陆军开支上限提高 及 降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "army_funding_minimal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "陆军开支下限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "army_funding_minimal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "陆军开支下限提高"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "calculate_strike_capability",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "成为超级大国"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "calculate_total_income",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "我后面会补的"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "custom_effect_tooltip",
+      "cn": "起名后写在本地化内",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "自定义开支上限下限的脚本写法---写在scripted_effects下"
+      ],
+      "description": "示例值: 效果介绍",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_GDP_boost_once_percentage",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "GDP增长"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_business_tax_rate_change",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "商业税减少"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_gdp_growth_change",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "GDP增长率"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_income_tax_rate_change",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "所得税减少"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_inflation_change",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "通胀率"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_lower_credit_rating",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "信用等级下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_lower_max_credit_rating",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "信用上限下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_lower_min_credit_rating",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "信用下限下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_money_reserves_change_raw_money",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "准备金"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_pus_change",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "生产单位"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_raise_credit_rating",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "信用等级上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_raise_max_credit_rating",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "信用上限上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_raise_min_credit_rating",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "信用下限上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_spend_money_once_effect_raw_money",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "一次性开销（花费）"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_state_value_change_multiply_specified_state",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "mugi的补充"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "econ_subtype_change",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "经济制度更改方式"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "instant_build",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "浓缩厂"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "level",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "浓缩厂"
+      ],
+      "description": "示例值: 1",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "min",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "正数为增加 负数为降低"
+      ],
+      "description": "示例值: 0",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "modifier",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "我后面会补的"
+      ],
+      "description": "示例值: TCM_misc_income_modifier",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "naval_funding_maximal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "海军开支上限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "naval_funding_maximal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "海军开支上限上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "naval_funding_minimal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "海军开支下限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "naval_funding_minimal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "海军开支下限提高"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "navy_experience",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "海军经验"
+      ],
+      "description": "示例值: 100",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "nuclear_funding_maximal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "核能开支上限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "nuclear_funding_maximal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "核能开支上限上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "nuclear_funding_minimal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "核能开支下限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "nuclear_funding_minimal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "核能开支下限提高"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "nuclear_technology_1",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "成为超级大国"
+      ],
+      "description": "示例值: 1",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "research_funding_maximal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "科研开支上限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "research_funding_maximal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "科研开支上限上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "research_funding_minimal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "科研开支下限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "research_funding_minimal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "科研开支下限提高"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "set_temp_variable",
+      "cn": "TNO_economy_subtype_temp = token:对应的经济制度 }",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "经济制度更改方式"
+      ],
+      "description": "示例值: {",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "social_funding_maximal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "社会开支上限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "social_funding_maximal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "社会开支上限上升"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "social_funding_minimal_decrease_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "社会开支下限降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "social_funding_minimal_increase_high",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "社会开支下限提高"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_child_labor_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_child_labor_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_conscription_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_conscription_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_draft_exemptions_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_draft_exemptions_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_education_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_education_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "落实度下降"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_gender_rights_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_gender_rights_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_health_care_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_health_care_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_immigration_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_immigration_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_academic_base",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接升级"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_admin_efficiency",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接升级"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_agriculture",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接升级"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_army_professionalism",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_healthcare",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_industrial_equipment",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_industrial_expertise",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接增加"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_improve_research_facilities",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接升级"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_income_taxation_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_income_taxation_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_lgbt_rights_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_lgbt_rights_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_max_workhours_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_max_workhours_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_military_supervision_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_military_supervision_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_minimum_wage_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_minimum_wage_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_minorities_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_minorities_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_penal_system_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_penal_system_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_pensions_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_pensions_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_political_parties_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_political_parties_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_pollution_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_pollution_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_press_rights_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_press_rights_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_public_meetings_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_public_meetings_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_racial_integration_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_racial_integration_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_refugees_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_refugees_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_regulations_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_regulations_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_religious_rights_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_religious_rights_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_safety_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_safety_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_security_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_security_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_slavery_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_slavery_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_trade_laws_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_trade_laws_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_trade_unions_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_trade_unions_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_training_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_training_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_unemployment_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_unemployment_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_vote_franchise_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_vote_franchise_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_women_improve",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接进步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_women_worsen",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接退步"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_academic_base",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降级"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_admin_efficiency",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_agriculture",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降级"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_army_professionalism",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_healthcare",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_industrial_equipment",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_industrial_expertise",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降低"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "tno_worsen_research_facilities",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "直接降级"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "type",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "浓缩厂"
+      ],
+      "description": "示例值: enrichment_plant",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "update_economy_tab",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "我后面会补的"
+      ],
+      "description": "示例值: yes",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    },
+    {
+      "key": "var",
+      "cn": "",
+      "node_type": "value",
+      "tags": [
+        "TNO",
+        "正数为增加 负数为降低"
+      ],
+      "description": "示例值: nuclear_stockpile",
+      "source": "qiqi:TNO常用代码合集(25.1.5)(1)"
+    }
+  ]
+}

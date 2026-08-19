@@ -296,6 +296,12 @@ class DivisionEditor(QDialog):
         self.combo.setMinimumWidth(240)
         self.combo.currentIndexChanged.connect(self._on_combo_changed)
         bar.addWidget(self.combo)
+        # 右键快速编辑本地化（当前模板名）
+        from quick_loc_menu import install_combo_context_menu
+        install_combo_context_menu(
+            self.combo, self.mod_path, self.hoi4_path,
+            key_provider=lambda: getattr(self.current, "name", "") or "",
+            parent=self)
 
         self.name_edit = QLineEdit()
         self.name_edit.setFixedWidth(220)

@@ -75,6 +75,7 @@ class AiPlanEditorDialog(QDialog):
         root.setSpacing(8)
 
         self.sidebar = EntityListSidebar("战略计划", self)
+        self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_plan_changed)
         self.sidebar.createRequested.connect(self._create_plan)
         self.sidebar.duplicateRequested.connect(self._duplicate_plan)

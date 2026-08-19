@@ -57,6 +57,7 @@ class AiStrategyEditorDialog(QDialog):
         root.setSpacing(8)
 
         self.sidebar = EntityListSidebar("策略组", self)
+        self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_group_changed)
         self.sidebar.createRequested.connect(self._create_group)
         self.sidebar.duplicateRequested.connect(self._duplicate_group)

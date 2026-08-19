@@ -663,6 +663,14 @@ class GenericTreeEditor(QDialog):
         # 通用菜单项
         edit_action = menu.addAction("✎ 编辑节点")
         edit_action.triggered.connect(self._edit_node)
+        # 非虚拟翻译节点：提供快速本地化编辑（当前键）
+        if node != self.root_node:
+            loc_key = self._candidate_loc_key(node)
+            if loc_key:
+                quick_loc_action = menu.addAction(
+                    "✎ 快速编辑本地化（{}）…".format(loc_key))
+                quick_loc_action.triggered.connect(
+                    lambda _=False, k=loc_key: self._quick_edit_localisation(k))
         # 非根节点：可以移动和删除
         if node != self.root_node:
             menu.addSeparator()
@@ -718,6 +726,32 @@ class GenericTreeEditor(QDialog):
                 "未检测到可编辑的固定字段（如focus_id、ideas中的country名称等）。\n"
                 "请在编辑器中添加对应的字段后再试。"
             )
+
+    def _candidate_loc_key(self, node):
+        """从树节点中提取一个适合用于本地化编辑的 key。
+
+        优先使用节点值（如 id = FOO → FOO）；
+        无值或值为块时退回键名（如 TEST_IDEA = { ... } → TEST_IDEA）。
+        """
+        if node is None:
+            return ""
+        vp = getattr(node, "_virtual_parent_key", None)
+        if vp in (self.VIRTUAL_TRANSLATION_KEY, self.VIRTUAL_DESCRIPTION_KEY):
+            return node.key or ""
+        value = getattr(node, "value", "")
+        if value and not str(value).strip().startswith("{"):
+            return str(value).strip().strip('"')
+        return node.key or ""
+
+    def _quick_edit_localisation(self, key):
+        """弹出快速本地化编辑小窗口（当前键直接填入，不跳到本地化编辑器）。"""
+        from quick_localisation_edit import QuickLocalisationEditDialog
+        dlg = QuickLocalisationEditDialog(
+            key=key,
+            mod_path=self.mod_path or "",
+            hoi4_path=self.hoi4_path or "",
+            parent=self)
+        dlg.show()
 
     def _refresh_translations(self):
         """刷新翻译节点显示

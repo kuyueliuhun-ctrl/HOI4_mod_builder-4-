@@ -563,17 +563,44 @@ def detect_oob_kinds(content):
 
     Returns:
         dict: {"army": bool, "navy": bool, "air": bool}
-        army = division_template / division；navy = ship；air = air_wing。
+        army = division_template / division；navy = ship / fleet / task_force；
+        air = air_wings / air_wing。
     """
     kinds = {"army": False, "navy": False, "air": False}
     for key, _depth, _start, _end in _block_ranges(content):
-        if key == "division_template" or key == "division":
+        if key in ("division_template", "division"):
             kinds["army"] = True
-        elif key == "ship":
+        elif key in ("ship", "fleet", "task_force"):
             kinds["navy"] = True
-        elif key == "air_wing":
+        elif key in ("air_wings", "air_wing"):
             kinds["air"] = True
     return kinds
+
+
+# OOB 专用设计器已覆盖的顶层块键（其余顶层块视为“其他内容”）
+OOB_COVERED_TOP_KEYS = {
+    "division_template", "units", "Units",
+    "air_wings", "air_wing",
+    "division", "ship", "fleet", "task_force",
+}
+
+
+def detect_oob_other_content(content):
+    """检测 OOB 文件中未被专用设计器覆盖的顶层块键。
+
+    例如 `instant_effect`、`add_equipment_to_stockpile`、
+    `create_colonial_division_template` 等，均视为“其他内容”。
+
+    Returns:
+        list[str]: 未覆盖的顶层块键（去重、排序）；无则返回 []。
+    """
+    blocks = _block_ranges(content)
+    if not blocks:
+        return []
+    min_depth = min(b[1] for b in blocks)
+    keys = {key for key, depth, _s, _e in blocks
+            if depth == min_depth and key not in OOB_COVERED_TOP_KEYS}
+    return sorted(keys)
 
 
 # ---------- 文件级管理 ----------

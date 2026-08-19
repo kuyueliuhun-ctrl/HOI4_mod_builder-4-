@@ -121,19 +121,78 @@ class InitialOobEditor(QDialog):
         QMessageBox.information(self, "已保存", f"已保存到:\n{self.file_path}")
 
 
+def _ask_oob_open_mode(parent, other_keys):
+    """用户选择如何处理含其他内容的 OOB 文件。
+
+    Returns:
+        "designer" / "tree" / "both" / None（取消）。
+    """
+    from PyQt6.QtWidgets import QInputDialog
+    items = [
+        "打开对应设计器（忽略其他内容）",
+        "打开完整树编辑器（可查看/编辑全部内容）",
+        "两者都打开",
+        "取消",
+    ]
+    text = ("检测到该 OOB 文件包含设计器未覆盖的内容：\n"
+            "　" + "、".join(other_keys) +
+            "\n\n请选择打开方式：")
+    choice, ok = QInputDialog.getItem(
+        parent, "OOB 文件包含其他内容", text, items, 0, False)
+    if not ok:
+        return None
+    if choice == items[0]:
+        return "designer"
+    if choice == items[1]:
+        return "tree"
+    if choice == items[2]:
+        return "both"
+    return None
+
+
+def _open_oob_tree_editor(file_path, mod_path="", hoi4_path="", parent=None):
+    """以完整通用树编辑器打开 OOB 文件（可查看/修改全部内容）。"""
+    from tree_node import tree_from_pdx_text
+    from generic_tree_editor import GenericTreeEditor
+    from gui_translator import get_translator
+    from localization_mgr import get_localization_manager
+    from focus_view import CUSTOM_STATEMENT_PATH
+    with open(file_path, "r", encoding="utf-8-sig", newline="") as f:
+        content = f.read()
+    root = tree_from_pdx_text(content)
+    file_lines = content.splitlines()
+    editor = GenericTreeEditor(
+        root_node=root,
+        file_path=file_path,
+        file_lines=file_lines,
+        block_range=(1, len(file_lines) + 1),
+        translator=get_translator(),
+        custom_statement_path=CUSTOM_STATEMENT_PATH,
+        loc_manager=get_localization_manager(),
+        parent=parent,
+        title="OOB 完整编辑",
+        hoi4_path=hoi4_path,
+        mod_path=mod_path,
+    )
+    editor.show()
+    return editor
+
+
 def open_oob_designer(file_path, mod_path="", hoi4_path="", parent=None):
     """打开 OOB 文件 → 按文件军种自动拉起对应设计面板。
 
     - 含陆军（division_template/division）→ 师编制设计器（顶部可调地编/其他设计器）
-    - 含海军（ship）→ 舰艇设计面板
-    - 含空军（air_wing）→ 飞机设计面板
+    - 含海军（ship/fleet/task_force）→ 舰艇设计面板
+    - 含空军（air_wings/air_wing）→ 飞机设计面板
     多军种混合会同时拉起多个面板（非模态）；无法识别时回退师编制设计器。
+    若文件包含设计器未覆盖的其他顶层内容（如 instant_effect），先让用户选择：
+    仅打开设计器 / 打开完整树编辑器 / 两者都打开 / 取消。
 
     Returns:
-        打开的设计器；多个时返回 list。
+        打开的设计器/编辑器；多个时返回 list；用户取消返回 None。
     """
     from oob_loader import OobFile, load_sub_units, detect_oob_kinds, \
-        find_oob_country
+        detect_oob_other_content, find_oob_country
     from gui_translator import get_translator, scan_gfx_folder
     try:
         with open(file_path, "r", encoding="utf-8-sig", errors="ignore") as f:
@@ -141,6 +200,19 @@ def open_oob_designer(file_path, mod_path="", hoi4_path="", parent=None):
     except Exception:
         content = ""
     kinds = detect_oob_kinds(content)
+    other_keys = detect_oob_other_content(content)
+    tree_editor = None
+    if other_keys:
+        mode = _ask_oob_open_mode(parent, other_keys)
+        if mode is None:
+            return None
+        if mode in ("tree", "both"):
+            tree_editor = _open_oob_tree_editor(
+                file_path, mod_path=mod_path, hoi4_path=hoi4_path,
+                parent=parent)
+            if mode == "tree":
+                return tree_editor
+
     tag = find_oob_country(mod_path, file_path)
     opened = []
 
@@ -169,4 +241,6 @@ def open_oob_designer(file_path, mod_path="", hoi4_path="", parent=None):
                              mod_path, hoi4_path, parent=parent)
         dlg.show()
         opened.append(dlg)
+    if tree_editor is not None:
+        return [tree_editor] + opened
     return opened[0] if len(opened) == 1 else opened

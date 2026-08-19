@@ -140,8 +140,24 @@ class MyWindow(QMainWindow):
         _tool_actions = build_tool_actions(self.ui.menu_tools)
         self.act_coverage_report = _tool_actions["coverage_report"]
         self.act_coverage_report.triggered.connect(self.on_coverage_report)
+        self.act_localisation_editor = _tool_actions["localisation_editor"]
+        self.act_localisation_editor.triggered.connect(self.on_localisation_editor)
+        self.act_entity_resource_workbench = _tool_actions["entity_resource_workbench"]
+        self.act_entity_resource_workbench.triggered.connect(self.on_entity_resource_workbench)
         self.act_health_check = _tool_actions["health_check"]
         self.act_health_check.triggered.connect(self.on_health_check)
+        self.act_content_generators = _tool_actions["content_generators"]
+        self.act_content_generators.triggered.connect(self.on_content_generators)
+        self.act_character_editor = _tool_actions["character_editor"]
+        self.act_character_editor.triggered.connect(self.on_character_editor)
+        self.act_pdx_format = _tool_actions["pdx_format"]
+        self.act_pdx_format.triggered.connect(self.on_pdx_format)
+        self.act_dds_convert = _tool_actions["dds_convert"]
+        self.act_dds_convert.triggered.connect(self.on_dds_convert)
+        self.act_vp_loc = _tool_actions["vp_loc"]
+        self.act_vp_loc.triggered.connect(self.on_vp_loc)
+        self.act_error_log = _tool_actions["error_log"]
+        self.act_error_log.triggered.connect(self.on_error_log)
         self.act_map_editor = _tool_actions["map_editor"]
         self.act_map_editor.triggered.connect(self.on_map_editor)
         self.act_region_editor = _tool_actions["region_editor"]
@@ -176,6 +192,10 @@ class MyWindow(QMainWindow):
         self.act_feedback = self.toolbar.addAction("💬 问题反馈")
         self.act_feedback.setToolTip("遇到问题可加入 QQ 群反馈")
         self.act_feedback.triggered.connect(self.on_feedback_clicked)
+        self.toolbar.addSeparator()
+        self.act_toolbar_loc_editor = self.toolbar.addAction("🌐 本地化编辑器")
+        self.act_toolbar_loc_editor.setToolTip("打开 mod 文件本地化编辑器（含国策/修正翻译）")
+        self.act_toolbar_loc_editor.triggered.connect(self.on_localisation_editor)
         self.addToolBar(self.toolbar)
 
         # 如果已配置 HOI4 路径，同步图标映射和本地化管理器
@@ -868,6 +888,67 @@ class MyWindow(QMainWindow):
             mod_path=mod_path,
             game_path=self.settings.get("HOI4_path", ""))
         dlg.exec()
+
+    def on_content_generators(self):
+        """工具菜单：内容生成器工作台。"""
+        mod_path, hoi4_path = self._require_mod("内容生成器")
+        if not mod_path:
+            return
+        from content_generator_dialog import ContentGeneratorDialog
+        dlg = ContentGeneratorDialog(mod_path=mod_path)
+        dlg.show()
+
+    def on_character_editor(self):
+        """工具菜单：角色专用编辑器。"""
+        mod_path, hoi4_path = self._require_mod("角色编辑器")
+        if not mod_path:
+            return
+        from character_editor_dialog import CharacterEditorDialog
+        dlg = CharacterEditorDialog(mod_path=mod_path, hoi4_path=hoi4_path, parent=self)
+        dlg.show()
+
+    def on_pdx_format(self):
+        mod_path = self.settings.get("mod_path", "")
+        from standalone_tool_dialogs import run_pdx_format
+        run_pdx_format(self, mod_path)
+
+    def on_dds_convert(self):
+        mod_path = self.settings.get("mod_path", "")
+        from standalone_tool_dialogs import run_dds_convert
+        run_dds_convert(self, mod_path)
+
+    def on_vp_loc(self):
+        from standalone_tool_dialogs import run_vp_loc
+        run_vp_loc(self, self.settings.get("mod_path", ""),
+                   self.settings.get("HOI4_path", ""))
+
+    def on_error_log(self):
+        from standalone_tool_dialogs import run_error_log
+        run_error_log(self)
+
+    def on_localisation_editor(self):
+        """工具菜单/工具栏：打开 mod 文件本地化编辑器（含国策/修正翻译）。"""
+        mod_path, hoi4_path = self._require_mod("本地化编辑器")
+        if not mod_path:
+            return
+        from localisation_editor_dialog import LocalisationEditorDialog
+        dlg = LocalisationEditorDialog(
+            mod_path=mod_path,
+            hoi4_path=hoi4_path,
+            parent=self)
+        dlg.show()
+
+    def on_entity_resource_workbench(self):
+        """工具菜单：实体配套资源工作台（批量本地化 + 图标 + 补光效）。"""
+        mod_path, hoi4_path = self._require_mod("实体配套资源工作台")
+        if not mod_path:
+            return
+        from entity_resource_dialog import EntityResourceDialog
+        dlg = EntityResourceDialog(
+            mod_path=mod_path,
+            hoi4_path=hoi4_path,
+            parent=self)
+        dlg.show()
 
     def on_map_editor(self):
         """工具菜单：地图编辑（点选/涂色/框选/地形演示）。"""

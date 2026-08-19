@@ -51,6 +51,7 @@ class AiFocusEditorDialog(QDialog):
         root.setSpacing(8)
 
         self.sidebar = EntityListSidebar("科研权重块", self)
+        self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_block_changed)
         self.sidebar.createRequested.connect(self._create_block)
         self.sidebar.duplicateRequested.connect(self._duplicate_block)

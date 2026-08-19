@@ -403,6 +403,62 @@ class ApiCore:
             return None
         return fp
 
+    # ---------- 工具接口（第一批复刻工具） ----------
+
+    def format_pdx(self, data):
+        """格式化 PDX 文件：{path, whitespace?, ignore_comments?}"""
+        rel = (data.get("path") or "").strip()
+        fp = self._safe_join(rel)
+        if not fp or not os.path.isfile(fp):
+            raise ValueError("文件不存在: " + rel)
+        from pdx_format import format_file
+        ok = format_file(fp, remove_whitespace=bool(data.get("whitespace")),
+                         ignore_comments=bool(data.get("ignore_comments")))
+        self._notify_change(fp)
+        return {"ok": ok, "path": rel}
+
+    def vp_loc_dry_run(self):
+        """干跑生成 VP 本地化文本（不写文件）。"""
+        self.ensure_mod()
+        from vp_loc import collect_vps, build_vp_loc_text
+        vps = collect_vps(self.mod_path)
+        return {"ok": True, "count": len(vps),
+                "text": build_vp_loc_text(vps, lang="simp_chinese")}
+
+    def analyze_error_log(self, data):
+        """分析错误日志：{path(相对mod) 或 absolute_path} → 归类。"""
+        rel = (data.get("path") or "").strip()
+        if rel:
+            fp = self._safe_join(rel)
+            if not fp:
+                raise ValueError("非法路径")
+        else:
+            fp = data.get("absolute_path", "")
+        if not fp or not os.path.isfile(fp):
+            raise ValueError("日志文件不存在")
+        from error_log import analyze_file, summarize, classify_by_subsystem
+        results = analyze_file(fp)
+        return {"ok": True, "count": len(results),
+                "categories": summarize(results),
+                "subsystems": classify_by_subsystem(results),
+                "items": [{"lineno": r["lineno"], "category": r["category"],
+                           "message": r["message"]} for r in results]}
+
+    def register_icon_batch(self, data):
+        """在脚本文件中批量补注册缺失图标 GFX：{path, type?}"""
+        self.ensure_mod()
+        rel = (data.get("path") or "").strip()
+        type_key = (data.get("type") or "focus").strip()
+        fp = self._safe_join(rel)
+        if not fp or not os.path.isfile(fp):
+            raise ValueError("文件不存在: " + rel)
+        from icon_batch import register_missing_gfx
+        r = register_missing_gfx(self.mod_path, rel, type_key,
+                                 hoi4_path=self.game_path)
+        return {"ok": True, "file": rel,
+                "registered": r["registered"],
+                "skipped_no_texture": r["skipped_no_texture"]}
+
     def create_focus_project(self, data):
         self.ensure_mod()
         from project_wizard import generate_project
@@ -579,6 +635,10 @@ class ApiCore:
             "GET    /api/templates?type=&usage=",
             "GET    /api/icon_manifest?query=&source=&limit=",
             "GET    /api/overlay_report?summary_only=",
+            "POST   /api/tools/format_pdx  {path,whitespace?,ignore_comments?}",
+            "GET    /api/tools/vp_loc     （干跑 VP 本地化，不写文件）",
+            "POST   /api/tools/error_log  {path|absolute_path}",
+            "POST   /api/tools/register_icon_batch  {path,type?}",
             "GET    /api/help",
         ]}
 
@@ -711,6 +771,14 @@ class ApiHandler(BaseHTTPRequestHandler):
             elif path == "/api/overlay_report" and self.command == "GET":
                 self._send(200, self.core.get_overlay_report(
                     summary_only=q.get("summary_only", "") == "1"))
+            elif path == "/api/tools/format_pdx" and self.command == "POST":
+                self._send(200, self.core.format_pdx(self._read_json()))
+            elif path == "/api/tools/vp_loc" and self.command == "GET":
+                self._send(200, self.core.vp_loc_dry_run())
+            elif path == "/api/tools/error_log" and self.command == "POST":
+                self._send(200, self.core.analyze_error_log(self._read_json()))
+            elif path == "/api/tools/register_icon_batch" and self.command == "POST":
+                self._send(200, self.core.register_icon_batch(self._read_json()))
             else:
                 self._send(404, {"ok": False, "error": f"未知端点: {self.command} {self.path}"})
         except ValueError as e:

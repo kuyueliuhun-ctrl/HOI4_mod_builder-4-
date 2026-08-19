@@ -91,6 +91,7 @@ class AiNavyEditorDialog(QDialog):
         h.setSpacing(8)
 
         sidebar = EntityListSidebar(title, self)
+        sidebar.set_paths(self.mod_path, self.hoi4_path)
         sidebar.currentChanged.connect(
             lambda eid, k=kind: self._on_kind_entity_changed(k, eid))
         sidebar.createRequested.connect(

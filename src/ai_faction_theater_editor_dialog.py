@@ -58,6 +58,7 @@ class AiFactionTheaterEditorDialog(QDialog):
         root.setSpacing(8)
 
         self.sidebar = EntityListSidebar("派系战区", self)
+        self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_theater_changed)
         self.sidebar.createRequested.connect(self._create_theater)
         self.sidebar.duplicateRequested.connect(self._duplicate_theater)
