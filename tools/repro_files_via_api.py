@@ -173,7 +173,7 @@ def main():
         lines.append("")
 
         text = "\n".join(lines)
-        with open(os.path.join(ROOT, "docs/接口复现报告.md"), "w", encoding="utf-8") as f:
+        with open(os.path.join(ROOT, "docs/archive/接口复现报告.md"), "w", encoding="utf-8") as f:
             f.write(text)
         print(text)
     finally:

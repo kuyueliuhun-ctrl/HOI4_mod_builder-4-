@@ -978,7 +978,7 @@ python ui_gap_probe.py --dump-all --output 已分析.md
    原始 PDX 移入「高级 ▾」菜单；AI 7 编辑器 raw 文案统一
    「高级：原始 PDX（兜底）」；advisor traits 多选/字段化；ai_plan desc 双行。
 9. ✅ **批次9 文档同步**：`docs/整合计划.md` 状态表、
-   `docs/整合计划.md` 3d 表、`docs/UI评估报告.md` 批次表已同步；
+   `docs/整合计划.md` 3d 表、`docs/综合报告.md` 批次表已同步；
    `verify_contracts.py` 双版本全绿、`ui_gap_probe` 相关类型缺口已收敛。
 
 ### 6.23 已完成：第一份执行文档剩余源码缺口 + §0.x 补充（2026-08-23）
@@ -1042,5 +1042,5 @@ python ui_gap_probe.py --dump-all --output 已分析.md
   本项目移植了它的工程方法论（原子写/健康检查/可执行契约/主题令牌）。
   它的 `AGENTS.md`（SF-ATS 验证契约）是本文档的参考模板。
 - 关键文档：`docs/验证契约.md`（写入纪律/契约清单）、`docs/科技图标存储规则.md`、
-  `README.md`（功能全览）、`docs/接口复现报告.md`。
+  `README.md`（功能全览）、`docs/综合报告.md`。
 - 按 §4.10 规范，不再产出/提交 UI 预览截图。

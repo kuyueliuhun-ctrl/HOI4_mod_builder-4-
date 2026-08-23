@@ -21,7 +21,7 @@ AI_TYPES = {
 
 # 内容类型定义：key -> (显示名, 图标, 相对 mod 目录的文件夹列表, 基础模板类型或 None, 扩展名或扩展名列表)
 # 覆盖范围：对照游戏 common/ 全部子目录、events/history/interface/localisation/map/gfx 顶层目录
-# 与 E:\mods 中 5 个成熟 mod 实际使用的目录整理（详见 docs/覆盖检查报告.md）。
+# 与 E:\mods 中 5 个成熟 mod 实际使用的目录整理（详见 docs/综合报告.md）。
 # 基础模板类型为 None 表示暂无「新建文件」模板（标注：无新建模板；仍可树形编辑）。
 CONTENT_TYPES = [
     # ── 政治 / 意识形态 ──
