@@ -29,7 +29,7 @@ from ai_loader import (
     upsert_top_block_child,
 )
 from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
-from ui_widgets import OrderRowList
+from ui_widgets import OrderRowList, WeightCard, WeightTable
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 from localisation_editor_data import (
@@ -37,7 +37,7 @@ from localisation_editor_data import (
 )
 
 ADVANCED_FIELDS = ("allowed", "enable", "abort", "focus_factors",
-                   "research", "ideas", "weight")
+                   "research", "ideas", "traits", "weight")
 
 
 def _plan_country(plan):
@@ -145,6 +145,23 @@ class AiPlanEditorDialog(QDialog):
         order.addStretch(1)
         self.tabs.addTab(order_tab, "国策顺序")
 
+        # 结构化块（WeightTable / WeightCard）
+        struct_tab = QWidget()
+        struct = QVBoxLayout(struct_tab)
+        struct.addWidget(QLabel("科研权重（键 = 权重）"))
+        self.research_table = WeightTable()
+        struct.addWidget(self.research_table)
+        struct.addWidget(QLabel("理念权重（键 = 权重）"))
+        self.ideas_table = WeightTable()
+        struct.addWidget(self.ideas_table)
+        struct.addWidget(QLabel("国策因子（键 = 权重）"))
+        self.focus_factors_table = WeightTable()
+        struct.addWidget(self.focus_factors_table)
+        self.weight_card = WeightCard("AI 意愿权重")
+        struct.addWidget(self.weight_card)
+        struct.addStretch(1)
+        self.tabs.addTab(struct_tab, "结构化块")
+
         # 高级脚本
         adv_tab = QWidget()
         adv = QVBoxLayout(adv_tab)
@@ -219,6 +236,7 @@ class AiPlanEditorDialog(QDialog):
         self.order_list.set_order(self._ordered)
         self._update_order_label()
         self._update_advanced_summaries()
+        self._load_structured_fields()
 
     def _update_order_label(self):
         if self._ordered:
@@ -231,6 +249,54 @@ class AiPlanEditorDialog(QDialog):
             text = (self._advanced_blocks.get(field) or "").strip()
             self.adv_buttons[field].setText(
                 "空" if not text else "已编辑（%d 行）" % len(text.splitlines()))
+
+    # ---------- 结构化块 ----------
+
+    @staticmethod
+    def _parse_weight_rows(text):
+        """从 `key = value` 块文本解析为 [(键, 值)]。"""
+        rows = []
+        for line in (text or "").splitlines():
+            line = line.strip().rstrip("}")
+            if not line or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            k = k.strip()
+            v = v.strip().strip('"')
+            if k:
+                rows.append((k, v))
+        return rows
+
+    @staticmethod
+    def _rows_to_block(rows):
+        lines = []
+        for k, v in rows:
+            lines.append("\t%s = %s" % (k, v))
+        return "{\n" + "\n".join(lines) + "\n}" if lines else ""
+
+    def _load_structured_fields(self):
+        self.research_table.set_rows(
+            self._parse_weight_rows(self._advanced_blocks.get("research", "")))
+        self.ideas_table.set_rows(
+            self._parse_weight_rows(self._advanced_blocks.get("ideas", "")))
+        self.focus_factors_table.set_rows(
+            self._parse_weight_rows(self._advanced_blocks.get("focus_factors", "")))
+        weight_rows = self._parse_weight_rows(
+            self._advanced_blocks.get("weight", ""))
+        if weight_rows:
+            self.weight_card.table.set_rows(weight_rows)
+        else:
+            self.weight_card.table.set_rows([])
+
+    def _sync_structured_fields(self):
+        self._advanced_blocks["research"] = self._rows_to_block(
+            self.research_table.rows())
+        self._advanced_blocks["ideas"] = self._rows_to_block(
+            self.ideas_table.rows())
+        self._advanced_blocks["focus_factors"] = self._rows_to_block(
+            self.focus_factors_table.rows())
+        self._advanced_blocks["weight"] = self._rows_to_block(
+            self.weight_card.table.rows())
 
     # ---------- 编辑 ----------
 
@@ -442,6 +508,7 @@ class AiPlanEditorDialog(QDialog):
             self._ordered = self.order_list.order()
             self._update_order_label()
         content = replace_ai_plan_focus_order(content, pid, self._ordered)
+        self._sync_structured_fields()
         for field in ADVANCED_FIELDS:
             text = (self._advanced_blocks.get(field) or "").strip()
             if text:

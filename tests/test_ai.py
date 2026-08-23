@@ -240,6 +240,22 @@ class AiPlanEditorTest(unittest.TestCase):
         self.assertIn("ai_national_focuses = {\n\tD\n\tA\n}", content)
         dlg.close()
 
+    def test_structured_weight_tables_sync(self):
+        from ai_loader import load_ai_plans
+        from ai_plan_editor_dialog import AiPlanEditorDialog
+        mod, path = self._make_env()
+        plans = load_ai_plans(mod, "")
+        dlg = AiPlanEditorDialog(plans, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        dlg.research_table.set_rows([("infantry_weapons", "10")])
+        dlg.weight_card.table.set_rows([("base", "1")])
+        dlg._sync_structured_fields()
+        self.assertIn("infantry_weapons = 10",
+                      dlg._advanced_blocks["research"])
+        self.assertIn("base = 1", dlg._advanced_blocks["weight"])
+        dlg.close()
+
     def test_open_tree_editor_routes_ai_plan(self):
         from unittest.mock import MagicMock, patch
         from main_window import MyWindow
