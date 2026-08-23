@@ -22,6 +22,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-wsl.txt
 
+      # 注意：CI 无 settings.json，verify 内的 UI 缺口探针会走 SKIP 分支；
+      # 本地改专用 UI 后仍应手跑一次全量 ui_gap_probe（--max-files 0）。
       - name: Run contract verification
         run: |
           QT_QPA_PLATFORM=offscreen python tools/verify_contracts.py

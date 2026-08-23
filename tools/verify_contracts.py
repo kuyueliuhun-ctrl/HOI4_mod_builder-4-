@@ -130,6 +130,20 @@ def main():
                     run_step("行数预算",
                              [PYTHON, os.path.join("tools", "check_file_budget.py")])))
 
+    # 6. UI 缺口探针（仅本地有 settings.json 时执行；CI 无 settings 跳过）
+    settings_path = os.path.join(PROJECT_ROOT, "settings.json")
+    if os.path.exists(settings_path):
+        out = os.path.join(".runtime", "ui_gap_verify.md")
+        results.append(("UI缺口探针(轻量)",
+                        run_step("UI缺口探针(轻量)",
+                                 [PYTHON, "ui_gap_probe.py",
+                                  "--types", "event,tech,character,bop",
+                                  "--max-files", "5",
+                                  "--output", out, "--ci"])))
+    else:
+        print("  [SKIP] 无 settings.json（CI/新环境跳过探针）")
+        results.append(("UI缺口探针(轻量)", True))
+
     print("\n" + "=" * 46)
     all_ok = True
     for name, ok in results:

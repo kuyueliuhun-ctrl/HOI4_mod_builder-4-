@@ -100,6 +100,7 @@ UI_COVERAGE_SPECS = {
             "focus_tree.focus.select_effect.**",
         ],
         "note": "节点弹窗常用字段已覆盖；文件级其他键（style/search_filter_prios/常量）与 focus 内部未列嵌套字段仍经通用树编辑器兜底，属长期收敛项（挂 docs/未完成计划.md 通用类型 F 批）",
+        "ci_exempt": True,
     },
 
     # ---------------- 科技树画布（B2：低分，几乎只画不改） ----------------
@@ -216,6 +217,7 @@ UI_COVERAGE_SPECS = {
             "state.history.victory_points.**",
         ],
         "note": "resources/victory_points/manpower/州名/州类别由右侧州字段表单覆盖；history.resources 为兼容 mod 写法；其余 state 嵌套字段（天气/历史/高级建筑等）仍可能走树编辑器，属长期收敛项（收敛计划挂 docs/未完成计划.md 通用类型 F 批）",
+        "ci_exempt": True,
     },
     "strategic_region": {
         "label": "区域编辑器（战略区域）",
@@ -237,6 +239,7 @@ UI_COVERAGE_SPECS = {
         "top": "*",
         "covered": ["create_equipment_variant.**"],
         "note": "变体（模块/升级）由三设计器覆盖；其余块走树编辑器，逐步收敛（收敛计划挂 docs/未完成计划.md 通用类型 F 批）",
+        "ci_exempt": True,
     },
 }
 
@@ -758,6 +761,8 @@ def main():
     parser.add_argument("--output", default="",
                         help="输出路径；缺口模式默认 docs/UI树形缺口检测报告.md，"
                              "--dump-all 默认 已分析.md")
+    parser.add_argument("--ci", action="store_true",
+                        help="CI/门禁模式：非豁免类型存在缺口时返回非零")
     args = parser.parse_args()
 
     roots = [_to_local_path(r) for r in args.root] or _default_roots()
@@ -884,6 +889,20 @@ def main():
     print("汇总：缺失顶层词条/块 %d 条，缺失嵌套词条/块 %d 条" % (
         sum(len(r["missing_top"]) for r in results.values()),
         sum(len(r["missing_fields"]) for r in results.values())))
+
+    if args.ci:
+        bad = []
+        for type_key, r in results.items():
+            spec = UI_COVERAGE_SPECS.get(type_key, {})
+            if spec.get("ci_exempt"):
+                continue
+            if r["missing_top"] or r["missing_fields"]:
+                bad.append("%s top=%d fields=%d" % (
+                    type_key, len(r["missing_top"]), len(r["missing_fields"])))
+        if bad:
+            print("CI 缺口门禁失败：%s" % "; ".join(bad))
+            return 1
+        print("CI 缺口门禁通过")
     return 0
 
 

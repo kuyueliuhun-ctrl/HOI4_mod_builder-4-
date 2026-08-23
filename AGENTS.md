@@ -44,6 +44,9 @@
 ```
 退出码 0 才算完成。契约测试以 `python -m unittest discover -s tests -v` 实时输出为准
 （2026-08-23 约 395 个用例，分布见 tests/ 按域文件）。
+`verify_contracts.py` 已内置轻量 UI 缺口探针（`event,tech,character,bop`，本地有
+`settings.json` 时执行并走 `--ci` 门禁）；改专用 UI 后仍需手跑一次全量
+`ui_gap_probe.py --max-files 0` 确认收敛。
 
 **UI 树形缺口探针 / 全量词条分析（根目录 `ui_gap_probe.py`）**：
 ```bash
