@@ -253,46 +253,9 @@ class ModCreatorDialog(QDialog):
 
     def _create_mod_structure(self, mod_name, folder_name, version, tags, mod_folder_path, mod_file_path):
         """
-        创建mod的完整文件结构：
-        1. {mod_file_path}/{folder_name}.mod — mod描述文件（只存放在 .mod 文件目录）
-        2. {mod_folder_path}/{folder_name}/descriptor.mod — mod内部描述文件
-        3. {mod_folder_path}/{folder_name}/gfx/ — 图标资源目录（空）
-        4. {mod_folder_path}/{folder_name}/interface/{folder_name}.gfx — 精灵定义文件
-        5. {mod_folder_path}/{folder_name}/localisation/simp_chinese/{folder_name}_l_simp_chinese.yml — 本地化文件
+        创建mod的完整文件结构（下沉到 mod_creator 纯函数）。
         """
-        full_folder = os.path.join(mod_folder_path, folder_name)
-
-        # ====== 创建 .mod 文件（.mod 文件目录，只存放 .mod 文件）======
-        mod_file_full_path = os.path.join(mod_file_path, f"{folder_name}.mod")
-        # 格式化标签字符串
-        tags_str = "\n".join(f'    "{tag}"' for tag in tags)
-        mod_content = f'name = "{mod_name}"\npath = "{mod_folder_path}/{folder_name}"\nsupported_version = "{version}"\ntags = {{\n{tags_str}\n}}\n'
-
-        # 写入.mod文件（游戏启动器读取此文件来识别mod；原子写）
-        from write_utils import atomic_write_text
-        atomic_write_text(mod_file_full_path, mod_content, undo=False)
-
-        # ====== 创建mod目录结构 ======
-        os.makedirs(full_folder, exist_ok=True)
-
-        # descriptor.mod — mod内部分布式描述文件
-        descriptor_path = os.path.join(full_folder, "descriptor.mod")
-        atomic_write_text(descriptor_path, mod_content, undo=False)
-
-        # gfx/ — 图标资源目录
-        gfx_dir = os.path.join(full_folder, "gfx")
-        os.makedirs(gfx_dir, exist_ok=True)
-
-        # interface/*.gfx — 空白GFX精灵定义文件
-        interface_dir = os.path.join(full_folder, "interface")
-        os.makedirs(interface_dir, exist_ok=True)
-        gfx_file_path = os.path.join(interface_dir, f"{folder_name}.gfx")
-        gfx_content = "spriteTypes = {\n\n}\n"
-        atomic_write_text(gfx_file_path, gfx_content, undo=False)
-
-        # localisation/simp_chinese/*.yml — 空白简体中文本地化文件（HOI4 标准拼写）
-        loc_dir = os.path.join(full_folder, "localisation", "simp_chinese")
-        os.makedirs(loc_dir, exist_ok=True)
-        yml_path = os.path.join(loc_dir, f"{folder_name}_l_simp_chinese.yml")
-        atomic_write_text(yml_path, "l_simp_chinese:\n",
-                          encoding="utf-8-sig", allow_bom=True, undo=False)
+        from mod_creator import build_mod_files, write_mod_files
+        files = build_mod_files(mod_name, folder_name, version, tags,
+                                mod_folder_path, mod_file_path)
+        write_mod_files(files)

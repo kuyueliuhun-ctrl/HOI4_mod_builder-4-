@@ -1,0 +1,141 @@
+"""ApiCore 扩展：项目级（域 10）"""
+from __future__ import annotations
+
+import os
+
+
+class ProjectMixin:
+    """国家接管、新建 mod、模板应用。"""
+
+    def list_countries(self, data=None):
+        data = data or {}
+        from country_setup_dialog import scan_vanilla_countries, scan_mod_countries
+        countries = scan_vanilla_countries(self.game_path)
+        mod_tags = scan_mod_countries(self.mod_path) if self.mod_path else set()
+        out = []
+        for tag, rel in sorted(countries.items()):
+            out.append({"tag": tag, "file": rel,
+                        "mod_override": tag in mod_tags})
+        for tag in sorted(mod_tags):
+            if tag not in countries:
+                out.append({"tag": tag, "file": "",
+                            "mod_override": True})
+        return {"ok": True, "count": len(out), "countries": out}
+
+    def copy_country_files(self, data=None):
+        data = data or {}
+        return self._country_op("copy", data)
+
+    def create_blank_overrides(self, data=None):
+        data = data or {}
+        return self._country_op("blank", data)
+
+    def create_new_country_files(self, data=None):
+        data = data or {}
+        return self._country_op("new", data)
+
+    def _country_op(self, op, data):
+        self.ensure_mod()
+        tag = (data.get("tag") or "").strip().upper()
+        dirs = data.get("dirs") or []
+        dry_run = bool(data.get("dry_run", True))
+        if not tag or not dirs:
+            raise ValueError("需要 tag/dirs")
+        from country_setup_dialog import (
+            copy_country_files, create_blank_overrides,
+            create_new_country_files)
+        # 预览：不执行，仅返回目标文件清单（由原函数逻辑近似）
+        if dry_run:
+            preview = []
+            for rel_dir in dirs:
+                preview.append({
+                    "path": "%s/<%s>" % (rel_dir, tag),
+                    "summary": "%s %s" % (op, tag),
+                })
+            return {"ok": True, "dry_run": True, "op": op, "tag": tag,
+                    "count": len(preview), "files": preview}
+        if op == "copy":
+            copied = copy_country_files(self.game_path, self.mod_path, tag, dirs)
+            files = [{"path": rel, "summary": "copied"} for rel in copied]
+        elif op == "blank":
+            created = create_blank_overrides(
+                self.mod_path, tag, dirs, self.game_path)
+            files = [{"path": rel, "summary": "blank"} for rel in created]
+        elif op == "new":
+            created = create_new_country_files(self.mod_path, tag, dirs,
+                                               self.game_path)
+            files = [{"path": rel, "summary": "new"} for rel in created]
+        else:
+            raise ValueError("未知操作: %s" % op)
+        for f in files:
+            self._notify_change(os.path.join(self.mod_path, f["path"].replace("/", os.sep)))
+        return {"ok": True, "dry_run": False, "op": op, "tag": tag,
+                "count": len(files), "files": files}
+
+    def create_mod(self, data=None):
+        data = data or {}
+        name = (data.get("name") or "").strip()
+        folder = (data.get("folder_name") or data.get("name") or "").strip()
+        folder = (data.get("folder") or folder).strip()
+        version = (data.get("version") or "1.14.*").strip()
+        tags = data.get("tags") or []
+        mod_folder_path = (data.get("mod_folder_path") or
+                           data.get("path") or "").strip()
+        mod_file_path = (data.get("mod_file_path") or data.get("mod_path") or
+                         mod_folder_path).strip()
+        tag = (data.get("tag") or "").strip().upper()
+        dry_run = bool(data.get("dry_run", True))
+        if not name or not folder or not version:
+            raise ValueError("需要 name/folder/version")
+        if not mod_folder_path:
+            raise ValueError("缺少 path 或 mod_folder_path")
+        from mod_creator import build_mod_files, write_mod_files
+        files = build_mod_files(name, folder, version, tags,
+                                mod_folder_path, mod_file_path, tag)
+        if dry_run:
+            return {"ok": True, "dry_run": True, "count": len(files),
+                    "files": [{"path": f["path"], "summary": ""}
+                              for f in files]}
+        written = write_mod_files(files)
+        for p in written:
+            self._notify_change(p)
+        return {"ok": True, "dry_run": False, "count": len(written),
+                "files": written}
+
+    def apply_template(self, data=None):
+        self.ensure_mod()
+        data = data or {}
+        template_name = (data.get("template_name") or "").strip()
+        target_path = (data.get("target_path") or "").strip()
+        variables = data.get("variables") or {}
+        if not template_name or not target_path:
+            raise ValueError("需要 template_name/target_path")
+        from template_scheduler import get_template_scheduler
+        sched = get_template_scheduler()
+        matches = [m for m in sched.search_templates() if m["name"] == template_name]
+        if not matches:
+            raise ValueError("未找到模板: %s" % template_name)
+        template_path = matches[0]["filepath"]
+        fp = self._safe_join(target_path)
+        if not fp:
+            raise ValueError("非法目标路径: %s" % target_path)
+        os.makedirs(os.path.dirname(fp), exist_ok=True)
+        ok = sched.apply_template(template_path, fp, variables)
+        if not ok:
+            raise ValueError("应用模板失败")
+        self._notify_change(fp)
+        return {"ok": True, "template": template_name, "target": target_path}
+
+    def get_template(self, data=None):
+        data = data or {}
+        template_name = (data.get("template_name") or "").strip()
+        if not template_name:
+            raise ValueError("缺少 template_name")
+        from template_scheduler import get_template_scheduler
+        sched = get_template_scheduler()
+        matches = [m for m in sched.search_templates() if m["name"] == template_name]
+        if not matches:
+            raise ValueError("未找到模板: %s" % template_name)
+        m = matches[0]
+        content = sched.get_template_content(m["filepath"])
+        return {"ok": True, "template": m, "content": content}

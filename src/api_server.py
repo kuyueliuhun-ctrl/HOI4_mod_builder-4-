@@ -21,6 +21,16 @@
   POST   /api/localisation                   → 写本地化词条 {tag, entries:{key:val}}
   POST   /api/validate                       → 校验 mod（本地化缺失/国策引用/未知引用/重复ID）
   GET    /api/templates?type=&usage=         → 模板列表
+  GET    /api/files?type=                    → 文件列表
+  POST   /api/files                          → 读文件 {path} / 写整文件 {path,content}
+  POST   /api/tech_icon                      → 科技图标上传
+  GET    /api/icon_manifest                  → 图标清单
+  GET    /api/overlay_report                 → 覆盖增量报告
+  POST   /api/tools/format_pdx               → PDX 格式化
+  GET    /api/tools/vp_loc                   → VP 本地化干跑
+  POST   /api/tools/error_log                → 错误日志分析
+  POST   /api/tools/register_icon_batch      → 批量补注册图标
+  POST   /api/mcp/<tool_name>                → 通用同源工具桥（159 个 MCP 工具均可调用）
   GET    /api/help                           → 端点说明
 
 写操作自动进入撤销管理器（undo_mgr），GUI 内嵌模式下自动刷新界面。
@@ -39,6 +49,18 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import icon_ops
+
+from api_core_ext import (
+    StatesMixin,
+    DesignersMixin,
+    AiContentMixin,
+    BopMixin,
+    LocToolsMixin,
+    HealthMixin,
+    MediaMixin,
+    GeneratorsMixin,
+    ProjectMixin,
+)
 
 
 ROOT = PROJECT_ROOT
@@ -64,7 +86,9 @@ def load_settings():
         return {}
 
 
-class ApiCore:
+class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
+             LocToolsMixin, HealthMixin, MediaMixin, GeneratorsMixin,
+             ProjectMixin):
     """mod 制作操作核心：输入 dict → 输出 dict。"""
 
     def __init__(self, mod_path="", game_path=""):
@@ -639,6 +663,7 @@ class ApiCore:
             "GET    /api/tools/vp_loc     （干跑 VP 本地化，不写文件）",
             "POST   /api/tools/error_log  {path|absolute_path}",
             "POST   /api/tools/register_icon_batch  {path,type?}",
+            "POST   /api/mcp/<tool_name> 通用同源工具桥（159 个 MCP 工具均可调用）",
             "GET    /api/help",
         ]}
 
@@ -779,6 +804,23 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._send(200, self.core.analyze_error_log(self._read_json()))
             elif path == "/api/tools/register_icon_batch" and self.command == "POST":
                 self._send(200, self.core.register_icon_batch(self._read_json()))
+            elif path.startswith("/api/mcp/") and self.command in ("GET", "POST"):
+                tool_name = urllib.parse.unquote(path[len("/api/mcp/"):])
+                method = getattr(self.core, tool_name, None)
+                if method is None:
+                    self._send(404, {"ok": False, "error": f"未知 MCP 工具: {tool_name}"})
+                    return
+                if self.command == "POST":
+                    body = self._read_json()
+                else:
+                    body = q
+                try:
+                    result = method(body)
+                    self._send(200, result if isinstance(result, dict) else {"ok": True, "result": result})
+                except TypeError:
+                    # 兼容无参方法
+                    result = method()
+                    self._send(200, result if isinstance(result, dict) else {"ok": True, "result": result})
             else:
                 self._send(404, {"ok": False, "error": f"未知端点: {self.command} {self.path}"})
         except ValueError as e:
