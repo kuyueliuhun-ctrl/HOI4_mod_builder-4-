@@ -1,5 +1,4 @@
 [
-  "src/main_window.py",
   "src/bop_editor_dialog.py",
   "src/generic_tree_editor.py",
   "src/advisor_assign_dialog.py",

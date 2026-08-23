@@ -39,6 +39,9 @@
     },
     "ui_gap_probe.py": {
       "reason": "分析报告/已分析.md 输出（非 mod 内容，开发调试工具；流式直写避免内存爆炸）"
+    },
+    "src/main_window_docks.py": {
+      "reason": "承继 main_window 的程序配置 settings.json 写入（F5 拆分，非 mod 内容）"
     }
   },
   "lines": {
