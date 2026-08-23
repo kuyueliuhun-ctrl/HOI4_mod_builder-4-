@@ -28,3 +28,8 @@ settings.json
 .jspace/
 .agents/
 .codex/
+
+# ── 大体积生成产物 / 未定原型（F0 默认不入库） ──
+prototypes/
+已分析.md
+ui_gap_after.md

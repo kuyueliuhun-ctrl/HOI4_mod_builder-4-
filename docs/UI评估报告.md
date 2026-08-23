@@ -1,3 +1,5 @@
+> 状态声明：本文档为历史评估快照，结论对应评估时点的代码状态。进度与缺口以 docs/UI修复与建构执行方法.md 批次总表为唯一事实源。
+
 # UI 评估报告 v2：词条展示/编辑缺失 + 原始文本操作 = 严重问题
 
 > 更新：2026-08-19（用户定调：**词条的展示及编辑缺失**、**直接让用户对原始文本进行操作** → 一律视为**严重问题**）
@@ -66,21 +68,33 @@
 - 新增 `CharacterStructuredDataTest`(3)+`CharacterEditorStructSmokeTest`(3)；真实数据 160 文件/3448 角色/0 错误。
 
 ### 批 B — 🔴 地图编辑器补州字段编辑
+
+> 状态：✅ 已完成（2026-08-23）：resources 键值表/VP 两列表/州名双行/state_category 下拉/StateData.reload；`tests/test_batch5_state.py`。
+
 - `state_loader/state_build_ops`：新增 `resources / victory_points / manpower / state_name` 的读写。
 - `map_editor_dialog.py`：右侧信息面板加可编辑表单项。
 - 改动面：数据层 + 面板。**需设计确认**。
 
 ### 批 C — 🔴 事件 + 科技 专用编辑器
+
+> 状态：✅ 已完成（2026-08-23）：事件完整版（unit_leader_event、文件级其他字段、option 卡/MTTH/结构化块）+ 科技完整版（folder 顶层/allow/加成块/其他字段、画布双击联动）；`tests/test_batch4_event_tech.py`。
+
 - 新增 `event_editor_dialog.py`（列表：id/title/desc/picture/option；触发/效果块暂用结构化脚本块编辑器）；科技同理。
 - 改动面：新模块。**需设计确认**（这属新工作台 UI，按 §4.11 必须给方案）。
 
 ### 批 D — 🟠 广撒的 raw 兜底降级
+
+> 状态：✅ 已完成（2026-08-23）：ScriptBlockEditorDialog 默认键值表+子块列表；AI 7 编辑器 raw 统一「高级：原始 PDX（兜底）」；advisor traits 多选/字段化/available 结构化；ai_plan desc 双行；`tests/test_batch8_ai_structured.py`。
+
 - `ai_ui_common.ScriptBlockEditorDialog`：未建模块先给「键值/列表结构化编辑」，raw 设为末项。
 - AI 其余 `_edit_raw` 入口：把高频字段（desc/order/modules…）字段化。
 - `advisor_assign_dialog`：traits 结构化选择器。
 - 改动面：各对话框添加表单。**部分需确认**。
 
 ### 批 E — 🟠 师编制/设计器补齐字段
+
+> 状态：✅ 已完成（2026-08-23）：兵种完整表单/命名组结构化/最大连通区初始视野 + 设计器变体高级字段（§0.x-1）；`tests/test_batch7_oob.py` + `tests/test_batch0x1_variant_fields.py`。
+
 - `oob_loader`：暴露营名称/组名/description 读写。
 - `division_editor`：营字段可编辑；`*_design` 变体 desc 编辑。
 - 改动面：数据层 + 面板。**需确认**。
@@ -97,4 +111,4 @@
 - 但按新口径，**§4.12「展示 100% + 完整读写」在角色/地图/事件/科技/AI 高级块/顾问/编制/设计器多处不达标，且大量路径把用户推向原始文本** —— 均列为 🔴 严重。
 - `docs/未完成计划.md` 已并入本清单（P0/P1），先修角色→地图→事件/科技，再降级 raw 兜底。
 
-> 进展：批 A 已完成；待你拍板项 = 批 B（地图州字段）/ 批 C（事件+科技专用 UI）/ 批 D / 批 E。
+> 进展：批次已按 `docs/UI修复与建构执行方法.md` 执行。批 A~E 已标记完成；2026-08-23 已把批次 4/5/6/7/8 从“最小可用/部分”补到完整版，并完成 §0.x 补充项；`ui_gap_probe` 的 event/tech/character/bop 已收敛为 0，state/country_history 按长期豁免说明记录。

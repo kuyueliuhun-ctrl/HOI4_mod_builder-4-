@@ -34,15 +34,28 @@
 ```
 
 **两个 Python 环境（重要）**：
-- `.venv` = **Python 3.8.10**（启动器用这个）——所有新代码必须 3.8 兼容
-- 系统 `python` = 3.13（开发/测试用）
+- `.venv` = **Python 3.14.5**（Windows 启动器用这个，原 3.8.10 备份为 `.venv_py38_backup`）
+- WSL/Linux 开发/测试 = **Python 3.14.4**（`/root/hoi4_builder_venv`，已验证）
 
 **任何改动后必须跑（双版本）**：
 ```bat
-python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 + 写入纪律扫描
-.venv\Scripts\python.exe tools/verify_contracts.py   :: 3.8 同样跑一遍
+.venv\Scripts\python.exe tools/verify_contracts.py     :: Windows 3.14：语法编译 + 契约测试 + 写入纪律扫描
+/root/hoi4_builder_venv/bin/python tools/verify_contracts.py   :: WSL 3.14 同样跑一遍
 ```
-退出码 0 才算完成。契约测试在 `tests/test_contracts.py`（206 个用例 / 41 个测试类）。
+退出码 0 才算完成。契约测试以 `python -m unittest discover -s tests -v` 实时输出为准
+（2026-08-23 约 395 个用例，分布见 tests/ 按域文件）。
+
+**UI 树形缺口探针 / 全量词条分析（根目录 `ui_gap_probe.py`）**：
+```bash
+# 专用 UI 缺口报告（只输出统计 + 目录/词条树）
+python ui_gap_probe.py --max-files 5 --output docs/UI树形缺口检测报告.md
+
+# 全类型全文件词条统计（不跳过大文件，输出 已分析.md）
+python ui_gap_probe.py --dump-all --output 已分析.md
+```
+- 缺口模式：以通用树形编辑器内容为基准，检测“树里有、专用 UI 里没有展示/编辑”的顶层键与嵌套词条；
+- 全量模式：统计全部类型的块/词条数量，并按“目录 → 词条树”展示，不逐行输出文件/行号；
+- 每次改动专用 UI 覆盖范围后应运行并同步报告。
 
 ## 3. 架构地图（模块清单）
 
@@ -106,9 +119,11 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
    **例外**：本地化 `.yml` 用 `encoding="utf-8-sig", allow_bom=True`（HOI4 惯例）。
 3. **原子写语义**：写失败绝不破坏原文件（临时文件 + os.replace）。
 4. **撤销快照**：写前自动登记 undo_mgr（新写入默认 undo=True）。
-5. **双版本兼容**：所有新代码必须在 Python 3.8 和 3.13 都能编译运行。
-   3.8 限制：无 `list[str]` 注解（用 `from __future__ import annotations` + typing）、
-   无 walrus/match/`str.removeprefix`。用 `python tools/verify_contracts.py` 验证。
+5. **双版本兼容**：所有新代码必须在 Python 3.14 下编译运行
+   （Windows `.venv` 3.14.5 与 WSL `/root/hoi4_builder_venv` 3.14.4 双版本验证）。
+   3.8 限制已解除：新代码可直接使用 `list[str]`、walrus、`match`、
+   `str.removeprefix` 等 3.10+ 语法；旧文件保留 `from __future__ import annotations`
+   不影响运行。用 `tools/verify_contracts.py` 验证。
 6. **契约测试**：新功能必须配套 `tests/test_contracts.py` 的用例
    （纯函数优先可测；GUI 逻辑用 offscreen 冒烟）。bug 修复必须补回归测试。
 7. **写 mod 文件 = 可能破坏游戏**：任何批量写操作先小样本验证。
@@ -165,7 +180,11 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
     不得仅凭猜测设计。
     检测 UI 是否覆盖全部内容时，参考目录：游戏根目录（settings.json 的 HOI4_path）、
     mod 目录（settings.json 的 mod_path）、`E:\SteamLibrary\steamapps\workshop\content\394360`；
-    可用 `tools/check_ui_coverage.py` 扫描未覆盖词条。
+    可用 `tools/check_ui_coverage.py` 扫描未覆盖词条；
+    **根目录 `ui_gap_probe.py`** 是更细粒度缺口探针：对已有专用 UI 的类型，
+    按“UI 覆盖规格（UI_COVERAGE_SPECS）”比对真实文件，输出
+    “树形编辑器有、专用 UI 无展示/编辑”的顶层键与嵌套路径报告。
+    新增/修改专用 UI 后，必须同步更新该规格并运行 `ui_gap_probe.py` 验证缺口收敛。
 
 ## 5. 给 AI 代理的踩坑清单（环境/技术事实）
 
@@ -897,6 +916,23 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
 7. ✅ 本地化 wiki → `docs/游戏文件内容详解.md` §17.1；QIUQI 映射矩阵同步。
 8. ✅ 全量 `verify_contracts.py` 退出码 0，已 commit + push（f0395c1）。
 
+### 6.23 已完成：MCP 补充计划 142 个新增工具（2026-08-22）
+
+按 `docs/mcp补充计划与执行方式.md` 一次性全部落地：
+
+1. ✅ **ApiCore 域扩展包 `src/api_core_ext/`**：9 个 Mixin（states/designers/ai_content/bop/
+   loc_tools/health/media/generators/project），ApiCore 多重继承组合，全部接口与 MCP 同源。
+2. ✅ **MCP 159 工具注册**（`src/mcp_tools.py`）：现有 17 + 新增 142，名称唯一、schema 合法，
+   覆盖州/区域、三军设计器+模板、OOB、AI 8 类、BOP、本地化/词条、健康/撤销/覆盖、
+   图标/媒体、7 类生成器、项目级。
+3. ✅ **HTTP 同源桥**：`/api/mcp/<tool_name>` 可调用全部 159 工具；docstring/help 已同步。
+4. ✅ **逻辑下沉**：BOP 保存写入 `bop_loader.set_bop_initial_value/set_bop_fields`；
+   `mod_creator.py` 纯函数生成新建 mod 骨架，ModCreatorDialog 改为调用。
+5. ✅ **写入纪律**：新 mixin 无直接写文件（全部走已有原子写/数据层），AST 扫描通过；
+   四层依赖检查通过。
+6. ✅ **测试**：新增 `McpRegistrationTest` / `McpDomainSmokeTest`（状态/AI/BOP/设计器/区域/
+   生成器 dry_run roundtrip），全量契约待双版本验证。
+
 ### 6.17 遗留/可选后续
 
 > **遗留/未完成条目的唯一总表 = `docs/未完成计划.md`**（按 P0~P4 批次，含需用户拍板清单）。
@@ -908,6 +944,93 @@ python tools/verify_contracts.py          :: 3.13：语法编译 + 契约测试 
   产品化、build_snapshot 溯源台账、关键地区高危 id 清单
 - 编制编辑器：模板名改名后部署引用不一致的提示、装备 IC 花费估算（当前只统计
   装备件数）、OOB 海军/空军 version_name 设计解析（调研完成未实现）
+
+### 6.22 已完成：UI 修复与建构（2026-08-22 批次1-9）
+
+> 执行依据：`docs/UI修复与建构执行方法.md`（用户已拍板的唯一执行文档）。
+> 本轮完成 UI 修复与建构，覆盖批次 1~9；`verify_contracts.py` 双版本全绿。
+
+1. ✅ **批次1 设计器三件套**：`src/designer_slots.py`（槽位/数量上限/默认模块/升级定义）、
+   舰/机/坦数据层 modules/upgrades 分离、槽位分区布局、船体/机体/底盘选择器、
+   保存校验条、升级加点区、槽位摘要/同类上限、变体中文名；测试
+   `DesignerSlotsTest` / `VariantTypeConflictTest` / `DerivedNameFallbackTest` 等。
+2. ✅ **批次2 角色编辑器收尾**：`common/characters` 路由、工作台双击分发、
+   `open_character_editor(file_path, entity_id)`、顶层 desc 提取/写回、肖像预览/上传；
+   测试 `CharacterDescTest` / `CharacterRouteTest` / `CharacterPortraitPreviewTest`。
+3. ✅ **批次3 科技树画布修复**：tidy-tree 布局（子继承父中位、同层避让）、
+   `GRID_X/GRID_Y` 间距加大、跨 folder 边不再丢弃（灰色虚线）、子科技 48×48 图标；
+   测试 `TechLayoutTest`。
+4. ✅ **批次4 事件+科技专用编辑器**：`event_data.py` + `event_editor_dialog.py`、
+   `tech_data.py` + `tech_editor_dialog.py`（最小可用版）；`events` 路由、
+   `SPECIAL_TYPE_KEYS` 加入 event；测试 `EventDataTest` / `EventEditorSmokeTest` /
+   `TechDataTest` / `TechEditorSmokeTest`。
+5. ✅ **批次5 地图州字段**：`state_loader` 解析 resources；`state_build_ops`
+   写回 resources/VP/manpower/name；`map_editor_dialog` 州数据表单；测试 `StateResTest`。
+6. ✅ **批次6 力量平衡编辑增强**：BOP 亮色化、`set_bop_range` / `set_bop_side_fields` /
+   `insert_bop_decision` / `delete_bop_decision`；测试 `BopEditDataTest` / `BopDecisionCrudTest`。
+7. ✅ **批次7 编制补充件**：地形三项（movement/attack/defence）、
+   兵种编辑器 `sub_unit_editor_dialog.py`（完整表单）、命名组
+   `names_group_dialog.py`（名称条目结构化）、OOB 地编 `showEvent` 初始视野。
+8. ✅ **批次8 raw 兜底降级**：`ScriptBlockEditorDialog` 默认键值表+子块列表、
+   原始 PDX 移入「高级 ▾」菜单；AI 7 编辑器 raw 文案统一
+   「高级：原始 PDX（兜底）」；advisor traits 多选/字段化；ai_plan desc 双行。
+9. ✅ **批次9 文档同步**：`docs/UI修复与建构执行方法.md` 状态表、
+   `docs/未完成计划.md` 3d 表、`docs/UI评估报告.md` 批次表已同步；
+   `verify_contracts.py` 双版本全绿、`ui_gap_probe` 相关类型缺口已收敛。
+
+### 6.23 已完成：第一份执行文档剩余源码缺口 + §0.x 补充（2026-08-23）
+
+> 按 `对话.md` 开工，先补 `docs/UI修复与建构执行方法.md` 中批次 4~8 的 🔶 差距、
+> §0.x 四条补充项，并完成批次 9 收尾。7 个并行子代理实现 + 监督整合。
+
+1. ✅ **批次4 完整版**：事件/科技编辑器从最小可用补到完整版：事件支持
+   `unit_leader_event`、文件级其他字段表（`@常量`/`add_namespace`/非事件键）；
+   科技支持 `technologies` 包装与零散 folder 顶层、allow/ai_will_do/加成块结构化、
+   画布双击/右键联动；测试 `tests/test_batch4_event_tech.py`。
+2. ✅ **批次5 完整版**：地图州字段 resources/VP/manpower/州名/state_category 改
+   键值表/两列表/双行表单；写回封装与 StateData.reload；测试
+   `tests/test_batch5_state.py`。
+3. ✅ **批次6 完整版**：BOP 区间卡（min/max + modifier 键值表）、势力卡、
+   决议新建/编辑/删除/结构化效果块；测试 `tests/test_batch6_bop.py`。
+4. ✅ **批次7 完整版**：兵种编辑器完整表单（22 属性/need/terrain 三列/OtherFields）、
+   division_names_group 命名组对话框、OOB 初始视野最大连通区；
+   测试 `tests/test_batch7_oob.py`。
+5. ✅ **批次8 完整版**：ScriptBlockEditorDialog 默认键值表+子块列表、AI 七编辑器
+   raw 统一高级菜单、advisor traits 多选/字段化/available 结构化、ai_plan desc
+   双行+focus_order；测试 `tests/test_batch8_ai_structured.py`。
+6. ✅ **§0.x-1 设计器变体高级字段**：三设计器变体表单补 design_team（mio:）/
+   parent_version/obsolete/icon；不臆造 desc/自定义 stats；测试
+   `tests/test_batch0x1_variant_fields.py`。
+7. ✅ **§0.x-2 角色未知块结构化**：未知块改 ScriptBlockEditorDialog 可编辑，
+   解析 `instance = { ... }` 包装；测试 `tests/test_batch0x2_character_unknown.py`。
+8. ✅ **ui_gap_probe specs 更新**：event/tech/character/state/bop/country_history
+   均已同步；`event/tech/character/bop --max-files 0` 缺口为 0；
+   state/country_history 按长期豁免说明记录。
+9. ✅ **全量验证**：`verify_contracts.py` 双版本全绿（Python 3.13 需
+   `PYTHONIOENCODING=utf-8` 规避 Windows GBK 子进程解码噪音）。
+
+### 6.24 已完成：Python 升级到 3.14（2026-08-23）
+
+> 用户指示「先进行 python 升级评估，将项目内 python 升级到当前环境的 python」。
+> 已按 F9 完成评估并执行升级：`.venv` 从 Python 3.8.10 → **Python 3.14.5**（Windows）。
+
+1. ✅ **兼容性评估**：WSL 3.14.4（`/root/hoi4_builder_venv`）与 Windows 3.14.5
+   （新建 `.venv`）双版本 `verify_contracts.py` 均退出码 0；契约测试约 395 全绿。
+2. ✅ **旧环境保留**：原 `.venv`（3.8.10）已改名 `.venv_py38_backup`，回滚只需
+   把目录名换回（`启动.bat` 无需改动）。
+3. ✅ **工具修复**：
+   - `check_write_discipline.py` / `verify_contracts.py` 跳过所有 `.venv*`，
+     避免新 venv 的 site-packages 被当成项目源码扫描；
+   - `verify_contracts.py` 子进程显式注入 `PYTHONIOENCODING=utf-8` +
+     `PYTHONUTF8=1`，并 `encoding="utf-8", errors="replace"`，根治 Windows
+     中文 GBK 输出导致的 UnicodeDecodeError。
+4. ✅ **依赖**：Windows `.venv` 安装 PyQt6 6.11.0（Qt 6.11.1）、numpy 2.5.2、
+   Pillow 12.3.0、mcp 2.0.0；新增根目录 `requirements.txt`（Windows 同源依赖）。
+5. ✅ **文档同步**：AGENTS §2/§4.5、README、`问题.md` P9、`docs/修复计划.md` F9
+   已更新为 3.14 事实；3.8 语法限制解除（新代码可用 walrus/match/list[str] 等）。
+
+> 当前状态：第一份执行文档批次 1~9 全部落地；P10~P39 仍在原型试用拍板阶段，
+> 后续按 `docs/AI与通用UI执行方法.md` 推进（尚未创建）。
 
 ## 7. 项目周边参考
 

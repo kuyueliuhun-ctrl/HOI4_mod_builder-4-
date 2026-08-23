@@ -107,10 +107,10 @@ error 级应修复后再发布；对话框可导出 JSON 报告、双击行定�
 - **静态扫描**：`python tools/check_write_discipline.py` 用 AST 检出绕过原子写的
   新增直写（豁免登记在 `tools/write_discipline_allowlist.json`）
 - **契约验证**：`python tools/verify_contracts.py` 一键运行——全模块语法编译
-  （Python 3.8/3.13 双版本）+ 206 个契约单元测试（`tests/test_contracts.py`：
-  原子写/BOM 拒绝/撤销恢复/健康检查检出/扫描器检出/地图渲染/地图编辑/建筑系统/
-  编制/舰艇/飞机/坦克设计器/设计器模板/OOB 路由/工作台分组/动态修正模板/
-  力量平衡数据与编辑器/AI 数据层与编辑器等 41 个测试类）+ 写入纪律扫描
+  （Python 3.14 双版本：Windows `.venv` 与 WSL `/root/hoi4_builder_venv`）
+  + 约 395 个契约单元测试（原子写/BOM 拒绝/撤销恢复/健康检查检出/扫描器检出/
+  地图渲染/地图编辑/建筑系统/编制/舰艇/飞机/坦克设计器/设计器模板/OOB 路由/
+  工作台分组/动态修正模板/力量平衡数据与编辑器/AI 数据层与编辑器等）+ 写入纪律扫描
 - 详细规范见 docs/验证契约.md
 
 ### 全局主题（亮色专业工具风，对齐 Scenario Forge 设计令牌）
@@ -327,8 +327,8 @@ Agent 配置示例（Claude Code）：
 
 ## 运行环境
 
-- Python 3.8+（启动器使用 `.venv` = Python 3.8.10；开发/测试同时验证 3.8 与 3.13 兼容）
-- 依赖库：`PyQt6`、`Pillow`（DDS 图片解码）、`numpy`（DDS 解压）等
+- Python 3.14+（启动器使用 `.venv` = Python 3.14.5；开发/测试同时验证 Windows 3.14 与 WSL 3.14）
+- 依赖库：`PyQt6`、`Pillow`（DDS 图片解码）、`numpy`（DDS 解压）、`mcp` 等
 
 ## 安装与运行
 
