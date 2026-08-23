@@ -4,6 +4,8 @@
   - 旧版（兼容）：编辑 name / portraits（raw 文本），其余字段/角色块无损保留；
   - 新版（批 A，结构化）：portraits 槽位表 + roles 结构化条目（字段/traits/未知块），
     词条化编辑，round-trip 无损（拆行/块 → 结构化 → 序列化还原）。
+  - 未知块（含 TFR 的 instance = { ... } 包装）以 {"key","raw"} 结构化保存，
+    可由 ScriptBlockEditorDialog 编辑后写回。
 写入纪律：保存一律走 write_utils.atomic_write_text。
 """
 
@@ -301,6 +303,7 @@ def parse_character_block(block: str) -> dict:
 
     items = list(_iter_inner_items(inner))
     name_loc = ""
+    desc_loc = ""
     others_lines = []
     portraits_inner = ""
     portraits_slots = []
@@ -308,6 +311,7 @@ def parse_character_block(block: str) -> dict:
     role_entries = []
     others = []
     others_blocks = []
+    unknown_blocks = []
 
     for item in items:
         kind = item[0]
@@ -315,6 +319,8 @@ def parse_character_block(block: str) -> dict:
             key, value, quoted = item[1], item[2], item[3]
             if key == "name":
                 name_loc = value
+            elif key == "desc":
+                desc_loc = value
             else:
                 others_lines.append(("line", key, value, quoted))
         elif kind == "raw_line":
@@ -330,17 +336,22 @@ def parse_character_block(block: str) -> dict:
                 roles.append(item[2])
                 role_entries.append(parse_role_entry(item[2]))
             else:
-                others_blocks.append(item[2])
-                others.append(item[2])
+                # 结构化未知块：key + 原始块文本，供 ScriptBlockEditorDialog 编辑。
+                # instance = { ... } 等 TFR 包装块也走这里（不再视为只读）。
+                entry = {"key": key, "raw": raw}
+                unknown_blocks.append(entry)
+                others_blocks.append(entry)
+                others.append(raw)
 
     return {
-        "id": cid, "name_loc": name_loc,
+        "id": cid, "name_loc": name_loc, "desc_loc": desc_loc,
         "portraits_inner": portraits_inner, "roles": roles,
         "others": others, "raw": block,
         "portraits_slots": portraits_slots,
         "role_entries": role_entries,
         "others_lines": others_lines,
         "others_blocks": others_blocks,
+        "unknown_blocks": unknown_blocks,
     }
 
 
@@ -399,6 +410,17 @@ def render_character_block(meta: dict, name_loc: Optional[str] = None,
 
 # ---------- 新版渲染（结构化） ----------
 
+def _unknown_blocks_of_meta(meta):
+    """兼容新版 structured list 与旧版 raw string 列表。"""
+    ub = meta.get("unknown_blocks")
+    if ub:
+        return ub
+    ob = meta.get("others_blocks") or []
+    if ob:
+        return ob
+    return ub or []
+
+
 def render_character_block_v2(meta: dict,
                               name_loc: Optional[str] = None,
                               portraits_slots: Optional[List[dict]] = None,
@@ -411,6 +433,8 @@ def render_character_block_v2(meta: dict,
 
     lines = ["\t%s = {" % cid]
     lines.append('\t\tname = "%s"' % name_loc)
+    if meta.get("desc_loc"):
+        lines.append('\t\tdesc = "%s"' % meta.get("desc_loc"))
     if slots:
         lines.append("\t\tportraits = {")
         by_scope = {}
@@ -431,7 +455,12 @@ def render_character_block_v2(meta: dict,
             lines.append("\t\t%s = %s" % (key, val))
         else:
             lines.append("\t\t" + item[1])
-    for raw in meta.get("others_blocks", []):
+    unknown_blocks = _unknown_blocks_of_meta(meta)
+    for entry in unknown_blocks:
+        if isinstance(entry, dict):
+            raw = entry.get("raw") or ""
+        else:
+            raw = entry
         lines.append(_indent_block(raw, "\t\t"))
     lines.append("\t}")
     return "\n".join(lines)

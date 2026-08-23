@@ -1,15 +1,18 @@
 """角色（Character）专用编辑器（单页三栏，方案 B）
 
 批 A 修复：roles 结构化为可编辑条目（类型/字段/traits/desc）、肖像槽位表化、
-角色 desc 词条编辑；未知行/块无损保留（仅显示计数，保存保留）。
+角色 desc 词条编辑；未知行无损保留，未知块（含 instance = { ... }）经
+ScriptBlockEditorDialog 结构化编辑后写回。
 保存走 save_file_v2（结构化原子写）+ 本地化 upsert（名称/角色描述/职责描述）。
 """
 
 from __future__ import annotations
 
 import os
+import re
 
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import (
     QComboBox, QDialog, QFormLayout, QGridLayout, QHBoxLayout, QLabel,
     QLineEdit, QListWidget, QListWidgetItem, QMessageBox, QPushButton,
@@ -37,6 +40,23 @@ def _char_file_list(mod_path, hoi4_path):
                 if n.lower().endswith(".txt"):
                     files.append(os.path.join(d, n))
     return files
+
+
+def _block_key(raw):
+    """从未知块原始文本提取块键（兼容字符串形式的未知块）。"""
+    m = re.match(r"\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\{", raw or "")
+    return m.group(1) if m else "block"
+
+
+def _unknown_blocks_of(meta):
+    """兼容新版 structured list 与旧版 raw string 列表。"""
+    ub = meta.get("unknown_blocks")
+    if ub:
+        return ub
+    ob = meta.get("others_blocks") or []
+    if ob:
+        return ob
+    return ub or []
 
 
 class CharacterEditorDialog(QDialog):
@@ -117,8 +137,9 @@ class CharacterEditorDialog(QDialog):
         mlay.addLayout(info_form)
 
         mlay.addWidget(QLabel("肖像槽位（类型 / 尺寸 / 贴图）"))
-        self.portraits_table = QTableWidget(0, 3)
-        self.portraits_table.setHorizontalHeaderLabels(["类型 scope", "尺寸 size", "贴图 texture"])
+        self.portraits_table = QTableWidget(0, 4)
+        self.portraits_table.setHorizontalHeaderLabels(
+            ["类型 scope", "尺寸 size", "贴图 texture", "预览"])
         self.portraits_table.horizontalHeader().setStretchLastSection(True)
         mlay.addWidget(self.portraits_table, 1)
         pbar = QHBoxLayout()
@@ -126,10 +147,25 @@ class CharacterEditorDialog(QDialog):
         p_add.clicked.connect(self._add_portrait)
         p_del = QPushButton("🗑 删除选中")
         p_del.clicked.connect(self._del_portrait)
+        p_upload = QPushButton("⬆ 上传肖像")
+        p_upload.clicked.connect(self._upload_portrait)
         pbar.addWidget(p_add)
         pbar.addWidget(p_del)
+        pbar.addWidget(p_upload)
         pbar.addStretch()
         mlay.addLayout(pbar)
+
+        mlay.addWidget(QLabel("未知块（✎ 可编辑）"))
+        self.unknown_list = QListWidget()
+        self.unknown_list.setMaximumHeight(110)
+        mlay.addWidget(self.unknown_list)
+        ubar = QHBoxLayout()
+        edit_unknown_btn = QPushButton("✎ 编辑未知块")
+        edit_unknown_btn.clicked.connect(self._edit_unknown_block)
+        ubar.addWidget(edit_unknown_btn)
+        ubar.addStretch()
+        mlay.addLayout(ubar)
+
         self.keep_info = QLabel("")
         self.keep_info.setWordWrap(True)
         mlay.addWidget(self.keep_info)
@@ -269,7 +305,7 @@ class CharacterEditorDialog(QDialog):
         self.desc_cn_edit.blockSignals(True)
         self.name_loc_edit.setText(m["name_loc"])
         self.cn_edit.setText(self._loc.get(m["name_loc"], ""))
-        dkey = self._desc_keys.get(m["id"]) or (m["id"] + "_desc")
+        dkey = m.get("desc_loc") or self._desc_keys.get(m["id"]) or (m["id"] + "_desc")
         self._desc_keys[m["id"]] = dkey
         self.desc_key_edit.setText(dkey)
         self.desc_cn_edit.setText(self._loc.get(dkey, ""))
@@ -284,12 +320,58 @@ class CharacterEditorDialog(QDialog):
         # 职责
         self._fill_roles(m.get("role_entries") or [])
 
-        # 保留提示
+        # 未知块列表 + 保留提示
+        unknown_blocks = _unknown_blocks_of(m)
+        self._fill_unknown_blocks(unknown_blocks)
         n_unk_lines = len(m.get("others_lines", []))
-        n_unk_blocks = len(m.get("others_blocks", []))
+        n_unk_blocks = len(unknown_blocks)
         self.keep_info.setText(
-            "保留（不可在此编辑，保存原样）：顶层行 {} 个 · 未知块 {} 个".format(
+            "顶层未知行 {} 个（保留，保存原样） · 未知块 {} 个（✎ 可编辑）".format(
                 n_unk_lines, n_unk_blocks))
+
+    def _make_preview_item(self, texture):
+        item = QTableWidgetItem("")
+        try:
+            from icon_resolver import resolve_pixmap
+            pm = resolve_pixmap(
+                texture, dirs=["gfx/Leaders", "gfx/interface/portraits"],
+                mod_path=self.mod_path, hoi4_path=self.hoi4_path)
+            if pm is not None and not pm.isNull():
+                item.setIcon(QIcon(pm))
+                item.setText("预览")
+        except Exception:
+            pass
+        return item
+
+    def _upload_portrait(self):
+        row = self.portraits_table.currentRow()
+        if row < 0:
+            QMessageBox.information(self, "上传肖像", "请先选中要上传的肖像行。")
+            return
+        scope = self.portraits_table.item(row, 0)
+        size = self.portraits_table.item(row, 1)
+        if scope is None or size is None:
+            return
+        from PyQt6.QtWidgets import QFileDialog
+        path, _f = QFileDialog.getOpenFileName(
+            self, "选择肖像图片", "", "图片 (*.png *.jpg *.jpeg *.dds *.tga)")
+        if not path:
+            return
+        from icon_ops import upload_icon
+        from content_types import ICON_RULES
+        m = self._current_meta()
+        cid = m["id"] if m else "char"
+        base = "%s_%s_%s" % (cid, scope.text().strip(), size.text().strip())
+        try:
+            value = upload_icon(
+                self.mod_path, path, base,
+                ICON_RULES["character"]["upload"])
+        except Exception as e:
+            QMessageBox.critical(self, "上传失败", str(e))
+            return
+        self.portraits_table.setItem(row, 2, QTableWidgetItem(value))
+        self.portraits_table.setItem(row, 3, self._make_preview_item(value))
+        self._portraits_changed = True
 
     def _fill_portraits(self, slots):
         self.portraits_table.blockSignals(True)
@@ -300,6 +382,8 @@ class CharacterEditorDialog(QDialog):
             self.portraits_table.setItem(r, 0, QTableWidgetItem(s.get("scope", "")))
             self.portraits_table.setItem(r, 1, QTableWidgetItem(s.get("size", "")))
             self.portraits_table.setItem(r, 2, QTableWidgetItem(s.get("texture", "")))
+            self.portraits_table.setItem(
+                r, 3, self._make_preview_item(s.get("texture", "")))
         self.portraits_table.blockSignals(False)
 
     def _portrait_slots_from_table(self):
@@ -321,12 +405,84 @@ class CharacterEditorDialog(QDialog):
         self.portraits_table.setItem(r, 0, QTableWidgetItem("civilian"))
         self.portraits_table.setItem(r, 1, QTableWidgetItem("large"))
         self.portraits_table.setItem(r, 2, QTableWidgetItem("GFX_"))
+        self.portraits_table.setItem(r, 3, self._make_preview_item(""))
         self.portraits_table.setCurrentCell(r, 2)
 
     def _del_portrait(self):
         rows = sorted({i.row() for i in self.portraits_table.selectedIndexes()}, reverse=True)
         for r in rows:
             self.portraits_table.removeRow(r)
+
+    # ---------------- 未知块 ----------------
+    def _fill_unknown_blocks(self, entries):
+        self.unknown_list.blockSignals(True)
+        self.unknown_list.clear()
+        for e in entries:
+            if isinstance(e, dict):
+                key = e.get("key", "block")
+                raw = e.get("raw", "")
+            else:
+                key = _block_key(e)
+                raw = e
+            lines = raw.strip().splitlines()
+            detail = "（{} 行）".format(len(lines)) if lines else ""
+            item = QListWidgetItem("{} = {{ ... }} {}".format(key, detail))
+            item.setData(Qt.ItemDataRole.UserRole, id(e))
+            item.setToolTip((raw or "").strip()[:500])
+            self.unknown_list.addItem(item)
+        self.unknown_list.blockSignals(False)
+        if self.unknown_list.count():
+            self.unknown_list.setCurrentRow(0)
+
+    def _current_unknown_entry(self):
+        item = self.unknown_list.currentItem()
+        if item is None:
+            return None
+        uid = item.data(Qt.ItemDataRole.UserRole)
+        m = self._current_meta()
+        if m is None:
+            return None
+        for e in _unknown_blocks_of(m):
+            if id(e) == uid:
+                return e
+        return None
+
+    def _edit_unknown_block(self):
+        m = self._current_meta()
+        if m is None:
+            QMessageBox.information(self, "提示", "请先选择角色")
+            return
+        entry = self._current_unknown_entry()
+        if entry is None:
+            QMessageBox.information(self, "提示", "请先选择要编辑的未知块")
+            return
+        from ai_ui_common import ScriptBlockEditorDialog
+        if isinstance(entry, dict):
+            key = entry.get("key", "block")
+            raw = entry.get("raw", "")
+            dlg = ScriptBlockEditorDialog(
+                block_text=raw,
+                block_key=key,
+                parent=self,
+                title="编辑未知块：{}".format(key),
+            )
+            if dlg.exec():
+                entry["raw"] = dlg.get_block_text()
+        else:
+            key = _block_key(entry)
+            raw = entry
+            dlg = ScriptBlockEditorDialog(
+                block_text=raw,
+                block_key=key,
+                parent=self,
+                title="编辑未知块：{}".format(key),
+            )
+            if dlg.exec():
+                blocks = _unknown_blocks_of(m)
+                idx = blocks.index(entry)
+                blocks[idx] = dlg.get_block_text()
+        blocks = _unknown_blocks_of(m)
+        self._fill_unknown_blocks(blocks)
 
     def _fill_roles(self, entries):
         self.role_list.blockSignals(True)
@@ -463,6 +619,7 @@ class CharacterEditorDialog(QDialog):
         self._metas.append({"id": cid.strip(), "name_loc": cid.strip(),
                             "portraits_slots": [], "role_entries": [],
                             "others_lines": [], "others_blocks": [],
+                            "unknown_blocks": [],
                             "portraits_inner": "", "roles": [], "others": [], "raw": ""})
         self._reload()
 
@@ -542,7 +699,20 @@ class CharacterEditorDialog(QDialog):
         self._reload()
 
 
-def open_character_editor(mod_path="", hoi4_path="", parent=None):
-    dlg = CharacterEditorDialog(mod_path=mod_path, hoi4_path=hoi4_path, parent=parent)
+def open_character_editor(mod_path="", hoi4_path="", file_path="",
+                          entity_id="", parent=None):
+    dlg = CharacterEditorDialog(mod_path=mod_path, hoi4_path=hoi4_path,
+                                parent=parent)
     dlg.show()
+    if file_path:
+        norm = os.path.normpath(file_path)
+        for i in range(dlg.file_combo.count()):
+            if os.path.normpath(dlg.file_combo.itemData(i)) == norm:
+                dlg.file_combo.setCurrentIndex(i)
+                break
+    if entity_id:
+        for i in range(dlg.list.count()):
+            if dlg.list.item(i).data(Qt.ItemDataRole.UserRole) == entity_id:
+                dlg.list.setCurrentRow(i)
+                break
     return dlg

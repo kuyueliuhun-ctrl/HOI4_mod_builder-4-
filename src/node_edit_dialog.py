@@ -208,8 +208,29 @@ class NodeEditDialog(QDialog):
         self._update_val_label()
 
     def _on_key_changed(self):
-        """键名输入变化时更新翻译预览"""
+        """键名输入变化时更新翻译预览与高级编辑提示。"""
         self._update_key_label()
+        self._update_advanced_hint()
+
+    def _has_term_or_template_hit(self, key):
+        """判断当前键是否命中词条/模板（内置词典不视为命中）。"""
+        if not key or not self.translator:
+            return False
+        try:
+            results = self.translator.search_with_terms(key, limit=50)
+        except Exception:
+            return False
+        return any(r.get("source") in ("term", "template") for r in results)
+
+    def _update_advanced_hint(self):
+        """当前键无词条/模板命中时，在高级编辑按钮上给出兜底提示。"""
+        key = self.key_edit.text().strip()
+        if key and not self._has_term_or_template_hit(key):
+            self.advanced_btn.setText("高级: 直接编辑（无词条/模板，兜底）")
+            self.advanced_btn.setToolTip("当前键没有词条/模板命中，可直接输入原始 PDX")
+        else:
+            self.advanced_btn.setText("高级: 直接编辑")
+            self.advanced_btn.setToolTip("打开高级编辑模式，直接输入原始 PDX 文本")
 
     def _update_key_label(self):
         """更新键名的中文翻译预览标签
