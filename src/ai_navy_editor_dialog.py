@@ -11,9 +11,9 @@ import os
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QDialog, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QMessageBox,
-    QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
-    QWidget,
+    QDialog, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QMenu,
+    QMessageBox, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem,
+    QToolButton, QVBoxLayout, QWidget,
 )
 
 from ai_loader import (
@@ -114,9 +114,14 @@ class AiNavyEditorDialog(QDialog):
         right.addWidget(table, 1)
 
         btns = QHBoxLayout()
-        adv_btn = QPushButton("📝 完整编辑（高级块）")
-        adv_btn.clicked.connect(
+        adv_btn = QToolButton()
+        adv_btn.setText("高级 ▾")
+        adv_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        raw_menu = QMenu(adv_btn)
+        raw_act = raw_menu.addAction("高级：原始 PDX（兜底）")
+        raw_act.triggered.connect(
             lambda checked=False, k=kind: self._edit_raw_selected(k))
+        adv_btn.setMenu(raw_menu)
         btns.addWidget(adv_btn)
         if save_handler is not None:
             save_btn = QPushButton("💾 保存目标修改")

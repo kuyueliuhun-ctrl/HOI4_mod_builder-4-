@@ -33,6 +33,81 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from tree_node import TreeNode, tree_from_pdx_text
 
 
+# ────────────── 批次 8：traits 候选与多选弹窗 ──────────────
+
+def load_trait_candidates(mod_path="", game_path=""):
+    """收集 advisor traits 候选：common/unit_leader/*_traits.txt + country_leader_traits。"""
+    out = set()
+    candidates_dirs = []
+    if mod_path:
+        candidates_dirs.append(os.path.join(mod_path, "common", "unit_leader"))
+        candidates_dirs.append(os.path.join(mod_path, "common", "country_leader_traits"))
+    if game_path:
+        candidates_dirs.append(os.path.join(game_path, "common", "unit_leader"))
+        candidates_dirs.append(os.path.join(game_path, "common", "country_leader_traits"))
+    from tree_node import parse_pdx_text_to_nodes
+    for d in candidates_dirs:
+        if not os.path.isdir(d):
+            continue
+        for fn in sorted(os.listdir(d)):
+            low = fn.lower()
+            if not low.endswith(".txt") or "trait" not in low:
+                continue
+            fp = os.path.join(d, fn)
+            try:
+                with open(fp, "r", encoding="utf-8-sig", errors="ignore") as f:
+                    content = f.read()
+            except Exception:
+                continue
+            try:
+                for node in parse_pdx_text_to_nodes(content):
+                    if node.node_type == "block" and node.key:
+                        out.add(node.key)
+                    elif node.key:
+                        out.add(node.key)
+            except Exception:
+                continue
+    return sorted(out)
+
+
+class TraitsPickerDialog(QDialog):
+    """traits 多选弹窗（QListWidget ExtendedSelection）。"""
+
+    def __init__(self, candidates, selected, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("选择 traits（多选）")
+        self.resize(420, 520)
+        root = QVBoxLayout(self)
+        root.addWidget(QLabel("候选列表（按住 Ctrl/Shift 多选）："))
+        self.list = QListWidget()
+        self.list.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self._selected_set = set(selected)
+        for cand in candidates:
+            self.list.addItem(QListWidgetItem(cand))
+        root.addWidget(self.list, 1)
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        cancel = QPushButton("取消")
+        cancel.clicked.connect(self.reject)
+        ok = QPushButton("确定")
+        ok.clicked.connect(self.accept)
+        btns.addWidget(cancel)
+        btns.addWidget(ok)
+        root.addLayout(btns)
+
+    def showEvent(self, event):
+        """窗口显示后再应用预选（QListWidget setSelected 在显示前无效）。"""
+        super().showEvent(event)
+        for i in range(self.list.count()):
+            item = self.list.item(i)
+            item.setSelected(item.text() in self._selected_set)
+
+    def selected(self):
+        return [self.list.item(i).text()
+                for i in range(self.list.count())
+                if self.list.item(i).isSelected()]
+
+
 # ────────────── 纯逻辑：国家 tag 收集 ──────────────
 
 def collect_country_tags(mod_path="", game_path="") -> list:
@@ -285,9 +360,10 @@ def build_assign_block(char_name, excluded_tags, params):
     """构建顾问分配块文本（every_possible_country + generate_character）。
 
     Args:
-        char_name: 角色 ID（generate_character.name）
+        char_name: 角色 ID（generate_character.name 兜底）
         excluded_tags: 排除国家列表
-        params: 顾问参数 dict（slot/cost/traits/available/ai_will_do_factor）
+        params: 顾问参数 dict
+               （slot/cost/idea_token/name/desc/traits/available/ai_will_do_factor）
     """
     lines = ["every_possible_country = {"]
     if excluded_tags:
@@ -300,7 +376,8 @@ def build_assign_block(char_name, excluded_tags, params):
         lines.append("\t\t}")
         lines.append("\t}")
     lines.append("\tgenerate_character = {")
-    lines.append(f"\t\tname = {char_name}")
+    name = (params or {}).get("name", "").strip() or char_name
+    lines.append("\t\tname = %s" % name)
     lines.append("\t\tadvisor = {")
     slot = (params or {}).get("slot", "").strip()
     if slot:
@@ -308,6 +385,12 @@ def build_assign_block(char_name, excluded_tags, params):
     cost = (params or {}).get("cost", "").strip()
     if cost:
         lines.append(f"\t\t\tcost = {cost}")
+    idea_token = (params or {}).get("idea_token", "").strip()
+    if idea_token:
+        lines.append(f"\t\t\tidea_token = {idea_token}")
+    desc = (params or {}).get("desc", "").strip()
+    if desc:
+        lines.append(f"\t\t\tdesc = {desc}")
     traits = (params or {}).get("traits", "").strip()
     if traits:
         lines.append("\t\t\ttraits = {")
@@ -521,7 +604,7 @@ class CharacterAdvisorDialog(QDialog):
         slot_row = QHBoxLayout()
         slot_row.addWidget(QLabel("顾问位 slot:"))
         self.slot_combo = QComboBox()
-        self.slot_combo.setEditable(True)
+        self.slot_combo.setEditable(False)
         self.slot_combo.addItems(SLOT_CHOICES)
         slot_row.addWidget(self.slot_combo)
         slot_row.addWidget(QLabel("cost:"))
@@ -531,15 +614,42 @@ class CharacterAdvisorDialog(QDialog):
         slot_row.addWidget(self.cost_edit)
         layout.addLayout(slot_row)
 
-        layout.addWidget(QLabel("特质 traits（每行一个）:"))
-        self.traits_edit = QTextEdit()
-        self.traits_edit.setMaximumHeight(60)
-        layout.addWidget(self.traits_edit)
+        field_row = QHBoxLayout()
+        field_row.addWidget(QLabel("idea_token:"))
+        self.idea_token_edit = QLineEdit()
+        self.idea_token_edit.setPlaceholderText("如 AFG_xxx")
+        field_row.addWidget(self.idea_token_edit, 1)
+        field_row.addWidget(QLabel("name:"))
+        self.advisor_name_edit = QLineEdit()
+        field_row.addWidget(self.advisor_name_edit, 1)
+        layout.addLayout(field_row)
 
-        layout.addWidget(QLabel("available 条件（PDX 块文本，可空）:"))
-        self.available_edit = QTextEdit()
-        self.available_edit.setMaximumHeight(90)
-        layout.addWidget(self.available_edit)
+        desc_row = QHBoxLayout()
+        desc_row.addWidget(QLabel("desc:"))
+        self.advisor_desc_edit = QLineEdit()
+        self.advisor_desc_edit.setPlaceholderText("本地化描述键（可空）")
+        desc_row.addWidget(self.advisor_desc_edit, 1)
+        layout.addLayout(desc_row)
+
+        trait_row = QHBoxLayout()
+        trait_row.addWidget(QLabel("特质 traits:"))
+        self.traits_label = QLabel("（未选择）")
+        self.traits_label.setWordWrap(True)
+        trait_row.addWidget(self.traits_label, 1)
+        self.traits_pick_btn = QPushButton("选择 traits…")
+        self.traits_pick_btn.clicked.connect(self._pick_traits)
+        trait_row.addWidget(self.traits_pick_btn)
+        layout.addLayout(trait_row)
+
+        avail_row = QHBoxLayout()
+        avail_row.addWidget(QLabel("available 条件:"))
+        self.available_label = QLabel("（空）")
+        self.available_label.setWordWrap(True)
+        avail_row.addWidget(self.available_label, 1)
+        self.available_btn = QPushButton("编辑 available…")
+        self.available_btn.clicked.connect(self._edit_available)
+        avail_row.addWidget(self.available_btn)
+        layout.addLayout(avail_row)
 
         factor_row = QHBoxLayout()
         factor_row.addWidget(QLabel("ai_will_do factor:"))
@@ -603,21 +713,34 @@ class CharacterAdvisorDialog(QDialog):
                 break
         excluded = extract_excluded_tags(limit) if limit else []
         self._apply_exclusions(excluded)
+        self.idea_token_edit.setText("")
+        self.advisor_name_edit.setText(self.char_name)
+        self.advisor_desc_edit.setText("")
         advisor = None
+        char_node = None
         for c in block_node.children:
             if c.key == "generate_character" and c.node_type == "block":
+                char_node = c
                 advisor = get_advisor_node(c)
                 break
+        if char_node is not None:
+            for c in char_node.children:
+                if c.key == "name":
+                    self.advisor_name_edit.setText(c.value)
+                elif c.key == "desc":
+                    self.advisor_desc_edit.setText(c.value)
         if advisor is not None:
             for a in advisor.children:
                 if a.key == "slot":
                     self.slot_combo.setCurrentText(a.value)
                 elif a.key == "cost":
                     self.cost_edit.setText(a.value)
+                elif a.key == "idea_token":
+                    self.idea_token_edit.setText(a.value)
                 elif a.key == "traits" and a.node_type == "block":
-                    self.traits_edit.setPlainText("\n".join(t.value for t in a.children))
+                    self._set_traits_label([t.value for t in a.children])
                 elif a.key == "available" and a.node_type == "block":
-                    self.available_edit.setPlainText(a.to_pdx(0))
+                    self._set_available_label(a.to_pdx(0))
                 elif a.key == "ai_will_do" and a.node_type == "block":
                     for sub in a.children:
                         if sub.key == "factor":
@@ -644,13 +767,52 @@ class CharacterAdvisorDialog(QDialog):
     def _clear_all(self):
         self.country_list.clearSelection()
 
+    def _set_traits_label(self, traits):
+        self._current_traits = list(traits)
+        if traits:
+            from xml.sax.saxutils import escape
+            badges = "".join(
+                '<span style="background:#eaf2fb; color:#1f4f7e; '
+                'border:1px solid #9db8d2; border-radius:3px; '
+                'padding:0 4px; margin:1px;">&nbsp;%s&nbsp;</span>'
+                % escape(t) for t in traits)
+            self.traits_label.setText(badges)
+        else:
+            self.traits_label.setText("（未选择）")
+
+    def _selected_traits(self):
+        return list(getattr(self, "_current_traits", []))
+
+    def _pick_traits(self):
+        candidates = load_trait_candidates(self.mod_path, self.game_path)
+        dlg = TraitsPickerDialog(candidates, self._selected_traits(), parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            self._set_traits_label(dlg.selected())
+
+    def _set_available_label(self, block_text):
+        self._available_text = block_text or ""
+        self.available_label.setText((block_text or "").strip() or "（空）")
+
+    def _available_block(self):
+        return getattr(self, "_available_text", "")
+
+    def _edit_available(self):
+        from ai_ui_common import ScriptBlockEditorDialog
+        dlg = ScriptBlockEditorDialog(
+            self._available_block(), block_key="available", parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            self._set_available_label(dlg.result_block_text())
+
     def _on_save(self):
         """保存：写回目标分配文件。"""
         params = {
             "slot": self.slot_combo.currentText(),
             "cost": self.cost_edit.text(),
-            "traits": self.traits_edit.toPlainText(),
-            "available": self.available_edit.toPlainText(),
+            "idea_token": self.idea_token_edit.text(),
+            "name": self.advisor_name_edit.text(),
+            "desc": self.advisor_desc_edit.text(),
+            "traits": "\n".join(self._selected_traits()),
+            "available": self._available_block(),
             "ai_will_do_factor": self.factor_edit.text(),
         }
         filepath = self.advisor_file
@@ -668,8 +830,8 @@ class CharacterAdvisorDialog(QDialog):
             QMessageBox.warning(self, "错误", "保存失败")
 
 SLOT_CHOICES = [
-    "political_advisor", "military_advisor", "navy_advisor",
-    "army_advisor", "air_advisor", "high_command",
+    "political_advisor", "theorist", "army_chief", "navy_chief",
+    "air_chief", "high_command",
 ]
 
 
@@ -765,25 +927,47 @@ class AdvisorAssignDialog(QDialog):
         slot_row = QHBoxLayout()
         slot_row.addWidget(QLabel("顾问位 slot:"))
         self.slot_combo = QComboBox()
-        self.slot_combo.setEditable(True)
+        self.slot_combo.setEditable(False)
         self.slot_combo.addItems(SLOT_CHOICES)
         slot_row.addWidget(self.slot_combo)
         param_layout.addLayout(slot_row)
 
+        field_row = QHBoxLayout()
+        field_row.addWidget(QLabel("idea_token:"))
+        self.idea_token_edit = QLineEdit()
+        self.idea_token_edit.setPlaceholderText("如 AFG_xxx")
+        field_row.addWidget(self.idea_token_edit, 1)
+        field_row.addWidget(QLabel("name:"))
+        self.advisor_name_edit = QLineEdit()
+        field_row.addWidget(self.advisor_name_edit, 1)
+        param_layout.addLayout(field_row)
+
+        desc_row = QHBoxLayout()
+        desc_row.addWidget(QLabel("desc:"))
+        self.advisor_desc_edit = QLineEdit()
+        self.advisor_desc_edit.setPlaceholderText("本地化描述键（可空）")
+        desc_row.addWidget(self.advisor_desc_edit, 1)
+        param_layout.addLayout(desc_row)
+
         traits_row = QHBoxLayout()
-        traits_row.addWidget(QLabel("特质 traits（每行一个）:"))
+        traits_row.addWidget(QLabel("特质 traits:"))
+        self.traits_label = QLabel("（未选择）")
+        self.traits_label.setWordWrap(True)
+        traits_row.addWidget(self.traits_label, 1)
+        self.traits_pick_btn = QPushButton("选择 traits…")
+        self.traits_pick_btn.clicked.connect(self._pick_traits)
+        traits_row.addWidget(self.traits_pick_btn)
         param_layout.addLayout(traits_row)
-        self.traits_edit = QTextEdit()
-        self.traits_edit.setMaximumHeight(60)
-        param_layout.addWidget(self.traits_edit)
 
         avail_row = QHBoxLayout()
-        avail_row.addWidget(QLabel("available 条件（PDX 块文本，可空）:"))
+        avail_row.addWidget(QLabel("available 条件:"))
+        self.available_label = QLabel("（空）")
+        self.available_label.setWordWrap(True)
+        avail_row.addWidget(self.available_label, 1)
+        self.available_btn = QPushButton("编辑 available…")
+        self.available_btn.clicked.connect(self._edit_available)
+        avail_row.addWidget(self.available_btn)
         param_layout.addLayout(avail_row)
-        self.available_edit = QTextEdit()
-        self.available_edit.setMaximumHeight(90)
-        self.available_edit.setPlaceholderText("如:\nIF = {\n\tlimit = { has_dlc = \"Man the Guns\" }\n\tNOT = { has_autonomy_state = autonomy_supervised_state }\n}")
-        param_layout.addWidget(self.available_edit)
 
         factor_row = QHBoxLayout()
         factor_row.addWidget(QLabel("ai_will_do factor:"))
@@ -882,18 +1066,32 @@ class AdvisorAssignDialog(QDialog):
         """加载角色的顾问参数。"""
         advisor = get_advisor_node(char_node)
         self.slot_combo.setCurrentText("")
-        self.traits_edit.setPlainText("")
-        self.available_edit.setPlainText("")
+        self._set_traits_label([])
+        self._set_available_label("")
         self.factor_edit.setText("")
+        self.idea_token_edit.setText("")
+        self.advisor_name_edit.setText("")
+        self.advisor_desc_edit.setText("")
+        for c in char_node.children:
+            if c.key == "name":
+                self.advisor_name_edit.setText(c.value)
+            elif c.key == "desc":
+                self.advisor_desc_edit.setText(c.value)
         if advisor is None:
             return
         for c in advisor.children:
             if c.key == "slot":
                 self.slot_combo.setCurrentText(c.value)
+            elif c.key == "idea_token":
+                self.idea_token_edit.setText(c.value)
+            elif c.key == "name" and not self.advisor_name_edit.text().strip():
+                self.advisor_name_edit.setText(c.value)
+            elif c.key == "desc" and not self.advisor_desc_edit.text().strip():
+                self.advisor_desc_edit.setText(c.value)
             elif c.key == "traits" and c.node_type == "block":
-                self.traits_edit.setPlainText("\n".join(t.value for t in c.children))
+                self._set_traits_label([t.value for t in c.children])
             elif c.key == "available" and c.node_type == "block":
-                self.available_edit.setPlainText(c.to_pdx(0))
+                self._set_available_label(c.to_pdx(0))
             elif c.key == "ai_will_do" and c.node_type == "block":
                 for sub in c.children:
                     if sub.key == "factor":
@@ -913,6 +1111,42 @@ class AdvisorAssignDialog(QDialog):
 
     def _clear_exclusions(self):
         self.country_list.clearSelection()
+
+    def _set_traits_label(self, traits):
+        self._current_traits = list(traits)
+        if traits:
+            from xml.sax.saxutils import escape
+            badges = "".join(
+                '<span style="background:#eaf2fb; color:#1f4f7e; '
+                'border:1px solid #9db8d2; border-radius:3px; '
+                'padding:0 4px; margin:1px;">&nbsp;%s&nbsp;</span>'
+                % escape(t) for t in traits)
+            self.traits_label.setText(badges)
+        else:
+            self.traits_label.setText("（未选择）")
+
+    def _selected_traits(self):
+        return list(getattr(self, "_current_traits", []))
+
+    def _pick_traits(self):
+        candidates = load_trait_candidates(self.mod_path, self.game_path)
+        dlg = TraitsPickerDialog(candidates, self._selected_traits(), parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            self._set_traits_label(dlg.selected())
+
+    def _set_available_label(self, block_text):
+        self._available_text = block_text or ""
+        self.available_label.setText((block_text or "").strip() or "（空）")
+
+    def _available_block(self):
+        return getattr(self, "_available_text", "")
+
+    def _edit_available(self):
+        from ai_ui_common import ScriptBlockEditorDialog
+        dlg = ScriptBlockEditorDialog(
+            self._available_block(), block_key="available", parent=self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            self._set_available_label(dlg.result_block_text())
 
     def _on_save(self):
         """保存：更新当前块 limit 排除国家与角色参数。"""
@@ -935,9 +1169,13 @@ class AdvisorAssignDialog(QDialog):
 
         # slot
         self._set_value(advisor, "slot", self.slot_combo.currentText().strip())
+        # 字段化：idea_token / desc / name（name 写入 generate_character 顶层）
+        self._set_value(advisor, "idea_token", self.idea_token_edit.text().strip())
+        self._set_value(advisor, "desc", self.advisor_desc_edit.text().strip())
+        self._set_value(self._current_char, "name", self.advisor_name_edit.text().strip())
 
         # traits
-        trait_text = self.traits_edit.toPlainText().strip()
+        trait_text = "\n".join(self._selected_traits()).strip()
         old_traits = None
         for c in advisor.children:
             if c.key == "traits":
@@ -957,7 +1195,7 @@ class AdvisorAssignDialog(QDialog):
             advisor.children.remove(old_traits)
 
         # available（PDX 块文本）
-        avail_text = self.available_edit.toPlainText().strip()
+        avail_text = self._available_block().strip()
         old_avail = None
         for c in advisor.children:
             if c.key == "available":

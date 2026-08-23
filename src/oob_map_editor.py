@@ -10,6 +10,7 @@
 """
 
 import os
+import re
 
 import numpy as np
 from PyQt6.QtCore import Qt, pyqtSignal, QPoint, QPointF, QRectF
@@ -114,6 +115,110 @@ def _counter_pixmap(typ, sub_units, gfx_map, mod_path, hoi4_path):
                    Qt.TransformationMode.SmoothTransformation)
     _COUNTER_CACHE[typ] = pm
     return pm
+
+
+def _country_capital_province(mod_path, hoi4_path, tag):
+    """从 history/countries 的国家文件解析 capital 地块（mod 优先）。"""
+    tag = (tag or "").upper()
+    if not tag:
+        return None
+    for base in (mod_path, hoi4_path):
+        if not base:
+            continue
+        d = os.path.join(base, "history", "countries")
+        if not os.path.isdir(d):
+            continue
+        try:
+            names = sorted(os.listdir(d))
+        except Exception:
+            continue
+        for fn in names:
+            if not fn.lower().endswith(".txt"):
+                continue
+            first = fn.split(" - ")[0].split()[0].strip().upper().rstrip(".TXT")
+            if first != tag:
+                continue
+            try:
+                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
+                          errors="ignore") as f:
+                    content = f.read()
+            except Exception:
+                continue
+            m = re.search(r'\bcapital\s*=\s*(\d+)', content)
+            if m:
+                return int(m.group(1))
+    return None
+
+
+def _province_adjacency(map_data, pids):
+    """返回给定地块集合内的 4 邻接关系 {pid: set(pid)}。
+
+    仅记录两个端点都属于 pids 的边，内存控制在布尔掩码 + 行级切片。
+    """
+    pid_list = list(pids or [])
+    if not pid_list or map_data.id_map is None:
+        return {p: set() for p in pid_list}
+    id_map = map_data.id_map
+    mask = np.isin(id_map, pid_list)
+    adj = {p: set() for p in pid_list}
+    h, w = id_map.shape
+    if w > 1:
+        m = mask[:, :-1] & mask[:, 1:]
+        a = id_map[:, :-1][m]
+        b = id_map[:, 1:][m]
+        for p, q in zip(a.tolist(), b.tolist()):
+            if p != q:
+                adj.setdefault(p, set()).add(q)
+                adj.setdefault(q, set()).add(p)
+    if h > 1:
+        m = mask[:-1, :] & mask[1:, :]
+        a = id_map[:-1, :][m]
+        b = id_map[1:, :][m]
+        for p, q in zip(a.tolist(), b.tolist()):
+            if p != q:
+                adj.setdefault(p, set()).add(q)
+                adj.setdefault(q, set()).add(p)
+    return adj
+
+
+def _connected_components(pids, adjacency):
+    """按地块邻接图求连通分量，返回按数量降序的 [set(pid), ...]。"""
+    pids = list(pids or [])
+    if not pids:
+        return []
+    seen = set()
+    comps = []
+    for p in pids:
+        if p in seen:
+            continue
+        stack = [p]
+        seen.add(p)
+        comp = set()
+        while stack:
+            cur = stack.pop()
+            comp.add(cur)
+            for nb in (adjacency.get(cur) or ()):
+                if nb not in seen:
+                    seen.add(nb)
+                    stack.append(nb)
+        comps.append(comp)
+    comps.sort(key=len, reverse=True)
+    return comps
+
+
+def _home_component(map_data, pids, capital_pid=None):
+    """选取国家的“本体最大连通区”：首都所在分量优先，否则最大分量。"""
+    if not pids:
+        return []
+    adj = _province_adjacency(map_data, pids)
+    comps = _connected_components(pids, adj)
+    if capital_pid in pids:
+        for comp in comps:
+            if capital_pid in comp:
+                return sorted(comp)
+    if comps:
+        return sorted(comps[0])
+    return sorted(pids)
 
 
 class OobMapEditor(QDialog):
@@ -223,8 +328,16 @@ class OobMapEditor(QDialog):
         except Exception:
             pass
 
-        # 初始视野：优先定位到编辑文件对应国家的领土（或文件中已放置部队的区域），
-        # 否则全景基础上放大 DEFAULT_ZOOM 倍
+        self._initial_focus_done = False
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not getattr(self, "_initial_focus_done", False):
+            self._initial_focus_done = True
+            self._apply_initial_focus()
+
+    def _apply_initial_focus(self):
+        """初始视野：定位到所选国家领土；无则全景放大 DEFAULT_ZOOM。"""
         focus = self._focus_region()
         if focus:
             xs = [c[0] for c in focus if c]
@@ -244,11 +357,18 @@ class OobMapEditor(QDialog):
         self.canvas.fit_map()
 
     def _focus_region(self):
-        """定位区域：国家领土地块中心；无领土则用文件中已放置部队的地块。"""
+        """定位区域：国家本体最大连通区（首都所在州优先）。
+
+        若国家不存在/无地块，则回退到文件中已放置部队的地块。
+        """
         if self.country_tag:
             pids = self.state_data.provinces_of_owner(self.country_tag)
             if pids:
-                return [self.map_data.province_centroid(pid) for pid in pids]
+                capital = _country_capital_province(
+                    self.mod_path, self.hoi4_path, self.country_tag)
+                home = _home_component(self.map_data, pids, capital)
+                return [self.map_data.province_centroid(pid)
+                        for pid in home if self.map_data.province_centroid(pid)]
         pids = [p.location for p in self.oob_file.placements if p.location > 0]
         if pids:
             return [self.map_data.province_centroid(pid) for pid in pids]

@@ -313,23 +313,43 @@ def _parse_need(node):
 
 
 def _parse_terrain(node):
-    """解析 terrain 块 → {地形键: movement 修正}（仅收录 TERRAIN_KEYS）。"""
+    """解析 terrain 子块 → {地形键: {"movement","attack","defence"}}。
+
+    注意 HOI4 使用英式拼写 defence。
+    """
     out = {}
     for c in node.children:
         if c.node_type == "block" and c.key in TERRAIN_KEYS:
-            mv = _num(_node_field_value(c, "movement"))
-            if mv is not None:
-                out[c.key] = mv
+            item = {
+                "movement": _num(_node_field_value(c, "movement")),
+                "attack": _num(_node_field_value(c, "attack")),
+                "defence": _num(_node_field_value(c, "defence")),
+            }
+            out[c.key] = item
     return out
+
+
+def _parse_terrain_movement(node):
+    """解析 terrain 子块 → {地形键: movement 修正}（兼容旧调用方）。"""
+    return {k: v.get("movement") for k, v in _parse_terrain(node).items()}
+
+
+_SUB_KNOWN_SCALARS = frozenset((
+    "abbreviation", "sprite", "group", "parent",
+) + _STAT_FIELDS)
 
 
 def load_sub_units(mod_path="", hoi4_path=""):
     """扫描 common/units/*.txt 的 sub_units 块。
 
     Returns:
-        dict: type -> {abbreviation, group, support, sprite,
+        dict: type -> {abbreviation, parent, group, support, sprite,
                        combat_width/max_strength/...（属性字段，缺失为 None）,
-                       need: {装备: 数量}, terrain: {地形: movement}}
+                       need: {装备: 数量},
+                       terrain: {地形: movement},
+                       terrain_full: {地形: {"movement","attack","defence"}},
+                       others: {未列入属性表的其他标量字段: 原始值},
+                       src: 定义源文件路径}
     """
     result = {}
     for base in (mod_path, hoi4_path):
@@ -345,8 +365,9 @@ def load_sub_units(mod_path="", hoi4_path=""):
         for fn in names:
             if not fn.lower().endswith(".txt"):
                 continue
+            fp = os.path.join(d, fn)
             try:
-                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
+                with open(fp, "r", encoding="utf-8-sig",
                           errors="ignore") as f:
                     content = f.read()
             except Exception:
@@ -357,19 +378,30 @@ def load_sub_units(mod_path="", hoi4_path=""):
                 for sub in node.children:
                     if sub.node_type != "block":
                         continue
+                    terrain_full = _parse_terrain(sub)
                     info = {
                         "abbreviation": _node_field_value(sub, "abbreviation") or "",
                         "sprite": _node_field_value(sub, "sprite") or "",
+                        "parent": _node_field_value(sub, "parent") or "",
                         "group": _node_field_value(sub, "group") or "",
                         "support": False,
                         "need": _parse_need(sub),
-                        "terrain": _parse_terrain(sub),
+                        "terrain": {k: v["movement"]
+                                    for k, v in terrain_full.items()
+                                    if v.get("movement") is not None},
+                        "terrain_full": terrain_full,
+                        "others": {},
+                        "src": fp,
                     }
                     reg = _node_field_value(sub, "regimental")
                     if reg is not None:
                         info["support"] = str(reg).strip().lower() == "no"
                     for f in _STAT_FIELDS:
                         info[f] = _num(_node_field_value(sub, f))
+                    # 未列入表单的标量字段进入 others（保留未知键）
+                    for c in sub.children:
+                        if c.node_type == "value" and c.key not in _SUB_KNOWN_SCALARS:
+                            info["others"][c.key] = str(c.value).strip()
                     result[sub.key] = info  # mod 覆盖游戏
     return result
 
@@ -448,6 +480,8 @@ def _main_need(need):
 
 def _find_equip(equip_stats, need_key):
     """装备类别键 → 装备定义：精确匹配 → `键_0` → 变体号最小的 `键_N`。"""
+    if not need_key:
+        return None
     if need_key in equip_stats:
         return equip_stats[need_key]
     base = need_key + "_0"
@@ -544,6 +578,17 @@ def division_stats(tpl, sub_units=None, equip_stats=None):
             acc = stats["terrain"].setdefault(t, [0.0, 0])
             acc[0] += mv
             acc[1] += 1
+        # 地形三项（movement/attack/defence）
+        for t, full in (info.get("terrain_full") or {}).items():
+            box = stats.setdefault("terrain_full", {}).setdefault(
+                t, {"movement": [0.0, 0], "attack": [0.0, 0],
+                    "defence": [0.0, 0]})
+            box["movement"][0] += full.get("movement") or 0
+            box["movement"][1] += 1
+            box["attack"][0] += full.get("attack") or 0
+            box["attack"][1] += 1
+            box["defence"][0] += full.get("defence") or 0
+            box["defence"][1] += 1
 
     stats["speed"] = min(speeds) if speeds else None
     stats["org"] = (sum(orgs) / len(orgs)) if orgs else 0.0
@@ -551,6 +596,12 @@ def division_stats(tpl, sub_units=None, equip_stats=None):
     stats["training"] = max(trainings) if trainings else 0
     stats["terrain"] = {t: (acc[0] / acc[1])
                         for t, acc in stats["terrain"].items()}
+    if stats.get("terrain_full"):
+        stats["terrain_full"] = {
+            t: {k: (v[0] / v[1]) if v[1] else None
+                for k, v in box.items()}
+            for t, box in stats["terrain_full"].items()
+        }
     stats["counts"] = {"battalions": len(tpl.regiments),
                        "support": len(tpl.support)}
     stats["items"] = n_items
@@ -651,10 +702,10 @@ def find_oob_country(mod_path, file_path):
                 tag = _enclosing_top_block_key(content, m.start())
                 if tag:
                     return tag.upper()
-    # 兜底：文件名前缀推断（APA_2020.txt -> APA）
-    m = re.match(r'^([A-Z]{2,4})[_\d]', os.path.basename(file_path))
+    # 兜底：文件名前缀推断（APA_2020.txt -> APA；大小写放宽）
+    m = re.match(r'^([A-Za-z]{2,4})[_\d]', os.path.basename(file_path))
     if m:
-        return m.group(1)
+        return m.group(1).upper()
     return ""
 
 
@@ -679,7 +730,7 @@ def _enclosing_top_block_key(content, pos):
     因此沿块树从外向内递归，第一个 TAG 格式的键即为国家标签。
     """
     clean = _blank_pdx(content)
-    tag_pat = re.compile(r'^[A-Z]{2,4}$')
+    tag_pat = re.compile(r'^[A-Za-z]{2,4}$')
     blocks = _block_ranges(content)
     if not blocks:
         return ""
@@ -720,6 +771,8 @@ class OobFile:
         self.newline = "\r\n" if "\r\n" in self.content else "\n"
         self.templates = parse_division_templates(self.content)
         self.placements = parse_units(self.content)
+        # division_names_group 块（组 id -> icon/order/is_name/generic/name…）
+        self.names_groups = load_names_groups(self.content)
         self.dirty = False
         # units 块原始文本与修改标记（未修改时原样写回，保留注释/格式）
         self._units_raw = ""
@@ -759,6 +812,17 @@ class OobFile:
         """标记模板已被编辑（保存时重新序列化该块）。"""
         if tpl is not None:
             tpl.modified = True
+        self.dirty = True
+
+    # ---------- 命名组 ----------
+
+    def names_group_ids(self):
+        return sorted(self.names_groups)
+
+    def set_names_group(self, group_id, fields):
+        """更新 OobFile 内的命名组并标记 dirty（仅内存，保存时写回）。"""
+        self.content = save_names_group(self.content, group_id, fields)
+        self.names_groups = load_names_groups(self.content)
         self.dirty = True
 
     # ---------- 放置 ----------
@@ -878,3 +942,349 @@ class OobFile:
         self.content = content
         self.dirty = False
         return True
+
+
+def _find_sub_unit_file(mod_path, hoi4_path, unit_id):
+    """在 common/units/**/*.txt 中定位 unit_id 定义文件。"""
+    for base in (mod_path, hoi4_path):
+        d = os.path.join(base or '', 'common', 'units')
+        if not os.path.isdir(d):
+            continue
+        for dp, _dirs, names in os.walk(d):
+            for name in sorted(names):
+                if not name.lower().endswith('.txt'):
+                    continue
+                fp = os.path.join(dp, name)
+                try:
+                    with open(fp, 'r', encoding='utf-8-sig', errors='ignore') as f:
+                        content = f.read()
+                except Exception:
+                    continue
+                if _find_block(content, unit_id) is not None:
+                    return fp, content
+    return None, None
+
+
+def _find_block(content, key):
+    """返回任意深度第一个 key 块 (start,end)。"""
+    for k, _d, start, end in _block_ranges(content):
+        if k == key:
+            return start, end
+    return None
+
+
+def _format_scalar_value(value):
+    """把 UI/参数值格式化为 PDX 标量文本（数值/裸标识符不引号，特殊串加引号）。"""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return "yes" if value else "no"
+    if isinstance(value, (int, float)):
+        return repr(value) if isinstance(value, int) else ("%g" % value)
+    text = str(value).strip()
+    if text == "":
+        return '""'
+    if re.fullmatch(r'[+-]?(\d+(\.\d*)?|\.\d+)', text):
+        return text
+    return _quote_if_needed(text)
+
+
+def _replace_scalar(block, key, value):
+    """在 sub_unit 块内替换/插入一个标量字段，返回新块文本。"""
+    raw = _format_scalar_value(value)
+    if raw is None:
+        return block
+    pat = re.compile(r'(\b' + re.escape(key) + r'\s*=\s*)[^\n#]+')
+    m = pat.search(block)
+    if m:
+        return block[:m.start()] + m.group(1) + raw + block[m.end():]
+    # 插入到 sub_unit 块的闭合 } 前（避免误入内层 need 等块）
+    return _insert_at_outer_close(
+        block, "%s = %s" % (key, raw))
+
+
+def _render_block_lines(key, items):
+    """把键值/子项渲染为多行块文本（含 key = {...}）。"""
+    lines = ["%s = {" % key]
+    for k, v in items:
+        raw = _format_scalar_value(v)
+        if raw is not None:
+            lines.append("\t%s = %s" % (k, raw))
+    lines.append("}")
+    return "\n".join(lines)
+
+
+def _matching_brace(text, open_index):
+    """在去注释/字符串后的文本中，从 open_index 配对到闭合 `}` 的位置。"""
+    clean = _blank_pdx(text)
+    depth = 0
+    for i in range(open_index, len(clean)):
+        ch = clean[i]
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                return i
+    return -1
+
+
+def _outer_close(block):
+    """sub_unit 块文本的最外层闭合 `}` 位置。"""
+    idx = block.find('{')
+    if idx < 0:
+        return -1
+    return _matching_brace(block, idx)
+
+
+def _insert_at_outer_close(block, text):
+    """把 text 插入 sub_unit 块最外层闭合 `}` 前，保留缩进风格。"""
+    close = _outer_close(block)
+    if close < 0:
+        return block
+    line_start = block.rfind('\n', 0, close)
+    if line_start < 0:
+        return block[:close] + text + block[close:]
+    indent = block[line_start + 1:close]
+    prefix = block[:line_start + 1]
+    suffix = block[line_start + 1:]
+    return prefix + indent + text + '\n' + suffix
+
+
+def _replace_or_insert_sub_block(block, key, new_block_lines):
+    """在 sub_unit 块内替换/插入一个子块；返回 (新块文本, 是否替换)。"""
+    pattern = re.compile(r'\b' + re.escape(key) + r'\s*=\s*\{')
+    m = pattern.search(block)
+    if not m:
+        # 不存在：插入到 sub_unit 块闭合 } 前
+        return _insert_at_outer_close(block, new_block_lines), False
+    # 从该处配对到闭合括号
+    close = _matching_brace(block, m.end() - 1)
+    if close < 0:
+        return block, False
+    return block[:m.start()] + new_block_lines + block[close + 1:], True
+
+
+def _replace_terrain_entry(block, terrain_key, values):
+    """替换/插入/删除一个地形子块（forest = {...}）。
+
+    values: {"movement","attack","defence"}；全为空/None 时删除该地形块。
+    """
+    items = []
+    for k in ("movement", "attack", "defence"):
+        v = (values or {}).get(k)
+        raw = _format_scalar_value(v)
+        if raw not in (None, '""'):
+            items.append((k, v))
+    new_lines = _render_block_lines(terrain_key, items)
+    pattern = re.compile(r'\b' + re.escape(terrain_key) + r'\s*=\s*\{')
+    m = pattern.search(block)
+    if not m:
+        if not items:
+            return block
+        return _insert_at_outer_close(block, new_lines)
+    close = _matching_brace(block, m.end() - 1)
+    if close < 0:
+        return block
+    if not items:
+        # 删除整块及可能的前置空白
+        segment = block[m.start():close + 1]
+        return block.replace(segment, "", 1)
+    return block[:m.start()] + new_lines + block[close + 1:]
+
+
+def save_sub_unit(mod_path, hoi4_path, unit_id, fields=None,
+                  need=None, terrain=None, stats=None, others=None):
+    """保存兵种（sub_unit）基础字段/need/terrain/属性/其他字段。
+
+    fields: {字段: 字符串/数值} 标量（基本信息 group/parent/sprite 等）
+    need: {装备: 数量}
+    terrain: {地形: {"movement","attack","defence"}}
+    stats: {22 属性字段: 数值/字符串}
+    others: {其他标量字段: 字符串/数值}（未覆盖键，读写完整保留）
+    """
+    from state_build_ops import ensure_file_in_mod
+    from write_utils import atomic_write_text
+    fp, content = _find_sub_unit_file(mod_path, hoi4_path, unit_id)
+    if fp is None:
+        return None
+    if not os.path.normcase(fp).startswith(os.path.normcase(mod_path or '')):
+        rel = os.path.relpath(fp, hoi4_path).replace('\\', '/')
+        fp, _ = ensure_file_in_mod(mod_path, hoi4_path, rel)
+        with open(fp, 'r', encoding='utf-8-sig', errors='ignore') as f:
+            content = f.read()
+    span = _find_block(content, unit_id)
+    if span is None:
+        return None
+    start, end = span
+    block = content[start:end]
+
+    # 合并所有标量更新：fields 优先（stat/others 同键不冲突）
+    scalar_updates = {}
+    for dct in (others, stats, fields):
+        for k, v in (dct or {}).items():
+            if v is not None:
+                scalar_updates[k] = v
+    for k, v in scalar_updates.items():
+        block = _replace_scalar(block, k, v)
+
+    if need is not None:
+        need_lines = _render_block_lines("need", sorted(need.items()))
+        block, _replaced = _replace_or_insert_sub_block(block, "need", need_lines)
+
+    if terrain is not None:
+        for terrain_key, values in terrain.items():
+            block = _replace_terrain_entry(block, terrain_key, values)
+
+    content = content[:start] + block + content[end:]
+    atomic_write_text(fp, content)
+    _clear_oob_caches()
+    return fp
+
+
+def _clear_oob_caches():
+    # 兵种目前不缓存；装备统计有模块级缓存，写兵种后一并清理避免旧值残留
+    cache = globals().get('_EQUIP_STATS_CACHE')
+    if cache is not None:
+        cache.clear()
+
+
+# ---------- division_names_group（命名组） ----------
+
+def _quote_if_needed(value):
+    """数值/裸标识符原样；含空格或引号需求时加双引号。"""
+    value = str(value).strip()
+    if not value:
+        return '""'
+    if value.startswith('"') and value.endswith('"'):
+        return value
+    if re.match(r'^[A-Za-z_][\w\.\-]*$', value):
+        return value
+    return '"%s"' % value
+
+
+def _parse_names_group(seg):
+    """解析单个命名组块文本 → {字段: 值, blocks: {子块键: 原始文本}}。"""
+    info = {"blocks": {}}
+    block_map = {}
+    for k, depth, s2, e2 in _block_ranges(seg):
+        if depth == 1:
+            block_map.setdefault(k, (s2, e2))
+    for k, (s2, e2) in block_map.items():
+        info["blocks"][k] = seg[s2:e2]
+    try:
+        nodes = parse_pdx_text_to_nodes(seg)
+    except Exception:
+        nodes = []
+    if nodes:
+        node = nodes[0]
+        for c in node.children:
+            if c.node_type == "value" and c.key not in block_map:
+                info[c.key] = c.value
+    return info
+
+
+def load_names_groups(content):
+    """解析 OOB 文件顶层 division_names_group 块。
+
+    Returns:
+        dict: {group_id: {"icon":..., "order":..., "is_name":...,
+                          "generic":..., "name":..., "blocks": {...}}}
+    """
+    outer = None
+    for key, depth, start, end in _block_ranges(content):
+        if key == "division_names_group" and depth == 0:
+            outer = (start, end)
+            break
+    if outer is None:
+        return {}
+    start, end = outer
+    outer_block = content[start:end]
+    groups = {}
+    for key, depth, s2, e2 in _block_ranges(outer_block):
+        if depth == 1:
+            groups[key] = _parse_names_group(outer_block[s2:e2])
+    return groups
+
+
+def _render_sub_block_raw(sub_raw, indent):
+    """把原始子块文本用树节点重新序列化到指定缩进，保留嵌套结构。"""
+    try:
+        nodes = parse_pdx_text_to_nodes(sub_raw or "")
+        if nodes and nodes[0].node_type == "block":
+            return nodes[0].to_pdx(indent)
+    except Exception:
+        pass
+    # 兜底：无法解析时按行加缩进
+    out = []
+    for ln in (sub_raw or "").splitlines():
+        if ln.strip():
+            out.append("\t" * indent + ln.strip())
+    return "\n".join(out)
+
+
+def _render_names_group(group_id, fields):
+    """序列化单个命名组块文本。
+
+    若某字段同时存在 blocks（如 name = {…}），优先用块形式，避免重复输出。
+    """
+    blocks = fields.get("blocks") or {}
+    lines = ["\t%s = {" % group_id]
+    for key in ("icon", "order", "is_name", "generic", "name"):
+        if key not in fields or key in blocks:
+            continue
+        value = fields[key]
+        if key == "name":
+            value = _quote_if_needed(value)
+        else:
+            value = str(value).strip()
+        lines.append("\t\t%s = %s" % (key, value))
+    # 未知/结构块（name = {…} 等）重新序列化，块级保留未编辑项
+    for sub_key, sub_raw in blocks.items():
+        rendered = _render_sub_block_raw(sub_raw, 2)
+        if rendered:
+            lines.append(rendered)
+    lines.append("\t}")
+    return "\n".join(lines)
+
+
+def save_names_group(content, group_id, fields):
+    """在 OOB 文件内容中新增/替换 division_names_group 内的命名组。
+
+    Returns:
+        str: 新 content；未找到/无法写入时返回原 content。
+    """
+    group_id = str(group_id).strip()
+    if not group_id:
+        return content
+    new_group = _render_names_group(group_id, fields)
+    outer = None
+    for key, depth, start, end in _block_ranges(content):
+        if key == "division_names_group" and depth == 0:
+            outer = (start, end)
+            break
+    if outer is None:
+        # 新建顶层块
+        if content.rstrip():
+            return content.rstrip() + "\n\ndivision_names_group = {\n" + new_group + "\n}\n"
+        return "division_names_group = {\n" + new_group + "\n}\n"
+    start, end = outer
+    outer_block = content[start:end]
+    # 查找已有组块
+    group_range = None
+    for key, depth, s2, e2 in _block_ranges(outer_block):
+        if depth == 1 and key == group_id:
+            group_range = (s2, e2)
+            break
+    if group_range is not None:
+        gs, ge = group_range
+        # 替换整行（含组块前缩进），避免 new_group 自带缩进造成双重缩进
+        line_start = outer_block.rfind("\n", 0, gs) + 1
+        return content[:start + line_start] + new_group + content[start + ge:]
+    # 不存在：在 division_names_group 闭合 } 前插入
+    # 找到外层块最后闭合大括号位置
+    close_idx = outer_block.rfind("}")
+    if close_idx == -1:
+        return content
+    inserted = outer_block[:close_idx] + "\n" + new_group + "\n" + outer_block[close_idx:]
+    return content[:start] + inserted + content[end:]

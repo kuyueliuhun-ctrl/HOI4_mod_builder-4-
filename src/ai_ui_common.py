@@ -14,7 +14,7 @@ from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtWidgets import (
     QDialog, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMenu, QMessageBox, QPushButton, QStyledItemDelegate,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout, QWidget,
 )
 
 
@@ -312,9 +312,10 @@ class ScriptBlockEditorDialog(QDialog):
         self._nav_stack = []  # [(label, node)]
         self._root_block = self._parse_block(block_text)
         self._current_block = self._root_block
+        self._scalar_nodes = []
         self.setWindowTitle(title)
-        self.resize(640, 520)
-        self.setMinimumSize(560, 420)
+        self.resize(720, 560)
+        self.setMinimumSize(620, 460)
         self._build_ui()
         self._refresh()
 
@@ -350,6 +351,11 @@ class ScriptBlockEditorDialog(QDialog):
         nav.addWidget(self.breadcrumb_label, 1)
         root.addLayout(nav)
 
+        self.kv_table = KeyValueTableEditor("键", "值", self)
+        root.addWidget(QLabel("键值字段"))
+        root.addWidget(self.kv_table, 1)
+
+        root.addWidget(QLabel("子块（双击进入）"))
         self.list = QListWidget()
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.list.itemDoubleClicked.connect(self._on_double_click)
@@ -363,16 +369,21 @@ class ScriptBlockEditorDialog(QDialog):
         up_btn = QPushButton("⬆")
         down_btn = QPushButton("⬇")
         tpl_btn = QPushButton("📄 从模板插入")
-        advanced_btn = QPushButton("📝 原始 PDX")
+        self.advanced_btn = QToolButton()
+        self.advanced_btn.setText("高级 ▾")
+        self.advanced_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        advanced_menu = QMenu(self.advanced_btn)
+        self.raw_action = advanced_menu.addAction("📝 原始 PDX（兜底）")
+        self.raw_action.triggered.connect(self._edit_raw)
+        self.advanced_btn.setMenu(advanced_menu)
         add_btn.clicked.connect(self._add_node)
         edit_btn.clicked.connect(self._edit_node)
         del_btn.clicked.connect(self._delete_node)
         up_btn.clicked.connect(self._move_up)
         down_btn.clicked.connect(self._move_down)
         tpl_btn.clicked.connect(self._insert_template)
-        advanced_btn.clicked.connect(self._edit_raw)
         for b in (add_btn, edit_btn, del_btn, up_btn, down_btn,
-                  tpl_btn, advanced_btn):
+                  tpl_btn, self.advanced_btn):
             btns.addWidget(b)
         root.addLayout(btns)
 
@@ -400,37 +411,71 @@ class ScriptBlockEditorDialog(QDialog):
         root.addLayout(footer)
 
     def _refresh(self):
+        self._scalar_nodes = [c for c in self._current_block.children
+                              if c.node_type != "block"]
+        scalar_rows = [(c.key, c.value) for c in self._scalar_nodes]
+        self.kv_table.set_data(scalar_rows)
+
         self.list.blockSignals(True)
         self.list.clear()
         for child in self._current_block.children:
             if child.node_type == "block":
                 text = "%s = { ... }" % child.key
-            else:
-                text = "%s = %s" % (child.key, child.value)
-            item = QListWidgetItem(text)
-            item.setData(Qt.ItemDataRole.UserRole, child)
-            item.setToolTip(text)
-            self.list.addItem(item)
+                item = QListWidgetItem(text)
+                item.setData(Qt.ItemDataRole.UserRole, child)
+                item.setToolTip(text)
+                self.list.addItem(item)
         self.list.blockSignals(False)
         # 面包屑
         parts = [self.block_key] + [label for label, _node in self._nav_stack]
         self.breadcrumb_label.setText(" > ".join(parts))
         self.back_btn.setEnabled(bool(self._nav_stack))
-        self.status_label.setText("子节点数：%d" % len(self._current_block.children))
+        self.status_label.setText("键值字段 %d 项 / 子块 %d 个" % (
+            len(self._scalar_nodes), len([c for c in self._current_block.children
+                                          if c.node_type == "block"])))
         if self.list.count() > 0:
             self.list.setCurrentRow(0)
+
+    # ---------- 表格同步 ----------
+
+    def _commit_table_to_children(self):
+        """把键值表当前内容写回当前块的标量子节点（保持已有的块位置）。"""
+        if not hasattr(self, "kv_table") or self._current_block is None:
+            return
+        from tree_node import TreeNode
+        rows = self.kv_table.rows()
+        scalars = [c for c in self._current_block.children
+                   if c.node_type != "block"]
+        for i, (key, value) in enumerate(rows):
+            if i < len(scalars):
+                scalars[i].key = key
+                scalars[i].value = value
+                scalars[i].raw_lines = []
+            else:
+                node = TreeNode("value", key, value)
+                if scalars:
+                    pos = self._current_block.children.index(scalars[-1]) + 1
+                else:
+                    pos = 0
+                self._current_block.add_child(node, pos)
+                scalars.append(node)
+        if len(rows) < len(scalars):
+            for node in scalars[len(rows):]:
+                self._current_block.remove_child(node)
 
     # ---------- 导航 ----------
 
     def _on_double_click(self, item):
         node = item.data(Qt.ItemDataRole.UserRole)
         if node is not None and node.node_type == "block":
+            self._commit_table_to_children()
             self._nav_stack.append((node.key, self._current_block))
             self._current_block = node
             self._refresh()
 
     def _go_back(self):
         if self._nav_stack:
+            self._commit_table_to_children()
             _label, parent = self._nav_stack.pop()
             self._current_block = parent
             self._refresh()
@@ -439,9 +484,14 @@ class ScriptBlockEditorDialog(QDialog):
 
     def _selected_node(self):
         item = self.list.currentItem()
-        if item is None:
-            return None
-        return item.data(Qt.ItemDataRole.UserRole)
+        if item is not None:
+            return item.data(Qt.ItemDataRole.UserRole)
+        rows = sorted({i.row() for i in self.kv_table.table.selectedIndexes()})
+        if rows:
+            r = rows[0]
+            if 0 <= r < len(self._scalar_nodes):
+                return self._scalar_nodes[r]
+        return None
 
     def _add_node(self):
         from node_edit_dialog import NodeEditDialog
@@ -521,6 +571,7 @@ class ScriptBlockEditorDialog(QDialog):
 
     def _edit_raw(self):
         from PyQt6.QtWidgets import QTextEdit
+        self._commit_table_to_children()
         dlg = QDialog(self)
         dlg.setWindowTitle("原始 PDX 文本")
         dlg.setMinimumSize(480, 360)
@@ -558,6 +609,11 @@ class ScriptBlockEditorDialog(QDialog):
 
     # ---------- 工具 ----------
 
+    def result_block_text(self):
+        """返回当前编辑块的 PDX 文本（供调用方读取结果）。"""
+        self._commit_table_to_children()
+        return self._current_block.to_pdx()
+
     def _manage_custom_statements(self):
         from custom_statement_dialog import CustomStatementDialog
         dlg = CustomStatementDialog(
@@ -579,6 +635,7 @@ class ScriptBlockEditorDialog(QDialog):
             self, "保存为模板", "模板名称:", text=self._current_block.key)
         if not ok or not (name or "").strip():
             return
+        self._commit_table_to_children()
         content = self._current_block.to_pdx()
         scheduler = get_template_scheduler()
         ttype = "custom"
@@ -605,6 +662,7 @@ class ScriptBlockEditorDialog(QDialog):
     # ---------- 结果 ----------
 
     def get_block_text(self):
+        self._commit_table_to_children()
         return self._root_block.to_pdx()
 
     def get_block_node(self):

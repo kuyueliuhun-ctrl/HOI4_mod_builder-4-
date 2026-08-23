@@ -21,13 +21,14 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QButtonGroup, QCheckBox, QColorDialog, QComboBox, QDialog, QGridLayout,
     QGroupBox, QHBoxLayout, QInputDialog, QLabel, QLineEdit, QMessageBox,
-    QPushButton, QScrollArea, QToolButton, QVBoxLayout, QWidget,
+    QPushButton, QScrollArea, QSpinBox, QToolButton, QVBoxLayout, QWidget,
 )
 
 from map_canvas import (MapCanvas, MODE_PAN, MODE_POINT, MODE_PAINT,
                         MODE_RECT, MODE_MULTI)
 from building_lib import load_building_types, load_country_colors
 from ai_loader import load_ai_faction_theaters
+from ai_ui_common import KeyValueTableEditor
 from map_region_ops import parse_region_file
 
 
@@ -236,6 +237,69 @@ class MapEditorDialog(QDialog):
         self.info_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         vl.addWidget(self.info_label)
 
+        self.state_group = QGroupBox("州信息（可编辑）")
+        svl = QVBoxLayout(self.state_group)
+        fid = QHBoxLayout()
+        fid.addWidget(QLabel("州 id"))
+        self.state_id_label = QLabel("-")
+        self.state_id_label.setStyleSheet(
+            "color:%s;" % "#6b7686")
+        fid.addWidget(self.state_id_label, 1)
+        svl.addLayout(fid)
+
+        fkey = QHBoxLayout()
+        fkey.addWidget(QLabel("州名键"))
+        self.state_name_edit = QLineEdit()
+        self.state_name_edit.setToolTip("state.name 的本地化键，如 STATE_124")
+        fkey.addWidget(self.state_name_edit, 1)
+        svl.addLayout(fkey)
+        fcn = QHBoxLayout()
+        fcn.addWidget(QLabel("中文名"))
+        self.state_name_cn_edit = QLineEdit()
+        self.state_name_cn_edit.setToolTip(
+            "保存时写入 mod 本地化（simp_chinese）")
+        fcn.addWidget(self.state_name_cn_edit, 1)
+        svl.addLayout(fcn)
+
+        fcat = QHBoxLayout()
+        fcat.addWidget(QLabel("州类别"))
+        self.state_category_combo = QComboBox()
+        self._populate_state_categories()
+        fcat.addWidget(self.state_category_combo, 1)
+        svl.addLayout(fcat)
+
+        fmp = QHBoxLayout()
+        fmp.addWidget(QLabel("人力"))
+        self.state_manpower_spin = QSpinBox()
+        self.state_manpower_spin.setRange(0, 100_000_000)
+        fmp.addWidget(self.state_manpower_spin, 1)
+        svl.addLayout(fmp)
+
+        svl.addWidget(QLabel("资源（resources）"))
+        self.state_resources_table = KeyValueTableEditor("资源键", "产量")
+        svl.addWidget(self.state_resources_table)
+        rescand = QHBoxLayout()
+        self.resource_candidate_combo = QComboBox()
+        for key, zh in (("steel", "钢"), ("aluminium", "铝"), ("chromium", "铬"),
+                        ("oil", "油"), ("rubber", "橡胶"), ("tungsten", "钨")):
+            self.resource_candidate_combo.addItem("%s（%s）" % (zh, key), key)
+        add_res_btn = QPushButton("＋ 添加候选")
+        add_res_btn.clicked.connect(self._add_resource_candidate)
+        rescand.addWidget(QLabel("快速添加"))
+        rescand.addWidget(self.resource_candidate_combo, 1)
+        rescand.addWidget(add_res_btn)
+        svl.addLayout(rescand)
+
+        svl.addWidget(QLabel("胜利点（victory_points）"))
+        self.state_vp_table = KeyValueTableEditor("地块 pid", "点数")
+        svl.addWidget(self.state_vp_table)
+
+        self.state_save_btn = QPushButton("💾 保存州文件")
+        self.state_save_btn.clicked.connect(self._save_state_fields)
+        svl.addWidget(self.state_save_btn)
+        self.state_group.setEnabled(False)
+        vl.addWidget(self.state_group)
+
         self.place_btn = QPushButton("🏗 放置选中建筑")
         self.place_btn.setEnabled(False)
         self.place_btn.setToolTip("把左侧选中的建筑写入当前地块所属州（省级锚定地块，州级写州顶层）")
@@ -386,6 +450,147 @@ class MapEditorDialog(QDialog):
         self.status_label.setText(tips.get(mode, ""))
 
     # ------------------------------------------------------------ 信息
+    def _state_category_name(self, cat):
+        """州类别中文名：STATE_CATEGORY_<cat> 优先，raw key 兜底。"""
+        for key in ("STATE_CATEGORY_" + cat, cat):
+            try:
+                cn = self._loc_manager.get_name(key)
+                if cn:
+                    return "%s（%s）" % (cn, cat)
+            except Exception:
+                pass
+        return cat
+
+    def _populate_state_categories(self):
+        """填充州类别下拉（中文名 + 原始键存 UserRole）。"""
+        self.state_category_combo.clear()
+        for cat in sorted(self.state_data.categories.keys()):
+            self.state_category_combo.addItem(
+                self._state_category_name(cat), cat)
+
+    def _add_resource_candidate(self):
+        """把候选资源键加入资源表（值为 0，用户再改产量）。"""
+        key = self.resource_candidate_combo.currentData()
+        if key:
+            self.state_resources_table.add_row(key, "0")
+
+    def _load_state_edit_form(self, sid):
+        st = self.state_data.states.get(sid)
+        if st is None:
+            self.state_group.setEnabled(False)
+            return
+        self.state_group.setEnabled(True)
+        self.state_id_label.setText(str(sid))
+        name_key = st.get("name_key", "")
+        self.state_name_edit.setText(name_key)
+        try:
+            cn = self._loc_manager.get_name(name_key) if name_key else ""
+        except Exception:
+            cn = ""
+        self.state_name_cn_edit.setText(cn or "")
+
+        cat = st.get("state_category", "")
+        idx = self.state_category_combo.findData(cat)
+        if idx >= 0:
+            self.state_category_combo.setCurrentIndex(idx)
+        else:
+            self.state_category_combo.addItem(self._state_category_name(cat), cat)
+            self.state_category_combo.setCurrentIndex(
+                self.state_category_combo.count() - 1)
+
+        self.state_manpower_spin.setValue(int(st.get("manpower", 0) or 0))
+        res = st.get("resources") or {}
+        self.state_resources_table.set_data(
+            [(k, str(v)) for k, v in res.items()])
+        vp = st.get("victory_points") or []
+        self.state_vp_table.set_data(
+            [(str(pid), str(pts)) for pid, pts in vp])
+
+    def _save_state_fields(self):
+        if self._current_pid <= 0:
+            return
+        sid = self.state_data.state_of_province(self._current_pid)
+        if not sid:
+            QMessageBox.information(self, "保存", "当前地块不属于任何州。")
+            return
+        # 确保 state_data 有该州源文件
+        st = self.state_data.states.get(sid)
+        if not st or not st.get("src"):
+            QMessageBox.critical(self, "保存失败", "找不到州文件。")
+            return
+        from state_build_ops import (
+            set_state_category_in_content,
+            set_state_resources_in_content,
+            set_state_victory_points_in_content,
+            set_state_manpower_in_content,
+            set_state_name_in_content,
+            ensure_file_in_mod,
+        )
+        from localisation_editor_data import (
+            default_mod_loc_file, find_mod_file_for_key, upsert_loc_entry,
+        )
+        from write_utils import atomic_write_text
+        try:
+            src = st["src"]
+            if src.startswith(self.mod_path or ""):
+                fp = src
+            elif self.game_path and src.startswith(self.game_path):
+                rel = os.path.relpath(src, self.game_path).replace("\\", "/")
+                fp, _ = ensure_file_in_mod(self.mod_path, self.game_path, rel)
+            else:
+                fp = src
+            with open(fp, "r", encoding="utf-8-sig", errors="ignore") as f:
+                content = f.read()
+
+            resources = {}
+            for k, v in self.state_resources_table.rows():
+                k = k.strip()
+                if not k:
+                    continue
+                try:
+                    resources[k] = int(float(v))
+                except ValueError:
+                    resources[k] = 0
+            vp_pairs = []
+            for pid, pts in self.state_vp_table.rows():
+                if not pid.strip() and not pts.strip():
+                    continue
+                try:
+                    vp_pairs.append((int(float(pid)), int(float(pts))))
+                except ValueError:
+                    continue
+
+            category = self.state_category_combo.currentData()
+            if category:
+                content = (set_state_category_in_content(
+                    content, sid, category) or content)
+            content = (set_state_resources_in_content(
+                content, sid, resources) or content)
+            content = (set_state_victory_points_in_content(
+                content, sid, vp_pairs) or content)
+            content = (set_state_manpower_in_content(
+                content, sid, self.state_manpower_spin.value()) or content)
+            name_key = self.state_name_edit.text().strip()
+            if name_key:
+                content = (set_state_name_in_content(
+                    content, sid, name_key) or content)
+            atomic_write_text(fp, content)
+
+            name_cn = self.state_name_cn_edit.text().strip()
+            if name_key and name_cn:
+                loc_fp = (find_mod_file_for_key(
+                    self.mod_path, name_key, "simp_chinese")
+                    or default_mod_loc_file(self.mod_path, "simp_chinese"))
+                if loc_fp:
+                    upsert_loc_entry(loc_fp, name_key, name_cn, "simp_chinese")
+
+            self.state_data.reload()
+            self.info_label.setText(self._province_desc(self._current_pid))
+            self._load_state_edit_form(sid)
+            QMessageBox.information(self, "已保存", "州文件已保存。")
+        except Exception as e:
+            QMessageBox.critical(self, "保存失败", str(e))
+
     def _province_desc(self, pid):
         """地块完整信息（地块/州/类别/建筑位/建筑/归属/国家颜色）。"""
         md = self.map_data
@@ -434,6 +639,8 @@ class MapEditorDialog(QDialog):
         if pid > 0:
             self.canvas.set_selection([pid])
         self.info_label.setText(self._province_desc(pid))
+        sid = self.state_data.state_of_province(pid)
+        self._load_state_edit_form(sid or 0)
         self.place_btn.setEnabled(pid > 0)
         self.owner_btn.setEnabled(pid > 0)
         self.color_btn.setEnabled(

@@ -131,8 +131,8 @@ class StateData:
         """解析单个 state = {...} 块。"""
         info = {"id": 0, "name_key": "", "provinces": [], "naval": {},
                 "air_level": 0, "owner": "", "state_category": "",
-                "manpower": 0, "victory_points": [], "buildings": {},
-                "buildings_pid": {}, "src": src}
+                "manpower": 0, "resources": {}, "victory_points": [],
+                "buildings": {}, "buildings_pid": {}, "src": src}
         for child in node.children:
             if child.node_type == "value":
                 if child.key == "id":
@@ -150,6 +150,9 @@ class StateData:
                     except ValueError:
                         pass
             else:  # block
+                if child.key == "resources":
+                    self._parse_resources(info, child)
+                    continue
                 if child.key == "provinces":
                     for p in child.children:
                         if p.node_type == "value" and p.key.strip().isdigit():
@@ -159,11 +162,43 @@ class StateData:
         return info
 
     @staticmethod
+    def _parse_resources(info, res_node):
+        """解析 resources 块为 dict 键 → 数值。
+
+        tree_node 会把块内裸值（无等号）解析为 value 节点且 value 为空，
+        因此除常规 `steel = 6` 外，也兼容 `resources = { steel 6 }` 这类
+        紧凑写法（按 key-value 两两配对）。
+        """
+        pending = []
+        for r in res_node.children:
+            if r.node_type != "value":
+                continue
+            key = r.key.strip().strip('"')
+            val = r.value.strip()
+            if val:
+                try:
+                    info["resources"][key] = int(float(val))
+                except ValueError:
+                    pass
+            elif key:
+                pending.append(key)
+        for i in range(0, len(pending) - 1, 2):
+            try:
+                info["resources"][pending[i]] = int(float(pending[i + 1]))
+            except (ValueError, IndexError):
+                pass
+
+    @staticmethod
     def _parse_history(info, history_node):
         """解析 history 块中的 owner、胜利点与完整 buildings。"""
         for child in history_node.children:
             if child.node_type == "value" and child.key == "owner":
                 info["owner"] = child.value.strip().strip('"').upper()
+            elif child.node_type == "value" and child.key == "name" \
+                    and not info.get("name_key"):
+                info["name_key"] = child.value
+            elif child.node_type == "block" and child.key == "resources":
+                StateData._parse_resources(info, child)
             elif child.node_type == "block" and child.key == "buildings":
                 for b in child.children:
                     if b.node_type == "value":

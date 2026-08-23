@@ -11,8 +11,8 @@ import os
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QDialog, QHBoxLayout, QInputDialog, QLabel, QMessageBox, QPushButton,
-    QVBoxLayout,
+    QDialog, QHBoxLayout, QInputDialog, QLabel, QMenu, QMessageBox,
+    QPushButton, QToolButton, QVBoxLayout,
 )
 
 from ai_loader import (
@@ -69,10 +69,15 @@ class AiFocusEditorDialog(QDialog):
         right.addWidget(self.table, 1)
 
         raw_row = QHBoxLayout()
-        raw_btn = QPushButton("📝 原始块编辑")
-        raw_btn.setToolTip("用高级块编辑器查看/编辑该块全部内容（含未知字段）")
-        raw_btn.clicked.connect(self._edit_raw)
-        raw_row.addWidget(raw_btn)
+        advanced_btn = QToolButton()
+        advanced_btn.setText("高级 ▾")
+        advanced_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        raw_menu = QMenu(advanced_btn)
+        raw_act = raw_menu.addAction("高级：原始 PDX（兜底）")
+        raw_act.setToolTip("用高级块编辑器查看/编辑该块全部内容（含未知字段）")
+        raw_act.triggered.connect(self._edit_raw)
+        advanced_btn.setMenu(raw_menu)
+        raw_row.addWidget(advanced_btn)
         raw_row.addStretch(1)
         save_btn = QPushButton("💾 保存")
         save_btn.clicked.connect(self._save)

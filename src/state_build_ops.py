@@ -282,6 +282,176 @@ def set_state_category_in_content(content, state_id, category):
     return content[:inner_start] + block + content[inner_end:]
 
 
+def _norm_int(value):
+    """宽松转 int：支持 int/float 字符串/带小数点文本。"""
+    try:
+        return int(float(str(value).strip()))
+    except (TypeError, ValueError):
+        return 0
+
+
+def set_state_resources_in_content(content, state_id, resources):
+    """纯函数：state 文件内容中设置 resources 块（dict key->value）。
+
+    val <= 0 的键会被删除；全部键删光时整个 resources 块一并移除。
+    """
+    loc = find_state_block(content, state_id)
+    if loc is None:
+        return None
+    start, end, inner_start, inner_end = loc
+    block = content[inner_start:inner_end]
+    entries = [(str(k), _norm_int(v)) for k, v in (resources or {}).items()]
+    entries = [(k, v) for k, v in entries if v > 0]
+    m = re.search(r"^([ \t]*)resources\s*=\s*\{", block, re.MULTILINE)
+    if m:
+        # 找 resources 块范围
+        brace = block.find("{", m.end() - 1)
+        depth = 0
+        i = brace
+        while i < len(block):
+            c = block[i]
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        if depth == 0:
+            if not entries:
+                # 键删光 → 删除整个块（保留其它内容）
+                block = block[:m.start()] + block[i + 1:]
+            else:
+                new_block = "%sresources = {\n%s%s}\n" % (
+                    m.group(1), "".join(
+                        "%s\t%s = %d\n" % (m.group(1), k, v)
+                        for k, v in entries), m.group(1))
+                block = block[:m.start()] + new_block + block[i + 1:]
+    else:
+        if not entries:
+            return content
+        idm = re.search(r"^(\s*id\s*=\s*\d+[^\r\n]*)", block, re.MULTILINE)
+        if not idm:
+            return None
+        indent = _line_indent(block, idm.start())
+        insert = ("\n%sresources = {\n%s%s}\n"
+                  % (indent,
+                     "".join("%s\t%s = %d\n" % (indent, k, v)
+                             for k, v in entries), indent))
+        block = block[:idm.end()] + insert + block[idm.end():]
+    return content[:inner_start] + block + content[inner_end:]
+
+
+def set_state_victory_points_in_content(content, state_id, vp_list):
+    """纯函数：state 文件内容中设置 victory_points 块（pid, points 列表）。
+
+    空列表会移除 victory_points 块（无胜利点 = 不写空块）。
+    """
+    loc = find_state_block(content, state_id)
+    if loc is None:
+        return None
+    start, end, inner_start, inner_end = loc
+    block = content[inner_start:inner_end]
+    norm = []
+    for pid, pts in (vp_list or []):
+        npts = _norm_int(pts)
+        npid = _norm_int(pid)
+        if npid > 0 and npts > 0:
+            norm.append((npid, npts))
+    hm = re.search(r"^[ \t]*history\s*=\s*\{", block, re.MULTILINE)
+    if hm:
+        brace = block.find("{", hm.end() - 1)
+        depth = 0
+        i = brace
+        while i < len(block):
+            c = block[i]
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        if depth != 0:
+            return None
+        h_block = block[hm.start():i + 1]
+        vm = re.search(r"^([ \t]*)victory_points\s*=\s*\{", h_block,
+                       re.MULTILINE)
+        if vm:
+            brace2 = h_block.find("{", vm.end() - 1)
+            depth2 = 0
+            j = brace2
+            while j < len(h_block):
+                c = h_block[j]
+                if c == "{":
+                    depth2 += 1
+                elif c == "}":
+                    depth2 -= 1
+                    if depth2 == 0:
+                        break
+                j += 1
+            if depth2 != 0:
+                return None
+            if norm:
+                indent = vm.group(1)
+                new_vp = "%svictory_points = { %s }\n" % (
+                    indent, " ".join("%d %d" % (pid, pts)
+                                     for pid, pts in norm))
+                h_block = h_block[:vm.start()] + new_vp + h_block[j + 1:]
+            else:
+                h_block = h_block[:vm.start()] + h_block[j + 1:]
+        elif norm:
+            # 在 history 块开头插入
+            hb = h_block.find("{")
+            indent = h_block.splitlines()[0].split("history")[0] or "\t\t"
+            new_vp = "\n%svictory_points = { %s }\n" % (
+                indent, " ".join("%d %d" % (pid, pts)
+                                 for pid, pts in norm))
+            h_block = h_block[:hb + 1] + new_vp + h_block[hb + 1:]
+        block = block[:hm.start()] + h_block + block[i + 1:]
+    return content[:inner_start] + block + content[inner_end:]
+
+
+def set_state_manpower_in_content(content, state_id, manpower):
+    """纯函数：state 文件内容中设置 manpower 标量。"""
+    loc = find_state_block(content, state_id)
+    if loc is None:
+        return None
+    start, end, inner_start, inner_end = loc
+    block = content[inner_start:inner_end]
+    m = re.search(r"^([ \t]*)manpower\s*=\s*[^\r\n]*", block, re.MULTILINE)
+    if m:
+        new_line = m.group(1) + "manpower = %d" % int(manpower)
+        block = block[:m.start()] + new_line + block[m.end():]
+    else:
+        idm = re.search(r"^(\s*id\s*=\s*\d+[^\r\n]*)", block, re.MULTILINE)
+        if not idm:
+            return None
+        indent = _line_indent(block, idm.start())
+        block = block[:idm.end()] + "\n%smanpower = %d" % (indent, int(manpower)) + block[idm.end():]
+    return content[:inner_start] + block + content[inner_end:]
+
+
+def set_state_name_in_content(content, state_id, name_key):
+    """纯函数：state 文件内容中设置 name 键。"""
+    loc = find_state_block(content, state_id)
+    if loc is None:
+        return None
+    start, end, inner_start, inner_end = loc
+    block = content[inner_start:inner_end]
+    m = re.search(r'^([ \t]*)name\s*=\s*"[^"]*"', block, re.MULTILINE)
+    if m:
+        new_line = '%sname = "%s"' % (m.group(1), name_key)
+        block = block[:m.start()] + new_line + block[m.end():]
+    else:
+        idm = re.search(r"^(\s*id\s*=\s*\d+[^\r\n]*)", block, re.MULTILINE)
+        if not idm:
+            return None
+        indent = _line_indent(block, idm.start())
+        block = block[:idm.end()] + '\n%sname = "%s"' % (indent, name_key) + block[idm.end():]
+    return content[:inner_start] + block + content[inner_end:]
+
+
 def set_country_color_in_content(content, rgb):
     """纯函数：countries 文件内容中替换第一个 color 块为 { r g b }。"""
     loc = _find_block(content, 0, "color")
@@ -298,6 +468,32 @@ def _atomic_write(fp, mod_path, content):
     from write_utils import atomic_write_text
     atomic_write_text(fp, content)
     return os.path.relpath(fp, mod_path)
+
+
+def _write_state_file(mod_path, hoi4_path, state_id, content_transform,
+                      state_data=None):
+    """定位州文件 → 读 → 变换 → 原子写。
+
+    content_transform(content) -> new_content|None；None 视为未找到；
+    相同内容返回 ok=True/message="unchanged"（不重复写盘）。
+    Returns (ok, message, rel_path)。
+    """
+    if not mod_path or not os.path.isdir(mod_path):
+        return False, "no_mod", ""
+    fp, copied = _state_file_for(mod_path, hoi4_path, state_id, state_data)
+    if fp is None:
+        return False, "not_found", ""
+    content = _read_utf8(fp)
+    if content is None:
+        return False, "not_found", ""
+    new_content = content_transform(content)
+    if new_content is None:
+        return False, "not_found", ""
+    if new_content == content:
+        rel = os.path.relpath(fp, mod_path)
+        return True, "unchanged", rel
+    rel = _atomic_write(fp, mod_path, new_content)
+    return True, ("copied_written" if copied else "written"), rel
 
 
 def set_state_building(mod_path, hoi4_path, state_id, btype, level,
@@ -339,6 +535,61 @@ def set_state_category(mod_path, hoi4_path, state_id, category,
         return False, "not_found", ""
     rel = _atomic_write(fp, mod_path, new_content)
     return True, ("copied_written" if copied else "written"), rel
+
+def set_state_resources(mod_path, hoi4_path, state_id, resources,
+                        state_data=None):
+    """写回州 resources（自动确保文件在 mod 内）。"""
+    return _write_state_file(
+        mod_path, hoi4_path, state_id,
+        lambda content: set_state_resources_in_content(
+            content, state_id, resources),
+        state_data=state_data)
+
+
+def set_state_victory_points(mod_path, hoi4_path, state_id, vp_list,
+                             state_data=None):
+    """写回州 victory_points（自动确保文件在 mod 内）。"""
+    return _write_state_file(
+        mod_path, hoi4_path, state_id,
+        lambda content: set_state_victory_points_in_content(
+            content, state_id, vp_list),
+        state_data=state_data)
+
+
+def set_state_manpower(mod_path, hoi4_path, state_id, manpower,
+                       state_data=None):
+    """写回州 manpower（自动确保文件在 mod 内）。"""
+    return _write_state_file(
+        mod_path, hoi4_path, state_id,
+        lambda content: set_state_manpower_in_content(
+            content, state_id, manpower),
+        state_data=state_data)
+
+
+def set_state_name(mod_path, hoi4_path, state_id, name_key, cn="",
+                   state_data=None):
+    """写回州 name 键，并可选写入中文本地化。
+
+    name_key 通常为 STATE_<id>；cn 非空时通过 upsert_loc_entry 写 mod
+    本地化文件（simp_chinese）。
+    """
+    rel = _write_state_file(
+        mod_path, hoi4_path, state_id,
+        lambda content: set_state_name_in_content(content, state_id, name_key),
+        state_data=state_data)
+    ok, message, path = rel
+    if ok and name_key and cn:
+        try:
+            from localisation_editor_data import (
+                default_mod_loc_file, find_mod_file_for_key, upsert_loc_entry,
+            )
+            loc_fp = (find_mod_file_for_key(mod_path, name_key, "simp_chinese")
+                      or default_mod_loc_file(mod_path, "simp_chinese"))
+            if loc_fp:
+                upsert_loc_entry(loc_fp, name_key, cn, "simp_chinese")
+        except Exception:
+            pass
+    return rel
 
 
 def set_country_color(mod_path, hoi4_path, tag, rgb):

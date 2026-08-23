@@ -200,6 +200,15 @@ class UnitPickerDialog(QDialog):
         split.addWidget(self.unit_list, 1)
         root.addLayout(split, 1)
 
+        # 底部：编辑当前所选兵种
+        btn_row = QHBoxLayout()
+        self.edit_unit_btn = QPushButton("✎ 编辑兵种…")
+        self.edit_unit_btn.setToolTip("打开兵种编辑器修改当前选中的 sub_unit 定义")
+        self.edit_unit_btn.clicked.connect(self._open_sub_unit_editor)
+        btn_row.addStretch(1)
+        btn_row.addWidget(self.edit_unit_btn)
+        root.addLayout(btn_row)
+
     def _build_groups(self):
         """按兵种文件中的 group 字段分组（无 group 的兵种不展示）。"""
         units = self._unit_list()
@@ -245,6 +254,19 @@ class UnitPickerDialog(QDialog):
             item.setData(Qt.ItemDataRole.UserRole, name)
             self.unit_list.addItem(item)
         self.unit_list.blockSignals(False)
+
+    def _open_sub_unit_editor(self):
+        """打开兵种编辑器（选中当前列表项，未选择时打开第一个可用兵种）。"""
+        from sub_unit_editor_dialog import open_sub_unit_editor
+        uid = None
+        item = self.unit_list.currentItem()
+        if item is not None:
+            uid = item.data(Qt.ItemDataRole.UserRole) or ""
+        if not uid and self._types:
+            uid = self._types[0]
+        dlg = open_sub_unit_editor(self.mod_path, self.hoi4_path, parent=self)
+        if dlg is not None and uid:
+            dlg.select_unit(uid)
 
     def _on_unit_clicked(self, item):
         self.picked = item.data(Qt.ItemDataRole.UserRole)
@@ -312,6 +334,11 @@ class DivisionEditor(QDialog):
         self.locked_check = QCheckBox("🔒 is_locked")
         self.locked_check.toggled.connect(self._on_locked_changed)
         bar.addWidget(self.locked_check)
+
+        self.names_btn = QPushButton("🏷 命名组…")
+        self.names_btn.setToolTip("编辑 OOB 文件顶层 division_names_group 命名组")
+        self.names_btn.clicked.connect(self._open_names_groups)
+        bar.addWidget(self.names_btn)
 
         self.add_btn = QPushButton("＋ 新建")
         self.add_btn.clicked.connect(self._add_template)
@@ -465,7 +492,7 @@ class DivisionEditor(QDialog):
             card = QLabel("—")
             card.setAlignment(Qt.AlignmentFlag.AlignCenter)
             card.setStyleSheet(_TERRAIN_CARD_STYLE)
-            card.setToolTip(f"{cn}（平均移动修正，基础值估算）")
+            card.setToolTip(f"{cn}（平均移动/攻击/防御修正，基础值估算）")
             grid.addWidget(card, i // 2, i % 2)
             self._terrain_labels[key] = (card, cn)
         host_layout.addWidget(box)
@@ -842,11 +869,17 @@ class DivisionEditor(QDialog):
         }
         for key, val in self._stat_labels.items():
             val.setText(fmt.get(key, _fmt_num)(st.get(key)))
-        # 地形徽章：平均移动修正（%）
+        # 地形徽章：平均移动/攻击/防御修正（%）
         terrain = st.get("terrain") or {}
+        terrain_full = st.get("terrain_full") or {}
         for key, (card, cn) in self._terrain_labels.items():
-            mv = terrain.get(key)
-            card.setText(f"{cn}\n{_fmt_pct(mv, 0)}")
+            item = terrain_full.get(key) or {}
+            mv = item.get("movement")
+            atk = item.get("attack")
+            dfn = item.get("defence")
+            if mv is None:
+                mv = terrain.get(key)
+            card.setText(f"{cn}\n移 {_fmt_pct(mv, 0)}\n攻 {_fmt_pct(atk, 0)}\n防 {_fmt_pct(dfn, 0)}")
         # 装备花费：按数量降序，最多 8 行
         eq = st.get("equipment") or {}
         lines = []
@@ -995,12 +1028,23 @@ class DivisionEditor(QDialog):
         self._refresh_combo()
         self._rebuild_editor(tpl)
 
-    # ---------- 地图 ----------
+    # ---------- 命名组 / 地图 / 设计器 ----------
+
+    def _open_names_groups(self):
+        from names_group_dialog import open_names_group_dialog
+        open_names_group_dialog(self.oob_file.file_path, self.mod_path,
+                                self.hoi4_path, parent=self)
+
+    def _designer_country_tag(self):
+        from oob_loader import find_oob_country
+        try:
+            return find_oob_country(self.mod_path, self.oob_file.file_path)
+        except Exception:
+            return ""
 
     def _open_map(self):
         from oob_map_editor import OobMapEditor
-        from oob_loader import find_oob_country
-        tag = find_oob_country(self.mod_path, self.oob_file.file_path)
+        tag = self._designer_country_tag()
         dlg = OobMapEditor(self.oob_file, self.sub_units, self.gfx_map,
                            self.mod_path, self.hoi4_path,
                            country_tag=tag, parent=self)
@@ -1009,18 +1053,30 @@ class DivisionEditor(QDialog):
 
     def _open_ship_designer(self):
         from ship_design_dialog import ShipDesignDialog
-        dlg = ShipDesignDialog(self.mod_path, self.hoi4_path, parent=self)
+        tag = self._designer_country_tag()
+        dlg = ShipDesignDialog(self.mod_path, self.hoi4_path,
+                               country_tag=tag, parent=self)
         dlg.show()
 
     def _open_plane_designer(self):
         from plane_design_dialog import PlaneDesignDialog
-        dlg = PlaneDesignDialog(self.mod_path, self.hoi4_path, parent=self)
+        tag = self._designer_country_tag()
+        dlg = PlaneDesignDialog(self.mod_path, self.hoi4_path,
+                                country_tag=tag, parent=self)
         dlg.show()
 
     def _open_tank_designer(self):
         from tank_design_dialog import TankDesignDialog
+        tag = self._designer_country_tag()
         dlg = TankDesignDialog(self.mod_path, self.hoi4_path, parent=self)
         dlg.show()
+        # TankDesignDialog 尚无 country_tag 构造参数；打开后按 OOB 国家预选
+        if tag and dlg.country_combo.count():
+            for i in range(dlg.country_combo.count()):
+                if dlg.country_combo.itemData(i) == tag:
+                    dlg.country_combo.setCurrentIndex(i)
+                    dlg._on_country_changed(i)
+                    break
 
     # ---------- 保存 ----------
 

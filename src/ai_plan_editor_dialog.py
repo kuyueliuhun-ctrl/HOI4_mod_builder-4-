@@ -12,8 +12,9 @@ import re
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit, QMessageBox,
-    QPushButton, QTabWidget, QTextEdit, QVBoxLayout, QWidget,
+    QDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit, QMenu,
+    QMessageBox, QPushButton, QTabWidget, QTextEdit, QToolButton,
+    QVBoxLayout, QWidget,
 )
 
 from ai_loader import (
@@ -30,6 +31,9 @@ from ai_loader import (
 from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
+from localisation_editor_data import (
+    default_mod_loc_file, load_effective_dict, upsert_loc_entry,
+)
 
 ADVANCED_FIELDS = ("allowed", "enable", "abort", "focus_factors",
                    "research", "ideas", "weight")
@@ -96,10 +100,15 @@ class AiPlanEditorDialog(QDialog):
         info.addWidget(QLabel("名称"))
         self.name_edit = QLineEdit()
         info.addWidget(self.name_edit)
-        info.addWidget(QLabel("描述"))
-        self.desc_edit = QTextEdit()
-        self.desc_edit.setFixedHeight(140)
-        info.addWidget(self.desc_edit)
+        info.addWidget(QLabel("描述键"))
+        self.desc_key_edit = QLineEdit()
+        self.desc_key_edit.setPlaceholderText("desc 本地化键（如 AI_DESC）")
+        self.desc_edit = self.desc_key_edit  # 兼容旧测试/旧调用
+        info.addWidget(self.desc_key_edit)
+        info.addWidget(QLabel("描述中文"))
+        self.desc_cn_edit = QLineEdit()
+        self.desc_cn_edit.setPlaceholderText("中文翻译（保存时写入本地化）")
+        info.addWidget(self.desc_cn_edit)
         info.addStretch(1)
         self.tabs.addTab(info_tab, "基本信息")
 
@@ -141,9 +150,14 @@ class AiPlanEditorDialog(QDialog):
         right.addWidget(self.tabs, 1)
 
         footer = QHBoxLayout()
-        raw_btn = QPushButton("📝 原始块编辑")
-        raw_btn.clicked.connect(self._edit_raw)
-        footer.addWidget(raw_btn)
+        advanced_btn = QToolButton()
+        advanced_btn.setText("高级 ▾")
+        advanced_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        raw_menu = QMenu(advanced_btn)
+        raw_act = raw_menu.addAction("高级：原始 PDX（兜底）")
+        raw_act.triggered.connect(self._edit_raw)
+        advanced_btn.setMenu(raw_menu)
+        footer.addWidget(advanced_btn)
         footer.addStretch(1)
         save_btn = QPushButton("💾 保存")
         save_btn.clicked.connect(self._save)
@@ -180,7 +194,14 @@ class AiPlanEditorDialog(QDialog):
             f: plan.get(f, "") or "" for f in ADVANCED_FIELDS}
         self.id_label.setText("%s  （%s）" % (plan_id, plan.get("file", "")))
         self.name_edit.setText(plan.get("name", ""))
-        self.desc_edit.setPlainText(plan.get("desc", ""))
+        desc_key = plan.get("desc", "") or ""
+        self.desc_key_edit.setText(desc_key)
+        try:
+            loc = load_effective_dict(self.mod_path, self.hoi4_path,
+                                      "simp_chinese")
+            self.desc_cn_edit.setText(loc.get(desc_key, ""))
+        except Exception:
+            self.desc_cn_edit.setText("")
         self.focus_order_edit.setPlainText("\n".join(self._ordered))
         self._update_order_label()
         self._update_advanced_summaries()
@@ -361,8 +382,18 @@ class AiPlanEditorDialog(QDialog):
         pid = plan["id"]
         content = replace_ai_plan_field(
             content, pid, "name", self.name_edit.text().strip())
-        content = replace_ai_plan_field(
-            content, pid, "desc", self.desc_edit.toPlainText().strip())
+        desc_key = self.desc_key_edit.text().strip()
+        desc_cn = self.desc_cn_edit.text().strip()
+        desc_content = replace_ai_plan_field(content, pid, "desc", desc_key)
+        if desc_key and desc_content == content:
+            # 原计划没有 desc 字段时，兜底插入（replace_ai_plan_field 只替换不新增）
+            desc_content = upsert_top_block_child(
+                content, pid, "desc", "desc = %s" % desc_key)
+        content = desc_content
+        if desc_key and desc_cn:
+            loc_fp = default_mod_loc_file(self.mod_path)
+            if loc_fp:
+                upsert_loc_entry(loc_fp, desc_key, desc_cn)
         # 国策顺序：若 _ordered 与文件原序一致（未用点选器改），则从文本域读取；
         # 若已被点选器/外部直接改过，优先使用 _ordered。
         plan_order = list(plan.get("ai_national_focuses", []))
@@ -383,7 +414,7 @@ class AiPlanEditorDialog(QDialog):
             QMessageBox.warning(self, "保存失败", "写入失败：%s" % e)
             return
         plan["name"] = self.name_edit.text().strip()
-        plan["desc"] = self.desc_edit.toPlainText().strip()
+        plan["desc"] = desc_key
         plan["ai_national_focuses"] = list(self._ordered)
         for field in ADVANCED_FIELDS:
             plan[field] = self._advanced_blocks.get(field, "")

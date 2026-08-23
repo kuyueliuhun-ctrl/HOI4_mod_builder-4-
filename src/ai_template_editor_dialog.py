@@ -15,7 +15,8 @@ import tempfile
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit, QListWidget,
-    QListWidgetItem, QMessageBox, QPushButton, QVBoxLayout,
+    QListWidgetItem, QMenu, QMessageBox, QPushButton, QToolButton,
+    QVBoxLayout,
 )
 
 from ai_loader import (
@@ -199,9 +200,14 @@ class AiTemplateEditorDialog(QDialog):
             right.addLayout(row)
 
         footer = QHBoxLayout()
-        raw_btn = QPushButton("📝 原始目标块")
-        raw_btn.clicked.connect(self._edit_raw)
-        footer.addWidget(raw_btn)
+        advanced_btn = QToolButton()
+        advanced_btn.setText("高级 ▾")
+        advanced_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        raw_menu = QMenu(advanced_btn)
+        raw_act = raw_menu.addAction("高级：原始 PDX（兜底）")
+        raw_act.triggered.connect(self._edit_raw)
+        advanced_btn.setMenu(raw_menu)
+        footer.addWidget(advanced_btn)
         footer.addStretch(1)
         save_btn = QPushButton("💾 保存")
         save_btn.clicked.connect(self._save)
