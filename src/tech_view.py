@@ -22,13 +22,13 @@ from PyQt6.QtWidgets import QGraphicsRectItem, QGraphicsPixmapItem, \
 
 from entity_scanner import EntityScanner as WorkbenchDock
 
-GRID_X = 250
-GRID_Y = 150
+GRID_X = 310   # NODE_W + 60，消除水平零间隙
+GRID_Y = 190   # NODE_H + SUBTECH_H + 40，垂直不再贴边
 NODE_ICON_H = 46          # 节点图标显示高度（宽按比例，上限 230）
 NODE_W = 250
 NODE_H = 112
-SUBTECH_W = 46
-SUBTECH_H = 30
+SUBTECH_W = 48
+SUBTECH_H = 48
 FOLDER_COLORS = ["#3a5a8c", "#5a7a4a", "#8c6a3a", "#6a4a8c", "#3a7a7a",
                  "#8c4a4a", "#4a6a8c", "#7a7a3a"]
 NON_TREE_COLS = 3
@@ -104,12 +104,12 @@ def _classify(techs):
 
 
 def layout_tech_trees(techs, tree_ids):
-    """树形自动布局：每个 folder 一棵树（像国策树那样绘制）。
+    """树形自动布局：tidy-tree 风格（子节点继承父节点 x 中位，叶子占独立槽位）。
 
-    - 根 = 有 folder 属性的科技（folder 锚点），或无可达根时取无入边科技
-    - path 边 A→B（A 前置）作为父子关系，BFS 分层：深度 = y 行
-    - 同层兄弟从左到右横向铺开（x 列）；忽略 folder.position 坐标
-      （mod 的坐标常与 GUI gridbox 绑定，直接使用会把并行链拉成直线）
+    - 根 = 无入边科技（链首）；无根时取有 folder 属性科技
+    - y = BFS 深度行；x = 叶子槽位序号（槽宽 GRID_X）
+    - 父 x = 子节点 x 的中位数；同层节点天然错开，避免水平零间隙
+    - 忽略 folder.position 坐标（mod 坐标常与 GUI gridbox 绑定）
 
     Returns:
         dict: {folder_name: {tech_id: (x_px, y_px)}}
@@ -128,14 +128,13 @@ def layout_tech_trees(techs, tree_ids):
                 if c in id_set:
                     children[tid].append(c)
                     parents[c].append(tid)
-        # 根 = 无入边的科技（链首；mod 常给每个科技写 folder 属性，
-        # 不能以 folder 判定根，否则整棵树被拉成一行）
         roots = [t for t in ids if not parents[t]]
         if not roots:
             roots = [t for t in ids if techs[t].get("folder")]
         if not roots:
             roots = [ids[0]]
-        # BFS 深度（seen 防环）
+
+        # 深度 BFS
         depth = {}
         seen = set()
         queue = [(r, 0) for r in roots]
@@ -151,29 +150,51 @@ def layout_tech_trees(techs, tree_ids):
         for t in id_set:
             if t not in depth:
                 depth[t] = 0
-        # 同层按 BFS 发现顺序横向排列
-        order = []
-        q2 = [(r, 0) for r in roots]
-        seen2 = set()
-        while q2:
-            cur, _d = q2.pop(0)
-            if cur in seen2:
-                continue
-            seen2.add(cur)
-            order.append(cur)
-            for c in children.get(cur, []):
-                if c not in seen2:
-                    q2.append((c, depth[c]))
-        layers = {}
-        for t in order:
-            layers.setdefault(depth.get(t, 0), []).append(t)
+
+        # 叶子槽位分配：DFS 按序遍历叶子
+        x = {}
+        leaf_slot = 0
+        visited = set()
+
+        def place(node, d):
+            nonlocal leaf_slot
+            if node in visited:
+                return
+            visited.add(node)
+            depth[node] = d
+            cs = [c for c in children.get(node, []) if c not in visited]
+            if not cs:
+                x[node] = leaf_slot
+                leaf_slot += 1
+                return
+            child_xs = []
+            for c in cs:
+                place(c, d + 1)
+                child_xs.append(x[c])
+            x[node] = float(sum(child_xs)) / len(child_xs)
+
+        for r in roots:
+            place(r, depth.get(r, 0))
+
+        # 未从根到达的孤立节点：按叶子槽继续排
         for t in id_set:
-            if t not in layers[depth.get(t, 0)]:
-                layers.setdefault(depth.get(t, 0), []).append(t)
+            if t not in x:
+                x[t] = leaf_slot
+                leaf_slot += 1
+
+        # 同层冲突解决：若两个节点 x 间距 < 1 槽，右移后者
+        layers = {}
+        for t in id_set:
+            layers.setdefault(depth.get(t, 0), []).append(t)
+        for lv in sorted(layers):
+            items = sorted(layers[lv], key=lambda t: x[t])
+            for i in range(1, len(items)):
+                if x[items[i]] - x[items[i - 1]] < 1.0:
+                    x[items[i]] = x[items[i - 1]] + 1.0
+
         pos = {}
-        for layer in sorted(layers):
-            for i, t in enumerate(layers[layer]):
-                pos[t] = (i * GRID_X, layer * GRID_Y)
+        for t in id_set:
+            pos[t] = (int(round(x[t] * GRID_X)), depth.get(t, 0) * GRID_Y)
         out[fname] = pos
     return out
 
@@ -256,7 +277,7 @@ class _TechNodeItem(QGraphicsRectItem):
 class _SubTechSlot(QGraphicsRectItem):
     """子科技槽位：显示在父节点下方（编号 + id）。"""
 
-    def __init__(self, index, sub_id, x, y):
+    def __init__(self, index, sub_id, x, y, pixmap=None):
         super().__init__(0, 0, SUBTECH_W, SUBTECH_H)
         self.tech_id = sub_id
         self.setData(0, sub_id)
@@ -266,14 +287,21 @@ class _SubTechSlot(QGraphicsRectItem):
         pen = QPen(QColor(120, 160, 120))
         pen.setWidth(1)
         self.setPen(pen)
-        num = QGraphicsSimpleTextItem(str(index), self)
-        num.setBrush(QBrush(QColor(160, 220, 160)))
-        f = QFont("Consolas", 7)
-        f.setBold(True)
-        num.setFont(f)
-        num.setPos(3, 2)
-        nm = QGraphicsSimpleTextItem(sub_id, self)
-        nm.setBrush(QBrush(QColor(220, 220, 220)))
-        f2 = QFont("Consolas", 6)
-        nm.setFont(f2)
-        nm.setPos(14, 8)
+        if pixmap is not None and not pixmap.isNull():
+            icon = QGraphicsPixmapItem(pixmap.scaled(
+                SUBTECH_W - 4, SUBTECH_H - 4,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation), self)
+            icon.setPos(2, 2)
+        else:
+            num = QGraphicsSimpleTextItem(str(index), self)
+            num.setBrush(QBrush(QColor(160, 220, 160)))
+            f = QFont("Consolas", 7)
+            f.setBold(True)
+            num.setFont(f)
+            num.setPos(3, 2)
+            nm = QGraphicsSimpleTextItem(sub_id, self)
+            nm.setBrush(QBrush(QColor(220, 220, 220)))
+            f2 = QFont("Consolas", 6)
+            nm.setFont(f2)
+            nm.setPos(14, 8)

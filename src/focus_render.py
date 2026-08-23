@@ -6,6 +6,7 @@
 - 调用方（控制器）负责传 scene 与必要的回调（图标解析、本地化、字体）。
 """
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QBrush, QColor, QFont, QPainterPath, QPen
 from PyQt6.QtWidgets import QGraphicsPathItem, QGraphicsSimpleTextItem
 
@@ -26,6 +27,23 @@ def add_tech_edge(scene, x1, y1, x2, y2):
     pen.setWidth(2)
     pi.setPen(pen)
     pi.setZValue(-10)
+    scene.addItem(pi)
+
+
+def add_cross_tech_edge(scene, x1, y1, x2, y2):
+    """跨 folder 边：灰色虚线（同一 folder 树内使用实线折线）。"""
+    mid_y = (y1 + y2) / 2
+    path = QPainterPath()
+    path.moveTo(x1, y1)
+    path.lineTo(x1, mid_y)
+    path.lineTo(x2, mid_y)
+    path.lineTo(x2, y2)
+    pi = QGraphicsPathItem(path)
+    pen = QPen(QColor(130, 130, 130, 160))
+    pen.setWidth(1)
+    pen.setStyle(Qt.PenStyle.DashLine)
+    pi.setPen(pen)
+    pi.setZValue(-12)
     scene.addItem(pi)
 
 
@@ -63,6 +81,8 @@ def render_tech_tree(scene, techs, tech_files, current_file_path, source_files,
     tree_ids, non_tree_ids, sub_ids = _classify(techs)
     layout = layout_tech_trees(techs, tree_ids)
 
+    all_pos = {}
+    tree_of = {}
     # 多棵 folder 树瀑布流布局（每列最多 3 棵，纵向换行，避免横向拉太长）
     trees = []
     for fname, pos in layout.items():
@@ -92,6 +112,8 @@ def render_tech_tree(scene, techs, tech_files, current_file_path, source_files,
                                  x0 + tx, y0 + ty)
             item.setData(1, node.get("file", ""))
             scene.addItem(item)
+            all_pos[tid] = (x0 + tx, y0 + ty)
+            tree_of[tid] = fname
         for tid, (tx, ty) in pos.items():
             node = techs[tid]
             cx = x0 + tx + NODE_W / 2
@@ -100,7 +122,8 @@ def render_tech_tree(scene, techs, tech_files, current_file_path, source_files,
                 if sub_id not in techs:
                     continue
                 slot = _SubTechSlot(i, sub_id, cx - SUBTECH_W / 2,
-                                    cy + NODE_H + 2)
+                                    cy + NODE_H + 2,
+                                    pixmap_getter(sub_id))
                 slot.setData(1, techs[sub_id].get("file", ""))
                 scene.addItem(slot)
             for child in node.get("leads_to", []):
@@ -111,6 +134,15 @@ def render_tech_tree(scene, techs, tech_files, current_file_path, source_files,
                               x0 + ex + NODE_W / 2, y0 + ey)
         col_y[ci] += th + 70
         col_w[ci] = max(col_w[ci], tw)
+
+    # 跨 folder 边：所有 folder 都绘制完后统一补灰色虚线
+    for tid, (tx, ty) in all_pos.items():
+        for child in techs[tid].get("leads_to", []):
+            if child in all_pos and tree_of.get(child) != tree_of.get(tid):
+                cx = tx + NODE_W / 2
+                ex, ey = all_pos[child]
+                add_cross_tech_edge(scene, cx, ty + NODE_H,
+                                    ex + NODE_W / 2, ey)
     cursor_x = max(col_x[i] + col_w[i] for i in range(n_cols)) + 40
     max_bottom = max(col_y)
 

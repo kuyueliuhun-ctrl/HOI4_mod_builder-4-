@@ -179,7 +179,7 @@ class TechTreeControllerMixin:
         file_path = item.data(1) or self._tech_file_for(tech_id)
         menu = QMenu(self)
         act_upload = menu.addAction("🖼 上传科技图标…")
-        act_open = menu.addAction("📄 在树编辑器中打开定义文件")
+        act_open = menu.addAction("✏ 编辑科技词条…")
         act_explorer = menu.addAction("📂 在资源管理器中显示文件")
         act = menu.exec(event.globalPos())
         if act is None:
@@ -226,19 +226,38 @@ class TechTreeControllerMixin:
             QMessageBox.critical(self, "错误", "上传科技图标失败: %s" % e)
 
     def _open_tech_in_editor(self, file_path, tech_id):
-        """在树编辑器中打开科技定义文件并定位实体。"""
+        """打开科技专用编辑器并定位该科技；保存后回调刷新画布。"""
         if not file_path or not os.path.isfile(file_path):
             QMessageBox.warning(self, "提示", "未找到科技定义文件")
             return
         win = self.window()
-        open_editor = getattr(win, "_open_tree_editor", None)
-        if open_editor is None:
-            QMessageBox.information(self, "提示", "定义文件: %s" % file_path)
+        try:
+            from tech_editor_dialog import open_tech_editor
+            dlg = open_tech_editor(
+                _get_mod_path(), _get_hoi4_path(),
+                file_path=file_path, tech_id=tech_id, parent=win)
+            dlg.saved.connect(lambda: self._refresh_tech_tree_after_save(file_path))
+        except Exception as e:
+            QMessageBox.critical(self, "错误", "打开科技编辑器失败: %s" % e)
+
+    def _refresh_tech_tree_after_save(self, file_path):
+        """科技编辑器保存后：重新读取该文件并重绘科技树画布。"""
+        if self._view_mode != "tech":
             return
         try:
-            open_editor(file_path, tech_id)
-        except Exception as e:
-            QMessageBox.critical(self, "错误", "打开编辑器失败: %s" % e)
+            with open(file_path, 'r', encoding='utf-8-sig',
+                      errors='ignore') as f:
+                content = f.read()
+            from workbench import WorkbenchDock
+            data = WorkbenchDock._quick_tech_scan(content)
+            for tid in data:
+                data[tid]["file"] = file_path
+                self._tech_files[tid] = file_path
+            self._tech_data = data
+            self._redraw_tech_tree()
+        except Exception:
+            import traceback
+            traceback.print_exc()
 
     @staticmethod
     def _show_tech_in_explorer(file_path):
