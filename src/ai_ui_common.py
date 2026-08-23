@@ -14,7 +14,8 @@ from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtWidgets import (
     QDialog, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QListWidget,
     QListWidgetItem, QMenu, QMessageBox, QPushButton, QStyledItemDelegate,
-    QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout, QWidget,
+    QTabWidget, QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout,
+    QWidget,
 )
 
 
@@ -351,15 +352,21 @@ class ScriptBlockEditorDialog(QDialog):
         nav.addWidget(self.breadcrumb_label, 1)
         root.addLayout(nav)
 
-        self.kv_table = KeyValueTableEditor("键", "值", self)
-        root.addWidget(QLabel("键值字段"))
-        root.addWidget(self.kv_table, 1)
+        self.tabs = QTabWidget()
+        edit_tab = QWidget()
+        edit_lay = QVBoxLayout(edit_tab)
+        edit_lay.setContentsMargins(0, 0, 0, 0)
+        edit_lay.setSpacing(6)
 
-        root.addWidget(QLabel("子块（双击进入）"))
+        self.kv_table = KeyValueTableEditor("键", "值", self)
+        edit_lay.addWidget(QLabel("键值字段"))
+        edit_lay.addWidget(self.kv_table, 1)
+
+        edit_lay.addWidget(QLabel("子块（双击进入）"))
         self.list = QListWidget()
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.list.itemDoubleClicked.connect(self._on_double_click)
-        root.addWidget(self.list, 1)
+        edit_lay.addWidget(self.list, 1)
 
         btns = QHBoxLayout()
         btns.setSpacing(4)
@@ -385,7 +392,17 @@ class ScriptBlockEditorDialog(QDialog):
         for b in (add_btn, edit_btn, del_btn, up_btn, down_btn,
                   tpl_btn, self.advanced_btn):
             btns.addWidget(b)
-        root.addLayout(btns)
+        edit_lay.addLayout(btns)
+        self.tabs.addTab(edit_tab, "键值/子块")
+
+        tree_tab = QWidget()
+        tree_lay = QVBoxLayout(tree_tab)
+        tree_lay.setContentsMargins(0, 0, 0, 0)
+        from ui_widgets import BlockTreeList
+        self.struct_tree = BlockTreeList()
+        tree_lay.addWidget(self.struct_tree)
+        self.tabs.addTab(tree_tab, "结构化树")
+        root.addWidget(self.tabs, 1)
 
         tool_btns = QHBoxLayout()
         self.custom_btn = QPushButton("⚙ 管理自定义语句")
@@ -426,6 +443,15 @@ class ScriptBlockEditorDialog(QDialog):
                 item.setToolTip(text)
                 self.list.addItem(item)
         self.list.blockSignals(False)
+
+        # 结构化树视图（BlockTreeList 封装，展示当前层的直接节点）
+        self.struct_tree.clear()
+        for child in self._current_block.children:
+            if child.node_type == "block":
+                self.struct_tree.add_item(child.key + " = { ... }", "", "")
+            else:
+                self.struct_tree.add_item(child.key, str(child.value or ""), "")
+
         # 面包屑
         parts = [self.block_key] + [label for label, _node in self._nav_stack]
         self.breadcrumb_label.setText(" > ".join(parts))
