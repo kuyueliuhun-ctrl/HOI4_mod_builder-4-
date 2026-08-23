@@ -303,6 +303,22 @@ class AiStrategyEditorTest(unittest.TestCase):
         self.assertIn("id = armor", out)
         self.assertNotIn("infantry", out)
 
+    def test_operative_fields_roundtrip(self):
+        from ai_loader import parse_ai_strategies, replace_ai_strategy_entries
+        content = ("OP_GROUP = {\n"
+                   "\tai_strategy = { type = operative_leader id = X value = 1 }\n"
+                   "}\n")
+        out = replace_ai_strategy_entries(
+            content, "OP_GROUP",
+            [{"type": "operative_leader", "id": "X", "value": "1",
+              "operation": "intel", "mission_target": "FRA",
+              "num_operatives": "2", "state": "10"}])
+        parsed = parse_ai_strategies(out)["OP_GROUP"]["strategies"][0]
+        self.assertEqual(parsed["operation"], "intel")
+        self.assertEqual(parsed["mission_target"], "FRA")
+        self.assertEqual(parsed["num_operatives"], "2")
+        self.assertEqual(parsed["state"], "10")
+
     def test_dialog_save(self):
         from unittest.mock import patch
         from ai_loader import load_ai_strategies

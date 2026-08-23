@@ -12,7 +12,7 @@ import os
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QDialog, QHBoxLayout, QHeaderView, QInputDialog, QLabel,
+    QComboBox, QDialog, QHBoxLayout, QHeaderView, QInputDialog, QLabel,
     QMessageBox, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout,
 )
 
@@ -31,6 +31,18 @@ from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
 ADVANCED_FIELDS = ("allowed", "enable", "abort")
+
+# AI 战略倾向 type 枚举（operative_* 时可用特工字段）
+STRATEGY_TYPE_CHOICES = (
+    "army_ratio", "navy_ratio", "air_ratio", "role_ratio",
+    "production_ratio", "technology_slot", "research_slot",
+    "operative_leader", "operative_network", "operative_mission",
+    "faction_priority", "diplomatic_action", "country_priority",
+    "convoys", "lend_lease", "volunteer_ratio", "reinforce_priority",
+    "air_mission", "naval_mission", "division_template",
+    "equipment_design", "mio_priority", "building_priority",
+    "state_priority", "custom",
+)
 
 
 class AiStrategyEditorDialog(QDialog):
@@ -153,15 +165,28 @@ class AiStrategyEditorDialog(QDialog):
     def _append_row(self, entry):
         r = self.table.rowCount()
         self.table.insertRow(r)
-        self.table.setItem(r, 0, QTableWidgetItem(entry.get("type", "")))
+        type_text = entry.get("type", "") or ""
+        type_item = QTableWidgetItem(type_text)
+        self.table.setItem(r, 0, type_item)
+        combo = QComboBox()
+        combo.addItems(STRATEGY_TYPE_CHOICES)
+        combo.setCurrentText(type_text if type_text in STRATEGY_TYPE_CHOICES else "custom")
+        combo.setEditable(True)
+        self.table.setCellWidget(r, 0, combo)
         self.table.setItem(r, 1, QTableWidgetItem(entry.get("id", "")))
         self.table.setItem(r, 2, QTableWidgetItem(entry.get("value", "")))
 
     def _entries(self):
         out = []
         for r in range(self.table.rowCount()):
+            type_widget = self.table.cellWidget(r, 0)
+            if isinstance(type_widget, QComboBox):
+                type_text = type_widget.currentText().strip()
+            else:
+                item = self.table.item(r, 0)
+                type_text = (item.text() if item else "").strip()
             out.append({
-                "type": (self.table.item(r, 0).text() if self.table.item(r, 0) else "").strip(),
+                "type": type_text,
                 "id": (self.table.item(r, 1).text() if self.table.item(r, 1) else "").strip(),
                 "value": (self.table.item(r, 2).text() if self.table.item(r, 2) else "").strip(),
             })

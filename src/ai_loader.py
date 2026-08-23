@@ -140,11 +140,15 @@ def parse_ai_strategies(content):
             if ck != "ai_strategy":
                 continue
             cf = _fields(bt[cs:ce])
-            entries.append({
+            entry = {
                 "type": cf.get("type", ""),
                 "id": cf.get("id", ""),
                 "value": cf.get("value", ""),
-            })
+            }
+            for extra in ("operation", "mission", "operation_target",
+                          "mission_target", "num_operatives", "state"):
+                entry[extra] = cf.get(extra, "")
+            entries.append(entry)
         groups[key] = {
             "id": key,
             "allowed": _child_block_text(bt, "allowed"),

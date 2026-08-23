@@ -159,8 +159,14 @@ def replace_ai_strategy_entries(content, group_id, entries):
     new_texts = []
     for e in entries:
         lines = ["ai_strategy = {"]
-        for k in ("type", "id", "value"):
-            lines.append("\t%s = %s" % (k, e.get(k, "")))
+        known = ("type", "id", "value", "operation", "mission",
+                 "operation_target", "mission_target",
+                 "num_operatives", "state")
+        for k in known:
+            v = e.get(k, "")
+            if v == "":
+                continue
+            lines.append("\t%s = %s" % (k, v))
         lines.append("}")
         new_texts.append("\n".join(lines))
 
