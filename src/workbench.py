@@ -623,6 +623,9 @@ class WorkbenchDock(QDockWidget):
         elif self._current_type == "tech":
             # 科技：与国策树同一画布绘制科技树（树形自动布局）
             self.tech_file_selected.emit(fp)
+        elif self._current_type == "event" or "/events/" in fp.replace("\\", "/"):
+            # 事件：直接弹事件专用编辑器（不先进画廊）
+            self.generic_file_selected.emit(fp, None)
         elif self._current_type in ICON_RULES:
             self.entity_gallery_requested.emit(self._current_type, fp)
         elif self._current_type in AI_TYPES:
@@ -631,6 +634,11 @@ class WorkbenchDock(QDockWidget):
         else:
             # 力量平衡（common/bop）→ 直接弹专用编辑器
             if self._current_type == "bop":
+                self.generic_file_selected.emit(fp, None)
+                return
+            # 角色（common/characters）→ 直接弹角色编辑器
+            norm_fp2 = fp.replace("\\", "/")
+            if self._current_type == "character" or "/common/characters/" in norm_fp2:
                 self.generic_file_selected.emit(fp, None)
                 return
             # 初始部队（history/units）→ 直接弹设计器（编制/地编），不先进画廊
@@ -670,9 +678,15 @@ class WorkbenchDock(QDockWidget):
             if fp:
                 self.focus_file_selected.emit(fp)
             return
-        # AI 内容（无文件模式也支持）：直接交给主窗口分发
+        # 事件（无文件模式）：直接打开事件专用编辑器
         fp = meta.get("file", "") if isinstance(meta, dict) else ""
         norm_fp = (fp or "").replace("\\", "/")
+        if self._current_type == "event" or "/events/" in norm_fp:
+            if fp:
+                self.generic_file_selected.emit(fp,
+                    meta.get("key") if isinstance(meta, dict) else None)
+            return
+        # AI 内容（无文件模式也支持）：直接交给主窗口分发
         if self._current_type in AI_TYPES:
             if fp:
                 self.generic_file_selected.emit(fp, meta.get("key") if isinstance(meta, dict) else None)
@@ -681,6 +695,11 @@ class WorkbenchDock(QDockWidget):
         if self._current_type == "bop":
             if fp:
                 self.generic_file_selected.emit(fp, meta.get("key"))
+            return
+        # 角色（common/characters）→ 直接弹角色编辑器（无文件模式也支持）
+        if self._current_type == "character" or "/common/characters/" in norm_fp:
+            if fp:
+                self.generic_file_selected.emit(fp, meta.get("key") if isinstance(meta, dict) else None)
             return
         # 初始部队（history/units）→ 直接弹设计器（无文件模式也支持）
         if self._current_type == "initial_oob" or "/history/units/" in norm_fp:
@@ -715,6 +734,9 @@ class WorkbenchDock(QDockWidget):
                 open_action = menu.addAction("🔬 打开（科技树画布）")
                 open_action.triggered.connect(
                     lambda: self.tech_file_selected.emit(fp))
+                edit_action = menu.addAction("✏ 编辑科技词条…")
+                edit_action.triggered.connect(
+                    lambda: self.generic_file_selected.emit(fp, None))
             else:
                 gallery_action = menu.addAction("🖼 在右侧展示实体")
                 gallery_action.triggered.connect(

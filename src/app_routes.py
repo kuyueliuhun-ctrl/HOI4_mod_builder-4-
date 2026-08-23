@@ -52,6 +52,36 @@ def _open_bop(ctx):
         parent=ctx.parent)
 
 
+def _open_event(ctx):
+    from event_editor_dialog import open_event_editor
+    open_event_editor(
+        ctx.mod_path,
+        ctx.hoi4_path,
+        file_path=ctx.file_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_tech(ctx):
+    from tech_editor_dialog import open_tech_editor
+    open_tech_editor(
+        ctx.mod_path,
+        ctx.hoi4_path,
+        file_path=ctx.file_path,
+        tech_id=ctx.entity_id or "",
+        parent=ctx.parent)
+
+
+def _open_character(ctx):
+    from character_editor_dialog import open_character_editor
+    open_character_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 def _open_ai_plan(ctx):
     from ai_plan_editor_dialog import open_ai_plan_editor
     open_ai_plan_editor(
@@ -133,6 +163,9 @@ def _open_ai_focus(ctx):
 ROUTES = (
     ("history/units", _open_initial_oob, "初始部队（编制 + 地图放置）"),
     ("common/bop", _open_bop, "力量平衡专用编辑器"),
+    ("events", _open_event, "事件专用编辑器"),
+    ("common/technologies", _open_tech, "科技专用编辑器"),
+    ("common/characters", _open_character, "角色专用编辑器"),
     ("common/ai_strategy_plans", _open_ai_plan, "AI 战略计划"),
     ("common/ai_strategy", _open_ai_strategy, "AI 战略倾向"),
     ("common/ai_templates", _open_ai_template, "AI 师模板"),

@@ -7,7 +7,7 @@
 """
 
 SPECIAL_TYPE_KEYS = (
-    "focus", "tech", "initial_oob", "bop",
+    "focus", "tech", "initial_oob", "bop", "character", "event",
     "ai_strategy_plans", "ai_strategy", "ai_division", "ai_equipment",
     "ai_navy", "ai_faction_theaters", "ai_areas", "ai_focuses",
 )
