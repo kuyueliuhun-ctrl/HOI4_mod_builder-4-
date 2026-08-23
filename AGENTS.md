@@ -938,7 +938,7 @@ python ui_gap_probe.py --dump-all --output 已分析.md
 
 ### 6.17 遗留/可选后续
 
-> **遗留/未完成条目的唯一总表 = `docs/未完成计划.md`**（按 P0~P4 批次，含需用户拍板清单）。
+> **遗留/未完成条目的唯一总表 = `docs/整合计划.md`**（按 P0~P4 批次，含需用户拍板清单）。
 > 下方为历史摘要，具体状态以该文档与 `QIUQI-LIBRARY映射与复刻矩阵.md` 为准。
 
 - 兵牌图标可考虑接入单位标牌库（当前 OOB 用 GFX_unit_<type>_icon_medium
@@ -950,7 +950,7 @@ python ui_gap_probe.py --dump-all --output 已分析.md
 
 ### 6.22 已完成：UI 修复与建构（2026-08-22 批次1-9）
 
-> 执行依据：`docs/UI修复与建构执行方法.md`（用户已拍板的唯一执行文档）。
+> 执行依据：`docs/整合计划.md`（用户已拍板的唯一执行文档）。
 > 本轮完成 UI 修复与建构，覆盖批次 1~9；`verify_contracts.py` 双版本全绿。
 
 1. ✅ **批次1 设计器三件套**：`src/designer_slots.py`（槽位/数量上限/默认模块/升级定义）、
@@ -977,13 +977,13 @@ python ui_gap_probe.py --dump-all --output 已分析.md
 8. ✅ **批次8 raw 兜底降级**：`ScriptBlockEditorDialog` 默认键值表+子块列表、
    原始 PDX 移入「高级 ▾」菜单；AI 7 编辑器 raw 文案统一
    「高级：原始 PDX（兜底）」；advisor traits 多选/字段化；ai_plan desc 双行。
-9. ✅ **批次9 文档同步**：`docs/UI修复与建构执行方法.md` 状态表、
-   `docs/未完成计划.md` 3d 表、`docs/UI评估报告.md` 批次表已同步；
+9. ✅ **批次9 文档同步**：`docs/整合计划.md` 状态表、
+   `docs/整合计划.md` 3d 表、`docs/UI评估报告.md` 批次表已同步；
    `verify_contracts.py` 双版本全绿、`ui_gap_probe` 相关类型缺口已收敛。
 
 ### 6.23 已完成：第一份执行文档剩余源码缺口 + §0.x 补充（2026-08-23）
 
-> 按 `对话.md` 开工，先补 `docs/UI修复与建构执行方法.md` 中批次 4~8 的 🔶 差距、
+> 按 `docs/整合计划.md` 开工，先补 `docs/整合计划.md` 中批次 4~8 的 🔶 差距、
 > §0.x 四条补充项，并完成批次 9 收尾。7 个并行子代理实现 + 监督整合。
 
 1. ✅ **批次4 完整版**：事件/科技编辑器从最小可用补到完整版：事件支持
@@ -1029,7 +1029,7 @@ python ui_gap_probe.py --dump-all --output 已分析.md
      中文 GBK 输出导致的 UnicodeDecodeError。
 4. ✅ **依赖**：Windows `.venv` 安装 PyQt6 6.11.0（Qt 6.11.1）、numpy 2.5.2、
    Pillow 12.3.0、mcp 2.0.0；新增根目录 `requirements.txt`（Windows 同源依赖）。
-5. ✅ **文档同步**：AGENTS §2/§4.5、README、`问题.md` P9、`docs/修复计划.md` F9
+5. ✅ **文档同步**：AGENTS §2/§4.5、README、`docs/整合计划.md` P9、`docs/整合计划.md` F9
    已更新为 3.14 事实；3.8 语法限制解除（新代码可用 walrus/match/list[str] 等）。
 
 > 当前状态：第一份执行文档批次 1~9 全部落地；P10~P39 仍在原型试用拍板阶段，

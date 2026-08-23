@@ -46,7 +46,7 @@
 
 ## 国家历史文件（变体/顾问等）（country_history）
 
-> 说明：变体（模块/升级）由三设计器覆盖；其余块走树编辑器，逐步收敛（收敛计划挂 docs/未完成计划.md 通用类型 F 批）
+> 说明：变体（模块/升级）由三设计器覆盖；其余块走树编辑器，逐步收敛（收敛计划挂 docs/整合计划.md 通用类型 F 批）
 
 扫描文件：10
 
@@ -414,7 +414,7 @@ history/countries  (x890) {
 
 ## 国策/科技画布（focus）（focus）
 
-> 说明：节点弹窗常用字段已覆盖；文件级其他键（style/search_filter_prios/常量）与 focus 内部未列嵌套字段仍经通用树编辑器兜底，属长期收敛项（挂 docs/未完成计划.md 通用类型 F 批）
+> 说明：节点弹窗常用字段已覆盖；文件级其他键（style/search_filter_prios/常量）与 focus 内部未列嵌套字段仍经通用树编辑器兜底，属长期收敛项（挂 docs/整合计划.md 通用类型 F 批）
 
 扫描文件：10
 
@@ -1438,7 +1438,7 @@ common/national_focus  (x2603) {
 
 ## 地图编辑器（州）（state）
 
-> 说明：resources/victory_points/manpower/州名/州类别由右侧州字段表单覆盖；history.resources 为兼容 mod 写法；其余 state 嵌套字段（天气/历史/高级建筑等）仍可能走树编辑器，属长期收敛项（收敛计划挂 docs/未完成计划.md 通用类型 F 批）
+> 说明：resources/victory_points/manpower/州名/州类别由右侧州字段表单覆盖；history.resources 为兼容 mod 写法；其余 state 嵌套字段（天气/历史/高级建筑等）仍可能走树编辑器，属长期收敛项（收敛计划挂 docs/整合计划.md 通用类型 F 批）
 
 扫描文件：10
 
