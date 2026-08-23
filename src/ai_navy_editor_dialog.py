@@ -11,7 +11,7 @@ import os
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QDialog, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QMenu,
+    QComboBox, QDialog, QHBoxLayout, QHeaderView, QInputDialog, QLabel, QMenu,
     QMessageBox, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem,
     QToolButton, QVBoxLayout, QWidget,
 )
@@ -36,6 +36,12 @@ from ai_loader import (
 from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
+
+NAVY_OBJECTIVE_TYPES = (
+    "convoy_protection", "naval_invasion_support", "amphibious_landing",
+    "naval_bombardment", "blockade", "sea_control", "submarine_warfare",
+    "naval_superiority", "escort", "mining",
+)
 
 
 class AiNavyEditorDialog(QDialog):
@@ -162,6 +168,11 @@ class AiNavyEditorDialog(QDialog):
             table.insertRow(r)
             self._set(table, r, 0, gid)
             self._set(table, r, 1, g.get("objective_type", ""))
+            combo = QComboBox()
+            combo.addItems(NAVY_OBJECTIVE_TYPES)
+            combo.setEditable(True)
+            combo.setCurrentText(g.get("objective_type", ""))
+            table.setCellWidget(r, 1, combo)
             self._set(table, r, 2, g.get("min_priority", ""))
             self._set(table, r, 3, g.get("max_priority", ""))
             table.item(r, 0).setData(Qt.ItemDataRole.UserRole, gid)
@@ -371,8 +382,11 @@ class AiNavyEditorDialog(QDialog):
             g = goals.get(gid)
             if not g:
                 continue
+            combo = table.cellWidget(r, 1)
+            obj_type = combo.currentText().strip() if isinstance(combo, QComboBox) else (
+                table.item(r, 1).text() if table.item(r, 1) else "")
             fields = {
-                "objective_type": (table.item(r, 1).text() if table.item(r, 1) else "").strip(),
+                "objective_type": obj_type,
                 "min_priority": (table.item(r, 2).text() if table.item(r, 2) else "").strip(),
                 "max_priority": (table.item(r, 3).text() if table.item(r, 3) else "").strip(),
             }
