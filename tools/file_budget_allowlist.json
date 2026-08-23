@@ -1,6 +1,5 @@
 [
   "src/main_window.py",
-  "src/ai_loader.py",
   "src/oob_loader.py",
   "src/bop_editor_dialog.py",
   "src/generic_tree_editor.py",
