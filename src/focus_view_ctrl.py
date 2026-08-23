@@ -8,8 +8,20 @@
 from project_paths import PROJECT_ROOT
 
 import os
+import re
 
-from PyQt6.QtWidgets import QFileDialog, QMenu, QMessageBox
+import icon_ops
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QBrush, QColor, QFont, QPen, QPixmap
+from PyQt6.QtWidgets import (
+    QDialog,
+    QFileDialog,
+    QGraphicsPixmapItem,
+    QGraphicsRectItem,
+    QGraphicsSimpleTextItem,
+    QMenu,
+    QMessageBox,
+)
 
 from focus_render import render_tech_tree
 
@@ -755,6 +767,7 @@ class EntityGalleryControllerMixin:
 
     def _open_entity_tree_editor(self, file_path, entity):
         """打开树形编辑器：仅编辑该实体块（如同国策），无块范围时回退整文件+定位。"""
+        from focus_view import CUSTOM_STATEMENT_PATH, _get_translator
         from generic_tree_editor import GenericTreeEditor
         from tree_node import TreeNode, tree_from_pdx_text
         try:
@@ -811,6 +824,7 @@ class EntityGalleryControllerMixin:
 
     def _pick_entity_icon(self, entity):
         """打开图标选择对话框并应用到指定实体。"""
+        from focus_view import _get_translator
         from icon_picker_dialog import IconPickerDialog
         gfx_map = self._gallery_gfx_map()
         if not gfx_map:

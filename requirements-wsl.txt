@@ -1,7 +1,9 @@
-# HOI4 Mod 编辑器 — WSL/Linux 依赖（Python 3.10+ / 已验证 3.14）
+# HOI4 Mod 编辑器 — WSL/Linux 依赖（Python 3.14+ / 已验证 3.14）
 PyQt6
 numpy
 Pillow
 # MCP server：官方 mcp 库（mcp_server.py 在未提供 fastmcp API 的现代版本下
 # 会自动回退到内置零依赖 stdio 实现，因此即使装 2.x 也不会破坏 MCP 功能）
 mcp
+# 静态检查（F2）
+ruff

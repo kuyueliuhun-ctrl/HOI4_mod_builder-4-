@@ -1,0 +1,6 @@
+# Ruff 静态检查配置（F2 起步：只开错误级，零误报成本）
+line-length = 100
+exclude = [".venv", ".venv-linux", ".venv314", "prototypes", "data", "_scenario_forge"]
+
+[lint]
+select = ["E9", "F63", "F7", "F82"]

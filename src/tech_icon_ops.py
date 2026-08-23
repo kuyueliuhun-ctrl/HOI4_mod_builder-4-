@@ -18,6 +18,8 @@ import re
 import base64
 import io
 
+from PIL import Image
+
 TECH_SPRITE_PATTERN = "GFX_{name}_medium"
 TECH_GFX_FILE = "technologies_mod.gfx"
 TECH_TEXTURE_DIR = "gfx/interface/technologies"

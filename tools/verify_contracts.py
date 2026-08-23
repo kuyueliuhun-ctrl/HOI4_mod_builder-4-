@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import subprocess
 import sys
@@ -81,6 +82,16 @@ def main():
         print("  编译失败: %s (%s)" % (fp, err))
     results.append(("语法编译", not bad))
 
+    # 1.5 ruff 静态检查（错误级：语法/未定义名/断言误用）
+    if importlib.util.find_spec("ruff") is not None:
+        results.append(("ruff 静态检查",
+                        run_step("ruff 静态检查",
+                                 [PYTHON, "-m", "ruff", "check",
+                                  "src/", "tools/", "tests/"])))
+    else:
+        print("  [SKIP] ruff 未安装（pip install ruff）")
+        results.append(("ruff 静态检查", True))
+
     # 2. 契约单元测试
     results.append(("契约单元测试",
                     run_step("契约单元测试",
@@ -96,6 +107,11 @@ def main():
     results.append(("四层依赖检查",
                     run_step("四层依赖检查",
                              [PYTHON, os.path.join("tools", "check_layer_deps.py")])))
+
+    # 5. 行数预算门禁（防存量大文件名单变长）
+    results.append(("行数预算",
+                    run_step("行数预算",
+                             [PYTHON, os.path.join("tools", "check_file_budget.py")])))
 
     print("\n" + "=" * 46)
     all_ok = True
