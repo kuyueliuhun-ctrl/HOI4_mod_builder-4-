@@ -23,6 +23,7 @@ class UiWidgetsTest(unittest.TestCase):
         self.assertEqual(_cn("visible"), "可见性")
         self.assertIn("available", BLOCK_CN)
         self.assertEqual(_cn("unknown_key_xyz"), "unknown_key_xyz")
+        self.assertGreaterEqual(len(BLOCK_CN), 50)
 
     def test_source_badge(self):
         from ui_widgets import source_badge
