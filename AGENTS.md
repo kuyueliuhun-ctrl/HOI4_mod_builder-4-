@@ -921,7 +921,7 @@ python ui_gap_probe.py --dump-all --output 已分析.md
 
 ### 6.23 已完成：MCP 补充计划 142 个新增工具（2026-08-22）
 
-按 `docs/mcp补充计划与执行方式.md` 一次性全部落地：
+按 MCP 补充计划一次性全部落地；接口与 159 工具规格见 `docs/MCP与接口规格.md`：
 
 1. ✅ **ApiCore 域扩展包 `src/api_core_ext/`**：9 个 Mixin（states/designers/ai_content/bop/
    loc_tools/health/media/generators/project），ApiCore 多重继承组合，全部接口与 MCP 同源。
