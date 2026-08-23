@@ -1,5 +1,5 @@
 {
-  "_comment": "写入纪律豁免登记。规则：mod 内容文件（.txt/.gfx/.yml/.mod 等）必须走 write_utils.atomic_write_text（原子写 + 无 BOM 契约 + 撤销快照）；仅程序自身配置、程序数据文件与一次性开发脚本允许直写，登记于此并写明理由。新写入请优先走原子写，确需直写时在此登记。",
+  "_comment": "写入纪律豁免登记。规则：mod 内容文件（.txt/.gfx/.yml/.mod 等）必须走 write_utils.atomic_write_text（原子写 + 无 BOM 契约 + 撤销快照）；仅程序自身配置、程序数据文件与一次性开发脚本允许直写，登记于此并写明理由。新写入请优先走原子写，确需直写时在此登记。复核（2026-08-23 F8）：全部条目仍必要，无待移除项。",
   "modules": {
     "src/ai_assist.py": {
       "reason": "程序配置 settings.json 写入（非 mod 内容，低风险）"
