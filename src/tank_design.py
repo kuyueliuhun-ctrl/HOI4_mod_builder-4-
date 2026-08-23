@@ -20,11 +20,15 @@ from tree_node import parse_pdx_text_to_nodes
 from oob_loader import _block_ranges
 from ship_design import (
     _iter_blocks, _num, _node_field_value, _node_block_children,
-    parse_equipment_variants,
+    parse_equipment_variants, apply_variant_advanced,
 )
 from plane_design import (
     _block_items_text, find_variant_block, apply_variant_modules,
     insert_variant, remove_variant, rename_variant,
+)
+from designer_slots import (
+    parse_module_slots, parse_module_count_limits,
+    parse_default_modules, parse_upgrades_decl,
 )
 
 # 参与解析的 chassis 文件
@@ -56,9 +60,24 @@ SLOT_LABELS = {
     "special_type_slot_1": "特殊 1",
     "special_type_slot_2": "特殊 2",
     "special_type_slot_3": "特殊 3",
+    "special_type_slot_4": "特殊 4",
+    "lc_main_armament_slot": "轻炮主炮",
+    "lc_secondary_armament_slot": "轻炮副炮",
 }
 # 模块类别中文名
 CATEGORY_LABELS = {
+    "tank_small_main_armament": "小型主炮",
+    "tank_medium_main_armament": "中型主炮",
+    "tank_light_turret_type": "轻型炮塔",
+    "tank_medium_turret_type": "中型炮塔",
+    "tank_suspension_type": "悬挂",
+    "tank_non_tracked_suspension_type": "非履带悬挂",
+    "tank_armor_type": "装甲",
+    "tank_engine_type": "引擎",
+    "tank_special_module": "特殊模块",
+    "tank_radio_module": "电台模块",
+    "tank_secondary_turret": "副炮塔",
+    "tank_flamethrower": "火焰喷射器",
     "tank_weapon": "坦克武器",
     "tank_turret": "炮塔",
     "tank_suspension": "悬挂",
@@ -128,7 +147,8 @@ def load_tank_chassis(mod_path="", hoi4_path=""):
             continue
         for fn in names:
             if not (fn.lower().endswith(".txt")
-                    and any(fn.lower() == tf for tf in _TANK_FILES)):
+                    and (any(fn.lower() == tf for tf in _TANK_FILES)
+                         or "tank" in fn.lower() or "chassis" in fn.lower())):
                 continue
             try:
                 with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
@@ -151,6 +171,9 @@ def load_tank_chassis(mod_path="", hoi4_path=""):
                     "is_archetype": False,
                     "archetype_key": "",
                     "module_slots": {},
+                    "module_slots_list": [],
+                    "module_count_limits": [],
+                    "upgrades_decl": [],
                     "default_modules": {},
                     "stats": {},
                     "derived_variant_name":
@@ -163,15 +186,23 @@ def load_tank_chassis(mod_path="", hoi4_path=""):
                     info["archetype_key"] = node.key
                 slots = _node_block_children(node, "module_slots")
                 if slots is not None:
-                    from ship_design import _parse_slot_block
-                    info["module_slots"] = _parse_slot_block(slots)
+                    info["module_slots_list"] = parse_module_slots(slots)
+                    info["module_slots"] = {
+                        s["slot"]: {"required": s["required"], "allowed": s["allowed"]}
+                        for s in info["module_slots_list"]
+                    }
                 else:
                     info["module_slots"] = {"_inherit": True}
+                    info["module_slots_list"] = []
+                info["module_count_limits"] = parse_module_count_limits(node)
+                info["upgrades_decl"] = parse_upgrades_decl(node)
                 defaults = _node_block_children(node, "default_modules")
                 if defaults is not None:
-                    for c in defaults.children:
-                        if c.node_type == "value":
-                            info["default_modules"][c.key] = c.value
+                    info["default_modules"] = parse_default_modules(node)
+                    if not info["default_modules"]:
+                        for c in defaults.children:
+                            if c.node_type == "value":
+                                info["default_modules"][c.key] = c.value
                 for f in _TANK_STAT_FIELDS:
                     v = _num(_node_field_value(node, f))
                     if v is not None:
@@ -192,6 +223,14 @@ def load_tank_chassis(mod_path="", hoi4_path=""):
         if arch is not None:
             if info.get("module_slots") == {"_inherit": True}:
                 info["module_slots"] = dict(arch.get("module_slots") or {})
+                info["module_slots_list"] = list(
+                    arch.get("module_slots_list") or [])
+                if not info.get("module_count_limits"):
+                    info["module_count_limits"] = list(
+                        arch.get("module_count_limits") or [])
+                if not info.get("upgrades_decl"):
+                    info["upgrades_decl"] = list(
+                        arch.get("upgrades_decl") or [])
             if not info.get("is_archetype"):
                 info["archetype_key"] = arch_key or info.get("archetype_key")
                 for f, v in (arch.get("stats") or {}).items():
@@ -210,6 +249,13 @@ def tank_derived_names(chassis):
     """chassis → 派生装备名集合（light_tank_equipment_0 等）。"""
     return set(v.get("derived_variant_name") for v in chassis.values()
                if v.get("derived_variant_name"))
+
+
+def tank_derived_map(chassis):
+    """派生装备名 → chassis 键 反查表（UI 用于把 variant.type 映射回底盘）。"""
+    return {v["derived_variant_name"]: k
+            for k, v in chassis.items()
+            if v.get("derived_variant_name")}
 
 
 def load_tank_modules(mod_path="", hoi4_path=""):

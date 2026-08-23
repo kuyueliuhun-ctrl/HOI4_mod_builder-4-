@@ -22,6 +22,11 @@ from oob_loader import _block_ranges
 from ship_design import (
     _iter_blocks, _num, _node_field_value, _node_block_children,
     parse_equipment_variants, _block_map, _field_re,
+    apply_variant_advanced,
+)
+from designer_slots import (
+    parse_module_slots, parse_module_count_limits,
+    parse_default_modules, parse_upgrades_decl,
 )
 
 # 参与解析的 airframe 文件（文件名含 airframe）
@@ -60,6 +65,12 @@ SLOT_LABELS = {
 }
 # 模块类别中文名
 CATEGORY_LABELS = {
+    "plane_engine_type": "引擎",
+    "twin_plane_engine_type": "双列引擎",
+    "plane_special_module_small": "小型特殊",
+    "plane_special_module_defense_turret": "自卫炮塔",
+    "plane_special_module_electronics": "电子设备",
+    "plane_weapon": "武器",
     "fighter_weapon": "战斗机武器",
     "cas_weapon": "对地武器",
     "nav_bomber_weapon": "海军轰炸武器",
@@ -150,7 +161,8 @@ def load_plane_airframes(mod_path="", hoi4_path=""):
             continue
         for fn in names:
             if not (fn.lower().endswith(".txt")
-                    and any(fn.lower() == af for af in _AIRFRAME_FILES)):
+                    and (any(fn.lower() == af for af in _AIRFRAME_FILES)
+                         or "airframe" in fn.lower())):
                 continue
             try:
                 with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
@@ -173,6 +185,9 @@ def load_plane_airframes(mod_path="", hoi4_path=""):
                     "is_archetype": False,
                     "archetype_key": "",
                     "module_slots": {},
+                    "module_slots_list": [],
+                    "module_count_limits": [],
+                    "upgrades_decl": [],
                     "default_modules": {},
                     "stats": {},
                     "derived_variant_name":
@@ -185,15 +200,23 @@ def load_plane_airframes(mod_path="", hoi4_path=""):
                     info["archetype_key"] = node.key
                 slots = _node_block_children(node, "module_slots")
                 if slots is not None:
-                    from ship_design import _parse_slot_block
-                    info["module_slots"] = _parse_slot_block(slots)
+                    info["module_slots_list"] = parse_module_slots(slots)
+                    info["module_slots"] = {
+                        s["slot"]: {"required": s["required"], "allowed": s["allowed"]}
+                        for s in info["module_slots_list"]
+                    }
                 else:
                     info["module_slots"] = {"_inherit": True}
+                    info["module_slots_list"] = []
+                info["module_count_limits"] = parse_module_count_limits(node)
+                info["upgrades_decl"] = parse_upgrades_decl(node)
                 defaults = _node_block_children(node, "default_modules")
                 if defaults is not None:
-                    for c in defaults.children:
-                        if c.node_type == "value":
-                            info["default_modules"][c.key] = c.value
+                    info["default_modules"] = parse_default_modules(node)
+                    if not info["default_modules"]:
+                        for c in defaults.children:
+                            if c.node_type == "value":
+                                info["default_modules"][c.key] = c.value
                 for f in _AIRFRAME_STAT_FIELDS:
                     v = _num(_node_field_value(node, f))
                     if v is not None:
@@ -214,6 +237,14 @@ def load_plane_airframes(mod_path="", hoi4_path=""):
         if arch is not None:
             if info.get("module_slots") == {"_inherit": True}:
                 info["module_slots"] = dict(arch.get("module_slots") or {})
+                info["module_slots_list"] = list(
+                    arch.get("module_slots_list") or [])
+                if not info.get("module_count_limits"):
+                    info["module_count_limits"] = list(
+                        arch.get("module_count_limits") or [])
+                if not info.get("upgrades_decl"):
+                    info["upgrades_decl"] = list(
+                        arch.get("upgrades_decl") or [])
             if not info.get("is_archetype"):
                 info["archetype_key"] = arch_key or info.get("archetype_key")
                 for f, v in (arch.get("stats") or {}).items():
@@ -232,6 +263,13 @@ def plane_derived_names(airframes):
     """airframe → 派生装备名集合（fighter_equipment_0 等）。"""
     return set(v.get("derived_variant_name") for v in airframes.values()
                if v.get("derived_variant_name"))
+
+
+def plane_derived_map(airframes):
+    """派生装备名 → airframe 键 反查表（UI 用于把 variant.type 映射回机体）。"""
+    return {v["derived_variant_name"]: k
+            for k, v in airframes.items()
+            if v.get("derived_variant_name")}
 
 
 def load_plane_modules(mod_path="", hoi4_path=""):
@@ -375,25 +413,30 @@ def _block_items_text(block_name, items, unit="\t\t"):
     return "\n".join(lines)
 
 
-def find_variant_block(content, name):
-    """定位 create_equipment_variant 块（name 匹配）的字符范围。"""
+def find_variant_block(content, name, type_key=None):
+    """定位 create_equipment_variant 块（name + 可选 type 匹配）的字符范围。"""
     for key, _depth, start, end in _block_ranges(content):
         if key != "create_equipment_variant":
             continue
         seg = content[start:end]
         m = re.search(r'name\s*=\s*"([^"]*)"', seg)
-        if m and m.group(1) == name:
-            return start, end
+        if not (m and m.group(1) == name):
+            continue
+        if type_key:
+            from ship_design import _field_re
+            if _field_re(seg, "type") != type_key:
+                continue
+        return start, end
     return None
 
 
-def apply_variant_modules(content, name, modules):
+def apply_variant_modules(content, name, modules, type_key=None):
     """替换 create_equipment_variant 块的 modules 子块。
 
     Returns:
         新 content；未找到块返回 None。
     """
-    span = find_variant_block(content, name)
+    span = find_variant_block(content, name, type_key)
     if span is None:
         return None
     start, end = span
@@ -441,9 +484,9 @@ def insert_variant(content, tag, variant_name, airframe_key, modules):
     return None
 
 
-def remove_variant(content, name):
+def remove_variant(content, name, type_key=None):
     """删除 create_equipment_variant 块。"""
-    span = find_variant_block(content, name)
+    span = find_variant_block(content, name, type_key)
     if span is None:
         return None
     start, end = span
@@ -454,9 +497,9 @@ def remove_variant(content, name):
     return content[:start] + content[end:]
 
 
-def rename_variant(content, old_name, new_name):
+def rename_variant(content, old_name, new_name, type_key=None):
     """重命名 create_equipment_variant 块的 name 字段。"""
-    span = find_variant_block(content, old_name)
+    span = find_variant_block(content, old_name, type_key)
     if span is None:
         return None
     start, end = span

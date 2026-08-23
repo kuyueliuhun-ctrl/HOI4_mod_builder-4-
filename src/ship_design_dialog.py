@@ -17,14 +17,16 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem,
     QPushButton, QToolButton, QLineEdit, QLabel, QMessageBox,
     QGridLayout, QScrollArea, QWidget, QFrame, QSplitter, QGroupBox,
-    QComboBox, QDialogButtonBox,
+    QComboBox, QDialogButtonBox, QCheckBox,
 )
 
 from ship_design import (
     SLOT_LABELS, CATEGORY_LABELS, HULL_TYPE_LABELS,
     load_ship_hulls, load_ship_modules, load_ship_variants,
     ship_design_stats, hull_cn_name, ship_cn_name,
-    apply_variant_upgrades, insert_variant, remove_variant, rename_variant,
+    apply_variant_upgrades, apply_variant_modules,
+    apply_variant_advanced,
+    insert_variant, remove_variant, rename_variant,
 )
 
 PANEL_WIDTH = 330
@@ -48,6 +50,10 @@ _SLOT_EMPTY = (
 _SLOT_LOCKED = (
     "QToolButton { border: 1px dashed #95a0ab; background: #f4f6f8;"
     " color: #95a0ab; font-size: 14px; }")
+_SLOT_REQUIRED_EMPTY = (
+    "QToolButton { border: 1.5px dashed #b7791f; background: #fff8ee;"
+    " color: #b7791f; font-size: 12px; font-weight: bold; }"
+    "QToolButton:hover { background: rgba(183, 121, 31, 0.10); }")
 
 
 def _fmt(v, nd=1):
@@ -70,6 +76,8 @@ def _fmt_pct(v, nd=1):
 
 
 from designer_common import ModulePickerDialog as _BaseModulePickerDialog
+from designer_common import UpgradePointsCard, zone_summary_text
+from designer_slots import load_upgrade_definitions
 
 
 class ModulePickerDialog(_BaseModulePickerDialog):
@@ -195,6 +203,10 @@ class ShipDesignDialog(QDialog):
         self.slot_scroll.setWidget(self.slot_host)
         left_layout.addWidget(self.slot_scroll, 1)
 
+        self.save_validation_label = QLabel("")
+        self.save_validation_label.setWordWrap(True)
+        left_layout.addWidget(self.save_validation_label)
+
         hint = QLabel(
             "提示: 点击槽位选择模块（按船体允许的类别过滤）；已装模块再次点击"
             "可更换或移除。右侧数值为基础值估算（hull 基础 + 模块修正，"
@@ -202,6 +214,39 @@ class ShipDesignDialog(QDialog):
         hint.setWordWrap(True)
         hint.setStyleSheet("color:#5d6b7a")
         left_layout.addWidget(hint)
+
+        self.upgrade_card = UpgradePointsCard()
+        left_layout.addWidget(self.upgrade_card)
+
+        self.advanced_box = QGroupBox("高级字段")
+        self.advanced_box.setStyleSheet(_STAT_GROUP_STYLE)
+        adv_lay = QGridLayout(self.advanced_box)
+        adv_lay.setContentsMargins(10, 12, 10, 8)
+        adv_lay.setHorizontalSpacing(8)
+        adv_lay.setVerticalSpacing(4)
+
+        adv_lay.addWidget(QLabel("设计团队"), 0, 0)
+        self.design_team_combo = QComboBox()
+        self.design_team_combo.setEditable(True)
+        self.design_team_combo.setPlaceholderText("mio:<组织>（可自由输入）")
+        self.design_team_combo.setMinimumWidth(180)
+        adv_lay.addWidget(self.design_team_combo, 0, 1)
+
+        adv_lay.addWidget(QLabel("父版本"), 1, 0)
+        self.parent_version_edit = QLineEdit()
+        self.parent_version_edit.setPlaceholderText("0")
+        adv_lay.addWidget(self.parent_version_edit, 1, 1)
+
+        adv_lay.addWidget(QLabel("已废弃"), 2, 0)
+        self.obsolete_check = QCheckBox("obsolete = yes")
+        adv_lay.addWidget(self.obsolete_check, 2, 1)
+
+        adv_lay.addWidget(QLabel("图标"), 3, 0)
+        self.icon_edit = QLineEdit()
+        self.icon_edit.setPlaceholderText("GFX_...（可输入图标键）")
+        adv_lay.addWidget(self.icon_edit, 3, 1)
+
+        left_layout.addWidget(self.advanced_box)
         split.addWidget(left)
 
         # 右侧：数据面板（固定宽度）
@@ -369,7 +414,8 @@ class ShipDesignDialog(QDialog):
         variants = self.variants.get(self.current_tag) or {}
         for name, v in variants.items():
             cn = hull_cn_name(v.get("type", ""))
-            self.design_combo.addItem(f"{name}  [{cn}]", name)
+            disp = ship_cn_name(name)
+            self.design_combo.addItem(f"{disp}  [{cn}]", name)
         self.design_combo.blockSignals(False)
         if self.design_combo.count() > 0:
             self.design_combo.setCurrentIndex(0)
@@ -386,6 +432,45 @@ class ShipDesignDialog(QDialog):
         self.current_variant = variants.get(self.current_name)
         self._rebuild_editor()
 
+
+    def _advanced_values(self):
+        """收集高级字段表单值；空/默认值保持缺省语义。"""
+        design_team = self.design_team_combo.currentText().strip()
+        if design_team and not design_team.startswith("mio:"):
+            design_team = "mio:" + design_team
+        parent_version = self.parent_version_edit.text().strip()
+        if parent_version == "":
+            parent_version = 0
+        return {
+            "design_team": design_team,
+            "parent_version": parent_version,
+            "obsolete": self.obsolete_check.isChecked(),
+            "icon": self.icon_edit.text().strip(),
+        }
+
+    def _load_advanced_fields(self):
+        """把当前变体高级字段回填表单，并收集同国家已有设计团队作为下拉候选。"""
+        if self.current_variant is None:
+            self.design_team_combo.setCurrentText("")
+            self.parent_version_edit.setText("")
+            self.obsolete_check.setChecked(False)
+            self.icon_edit.setText("")
+            return
+        v = self.current_variant
+        tag_variants = self.variants.get(self.current_tag) or {}
+        teams = sorted({(d.get("design_team") or "") for d in tag_variants.values()
+                        if d.get("design_team")})
+        self.design_team_combo.blockSignals(True)
+        self.design_team_combo.clear()
+        for team in teams:
+            self.design_team_combo.addItem(team)
+        self.design_team_combo.setCurrentText(v.get("design_team") or "")
+        self.design_team_combo.blockSignals(False)
+        pv = v.get("parent_version")
+        self.parent_version_edit.setText("" if pv in (None, 0) else str(pv))
+        self.obsolete_check.setChecked(bool(v.get("obsolete")))
+        self.icon_edit.setText(v.get("icon") or "")
+
     # ---------- 编辑区 ----------
 
     def _clear_editor(self):
@@ -401,6 +486,7 @@ class ShipDesignDialog(QDialog):
             self._stat_labels[key].setText("—")
         self.dominance_label.setText("—")
         self.cost_label.setText("生产花费: —")
+        self._load_advanced_fields()
 
     def _rebuild_editor(self):
         while self.slot_grid.count():
@@ -423,6 +509,7 @@ class ShipDesignDialog(QDialog):
         self.name_edit.blockSignals(True)
         self.name_edit.setText(self.current_name)
         self.name_edit.blockSignals(False)
+        self._load_advanced_fields()
 
         upgrades = v.get("modules") or {}
         slots = hull.get("module_slots") or {}
@@ -433,62 +520,132 @@ class ShipDesignDialog(QDialog):
             hint.setStyleSheet("color:#b7791f;")
             self._empty_hint = hint
             self.slot_grid.addWidget(hint, 0, 0, 1, SHIP_SLOT_COLS)
-        # 6 列布局：上排/下排两排（视觉贴近游戏内）
-        idx = 0
-        for slot_key, slot_info in slots.items():
-            allowed = slot_info.get("allowed") or []
-            card = QWidget()
-            card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(0, 0, 0, 0)
-            card_layout.setSpacing(2)
-            lbl = QLabel(SLOT_LABELS.get(slot_key, slot_key))
-            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lbl.setStyleSheet(_STAT_LABEL_STYLE)
-            lbl.setToolTip(
-                "允许类别: " + "、".join(
-                    CATEGORY_LABELS.get(c, c) for c in allowed) or "（无）")
-            card_layout.addWidget(lbl)
-            btn = QToolButton()
-            btn.setFixedSize(130, 40)
-            mod_key = upgrades.get(slot_key)
-            locked = (not allowed and not slot_info.get("required"))
-            if mod_key:
-                mod = self.modules.get(mod_key) or {}
-                btn.setText(mod.get("abbreviation") or mod_key)
-                btn.setToolTip(
-                    f"{ship_cn_name(mod_key)}（{mod_key}）\n"
-                    f"类别: {CATEGORY_LABELS.get(mod.get('category', ''), mod.get('category', ''))}\n"
-                    + self._module_brief(mod))
-                btn.setStyleSheet(_SLOT_OCCUPIED)
-                btn.clicked.connect(
-                    lambda _=False, s=slot_key: self._open_module_picker(s))
-            elif locked:
-                btn.setText("🔒")
-                btn.setEnabled(False)
-                btn.setToolTip(f"{SLOT_LABELS.get(slot_key, slot_key)}"
-                               f"（该船体此槽位锁定，无可用模块）")
-                btn.setStyleSheet(_SLOT_LOCKED)
-            elif slot_info.get("required"):
-                btn.setText("🔒")
-                btn.setEnabled(False)
-                btn.setToolTip(f"{SLOT_LABELS.get(slot_key, slot_key)}"
-                               f"（必装槽位，当前为空）")
-                btn.setStyleSheet(_SLOT_LOCKED)
-            else:
-                btn.setText("＋")
-                btn.setStyleSheet(_SLOT_EMPTY)
-                btn.setToolTip(f"{SLOT_LABELS.get(slot_key, slot_key)}"
-                               f"（可选槽位，点击添加模块）")
-                btn.clicked.connect(
-                    lambda _=False, s=slot_key: self._open_module_picker(s))
-            card_layout.addWidget(btn)
-            self.slot_grid.addWidget(card, (idx // SHIP_SLOT_COLS) + 1,
-                                     idx % SHIP_SLOT_COLS)
-            self._slot_buttons[slot_key] = btn
-            idx += 1
+        # 布局：固定装备区（上）+ 甲板自定义区（下），各 6 列
+        fixed_keys = [k for k in slots if "custom_slot" not in k]
+        custom_keys = [k for k in slots if k not in fixed_keys]
+        row = 1 if not upgrades else 0
+
+        def add_zone(title, keys):
+            nonlocal row
+            if not keys:
+                return
+            header = QLabel("%s  [%s]" % (
+                title,
+                zone_summary_text(keys, slots,
+                                  hull.get("module_count_limits") or [])))
+            header.setStyleSheet(
+                "color:#1f4f7e; font-weight:bold; padding:2px;")
+            self.slot_grid.addWidget(header, row, 0, 1, SHIP_SLOT_COLS)
+            row += 1
+            idx = 0
+            for slot_key in keys:
+                slot_info = slots[slot_key]
+                allowed = slot_info.get("allowed") or []
+                card = QWidget()
+                card_layout = QVBoxLayout(card)
+                card_layout.setContentsMargins(0, 0, 0, 0)
+                card_layout.setSpacing(2)
+                lbl = QLabel(SLOT_LABELS.get(slot_key, slot_key))
+                lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                lbl.setStyleSheet(_STAT_LABEL_STYLE)
+                lbl.setToolTip(
+                    "允许类别: " + "、".join(
+                        CATEGORY_LABELS.get(c, c) for c in allowed) or "（无）")
+                card_layout.addWidget(lbl)
+                btn = QToolButton()
+                btn.setFixedSize(130, 40)
+                mod_key = upgrades.get(slot_key)
+                locked = (not allowed and not slot_info.get("required"))
+                if mod_key:
+                    mod = self.modules.get(mod_key) or {}
+                    btn.setText(mod.get("abbreviation") or mod_key)
+                    btn.setToolTip(
+                        f"{ship_cn_name(mod_key)}（{mod_key}）\n"
+                        f"类别: {CATEGORY_LABELS.get(mod.get('category', ''), mod.get('category', ''))}\n"
+                        + self._module_brief(mod))
+                    btn.setStyleSheet(_SLOT_OCCUPIED)
+                    btn.clicked.connect(
+                        lambda _=False, s=slot_key: self._open_module_picker(s))
+                elif locked:
+                    btn.setText("🔒")
+                    btn.setEnabled(False)
+                    btn.setToolTip(f"{SLOT_LABELS.get(slot_key, slot_key)}"
+                                   f"（该船体此槽位锁定，无可用模块）")
+                    btn.setStyleSheet(_SLOT_LOCKED)
+                elif slot_info.get("required"):
+                    btn.setText("必装·待填")
+                    btn.setEnabled(True)
+                    btn.setToolTip(f"{SLOT_LABELS.get(slot_key, slot_key)}"
+                                   f"（必装槽位，当前为空；点击添加模块）")
+                    btn.setStyleSheet(_SLOT_REQUIRED_EMPTY)
+                    btn.clicked.connect(
+                        lambda _=False, s=slot_key: self._open_module_picker(s))
+                else:
+                    btn.setText("＋")
+                    btn.setStyleSheet(_SLOT_EMPTY)
+                    btn.setToolTip(f"{SLOT_LABELS.get(slot_key, slot_key)}"
+                                   f"（可选槽位，点击添加模块）")
+                    btn.clicked.connect(
+                        lambda _=False, s=slot_key: self._open_module_picker(s))
+                card_layout.addWidget(btn)
+                self.slot_grid.addWidget(
+                    card, row + idx // SHIP_SLOT_COLS,
+                    idx % SHIP_SLOT_COLS)
+                self._slot_buttons[slot_key] = btn
+                idx += 1
+            row += (idx + SHIP_SLOT_COLS - 1) // SHIP_SLOT_COLS
+
+        add_zone("固定装备区（上排）", fixed_keys)
+        add_zone("甲板自定义区（下排）", custom_keys)
         self.slot_grid.setColumnStretch(SHIP_SLOT_COLS, 1)
         self._update_same_name_label()
         self._update_stats()
+        self._refresh_upgrade_card()
+        self._update_save_validation()
+
+    def _refresh_upgrade_card(self):
+        rows = []
+        if self.current_variant is not None:
+            v = self.current_variant
+            hull = self.hulls.get(v.get("type", "")) or {}
+            keys = hull.get("upgrades_decl") or []
+            defs = load_upgrade_definitions(self.hoi4_path, self.mod_path)
+            cur_u = v.get("upgrades") or {}
+            for key in keys:
+                info = defs.get(key) or {}
+                cur = int(cur_u.get(key, 0) or 0)
+                mx = info.get("max_level") or 5
+                cn = ship_cn_name(key)
+                reqs = info.get("level_requirements") or {}
+                remark = ""
+                if reqs:
+                    remark = "科技解锁: " + "、".join(
+                        "Lv%d" % lv for lv in sorted(reqs))
+                rows.append((cn, key, cur, mx, remark))
+        self.upgrade_card.set_rows(rows)
+
+    def _update_save_validation(self):
+        if self.current_variant is None:
+            return
+        v = self.current_variant
+        hull = self.hulls.get(v.get("type", "")) or {}
+        slots = hull.get("module_slots") or {}
+        modules = v.get("modules") or {}
+        missing = sum(
+            1 for s, info in slots.items()
+            if info.get("required")
+            and (not modules.get(s) or modules.get(s) == "empty"))
+        if missing:
+            self.save_validation_label.setText(
+                "⛔ 必装槽未填 %d 个 —— 填满后方可保存" % missing)
+            self.save_validation_label.setStyleSheet(
+                "color:#b7791f; font-weight:bold;")
+            self.save_btn.setEnabled(False)
+        else:
+            self.save_validation_label.setText("✅ 必装槽已填满，可保存")
+            self.save_validation_label.setStyleSheet(
+                "color:#2f7d57; font-weight:bold;")
+            self.save_btn.setEnabled(True)
 
     def _module_brief(self, mod):
         """模块效果摘要（add/multiply 前几项）。"""
@@ -561,12 +718,25 @@ class ShipDesignDialog(QDialog):
     def _add_design(self):
         if not self.current_tag:
             return
-        name = "New Ship Design"
-        hull_keys = [k for k in self.hulls if not self.hulls[k].get("is_archetype")]
+        from PyQt6.QtWidgets import QInputDialog
+        hull_keys = [k for k in self.hulls
+                     if not self.hulls[k].get("is_archetype")]
         if not hull_keys:
             QMessageBox.warning(self, "无法新建", "未找到可用船体。")
             return
-        hull_key = hull_keys[0]
+        items = []
+        for k in sorted(hull_keys, key=lambda x: (self.hulls[x].get("year") or 0, x)):
+            cn = hull_cn_name(k)
+            yr = self.hulls[k].get("year")
+            items.append("%s  %s  [%s]" % (cn, yr if yr else "", k))
+        choice, ok = QInputDialog.getItem(
+            self, "选择船体", "船体（中文名 + 年份 + 键）:", items, 0, False)
+        if not ok:
+            return
+        hull_key = choice.rsplit("[", 1)[-1].rstrip("]")
+        if hull_key not in self.hulls:
+            return
+        name = "New Ship Design"
         self.variants.setdefault(self.current_tag, {})[name] = {
             "type": hull_key, "modules": {}}
         self._refresh_designs()
@@ -582,6 +752,10 @@ class ShipDesignDialog(QDialog):
         self.variants.setdefault(self.current_tag, {})[new_name] = {
             "type": self.current_variant.get("type", ""),
             "modules": dict(self.current_variant.get("modules") or {}),
+            "design_team": self.current_variant.get("design_team", ""),
+            "parent_version": self.current_variant.get("parent_version", 0),
+            "obsolete": self.current_variant.get("obsolete", False),
+            "icon": self.current_variant.get("icon", ""),
         }
         self._refresh_designs()
         idx = self.design_combo.findData(new_name)
@@ -611,8 +785,17 @@ class ShipDesignDialog(QDialog):
         modules = self.current_variant.get("modules") or {}
         lines = ["create_equipment_variant = {",
                  f'\tname = "{name}"',
-                 f"\ttype = {typ}",
-                 "\tupgrades = {"]
+                 f"\ttype = {typ}"]
+        adv = self._advanced_values()
+        if adv["design_team"]:
+            lines.append("\tdesign_team = " + adv["design_team"])
+        if adv["parent_version"] not in (None, "", 0) and str(adv["parent_version"]) != "0":
+            lines.append("\tparent_version = " + str(adv["parent_version"]))
+        if adv["obsolete"]:
+            lines.append("\tobsolete = yes")
+        if adv["icon"]:
+            lines.append('\ticon = "' + adv["icon"] + '"')
+        lines.append("\tmodules = {")
         for slot, mod in modules.items():
             lines.append(f"\t\t{slot} = {mod}")
         lines.append("\t}")
@@ -657,7 +840,7 @@ class ShipDesignDialog(QDialog):
         content = load_design_template("ship", name)
         if not content:
             return
-        parsed = parse_equipment_variants(content, None, "upgrades")
+        parsed = parse_equipment_variants(content, None, "modules")
         if not parsed:
             QMessageBox.warning(self, "模板无效",
                                 "模板内容不是有效的舰艇设计。")
@@ -671,6 +854,10 @@ class ShipDesignDialog(QDialog):
         variants[new_name] = {
             "type": tpl_data.get("type", ""),
             "modules": tpl_data.get("modules", {}),
+            "design_team": tpl_data.get("design_team", ""),
+            "parent_version": tpl_data.get("parent_version", 0),
+            "obsolete": tpl_data.get("obsolete", False),
+            "icon": tpl_data.get("icon", ""),
         }
         self._refresh_designs()
         idx = self.design_combo.findData(new_name)
@@ -730,18 +917,32 @@ class ShipDesignDialog(QDialog):
                           errors="ignore") as f:
                     content = f.read()
                 if name in content:
-                    new_content = apply_variant_upgrades(content, name,
-                                                         modules)
+                    new_content = apply_variant_modules(
+                        content, name, modules, typ)
                 else:
                     new_content = insert_variant(content, tag, name, typ,
                                                  modules)
+                if new_content is not None:
+                    new_content = apply_variant_upgrades(
+                        new_content, name,
+                        self.upgrade_card.values(), typ)
+                if new_content is not None:
+                    new_content = apply_variant_advanced(
+                        new_content, name,
+                        self._advanced_values(), typ)
                 if new_content is None:
                     failed.append(tag)
                     continue
                 from write_utils import atomic_write_text
                 atomic_write_text(path, new_content)
+                adv = self._advanced_values()
                 self.variants.setdefault(tag, {})[name] = {
-                    "type": typ, "modules": modules}
+                    "type": typ, "modules": modules,
+                    "design_team": adv["design_team"],
+                    "parent_version": adv["parent_version"],
+                    "obsolete": adv["obsolete"],
+                    "icon": adv["icon"],
+                }
                 ok += 1
             except Exception as e:
                 failed.append(f"{tag}({e})")
@@ -774,13 +975,27 @@ class ShipDesignDialog(QDialog):
         upgrades = self.current_variant.get("modules") or {}
         new_content = None
         if old_name in content:
-            new_content = apply_variant_upgrades(content, old_name, upgrades)
+            new_content = apply_variant_modules(
+                content, old_name, upgrades,
+                self.current_variant.get("type", ""))
             if new_content is not None and new_name != old_name:
-                new_content = rename_variant(new_content, old_name, new_name)
+                new_content = rename_variant(
+                    new_content, old_name, new_name,
+                    self.current_variant.get("type", ""))
         else:
             hull_key = self.current_variant.get("type", "")
             new_content = insert_variant(content, tag, new_name, hull_key,
                                          upgrades)
+        if new_content is not None:
+            new_content = apply_variant_upgrades(
+                new_content, new_name,
+                self.upgrade_card.values(),
+                self.current_variant.get("type", ""))
+        if new_content is not None:
+            new_content = apply_variant_advanced(
+                new_content, new_name,
+                self._advanced_values(),
+                self.current_variant.get("type", ""))
         if new_content is None:
             QMessageBox.critical(self, "保存失败",
                                  "未能定位到设计块，文件可能已被外部修改。")
@@ -795,9 +1010,14 @@ class ShipDesignDialog(QDialog):
         variants = self.variants.setdefault(tag, {})
         if old_name != new_name:
             variants.pop(old_name, None)
+        adv = self._advanced_values()
         variants[new_name] = {
             "type": self.current_variant.get("type", ""),
             "modules": upgrades,
+            "design_team": adv["design_team"],
+            "parent_version": adv["parent_version"],
+            "obsolete": adv["obsolete"],
+            "icon": adv["icon"],
         }
         self.current_name = new_name
         self._refresh_designs()

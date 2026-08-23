@@ -19,6 +19,10 @@ import re
 from tree_node import parse_pdx_text_to_nodes
 
 from oob_loader import _block_ranges, _node_field_value, _num
+from designer_slots import (
+    parse_module_slots, parse_module_count_limits,
+    parse_default_modules, parse_upgrades_decl,
+)
 
 
 # 船体 archetype 基础属性字段
@@ -52,6 +56,14 @@ SLOT_LABELS = {
     "fixed_ship_engine_slot": "引擎",
     "fixed_ship_secondaries_slot": "副炮",
     "fixed_ship_armor_slot": "装甲",
+    "fixed_ship_sonar_slot": "声呐",
+    "front_1_custom_slot": "船头自定义 1",
+    "front_2_custom_slot": "船头自定义 2",
+    "mid_1_custom_slot": "舯部自定义 1",
+    "mid_2_custom_slot": "舯部自定义 2",
+    "mid_3_custom_slot": "舯部自定义 3",
+    "rear_1_custom_slot": "艉部自定义 1",
+    "rear_2_custom_slot": "艉部自定义 2",
 }
 # 模块类别中文名
 CATEGORY_LABELS = {
@@ -185,6 +197,9 @@ def load_ship_hulls(mod_path="", hoi4_path=""):
                     "is_archetype": False,
                     "archetype_key": "",
                     "module_slots": {},
+                    "module_slots_list": [],
+                    "module_count_limits": [],
+                    "upgrades_decl": [],
                     "default_modules": {},
                     "stats": {},
                     "naval_dominance_factor": None,
@@ -195,14 +210,23 @@ def load_ship_hulls(mod_path="", hoi4_path=""):
                     info["archetype_key"] = node.key
                 slots = _node_block_children(node, "module_slots")
                 if slots is not None:
-                    info["module_slots"] = _parse_slot_block(slots)
+                    info["module_slots_list"] = parse_module_slots(slots)
+                    info["module_slots"] = {
+                        s["slot"]: {"required": s["required"], "allowed": s["allowed"]}
+                        for s in info["module_slots_list"]
+                    }
                 else:
                     info["module_slots"] = {"_inherit": True}
+                    info["module_slots_list"] = []
+                info["module_count_limits"] = parse_module_count_limits(node)
+                info["upgrades_decl"] = parse_upgrades_decl(node)
                 defaults = _node_block_children(node, "default_modules")
                 if defaults is not None:
-                    for c in defaults.children:
-                        if c.node_type == "value":
-                            info["default_modules"][c.key] = c.value
+                    info["default_modules"] = parse_default_modules(node)
+                    if not info["default_modules"]:
+                        for c in defaults.children:
+                            if c.node_type == "value":
+                                info["default_modules"][c.key] = c.value
                 for f in _HULL_STAT_FIELDS:
                     v = _num(_node_field_value(node, f))
                     if v is not None:
@@ -227,6 +251,14 @@ def load_ship_hulls(mod_path="", hoi4_path=""):
         if arch is not None:
             if info.get("module_slots") == {"_inherit": True}:
                 info["module_slots"] = dict(arch.get("module_slots") or {})
+                info["module_slots_list"] = list(
+                    arch.get("module_slots_list") or [])
+                if not info.get("module_count_limits"):
+                    info["module_count_limits"] = list(
+                        arch.get("module_count_limits") or [])
+                if not info.get("upgrades_decl"):
+                    info["upgrades_decl"] = list(
+                        arch.get("upgrades_decl") or [])
             if not info.get("is_archetype"):
                 info["archetype_key"] = arch_key or info.get("archetype_key")
                 for f, v in (arch.get("stats") or {}).items():
@@ -346,7 +378,8 @@ def load_ship_variants(mod_path="", hoi4_path=""):
             tag = _tag_of(fn, content)
             if not tag:
                 continue
-            variants = parse_equipment_variants(content, self_hull_keys)
+            variants = parse_equipment_variants(content, self_hull_keys,
+                                               block_name="modules")
             if variants:
                 result.setdefault(tag, {}).update(variants)
     _VARIANTS_CACHE[key] = result
@@ -372,7 +405,7 @@ def _field_re(seg, key):
     m = re.search(r'\b' + re.escape(key) + r'\s*=\s*"([^"]*)"', seg)
     if m:
         return m.group(1)
-    m = re.search(r'\b' + re.escape(key) + r'\s*=\s*([\w\.\-]+)', seg)
+    m = re.search(r'\b' + re.escape(key) + r'\s*=\s*([\w\.\:\-]+)', seg)
     return m.group(1) if m else ""
 
 
@@ -380,14 +413,28 @@ def _block_map(seg, block_name):
     """块文本内解析 `block_name = { slot = value ... }` → dict。
 
     用 _block_ranges 定位子块，再按行提取 `key = value`。
-    兼容单行内联（行尾带闭合 `}`）与多行格式。
+    兼容单行内联（行尾带闭合 `}`）与多行格式；截取到块自身的闭合
+    `}`，避免把块后同级的 scalar 字段（如 obsolete/icon）误收进来。
     """
     out = {}
     for k, _d, s, e in _block_ranges(seg):
         if k != block_name:
             continue
-        sub = seg[s:e]
-        for line in sub.splitlines():
+        start = seg.find("{", s, e)
+        if start < 0:
+            break
+        body = seg[start + 1:e]
+        depth = 0
+        cut = len(body)
+        for i, ch in enumerate(body):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth < 0:
+                    cut = i
+                    break
+        for line in body[:cut].splitlines():
             m = re.match(r'\s*([\w\.\-]+)\s*=\s*([\w\.\-]+)\s*\}?\s*$', line)
             if m:
                 out[m.group(1)] = m.group(2)
@@ -423,7 +470,24 @@ def parse_equipment_variants(content, type_filter=None, block_name="upgrades"):
             elif not type_filter(typ):
                 continue
         modules = _block_map(seg, block_name)
-        out[name] = {"type": typ, "modules": modules}
+        if block_name == "upgrades":
+            upgrades = dict(modules)
+        else:
+            upgrades = _block_map(seg, "upgrades")
+        parent_raw = _field_re(seg, "parent_version")
+        try:
+            parent_version = int(parent_raw)
+        except (TypeError, ValueError):
+            parent_version = parent_raw or 0
+        out[name] = {
+            "type": typ,
+            "modules": modules,
+            "upgrades": upgrades,
+            "design_team": _field_re(seg, "design_team") or "",
+            "parent_version": parent_version,
+            "obsolete": _field_re(seg, "obsolete") == "yes",
+            "icon": _field_re(seg, "icon") or "",
+        }
     return out
 
 
@@ -497,19 +561,23 @@ def ship_design_stats(variant, hull, modules=None):
 
 # ---------- 写回（块级替换，配合原子写） ----------
 
-def find_variant_block(content, name):
-    """定位 create_equipment_variant 块（name 匹配）的字符范围。
+def find_variant_block(content, name, type_key=None):
+    """定位 create_equipment_variant 块（name + 可选 type 匹配）的字符范围。
 
-    Returns:
-        (start, end) 或 None
+    type_key 非空时要求块内 type 字段完全一致，避免同名舰/机/坦互相写错。
     """
     for key, _depth, start, end in _block_ranges(content):
         if key != "create_equipment_variant":
             continue
         seg = content[start:end]
         m = re.search(r'name\s*=\s*"([^"]*)"', seg)
-        if m and m.group(1) == name:
-            return start, end
+        if not (m and m.group(1) == name):
+            continue
+        if type_key:
+            typ = _field_re(seg, "type")
+            if typ != type_key:
+                continue
+        return start, end
     return None
 
 
@@ -522,18 +590,84 @@ def _upgrades_text(upgrades, unit="\t\t"):
     return "\n".join(lines)
 
 
-def apply_variant_upgrades(content, name, upgrades):
-    """替换 create_equipment_variant 块的 upgrades 子块。
+def _modules_text(modules, unit="\t\t"):
+    """modules 块文本（模块槽位）。"""
+    lines = [unit + "modules = {"]
+    for slot, mod in modules.items():
+        lines.append(unit + "\t" + str(slot) + " = " + str(mod))
+    lines.append(unit + "}")
+    return "\n".join(lines)
 
-    Args:
-        content: 文件原文
-        name: 设计名（块内 name 字段匹配）
-        upgrades: {槽位: 模块键}
+
+def _advanced_field_text(key, value, unit="\t\t"):
+    """高级字段单行文本；值等于默认/缺省时返回 None（由调用方移除）。"""
+    if key == "design_team":
+        if value:
+            return unit + "design_team = " + str(value)
+        return None
+    if key == "parent_version":
+        if value not in (None, "", 0) and str(value) != "0":
+            return unit + "parent_version = " + str(value)
+        return None
+    if key == "obsolete":
+        if value:
+            return unit + "obsolete = yes"
+        return None
+    if key == "icon":
+        if value:
+            return unit + 'icon = "' + str(value) + '"'
+        return None
+    return None
+
+
+def apply_variant_advanced(content, name, advanced, type_key=None):
+    """块级替换 create_equipment_variant 的高级字段。
+
+    支持 design_team / parent_version / obsolete / icon 四个简单字段。
+    值为默认值时移除对应行；非默认且缺失时在 type 行后插入；
+    其他字段（modules/upgrades/未知字段）原样保留。
 
     Returns:
         新 content；未找到块返回 None。
     """
-    span = find_variant_block(content, name)
+    span = find_variant_block(content, name, type_key)
+    if span is None:
+        return None
+    start, end = span
+    block = content[start:end]
+    lines = block.split("\n")
+    for key in ("design_team", "parent_version", "obsolete", "icon"):
+        value = advanced.get(key)
+        line_text = _advanced_field_text(key, value)
+        replaced = False
+        for i, line in enumerate(lines):
+            if line is None:
+                continue
+            stripped = line.strip()
+            if stripped.startswith(key + " =") and not stripped.startswith(key + " = {"):
+                lines[i] = line_text
+                replaced = True
+                break
+        if not replaced and line_text is not None:
+            insert_at = None
+            for i, line in enumerate(lines):
+                if line.strip().startswith("type ="):
+                    insert_at = i + 1
+                    break
+            if insert_at is None:
+                insert_at = max(0, len(lines) - 1)
+            lines.insert(insert_at, line_text)
+    lines = [line for line in lines if line is not None]
+    return content[:start] + "\n".join(lines) + content[end:]
+
+
+def apply_variant_upgrades(content, name, upgrades, type_key=None):
+    """替换 create_equipment_variant 块的 upgrades 子块（升级加点）。
+
+    Returns:
+        新 content；未找到块返回 None。
+    """
+    span = find_variant_block(content, name, type_key)
     if span is None:
         return None
     start, end = span
@@ -547,11 +681,10 @@ def apply_variant_upgrades(content, name, upgrades):
         line = lines[i]
         stripped = line.strip()
         if stripped.startswith("upgrades = {"):
-            # 跳过旧 upgrades 块（含多行/单行）
             depth = 0
             while i < len(lines):
-                s = lines[i].strip()
-                depth += s.count("{") - s.count("}")
+                s2 = lines[i].strip()
+                depth += s2.count("{") - s2.count("}")
                 i += 1
                 if depth <= 0:
                     break
@@ -561,10 +694,49 @@ def apply_variant_upgrades(content, name, upgrades):
         out_lines.append(line)
         i += 1
     if not replaced:
-        # 无 upgrades 块：在块内末尾（闭合 } 前）插入
         new_block = block.rstrip()
         if new_block.endswith("}"):
             new_block = new_block[:-1].rstrip() + "\n" + new_up + "\n}"
+        out_lines = [new_block]
+    return content[:start] + "\n".join(out_lines) + content[end:]
+
+
+def apply_variant_modules(content, name, modules, type_key=None):
+    """替换 create_equipment_variant 块的 modules 子块（舰艇模块槽位）。
+
+    Returns:
+        新 content；未找到块返回 None。
+    """
+    span = find_variant_block(content, name, type_key)
+    if span is None:
+        return None
+    start, end = span
+    block = content[start:end]
+    new_mod = _modules_text(modules)
+    lines = block.split("\n")
+    out_lines = []
+    replaced = False
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if stripped.startswith("modules = {"):
+            depth = 0
+            while i < len(lines):
+                s2 = lines[i].strip()
+                depth += s2.count("{") - s2.count("}")
+                i += 1
+                if depth <= 0:
+                    break
+            out_lines.append(new_mod)
+            replaced = True
+            continue
+        out_lines.append(line)
+        i += 1
+    if not replaced:
+        new_block = block.rstrip()
+        if new_block.endswith("}"):
+            new_block = new_block[:-1].rstrip() + "\n" + new_mod + "\n}"
         out_lines = [new_block]
     return content[:start] + "\n".join(out_lines) + content[end:]
 
@@ -581,19 +753,19 @@ def insert_variant(content, tag, variant_name, hull_key, upgrades):
             body = ("\tcreate_equipment_variant = {\n"
                     "\t\tname = \"" + variant_name + "\"\n"
                     "\t\ttype = " + hull_key + "\n"
-                    + _upgrades_text(upgrades, "\t\t") + "\n"
+                    + _modules_text(upgrades, "\t\t") + "\n"
                     "\t}\n")
             return content[:end - 1] + body + content[end - 1:]
     return None
 
 
-def remove_variant(content, name):
+def remove_variant(content, name, type_key=None):
     """删除 create_equipment_variant 块。
 
     Returns:
         新 content；未找到返回 None。
     """
-    span = find_variant_block(content, name)
+    span = find_variant_block(content, name, type_key)
     if span is None:
         return None
     start, end = span
@@ -605,13 +777,13 @@ def remove_variant(content, name):
     return content[:start] + content[end:]
 
 
-def rename_variant(content, old_name, new_name):
+def rename_variant(content, old_name, new_name, type_key=None):
     """重命名 create_equipment_variant 块的 name 字段。
 
     Returns:
         新 content；未找到块返回 None。
     """
-    span = find_variant_block(content, old_name)
+    span = find_variant_block(content, old_name, type_key)
     if span is None:
         return None
     start, end = span
