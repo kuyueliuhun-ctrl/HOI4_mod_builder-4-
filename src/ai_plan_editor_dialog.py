@@ -29,6 +29,7 @@ from ai_loader import (
     upsert_top_block_child,
 )
 from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ui_widgets import OrderRowList
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 from localisation_editor_data import (
@@ -118,10 +119,23 @@ class AiPlanEditorDialog(QDialog):
         self.order_label = QLabel("国策顺序：—")
         self.order_label.setWordWrap(True)
         order.addWidget(self.order_label)
-        self.focus_order_edit = QTextEdit()
-        self.focus_order_edit.setFixedHeight(200)
-        order.addWidget(self.focus_order_edit)
-        order.addWidget(QLabel("可直接编辑国策顺序（每行一个），或用下方点选器"))
+        self.order_list = OrderRowList()
+        self.order_list.setMaximumHeight(200)
+        order.addWidget(self.order_list)
+        order.addWidget(QLabel("国策顺序可增删/上下移，或用下方点选器"))
+        order_btns = QHBoxLayout()
+        add_order_btn = QPushButton("➕ 添加")
+        del_order_btn = QPushButton("🗑 删除")
+        up_order_btn = QPushButton("⬆")
+        down_order_btn = QPushButton("⬇")
+        add_order_btn.clicked.connect(self._add_order_item)
+        del_order_btn.clicked.connect(self._delete_order_item)
+        up_order_btn.clicked.connect(lambda: self._move_order_item(-1))
+        down_order_btn.clicked.connect(lambda: self._move_order_item(1))
+        for b in (add_order_btn, del_order_btn, up_order_btn, down_order_btn):
+            order_btns.addWidget(b)
+        order_btns.addStretch(1)
+        order.addLayout(order_btns)
         btn_row = QHBoxLayout()
         pick_btn = QPushButton("🎯 编辑国策顺序（点选器）")
         pick_btn.clicked.connect(self._edit_order)
@@ -202,7 +216,7 @@ class AiPlanEditorDialog(QDialog):
             self.desc_cn_edit.setText(loc.get(desc_key, ""))
         except Exception:
             self.desc_cn_edit.setText("")
-        self.focus_order_edit.setPlainText("\n".join(self._ordered))
+        self.order_list.set_order(self._ordered)
         self._update_order_label()
         self._update_advanced_summaries()
 
@@ -219,6 +233,33 @@ class AiPlanEditorDialog(QDialog):
                 "空" if not text else "已编辑（%d 行）" % len(text.splitlines()))
 
     # ---------- 编辑 ----------
+
+    def _add_order_item(self):
+        text, ok = QInputDialog.getText(self, "添加国策", "focus id:")
+        if ok and text.strip():
+            self._ordered.append(text.strip())
+            self.order_list.set_order(self._ordered)
+            self._update_order_label()
+
+    def _delete_order_item(self):
+        row = self.order_list.currentRow()
+        if row < 0 or row >= len(self._ordered):
+            return
+        del self._ordered[row]
+        self.order_list.set_order(self._ordered)
+        self._update_order_label()
+
+    def _move_order_item(self, delta):
+        row = self.order_list.currentRow()
+        new = row + delta
+        if row < 0 or new < 0 or new >= len(self._ordered):
+            return
+        self._ordered[row], self._ordered[new] = (
+            self._ordered[new], self._ordered[row])
+        self.order_list.set_order(self._ordered)
+        self.order_list.setCurrentRow(new)
+        self._update_order_label()
+
     def _edit_order(self):
         if not self._current_plan:
             return
@@ -235,7 +276,7 @@ class AiPlanEditorDialog(QDialog):
             picker._load_country(country)
         if picker.exec():
             self._ordered = picker.ordered_ids()
-            self.focus_order_edit.setPlainText("\n".join(self._ordered))
+            self.order_list.set_order(self._ordered)
             self._update_order_label()
 
     def _edit_advanced(self, field):
@@ -398,10 +439,7 @@ class AiPlanEditorDialog(QDialog):
         # 若已被点选器/外部直接改过，优先使用 _ordered。
         plan_order = list(plan.get("ai_national_focuses", []))
         if self._ordered == plan_order:
-            raw_order = [ln.strip()
-                         for ln in self.focus_order_edit.toPlainText().splitlines()
-                         if ln.strip()]
-            self._ordered = raw_order
+            self._ordered = self.order_list.order()
             self._update_order_label()
         content = replace_ai_plan_focus_order(content, pid, self._ordered)
         for field in ADVANCED_FIELDS:
