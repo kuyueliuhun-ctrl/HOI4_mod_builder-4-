@@ -2536,7 +2536,7 @@ class ShipDesignLoaderTest(unittest.TestCase):
                     'create_equipment_variant = {\n'
                     '\tname = "Test Destroyer"\n'
                     '\ttype = ship_hull_light_1\n'
-                    '\tupgrades = {\n'
+                    '\tmodules = {\n'
                     '\t\tfixed_ship_battery_slot = ship_light_battery_1\n'
                     '\t}\n'
                     '}\n'
@@ -2609,32 +2609,32 @@ class ShipDesignLoaderTest(unittest.TestCase):
         self.assertEqual(st["empty_slots"], 1, "必装槽主炮未装 → 空 1")
 
     def test_variant_writeback(self):
-        """apply/insert/remove/rename 块级写回。"""
-        from ship_design import apply_variant_upgrades, insert_variant, \
-            remove_variant, rename_variant
+        """apply/insert/remove/rename 块级写回（modules 块）。"""
+        from ship_design import apply_variant_modules, apply_variant_upgrades, \
+            insert_variant, remove_variant, rename_variant
         content = ('TAG = {\n'
                    '\tcreate_equipment_variant = {\n'
                    '\t\tname = "X"\n'
                    '\t\ttype = ship_hull_light_1\n'
-                   '\t\tupgrades = {\n'
+                   '\t\tmodules = {\n'
                    '\t\t\tfixed_ship_battery_slot = ship_light_battery_1\n'
                    '\t\t}\n'
                    '\t}\n'
                    '}\n')
-        new = apply_variant_upgrades(
+        new = apply_variant_modules(
             content, "X",
             {"fixed_ship_battery_slot": "ship_light_battery_2",
              "fixed_ship_engine_slot": "light_ship_engine_1"})
         self.assertIn("ship_light_battery_2", new)
         self.assertNotIn("ship_light_battery_1", new)
         self.assertIn("fixed_ship_engine_slot = light_ship_engine_1", new)
-        self.assertEqual(apply_variant_upgrades(content, "NoSuch", {}), None)
-        # 无 upgrades 块的插入
+        self.assertEqual(apply_variant_modules(content, "NoSuch", {}), None)
+        # 无 modules 块的插入
         plain = ('TAG = {\n\tcreate_equipment_variant = {\n'
                  '\t\tname = "Y"\n\t\ttype = ship_hull_light_1\n\t}\n}\n')
-        new = apply_variant_upgrades(plain, "Y",
-                                     {"fixed_ship_battery_slot": "slb_1"})
-        self.assertIn("upgrades = {", new)
+        new = apply_variant_modules(plain, "Y",
+                                    {"fixed_ship_battery_slot": "slb_1"})
+        self.assertIn("modules = {", new)
         self.assertIn("slb_1", new)
         # insert
         new = insert_variant(content, "TAG", "Z", "ship_hull_light_1",
@@ -2648,6 +2648,11 @@ class ShipDesignLoaderTest(unittest.TestCase):
         new = rename_variant(content, "X", "X2")
         self.assertIn('name = "X2"', new)
         self.assertNotIn('name = "X"', new)
+        # upgrades 块（升级加点）单独写回
+        new = apply_variant_upgrades(
+            content, "X", {"ship_engine_upgrade": 2})
+        self.assertIn("upgrades = {", new)
+        self.assertIn("ship_engine_upgrade = 2", new)
 
 
 class ShipDesignDialogSmokeTest(unittest.TestCase):
@@ -2710,7 +2715,7 @@ class ShipDesignDialogSmokeTest(unittest.TestCase):
             f.write('create_equipment_variant = {\n'
                     '\tname = "Test Destroyer"\n'
                     '\ttype = ship_hull_light_1\n'
-                    '\tupgrades = {\n'
+                    '\tmodules = {\n'
                     '\t\tfixed_ship_battery_slot = ship_light_battery_1\n'
                     '\t}\n'
                     '}\n')
@@ -2858,6 +2863,24 @@ class ShipDesignDialogSmokeTest(unittest.TestCase):
         with open(game_country, "r", encoding="utf-8-sig") as f:
             game_after = f.read()
         self.assertEqual(game_after, game_before, "游戏本体文件不得被修改")
+        dlg.close()
+
+    def test_save_validation_disables_until_required_filled(self):
+        """必装空槽未填时保存禁用，填满后放行。"""
+        from ship_design_dialog import ShipDesignDialog
+        mod = self._make_env()
+        dlg = ShipDesignDialog(mod, "")
+        dlg.show()
+        self.app.processEvents()
+        # 引擎必装空 → 禁用
+        self.assertFalse(dlg.save_btn.isEnabled())
+        self.assertIn("必装槽未填", dlg.save_validation_label.text())
+        # 填引擎 → 放行
+        dlg.current_variant["modules"]["fixed_ship_engine_slot"] = "light_ship_engine_1"
+        dlg._rebuild_editor()
+        self.app.processEvents()
+        self.assertTrue(dlg.save_btn.isEnabled())
+        self.assertIn("已填满", dlg.save_validation_label.text())
         dlg.close()
 
 
@@ -3648,7 +3671,7 @@ class DesignTemplateDialogSmokeTest(unittest.TestCase):
             f.write('create_equipment_variant = {\n'
                     '\tname = "Test Ship"\n'
                     '\ttype = ship_hull_light_1\n'
-                    '\tupgrades = {\n'
+                    '\tmodules = {\n'
                     '\t\tfixed_ship_battery_slot = ship_light_battery_1\n'
                     '\t}\n'
                     '}\n')
@@ -3942,21 +3965,21 @@ class WorkbenchTypeListGroupTest(unittest.TestCase):
             keys.append((i, it.data(Qt.ItemDataRole.UserRole),
                          bool(it.flags() & Qt.ItemFlag.ItemIsSelectable)))
         self.assertEqual(
-            [k for _i, k, _s in keys[:12]],
-            ["focus", "tech", "initial_oob", "bop",
+            [k for _i, k, _s in keys[:14]],
+            ["character", "focus", "event", "tech", "initial_oob", "bop",
              "ai_strategy_plans", "ai_strategy", "ai_division", "ai_areas",
              "ai_equipment", "ai_faction_theaters", "ai_focuses", "ai_navy"])
-        sep = keys[12]
+        sep = keys[14]
         self.assertIsNone(sep[1], "分隔线无类型 data")
         self.assertFalse(sep[2], "分隔线不可选")
-        self.assertIsNotNone(keys[13][1], "分隔线后应有通用类型")
+        self.assertIsNotNone(keys[15][1], "分隔线后应有通用类型")
 
     def test_clicking_separator_ignored(self):
         """点击分隔线不改变当前类型。"""
         from PyQt6.QtCore import Qt
         wb = self._make()
         wb._current_type = "focus"
-        sep = wb.type_list.item(12)
+        sep = wb.type_list.item(14)
         wb._on_type_clicked(sep)
         self.assertEqual(wb._current_type, "focus", "分隔线点击应被忽略")
 
@@ -7115,3 +7138,702 @@ class ApiCoreToolTest(unittest.TestCase):
         r2 = self.core.analyze_error_log({"absolute_path": log})
         self.assertTrue(r2["ok"])
         self.assertIn("localisation", r2["subsystems"])
+
+
+class DesignerSlotsTest(unittest.TestCase):
+    """三设计器共享槽位/升级数据层。"""
+
+    def _nodes(self, text):
+        from tree_node import parse_pdx_text_to_nodes
+        return parse_pdx_text_to_nodes(text)
+
+    def test_parse_module_slots_alias_and_required(self):
+        from designer_slots import parse_module_slots
+        nodes = self._nodes(
+            "module_slots = {\n"
+            "\tmain_slot = { required = yes allowed_module_categories = { a b } }\n"
+            "\tsecond_slot = main_slot\n"
+            "}\n")
+        slots = parse_module_slots(nodes[0])
+        self.assertEqual(len(slots), 2)
+        self.assertEqual(slots[0]["slot"], "main_slot")
+        self.assertTrue(slots[0]["required"])
+        self.assertEqual(slots[0]["allowed"], ["a", "b"])
+        self.assertIsNone(slots[0]["alias"])
+        self.assertEqual(slots[1]["slot"], "second_slot")
+        self.assertEqual(slots[1]["alias"], "main_slot")
+
+    def test_resolve_slots_copies_alias_definition(self):
+        from designer_slots import resolve_slots
+        slots = [
+            {"slot": "main", "required": True, "allowed": ["x"], "alias": None},
+            {"slot": "alias1", "required": False, "allowed": [], "alias": "main"},
+        ]
+        result = resolve_slots(slots)
+        self.assertTrue(result[1]["required"])
+        self.assertEqual(result[1]["allowed"], ["x"])
+        self.assertTrue(result[1]["is_alias"])
+
+    def test_parse_module_count_limits(self):
+        from designer_slots import parse_module_count_limits
+        nodes = self._nodes(
+            "mod = {\n"
+            "\tmodule_count_limit = { category = ship_radar count < 2 }\n"
+            "\tmodule_count_limit = { category = ship_sonar count < 1 }\n"
+            "}\n")
+        limits = parse_module_count_limits(nodes[0])
+        self.assertEqual(limits, [
+            {"category": "ship_radar", "count": 2},
+            {"category": "ship_sonar", "count": 1},
+        ])
+
+    def test_parse_default_modules_and_upgrades_decl(self):
+        from designer_slots import parse_default_modules, parse_upgrades_decl
+        nodes = self._nodes(
+            "mod = {\n"
+            "\tupgrades = { ship_torpedo_upgrade ship_engine_upgrade }\n"
+            "\tdefault_modules = { fixed_ship_engine_slot = light_ship_engine_1 }\n"
+            "}\n")
+        node = nodes[0]
+        self.assertEqual(parse_upgrades_decl(node),
+                         ["ship_torpedo_upgrade", "ship_engine_upgrade"])
+        self.assertEqual(parse_default_modules(node),
+                         {"fixed_ship_engine_slot": "light_ship_engine_1"})
+
+    def test_load_upgrade_definitions(self):
+        from designer_slots import load_upgrade_definitions
+        import tempfile
+        tmp = _mkdtemp("upgrades_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        d = os.path.join(tmp, "common", "units", "equipment", "upgrades")
+        os.makedirs(d)
+        with open(os.path.join(d, "land_upgrades.txt"), "w", encoding="utf-8") as f:
+            f.write("tank_nsb_engine_upgrade = {\n"
+                    "\tabbreviation = eng\n"
+                    "\tmax_level = 20\n"
+                    "\tlevel_requirements = { 5 = { has_tech = engine_tech_1 } }\n"
+                    "}\n")
+        upgrades = load_upgrade_definitions("", tmp)
+        self.assertIn("tank_nsb_engine_upgrade", upgrades)
+        info = upgrades["tank_nsb_engine_upgrade"]
+        self.assertEqual(info["abbreviation"], "eng")
+        self.assertEqual(info["max_level"], 20)
+        self.assertIn(5, info["level_requirements"])
+
+
+class VariantTypeConflictTest(unittest.TestCase):
+    """同名舰/机/坦变体写回时按 type 定位，避免互相写错。"""
+
+    def test_ship_apply_upgrades_with_type_key(self):
+        from ship_design import apply_variant_upgrades
+        content = """create_equipment_variant = {
+\tname = "SameName"
+\ttype = ship_hull_light_1
+\tupgrades = { fixed_ship_engine_slot = light_ship_engine_1 }
+}
+create_equipment_variant = {
+\tname = "SameName"
+\ttype = small_plane_airframe_1
+\tmodules = { engine_type_slot = engine_1 }
+}
+"""
+        new = apply_variant_upgrades(
+            content, "SameName", {"fixed_ship_engine_slot": "light_ship_engine_3"},
+            type_key="ship_hull_light_1")
+        self.assertIsNotNone(new)
+        # 第一块被改，第二块 modules 不变
+        self.assertIn("light_ship_engine_3", new)
+        self.assertIn("engine_type_slot = engine_1", new)
+        # 用错误 type 找不到对应块
+        none = apply_variant_upgrades(
+            content, "SameName", {"x": "y"}, type_key="tank_chassis_1")
+        self.assertIsNone(none)
+
+
+class McpRegistrationTest(unittest.TestCase):
+    """MCP 补充计划：159 工具注册完整性。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("mcp_reg_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(self.mod)
+        from api_server import ApiCore
+        from mcp_tools import build_tools
+        self.core = ApiCore(mod_path=self.mod, game_path="")
+        self.tools = build_tools(self.core)
+
+    def test_tool_count_and_unique(self):
+        self.assertGreaterEqual(len(self.tools), 159)
+        names = [t["name"] for t in self.tools]
+        self.assertEqual(len(names), len(set(names)), "工具名必须全局唯一")
+
+    def test_schema_valid(self):
+        for t in self.tools:
+            schema = t["inputSchema"]
+            self.assertEqual(schema.get("type"), "object")
+            self.assertIsInstance(schema.get("properties"), dict)
+            self.assertTrue(callable(t["_handler"]), t["name"])
+
+    def test_handlers_callable_with_missing_args_not_crash_unexpected(self):
+        # 抽检：查询类工具空参不应抛非 ValueError（多数会因缺 mod/参数抛 ValueError 也接受）
+        query_tools = [t for t in self.tools if "list_" in t["name"] or
+                       t["name"] in ("get_status", "list_types", "validate_mod",
+                                     "list_templates")]
+        for t in query_tools[:20]:
+            try:
+                t["_handler"]({})
+            except (ValueError, ImportError):
+                pass
+            except Exception as e:
+                self.fail("%s 空参调用抛出非 ValueError: %s" % (t["name"], e))
+
+
+class McpDomainSmokeTest(unittest.TestCase):
+    """MCP 新增域核心冒烟（纯数据层，不依赖 PyQt）。"""
+
+    def setUp(self):
+        self.tmp = _mkdtemp("mcp_domain_")
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.mod = os.path.join(self.tmp, "mod")
+        os.makedirs(os.path.join(self.mod, "history", "states"))
+        with open(os.path.join(self.mod, "history", "states", "1.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("state = {\n\tid = 1\n\tname = \"STATE_1\"\n"
+                    "\tprovinces = { 10 11 }\n"
+                    "\thistory = { owner = GER buildings = { infrastructure = 2 } }\n}\n")
+        os.makedirs(os.path.join(self.mod, "common", "ai_strategy_plans"))
+        with open(os.path.join(self.mod, "common", "ai_strategy_plans", "a.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("PLAN_A = {\n\tname = \"A\"\n}\n")
+        os.makedirs(os.path.join(self.mod, "common", "bop"))
+        with open(os.path.join(self.mod, "common", "bop", "ITA.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("ITA_bop = {\n\tinitial_value = 50\n"
+                    "\tleft_side = fascism\n\tright_side = democracy\n"
+                    "\tdecision_category = ITA_cat\n}\n")
+        os.makedirs(os.path.join(self.mod, "history", "countries"))
+        with open(os.path.join(self.mod, "history", "countries", "JAP.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("JAP = {\n}\n")
+        from api_server import ApiCore
+        self.core = ApiCore(mod_path=self.mod, game_path="")
+
+    def test_states_roundtrip(self):
+        r = self.core.list_states({})
+        self.assertEqual(r["count"], 1)
+        self.assertEqual(self.core.get_state({"state_id": 1})["state"]["owner"], "GER")
+        self.core.set_state_owner({"state_id": 1, "tag": "FRA"})
+        self.assertEqual(self.core.get_state({"state_id": 1})["state"]["owner"], "FRA")
+
+    def test_ai_roundtrip(self):
+        r = self.core.ai_plan_create({"id": "PLAN_B", "name": "B"})
+        self.assertTrue(r["ok"])
+        self.assertIn("PLAN_B", [x["id"] for x in self.core.ai_plan_list({})["items"]])
+        r2 = self.core.ai_plan_rename({"id": "PLAN_B", "new": "PLAN_C"})
+        self.assertTrue(r2["ok"])
+        self.core.ai_plan_delete({"id": "PLAN_C"})
+        ids = [x["id"] for x in self.core.ai_plan_list({})["items"]]
+        self.assertNotIn("PLAN_C", ids)
+
+    def test_bop_roundtrip(self):
+        r = self.core.set_bop_initial_value({"bop_id": "ITA", "value": 80})
+        self.assertTrue(r["ok"])
+        self.assertEqual(self.core.get_bop({"bop_id": "ITA"})["bop"]["initial_value"], 80.0)
+
+    def test_design_roundtrip(self):
+        r = self.core.create_ship_design({
+            "country": "JAP", "name": "Test", "hull": "ship_hull_light_1",
+            "upgrades": {"engine": "e1"}})
+        self.assertTrue(r["ok"])
+        self.assertEqual(self.core.list_ship_designs({})["count"], 1)
+        self.assertTrue(self.core.delete_ship_design(
+            {"country": "JAP", "name": "Test"})["ok"])
+        self.assertEqual(self.core.list_ship_designs({})["count"], 0)
+
+    def test_generator_dry_run_no_write(self):
+        before = set()
+        for root, _dirs, files in os.walk(self.mod):
+            for fn in files:
+                before.add(os.path.relpath(os.path.join(root, fn), self.mod))
+        r = self.core.generate_ideas({"ideas": [{"id": "x"}], "dry_run": True})
+        self.assertTrue(r["dry_run"])
+        after = set()
+        for root, _dirs, files in os.walk(self.mod):
+            for fn in files:
+                after.add(os.path.relpath(os.path.join(root, fn), self.mod))
+        self.assertEqual(before, after)
+
+    def test_region_roundtrip(self):
+        r = self.core.create_region({
+            "kind": "strategic_region", "province_ids": [10, 11]})
+        self.assertTrue(r["ok"])
+        files = self.core.list_regions({"kind": "strategic_region"})["files"]
+        self.assertEqual(files[0]["regions"][0]["provinces"], [10, 11])
+        self.assertTrue(self.core.remove_region(
+            {"kind": "strategic_region", "region_id": r["region_id"]})["ok"])
+
+    def test_oob_copy_and_roundtrip(self):
+        game = os.path.join(self.tmp, "game")
+        os.makedirs(os.path.join(game, "history", "units"))
+        with open(os.path.join(game, "history", "units", "army.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("division_template = {\n"
+                    "\tname = \"Inf\"\n"
+                    "\tregiments = { infantry = { x = 0 y = 0 } }\n"
+                    "}\n")
+        from api_server import ApiCore
+        core = ApiCore(mod_path=self.mod, game_path=game)
+        files = core.list_oob_files({})["files"]
+        self.assertTrue(any(f["path"] == "history/units/army.txt" for f in files))
+        r = core.list_division_templates({"path": "history/units/army.txt"})
+        self.assertEqual(r["count"], 1)
+        self.assertTrue(core.create_division_template(
+            {"path": "history/units/army.txt", "name": "New",
+             "units": [{"type": "infantry", "x": 0, "y": 1}]})["ok"])
+        self.assertEqual(core.list_division_templates(
+            {"path": "history/units/army.txt"})["count"], 2)
+        self.assertTrue(core.delete_division_template(
+            {"path": "history/units/army.txt", "name": "New"})["ok"])
+
+
+class DerivedNameFallbackTest(unittest.TestCase):
+    """派生装备名反查表（供 UI 把 variant.type 映射回机体/底盘）。"""
+
+    def test_plane_derived_map(self):
+        from plane_design import plane_derived_map
+        airframes = {
+            "small_plane_airframe_0": {"derived_variant_name": "fighter_equipment_0"},
+            "small_plane_airframe_1": {"derived_variant_name": "fighter_equipment_1"},
+        }
+        m = plane_derived_map(airframes)
+        self.assertEqual(m["fighter_equipment_0"], "small_plane_airframe_0")
+        self.assertEqual(m["fighter_equipment_1"], "small_plane_airframe_1")
+
+    def test_tank_derived_map(self):
+        from tank_design import tank_derived_map
+        chassis = {
+            "light_tank_chassis_0": {"derived_variant_name": "light_tank_equipment_0"},
+        }
+        m = tank_derived_map(chassis)
+        self.assertEqual(m["light_tank_equipment_0"], "light_tank_chassis_0")
+
+
+class CharacterDescTest(unittest.TestCase):
+    """角色顶层 desc 键提取/写回。"""
+
+    def _write(self, content):
+        mod = _mkdtemp("dsh_chardesc_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "common", "characters")
+        os.makedirs(d)
+        fp = os.path.join(d, "TST.txt")
+        with open(fp, "w", encoding="utf-8") as f:
+            f.write(content)
+        return mod, fp
+
+    def test_parse_and_save_roundtrip(self):
+        from character_data import load_file, save_file_v2
+        mod, fp = self._write(
+            "characters = {\n"
+            "\tTST_leader = {\n"
+            "\t\tname = \"TST_leader\"\n"
+            "\t\tdesc = \"TST_leader_desc\"\n"
+            "\t}\n"
+            "}\n")
+        header, metas, tail = load_file(fp)
+        self.assertEqual(metas[0]["desc_loc"], "TST_leader_desc")
+        save_file_v2(fp, header, metas, tail)
+        with open(fp, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertIn('desc = "TST_leader_desc"', content)
+
+
+class CharacterRouteTest(unittest.TestCase):
+    """角色文件路由映射。"""
+
+    def test_route_contains_character(self):
+        from app_routes import find_route
+        norm, route = find_route("E:/mod/common/characters/PRC.txt")
+        self.assertIsNotNone(route)
+        self.assertEqual(route[0], "common/characters")
+
+
+class CharacterPortraitPreviewTest(unittest.TestCase):
+    """角色编辑器肖像表带预览列。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def test_preview_column_present(self):
+        from character_editor_dialog import CharacterEditorDialog
+        mod = _mkdtemp("dsh_charprev_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "common", "characters")
+        os.makedirs(d)
+        with open(os.path.join(d, "TST.txt"), "w", encoding="utf-8") as f:
+            f.write("characters = {\n\tTST_leader = {\n\t\tname = \"TST_leader\"\n"
+                    "\t\tportraits = { civilian = { large = GFX_P } }\n\t}\n}\n")
+        dlg = CharacterEditorDialog(mod_path=mod)
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.portraits_table.columnCount(), 4)
+        self.assertEqual(dlg.portraits_table.rowCount(), 1)
+        self.assertIsNotNone(dlg.portraits_table.item(0, 3))
+        dlg.close()
+
+
+class TechLayoutTest(unittest.TestCase):
+    """科技树布局：同层不重叠、子继承父中位。"""
+
+    def _techs(self):
+        return {
+            "a": {"folder": "f", "leads_to": ["b", "c"]},
+            "b": {"folder": "f", "leads_to": ["d"]},
+            "c": {"folder": "f", "leads_to": []},
+            "d": {"folder": "f", "leads_to": []},
+        }
+
+    def test_layout_no_same_layer_overlap_and_parent_median(self):
+        from tech_view import layout_tech_trees, GRID_X
+        techs = self._techs()
+        layout = layout_tech_trees(techs, set(techs))
+        pos = layout["f"]
+        # 同一层 x 间距至少 1 槽
+        by_depth = {}
+        for tid, (x, y) in pos.items():
+            by_depth.setdefault(y, []).append(x)
+        for y, xs in by_depth.items():
+            xs_sorted = sorted(xs)
+            for i in range(1, len(xs_sorted)):
+                self.assertGreaterEqual(xs_sorted[i] - xs_sorted[i - 1],
+                                        GRID_X - 1)
+        # a 的 x 应介于 b、c 之间（中位）
+        self.assertGreaterEqual(pos["a"][0], min(pos["b"][0], pos["c"][0]))
+        self.assertLessEqual(pos["a"][0], max(pos["b"][0], pos["c"][0]))
+
+
+class EventDataTest(unittest.TestCase):
+    """事件数据层解析。"""
+
+    def _make(self):
+        mod = _mkdtemp("dsh_evt_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "events")
+        os.makedirs(d)
+        with open(os.path.join(d, "test.txt"), "w", encoding="utf-8") as f:
+            f.write("add_namespace = TST\n"
+                    "country_event = {\n"
+                    "\tid = TST.1\n"
+                    "\ttitle = TST_TITLE\n"
+                    "\tdesc = TST_DESC\n"
+                    "\tpicture = GFX_event_tst\n"
+                    "\toption = { name = TST_OPT }\n"
+                    "\toption = { name = TST_OPT2 }\n"
+                    "}\n")
+        return mod
+
+    def test_load_event_entities(self):
+        from event_data import load_event_entities
+        mod = self._make()
+        events = load_event_entities(mod, "")
+        self.assertEqual(len(events), 1)
+        e = events[0]
+        self.assertEqual(e["id"], "TST.1")
+        self.assertEqual(e["type"], "country_event")
+        self.assertEqual(e["title"], "TST_TITLE")
+        self.assertEqual(e["desc"], "TST_DESC")
+        self.assertEqual(e["option_count"], 2)
+        self.assertEqual(e["namespaces"], ["TST"])
+
+
+class EventEditorSmokeTest(unittest.TestCase):
+    """事件编辑器 offscreen 冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make(self):
+        mod = _mkdtemp("dsh_evtui_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "events")
+        os.makedirs(d)
+        with open(os.path.join(d, "test.txt"), "w", encoding="utf-8") as f:
+            f.write("add_namespace = TST\n"
+                    "country_event = {\n"
+                    "\tid = TST.1\n"
+                    "\ttitle = TST_TITLE\n"
+                    "\tdesc = TST_DESC\n"
+                    "\tpicture = GFX_event_tst\n"
+                    "\toption = { name = TST_OPT }\n"
+                    "}\n")
+        return mod
+
+    def test_list_and_form_load(self):
+        from event_editor_dialog import EventEditorDialog
+        mod = self._make()
+        dlg = EventEditorDialog(mod_path=mod)
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.sidebar.list.count(), 1)
+        self.assertEqual(dlg.id_edit.text(), "TST.1")
+        self.assertEqual(dlg.title_edit.text(), "TST_TITLE")
+        self.assertEqual(dlg.options_label.text(), "1")
+        dlg.close()
+
+
+class TechDataTest(unittest.TestCase):
+    """科技数据层解析。"""
+
+    def _make(self):
+        mod = _mkdtemp("dsh_techd_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "common", "technologies")
+        os.makedirs(d)
+        with open(os.path.join(d, "test.txt"), "w", encoding="utf-8") as f:
+            f.write("technologies = {\n"
+                    "\tinfa = {\n"
+                    "\t\tstart_year = 1936\n"
+                    "\t\tresearch_cost = 0.5\n"
+                    "\t\tcategories = { infantry }\n"
+                    "\t\tfolder = { name = infantry position = 0 }\n"
+                    "\t\tpath = { leads_to_tech = infb research_cost_coeff = 0.5 }\n"
+                    "\t\tsub_technologies = { infa_1 infa_2 }\n"
+                    "\t}\n"
+                    "}\n")
+        return mod
+
+    def test_load_tech_entities(self):
+        from tech_data import load_tech_entities
+        mod = self._make()
+        techs = load_tech_entities(mod, "")
+        self.assertIn("infa", techs)
+        t = techs["infa"]
+        self.assertEqual(t["start_year"], "1936")
+        self.assertEqual(t["research_cost"], "0.5")
+        self.assertEqual(t["folder"], "infantry")
+        self.assertIn("infantry", t["categories"])
+        self.assertIn("infb", t["leads_to_tech"])
+        self.assertIn("infa_1", t["sub_technologies"])
+
+
+class TechEditorSmokeTest(unittest.TestCase):
+    """科技编辑器 offscreen 冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make(self):
+        mod = _mkdtemp("dsh_techui_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "common", "technologies")
+        os.makedirs(d)
+        with open(os.path.join(d, "test.txt"), "w", encoding="utf-8") as f:
+            f.write("technologies = {\n"
+                    "\tinfa = {\n"
+                    "\t\tstart_year = 1936\n"
+                    "\t\tresearch_cost = 0.5\n"
+                    "\t}\n"
+                    "}\n")
+        return mod
+
+    def test_list_and_form_load(self):
+        from tech_editor_dialog import TechEditorDialog
+        mod = self._make()
+        dlg = TechEditorDialog(mod_path=mod)
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.sidebar.list.count(), 1)
+        self.assertEqual(dlg.id_edit.text(), "infa")
+        self.assertEqual(dlg.start_year_edit.text(), "1936")
+        dlg.close()
+
+
+class StateResTest(unittest.TestCase):
+    """state 资源/VP/manpower/州名 结构化读写。"""
+
+    def _content(self):
+        return ("state = {\n"
+                "\tid = 1\n"
+                "\tname = \"STATE_1\"\n"
+                "\tmanpower = 100\n"
+                "\tresources = {\n"
+                "\t\tsteel = 6\n"
+                "\t}\n"
+                "\tstate_category = town\n"
+                "\thistory = {\n"
+                "\t\towner = FRA\n"
+                "\t\tvictory_points = { 10 1 }\n"
+                "\t}\n"
+                "}\n")
+
+    def test_parse_resources(self):
+        from state_loader import StateData
+        import tempfile, os
+        tmp = _mkdtemp("dsh_stateres_")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        d = os.path.join(tmp, "history", "states")
+        os.makedirs(d)
+        fp = os.path.join(d, "1-test.txt")
+        with open(fp, "w", encoding="utf-8") as f:
+            f.write(self._content())
+        sd = StateData(tmp, "")
+        st = sd.states.get(1)
+        self.assertIsNotNone(st)
+        self.assertEqual(st["resources"], {"steel": 6})
+
+    def test_write_resources_vp_name_manpower(self):
+        from state_build_ops import (
+            set_state_resources_in_content,
+            set_state_victory_points_in_content,
+            set_state_manpower_in_content,
+            set_state_name_in_content,
+        )
+        content = self._content()
+        c = set_state_resources_in_content(
+            content, 1, {"steel": 8, "oil": 2})
+        self.assertIn("steel = 8", c)
+        self.assertIn("oil = 2", c)
+        c = set_state_victory_points_in_content(c, 1, [(10, 2), (20, 3)])
+        self.assertIn("victory_points = { 10 2 20 3 }", c)
+        c = set_state_manpower_in_content(c, 1, 200)
+        self.assertIn("manpower = 200", c)
+        c = set_state_name_in_content(c, 1, "STATE_9")
+        self.assertIn('name = "STATE_9"', c)
+
+
+class BopEditDataTest(unittest.TestCase):
+    """BOP 区间/势力数据写回。"""
+
+    def _make(self):
+        mod = _mkdtemp("dsh_bopd_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "common", "bop")
+        os.makedirs(d)
+        with open(os.path.join(d, "TST.txt"), "w", encoding="utf-8") as f:
+            f.write("TST_power = {\n"
+                    "\tinitial_value = 0.5\n"
+                    "\trange = { id = TST_range min = 0 max = 1 }\n"
+                    "\tside = { id = TST_side icon = GFX_old }\n"
+                    "}\n")
+        return mod
+
+    def test_set_range_and_side(self):
+        from bop_loader import set_bop_range, set_bop_side_fields, _clear_cache
+        _clear_cache()
+        mod = self._make()
+        set_bop_range(mod, "", "TST_power", "TST_range", 0.2, 0.8)
+        set_bop_side_fields(mod, "", "TST_power", "TST_side", "GFX_new")
+        _clear_cache()
+        from bop_loader import load_bop_definitions
+        bops = load_bop_definitions(mod, "")
+        bop = bops["TST"]
+        # 简单断言写回文本
+        fp = None
+        import os, glob
+        files = glob.glob(os.path.join(mod, "common", "bop", "TST.txt"))
+        self.assertTrue(files)
+        with open(files[0], "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("min = 0.2", content)
+        self.assertIn("max = 0.8", content)
+        self.assertIn("icon = GFX_new", content)
+
+
+class BopDecisionCrudTest(unittest.TestCase):
+    """BOP 决策增删。"""
+
+    def _make(self):
+        mod = _mkdtemp("dsh_bopdec_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "common", "decisions")
+        os.makedirs(d)
+        with open(os.path.join(d, "TST.txt"), "w", encoding="utf-8") as f:
+            f.write("TST_CAT = {\n"
+                    "\told_action = {\n"
+                    "\t\tcost = 10\n"
+                    "\t}\n"
+                    "}\n")
+        return mod
+
+    def test_insert_delete_decision(self):
+        from bop_loader import insert_bop_decision, delete_bop_decision
+        mod = self._make()
+        r = insert_bop_decision(
+            mod, "", "TST_CAT",
+            "\tnew_action = {\n\t\tcost = 20\n\t}\n", "new_action")
+        self.assertTrue(r["ok"])
+        fp = os.path.join(mod, "common", "decisions", "TST.txt")
+        with open(fp, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("new_action", content)
+        r2 = delete_bop_decision(mod, "", "TST_CAT", "new_action")
+        self.assertTrue(r2["ok"])
+        with open(fp, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertNotIn("new_action", content)
+
+
+class Terrain3Test(unittest.TestCase):
+    """地形三项（movement/attack/defence）解析与汇总。"""
+
+    def _make_sub(self):
+        mod = _mkdtemp("dsh_terr3_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "units"), exist_ok=True)
+        with open(os.path.join(mod, "common", "units", "inf.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("sub_units = {\n"
+                    "\tinfantry = {\n"
+                    "\t\tabbreviation = INF\n"
+                    "\t\tforest = { movement = 0.2 attack = -0.1 defence = 0.1 }\n"
+                    "\t}\n"
+                    "}\n")
+        from oob_loader import load_sub_units
+        return load_sub_units(mod, "")["infantry"]
+
+    def test_terrain_full_parsed(self):
+        inf = self._make_sub()
+        self.assertEqual(inf["terrain_full"]["forest"]["movement"], 0.2)
+        self.assertEqual(inf["terrain_full"]["forest"]["attack"], -0.1)
+        self.assertEqual(inf["terrain_full"]["forest"]["defence"], 0.1)
+
+
+class SubUnitEditorTest(unittest.TestCase):
+    """兵种保存 roundtrip。"""
+
+    def _make(self):
+        mod = _mkdtemp("dsh_subed_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "units"), exist_ok=True)
+        with open(os.path.join(mod, "common", "units", "inf.txt"),
+                  "w", encoding="utf-8") as f:
+            f.write("sub_units = {\n"
+                    "\tinfantry = {\n"
+                    "\t\tabbreviation = INF\n"
+                    "\t\tcombat_width = 2\n"
+                    "\t\tneed = { infantry_equipment = 100 }\n"
+                    "\t}\n"
+                    "}\n")
+        return mod
+
+    def test_save_sub_unit_fields(self):
+        from oob_loader import save_sub_unit
+        mod = self._make()
+        fp = save_sub_unit(mod, "", "infantry",
+                           fields={"combat_width": 3},
+                           need={"infantry_equipment": 120})
+        self.assertIsNotNone(fp)
+        with open(fp, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("combat_width = 3", content)
+        self.assertIn("infantry_equipment = 120", content)

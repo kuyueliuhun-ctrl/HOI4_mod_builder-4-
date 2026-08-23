@@ -33,7 +33,17 @@
     },
     "tools/verify_repro.py": {
       "reason": "一次性复现验证脚本（开发工具）"
+    },
+    "ui_gap_probe.py": {
+      "reason": "分析报告/已分析.md 输出（非 mod 内容，开发调试工具；流式直写避免内存爆炸）"
     }
   },
-  "lines": {}
+  "lines": {
+    "src/api_core_ext/ai_content.py": {
+      "lines": [
+        121
+      ],
+      "reason": "内部占位：直接 open 后立即 raise RuntimeError，不会实际写入"
+    }
+  }
 }

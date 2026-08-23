@@ -34,8 +34,12 @@ ALLOWLIST_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                               "write_discipline_allowlist.json")
 
 # 扫描时跳过的目录/文件
-SKIP_DIRS = {".venv", ".venv-linux", ".git", "__pycache__", "dist",
-             "node_modules", "data", "_scenario_forge", "tests"}
+SKIP_DIRS = {".venv", ".venv-linux", ".venv314", ".git", "__pycache__", "dist",
+             "node_modules", "data", "_scenario_forge", "tests", "prototypes"}
+
+
+def _skip_dir(name):
+    return name in SKIP_DIRS or name.startswith(".venv")
 # tests 目录豁免理由：契约测试自身用临时目录夹具验证行为（tempfile + 直写），
 # 其写入对象是测试临时目录而非 mod 内容，不受本纪律约束。
 SKIP_FILES = {"write_utils.py"}  # 原子写实现本身
@@ -134,7 +138,7 @@ def scan_root(root):
     violations, registered, binaries = [], [], []
     checked = 0
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        dirnames[:] = [d for d in dirnames if not _skip_dir(d)]
         for fn in filenames:
             if not fn.endswith(".py"):
                 continue

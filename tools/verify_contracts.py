@@ -22,14 +22,18 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PYTHON = sys.executable
 
 # 不参与编译的目录
-SKIP_DIRS = {".venv", ".venv-linux", ".git", "__pycache__", "dist",
-             "node_modules", "data", "_scenario_forge"}
+SKIP_DIRS = {".venv", ".venv-linux", ".venv314", ".git", "__pycache__", "dist",
+             "node_modules", "data", "_scenario_forge", "prototypes"}
+
+
+def _skip_dir(name):
+    return name in SKIP_DIRS or name.startswith(".venv")
 
 
 def _py_files(root):
     out = []
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        dirnames[:] = [d for d in dirnames if not _skip_dir(d)]
         for fn in filenames:
             if fn.endswith(".py"):
                 out.append(os.path.join(dirpath, fn))
@@ -40,7 +44,11 @@ def run_step(name, cmd, cwd=None):
     print("\n== [%s] ==" % name)
     try:
         proc = subprocess.run(cmd, cwd=cwd or PROJECT_ROOT,
-                              capture_output=True, text=True)
+                              capture_output=True, text=True,
+                              encoding="utf-8", errors="replace",
+                              env=dict(os.environ,
+                                       PYTHONIOENCODING="utf-8",
+                                       PYTHONUTF8="1"))
     except OSError as e:
         print("  无法启动: %s" % e)
         return False
