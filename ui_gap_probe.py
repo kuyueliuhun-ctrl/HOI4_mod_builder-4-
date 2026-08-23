@@ -78,7 +78,7 @@ UI_COVERAGE_SPECS = {
                     "characters.*.**"]
                     + ["characters.*.%s.%s" % (r, f)
                        for r in _ROLE_TYPES for f in _ROLE_FIELD_KEYS]),
-        "note": "portraits 表可编辑任意 scope/size/texture；role 已知字段可编辑；未知行保留原样；未知块（含 instance = { ... }）经 ScriptBlockEditorDialog 结构化编辑并写回",
+        "note": "portraits 表可编辑任意 scope/size/texture；role 已知字段可编辑；未知行保留原样；未知块（含 instance = { ... }）经 ScriptBlockEditorDialog 结构化编辑并写回（2026-08-23 复核：--max-files 0 缺口=0，无豁免）",
     },
 
     # ---------------- 国策树画布 ----------------
@@ -99,7 +99,7 @@ UI_COVERAGE_SPECS = {
             "focus_tree.focus.bypass.**", "focus_tree.focus.will_claim_areas",
             "focus_tree.focus.select_effect.**",
         ],
-        "note": "节点弹窗常用字段已覆盖；未知字段仍可能只在树编辑器可见",
+        "note": "节点弹窗常用字段已覆盖；文件级其他键（style/search_filter_prios/常量）与 focus 内部未列嵌套字段仍经通用树编辑器兜底，属长期收敛项（挂 docs/未完成计划.md 通用类型 F 批）",
     },
 
     # ---------------- 科技树画布（B2：低分，几乎只画不改） ----------------
@@ -215,7 +215,7 @@ UI_COVERAGE_SPECS = {
             "state.history.owner", "state.history.buildings.**",
             "state.history.victory_points.**",
         ],
-        "note": "resources/victory_points/manpower/州名/州类别由右侧州字段表单覆盖；history.resources 为兼容 mod 写法；其余 state 嵌套字段（天气/历史/高级建筑等）仍可能走树编辑器，属长期收敛项",
+        "note": "resources/victory_points/manpower/州名/州类别由右侧州字段表单覆盖；history.resources 为兼容 mod 写法；其余 state 嵌套字段（天气/历史/高级建筑等）仍可能走树编辑器，属长期收敛项（收敛计划挂 docs/未完成计划.md 通用类型 F 批）",
     },
     "strategic_region": {
         "label": "区域编辑器（战略区域）",
@@ -236,7 +236,7 @@ UI_COVERAGE_SPECS = {
         "label": "国家历史文件（变体/顾问等）",
         "top": "*",
         "covered": ["create_equipment_variant.**"],
-        "note": "变体（模块/升级）由三设计器覆盖；其余块走树编辑器，逐步收敛",
+        "note": "变体（模块/升级）由三设计器覆盖；其余块走树编辑器，逐步收敛（收敛计划挂 docs/未完成计划.md 通用类型 F 批）",
     },
 }
 
