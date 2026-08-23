@@ -34,6 +34,7 @@ from PyQt6.QtWidgets import (
 )
 
 from ai_ui_common import KeyValueTableEditor as _KeyValueTableEditor
+from tree_node import parse_pdx_text_to_nodes
 
 # 常用块键中文词典（正式版扩充并接本地化/词条库）
 BLOCK_CN = {
@@ -200,6 +201,38 @@ class BlockTreeList(QTreeWidget):
         item.setData(0, Qt.ItemDataRole.UserRole, key)
         self.addTopLevelItem(item)
         return item
+
+    def set_pdx_block(self, text: str):
+        """用真实 PDX 解析器填充块树：块=父行，词条=叶子行。"""
+        self.clear()
+        try:
+            nodes = parse_pdx_text_to_nodes(text or "")
+        except Exception:
+            nodes = []
+        for node in nodes:
+            self._add_pdx_node(node, None)
+
+    def _add_pdx_node(self, node, parent_item):
+        key = getattr(node, "key", "") or ""
+        if node.node_type == "block":
+            item = QTreeWidgetItem([f"{_cn(key)}  {key}", "", ""])
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
+            item.setData(0, Qt.ItemDataRole.UserRole, key)
+            if parent_item is None:
+                self.addTopLevelItem(item)
+            else:
+                parent_item.addChild(item)
+            for child in getattr(node, "children", []) or []:
+                self._add_pdx_node(child, item)
+        else:
+            value = str(getattr(node, "value", "") or "")
+            item = QTreeWidgetItem([f"{_cn(key)}  {key}", value, ""])
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
+            item.setData(0, Qt.ItemDataRole.UserRole, key)
+            if parent_item is None:
+                self.addTopLevelItem(item)
+            else:
+                parent_item.addChild(item)
 
     def data(self):
         """返回 [{key, value, cn}]；key 从 UserRole 读。"""
@@ -404,13 +437,7 @@ class StructuredBlockBrowser(QDialog):
         self.resize(640, 480)
         lay = QVBoxLayout(self)
         self.tree = BlockTreeList()
-        # 简要把多行块按行填入，真实解析后续接 tree_node
-        for line in block_text.splitlines():
-            if "=" in line:
-                k, v = line.split("=", 1)
-                self.tree.add_item(k.strip(), v.strip())
-            elif block_text.strip():
-                self.tree.add_item(line.strip())
+        self.tree.set_pdx_block(block_text)
         lay.addWidget(self.tree)
         btn = QPushButton("关闭")
         btn.clicked.connect(self.accept)

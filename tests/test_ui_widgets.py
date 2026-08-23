@@ -49,6 +49,26 @@ class UiWidgetsTest(unittest.TestCase):
         self.assertEqual(data[0]["key"], "visible")
         self.assertEqual(data[0]["value"], "yes")
 
+    def test_block_tree_list_pdx_parse(self):
+        from ui_widgets import BlockTreeList
+        tree = BlockTreeList()
+        tree.set_pdx_block(
+            'focus_tree = {\n'
+            '\tid = focus_test\n'
+            '\tavailable = { has_country_flag = X }\n'
+            '}\n')
+        self.assertGreaterEqual(tree.topLevelItemCount(), 1)
+        top = tree.topLevelItem(0)
+        self.assertIn("focus_tree", top.text(0))
+        self.assertGreaterEqual(top.childCount(), 2)
+
+    def test_structured_browser_pdx_parse(self):
+        from ui_widgets import StructuredBlockBrowser
+        dlg = StructuredBlockBrowser('plan = { name = "X" available = { } }')
+        self.assertGreaterEqual(dlg.tree.topLevelItemCount(), 1)
+        self.assertIn("plan", dlg.tree.topLevelItem(0).text(0))
+        dlg.close()
+
     def test_ref_picker_warn(self):
         from ui_widgets import RefPicker
         picker = RefPicker(["GER", "SOV"])
