@@ -75,6 +75,22 @@ def _division_template_to_target_text(tpl):
     return "\n".join(lines)
 
 
+def find_upgrade_cycle(role, start_target):
+    """沿 replace_with 链检测成环，返回环路径；无环返回 []。"""
+    if not role:
+        return []
+    by_id = {t.get("id", ""): t for t in role.get("targets", [])}
+    seen = []
+    cur = start_target
+    while cur and cur in by_id:
+        if cur in seen:
+            idx = seen.index(cur)
+            return seen[idx:] + [cur]
+        seen.append(cur)
+        cur = (by_id[cur].get("replace_with") or "").strip()
+    return []
+
+
 class AiDivisionTemplateEditor(DivisionEditor):
     """在 DivisionEditor 基础上拦截保存，写回 AI target_template。"""
 
@@ -185,6 +201,11 @@ class AiTemplateEditorDialog(QDialog):
         form2.addWidget(tpl_btn)
         right.addLayout(form2)
 
+        self.cycle_label = QLabel("")
+        self.cycle_label.setWordWrap(True)
+        self.cycle_label.setStyleSheet("color:#b7791f; font-weight:bold;")
+        right.addWidget(self.cycle_label)
+
         adv_label = QLabel("高级脚本块（enable / can_upgrade_in_field / upgrade_prio）")
         adv_label.setStyleSheet("font-weight:bold; color:#1f4f7e;")
         right.addWidget(adv_label)
@@ -267,6 +288,12 @@ class AiTemplateEditorDialog(QDialog):
         self._target_advanced = {
             f: target.get(f, "") or "" for f in TARGET_ADVANCED}
         self._update_advanced_summaries()
+        cycle = find_upgrade_cycle(self._current_role, tid)
+        if cycle:
+            self.cycle_label.setText(
+                "⚠ 升级链成环：%s" % " → ".join(cycle))
+        else:
+            self.cycle_label.setText("")
 
     def _find_target(self, tid):
         if not self._current_role:

@@ -373,6 +373,22 @@ class AiTemplateEditorTest(unittest.TestCase):
             "target_template = { regiments = { infantry = 6 } }")
         self.assertIn("division_template", div)
         self.assertIn('name = "ai_target"', div)
+
+    def test_upgrade_cycle_detect(self):
+        from ai_template_editor_dialog import (
+            _division_template_to_target_text, find_upgrade_cycle)
+        from oob_loader import DivisionTemplate
+        role = {"targets": [
+            {"id": "A", "replace_with": "B"},
+            {"id": "B", "replace_with": "A"},
+        ]}
+        self.assertEqual(find_upgrade_cycle(role, "A"), ["A", "B", "A"])
+        self.assertEqual(find_upgrade_cycle(role, "A")[0], "A")
+        no_cycle = {"targets": [
+            {"id": "A", "replace_with": "B"},
+            {"id": "B", "replace_with": ""},
+        ]}
+        self.assertEqual(find_upgrade_cycle(no_cycle, "A"), [])
         tpl = DivisionTemplate(name="ai_target", regiments=[("infantry", 0, 0)])
         target = _division_template_to_target_text(tpl)
         self.assertIn("target_template = {", target)
