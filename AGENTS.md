@@ -1009,8 +1009,8 @@ python ui_gap_probe.py --dump-all --output 已分析.md
 8. ✅ **ui_gap_probe specs 更新**：event/tech/character/state/bop/country_history
    均已同步；`event/tech/character/bop --max-files 0` 缺口为 0；
    state/country_history 按长期豁免说明记录。
-9. ✅ **全量验证**：`verify_contracts.py` 双版本全绿（Python 3.13 需
-   `PYTHONIOENCODING=utf-8` 规避 Windows GBK 子进程解码噪音）。
+9. ✅ **全量验证**：`verify_contracts.py` 双版本全绿（Python 3.14；
+   子进程已固定 UTF-8 环境，规避 Windows GBK 解码噪音）。
 
 ### 6.24 已完成：Python 升级到 3.14（2026-08-23）
 

@@ -69,7 +69,7 @@
 | 6 | 力量平衡编辑增强（C7=4） | P8 | ✅ 已执行：bop_loader 区间/势力/决议写回；bop_editor_dialog 亮色三页表单（区间卡 modifier 键值表/势力卡/决议新建编辑/结构化效果块）；tests/test_batch6_bop.py 7 用例绿 |
 | 7 | 编制编辑器补充件（C1=6 + 批 E） | P9 | ✅ 已执行：oob_loader terrain 三项/save_sub_unit/names_groups；sub_unit_editor_dialog 完整表单；names_group_dialog 名称条目结构化；division_editor 入口/联动；oob_map_editor 最大连通区初始视野；tests/test_batch7_oob.py 7 用例绿 |
 | 8 | raw 兜底降级（批 D 🟠） | P7 顾问标签参考 | ✅ 已执行：ScriptBlockEditorDialog 默认键值表+子块列表、raw 入高级菜单；ai_plan desc 双行+focus_order；advisor traits 多选/idea_token/slot/name/desc 字段化/available 结构化；AI 七编辑器 raw 统一「高级：原始 PDX（兜底）」；node_edit 文案微调；tests/test_batch8_ai_structured.py 7 用例绿 |
-| 9 | 收尾：文档同步 + 全量验证 | — | ✅ 已执行：AGENTS §6.22/6.23 更新、未完成计划/UI评估报告同步、`docs/UI树形缺口检测报告.md` 重生成；双版本 verify 全绿（Python 3.13 需 PYTHONIOENCODING=utf-8） |
+| 9 | 收尾：文档同步 + 全量验证 | — | ✅ 已执行：AGENTS §6.22/6.23 更新、未完成计划/UI评估报告同步、`docs/UI树形缺口检测报告.md` 重生成；双版本 verify 全绿（Python 3.14，Windows .venv 3.14.5 / WSL 3.14.4） |
 
 ### 0.x 检验追加的补充修复项（2026-08-23 对话.md 评估后）
 

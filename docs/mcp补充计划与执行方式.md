@@ -325,10 +325,10 @@ src/mcp_tools.py             # 新：按域提供 *_tools(core) 列表构建函�
    （list_states / list_ship_designs / ai_plan_list / list_bop / search_terms）核对数量级，
    写类工具在临时复制目录上 roundtrip。
 
-### 4.4 Python 3.8 兼容（§4.5）
+### 4.4 Python 3.14 兼容（§4.5）
 
-mixin 不使用 `list[str]` 注解（用 `from __future__ import annotations` + typing）、
-无 walrus/match/removeprefix；`verify_contracts.py` 双版本把关。
+已升级到 Python 3.14（Windows `.venv` 3.14.5 / WSL 3.14.4）；3.8 语法限制已解除。
+旧代码保留的 `from __future__ import annotations` 不影响运行；`verify_contracts.py` 双版本把关。
 
 ---
 

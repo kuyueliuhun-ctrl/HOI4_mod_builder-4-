@@ -430,7 +430,7 @@ python src/main.py
 ├── translations/           # 外部翻译包 / 词条文件
 ├── bop_loader.py           # 力量平衡数据层（common/bop + 决策动作）
 ├── bop_editor_dialog.py    # 力量平衡专用工作台（深色历史政治军事 UI）
-├── tests/test_contracts.py # 契约测试（206 个用例）
+├── tests/                  # 按域契约测试（约 395 个用例）
 └── unit_counter_library/   # 从游戏导入的单位标牌库（icon/ + manifest.json）
 ```
 

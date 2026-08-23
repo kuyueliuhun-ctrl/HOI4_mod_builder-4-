@@ -34,9 +34,6 @@
     "tools/verify_repro.py": {
       "reason": "一次性复现验证脚本（开发工具）"
     },
-    "tools/split_tests.py": {
-      "reason": "一次性测试拆分脚本（F1，写 tests/ 按域文件，非 mod 内容）"
-    },
     "ui_gap_probe.py": {
       "reason": "分析报告/已分析.md 输出（非 mod 内容，开发调试工具；流式直写避免内存爆炸）"
     },
