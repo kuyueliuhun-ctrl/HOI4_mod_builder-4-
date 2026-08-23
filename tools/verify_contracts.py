@@ -41,6 +41,22 @@ def _py_files(root):
     return out
 
 
+def _count_test_methods():
+    """统计 tests/test_*.py 中 test_* 方法总数（文档数字指针化，F1）。"""
+    total = 0
+    tests_dir = os.path.join(PROJECT_ROOT, "tests")
+    if not os.path.isdir(tests_dir):
+        return 0
+    for fn in sorted(os.listdir(tests_dir)):
+        if not (fn.startswith("test_") and fn.endswith(".py")):
+            continue
+        with open(os.path.join(tests_dir, fn), encoding="utf-8",
+                  errors="replace") as f:
+            total += sum(1 for line in f
+                         if line.startswith("    def test_"))
+    return total
+
+
 def run_step(name, cmd, cwd=None):
     print("\n== [%s] ==" % name)
     try:
@@ -97,6 +113,7 @@ def main():
                     run_step("契约单元测试",
                              [PYTHON, "-m", "unittest", "discover",
                               "-s", "tests", "-v"])))
+    print("  契约用例总数: %d" % _count_test_methods())
 
     # 3. 写入纪律静态扫描
     results.append(("写入纪律扫描",
