@@ -128,15 +128,32 @@ def load_loc_dir(scope_path: str, lang: str = DEFAULT_LANG) -> Dict[str, str]:
     return cache
 
 
+_EFFECTIVE_DICT_CACHE: Dict[tuple, Dict[str, str]] = {}
+
+
+def clear_effective_dict_cache():
+    """本地化文件被写入后调用，使下次 load_effective_dict 重新读盘。"""
+    _EFFECTIVE_DICT_CACHE.clear()
+
+
 def load_effective_dict(mod_path: str, hoi4_path: str = "",
                         lang: str = DEFAULT_LANG) -> Dict[str, str]:
-    """加载指定语言的有效词条字典：先游戏后 mod，mod 覆盖游戏。"""
+    """加载指定语言的有效词条字典：先游戏后 mod，mod 覆盖游戏。
+
+    按 (mod, hoi4, lang) 模块级缓存——编辑器逐词条查本地化时（如事件列表
+    中文列、科技树标签）会高频调用，不缓存 = 每次全量解析 yml，真实数据下
+    分钟级卡死。写入 yml 后须经 clear_effective_dict_cache() 失效。
+    """
+    ckey = (mod_path or "", hoi4_path or "", lang)
+    if ckey in _EFFECTIVE_DICT_CACHE:
+        return _EFFECTIVE_DICT_CACHE[ckey]
     cache: Dict[str, str] = {}
     if hoi4_path:
         game = load_loc_dir(hoi4_path, lang)
         cache.update(game)
     mod = load_loc_dir(mod_path, lang)
     cache.update(mod)
+    _EFFECTIVE_DICT_CACHE[ckey] = cache
     return cache
 
 
@@ -273,6 +290,7 @@ def upsert_loc_entry(filepath: str, key: str, value: str,
     try:
         atomic_write_text(filepath, "".join(lines), encoding="utf-8-sig",
                           allow_bom=True)
+        _EFFECTIVE_DICT_CACHE.clear()
         return True
     except Exception:
         return False
@@ -296,6 +314,7 @@ def delete_loc_entry(filepath: str, key: str,
     try:
         atomic_write_text(filepath, "".join(lines), encoding="utf-8-sig",
                           allow_bom=True)
+        _EFFECTIVE_DICT_CACHE.clear()
         return True
     except Exception:
         return False

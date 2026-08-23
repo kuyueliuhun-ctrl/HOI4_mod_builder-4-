@@ -393,17 +393,15 @@ class TechEditorDialog(QDialog):
             return ""
         if key in self._loc_cache:
             return self._loc_cache[key]
-        found = find_mod_file_for_key(self.mod_path, key)
-        value = ""
-        if found:
-            value = load_loc_file(found, "simp_chinese").get(key, "")
-        if not value and self.hoi4_path:
-            try:
-                effective = load_effective_dict(self.mod_path, self.hoi4_path,
-                                                "simp_chinese")
-                value = effective.get(key, "")
-            except Exception:
-                pass
+        # 一次性合并词典查找（load_effective_dict 已做模块级缓存）；
+        # 旧实现逐 key find_mod_file_for_key + load_loc_file，
+        # 数百科技 = O(N×yml) 真实数据分钟级卡死。
+        try:
+            effective = load_effective_dict(self.mod_path, self.hoi4_path,
+                                            "simp_chinese")
+        except Exception:
+            effective = {}
+        value = effective.get(key, "")
         self._loc_cache[key] = value
         return value
 

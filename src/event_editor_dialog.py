@@ -316,6 +316,7 @@ class EventEditorDialog(QDialog):
         self._event_map = {}
         self.current_event = None
         self._loc_cache = {}
+        self._loc_dict = None
         self._gfx_cache = None
 
         self.setWindowTitle("事件编辑器")
@@ -593,17 +594,16 @@ class EventEditorDialog(QDialog):
             return ""
         if key in self._loc_cache:
             return self._loc_cache[key]
-        found = find_mod_file_for_key(self.mod_path, key)
-        value = ""
-        if found:
-            value = load_loc_file(found, "simp_chinese").get(key, "")
-        if not value and self.hoi4_path:
+        # 一次性构建合并词典（mod 优先 + 本体回退）。
+        # 旧实现按 key 逐个 find_mod_file_for_key + load_loc_file，未命中还
+        # 每次全量 load_effective_dict —— 数千事件 = O(N×全部yml) 分钟级死等。
+        if self._loc_dict is None:
             try:
-                effective = load_effective_dict(self.mod_path, self.hoi4_path,
-                                                "simp_chinese")
-                value = effective.get(key, "")
+                self._loc_dict = load_effective_dict(
+                    self.mod_path, self.hoi4_path, "simp_chinese")
             except Exception:
-                pass
+                self._loc_dict = {}
+        value = self._loc_dict.get(key, "")
         self._loc_cache[key] = value
         return value
 
