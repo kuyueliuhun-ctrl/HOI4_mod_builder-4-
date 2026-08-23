@@ -207,6 +207,17 @@ class AiEquipmentEditorDialog(QDialog):
         gform.addWidget(self.history_edit, 1)
         right.addLayout(gform)
 
+        gf2 = QHBoxLayout()
+        gf2.addWidget(QLabel("available_for"))
+        self.available_for_edit = QLineEdit()
+        self.available_for_edit.setPlaceholderText("TAG 空格分隔")
+        gf2.addWidget(self.available_for_edit, 1)
+        gf2.addWidget(QLabel("blocked_for"))
+        self.blocked_for_edit = QLineEdit()
+        self.blocked_for_edit.setPlaceholderText("TAG 空格分隔")
+        gf2.addWidget(self.blocked_for_edit, 1)
+        right.addLayout(gf2)
+
         design_btn = QPushButton("✏ 编辑设计（调用现有设计器）")
         design_btn.clicked.connect(self._edit_variant)
         right.addWidget(design_btn)
@@ -278,6 +289,8 @@ class AiEquipmentEditorDialog(QDialog):
         self._current_group = group
         self.group_label.setText("%s  （%s）" % (group_id, group.get("file", "")))
         self.category_edit.setText(group.get("category", ""))
+        self.available_for_edit.setText(" ".join(group.get("available_for", [])))
+        self.blocked_for_edit.setText(" ".join(group.get("blocked_for", [])))
         self.variant_list.blockSignals(True)
         self.variant_list.clear()
         for v in group.get("variants", []):
@@ -643,6 +656,13 @@ class AiEquipmentEditorDialog(QDialog):
             content = f.read()
         content = replace_top_block_field(
             content, group["id"], "category", self.category_edit.text().strip())
+        for afield, aedit in (("available_for", self.available_for_edit),
+                              ("blocked_for", self.blocked_for_edit)):
+            tags = aedit.text().strip().split()
+            if tags:
+                content = upsert_top_block_child(
+                    content, group["id"], afield,
+                    "%s = { %s }" % (afield, " ".join(tags)))
         content = replace_ai_equipment_variant_field(
             content, group["id"], variant["id"], "history",
             self.history_edit.text().strip())
@@ -659,6 +679,8 @@ class AiEquipmentEditorDialog(QDialog):
             QMessageBox.warning(self, "保存失败", "写入失败：%s" % e)
             return
         group["category"] = self.category_edit.text().strip()
+        group["available_for"] = self.available_for_edit.text().split()
+        group["blocked_for"] = self.blocked_for_edit.text().split()
         variant["history"] = self.history_edit.text().strip()
         variant["allowed_modules"] = "\n".join(self._modules())
         for field in VARIANT_ADVANCED:
