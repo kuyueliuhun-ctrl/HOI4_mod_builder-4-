@@ -1108,6 +1108,16 @@ def _make_top_block_loader(folder, cache_key):
     "common/technology_tags", "technology_tags")
 
 
+(parse_resistance_compliance, load_resistance_compliance) = _make_top_block_loader(
+    "common/resistance_compliance", "resistance_compliance")
+(parse_scripted_guis, load_scripted_guis) = _make_top_block_loader(
+    "common/scripted_guis", "scripted_guis")
+(parse_country_leader, load_country_leader) = _make_top_block_loader(
+    "common/country_leader", "country_leader")
+(parse_ideologies, load_ideologies) = _make_top_block_loader(
+    "common/ideologies", "ideologies")
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

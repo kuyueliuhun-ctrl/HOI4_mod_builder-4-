@@ -593,6 +593,46 @@ def _open_technology_tags(ctx):
         parent=ctx.parent)
 
 
+def _open_resistance_compliance(ctx):
+    from resistance_compliance_editor_dialog import open_resistance_compliance_editor
+    open_resistance_compliance_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_scripted_guis(ctx):
+    from scripted_guis_editor_dialog import open_scripted_guis_editor
+    open_scripted_guis_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_country_leader(ctx):
+    from country_leader_editor_dialog import open_country_leader_editor
+    open_country_leader_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_ideologies(ctx):
+    from ideologies_editor_dialog import open_ideologies_editor
+    open_ideologies_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -652,6 +692,10 @@ ROUTES = (
     ("common/scorers", _open_scorers, "计分器"),
     ("common/modifier_definitions", _open_modifier_definitions, "修正量定义"),
     ("common/technology_tags", _open_technology_tags, "科技标签"),
+    ("common/resistance_compliance", _open_resistance_compliance, "抵抗合规"),
+    ("common/scripted_guis", _open_scripted_guis, "脚本 GUI "),
+    ("common/country_leader", _open_country_leader, "国家领袖"),
+    ("common/ideologies", _open_ideologies, "意识形态"),
 )
 
 
