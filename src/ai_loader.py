@@ -658,6 +658,34 @@ def load_resources2(mod_path="", hoi4_path=""):
     return _cached("resources2", mod_path, hoi4_path, loader)
 
 
+def parse_equipment_groups(content):
+    """解析 equipment_groups/*.txt：每个顶层块 = 一个装备组（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_equipment_groups2(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/equipment_groups"):
+            for gid, g in parse_equipment_groups(_read(fp)).items():
+                g["file"] = fp
+                g["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[gid] = g
+        return out
+    return _cached("equipment_groups2", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

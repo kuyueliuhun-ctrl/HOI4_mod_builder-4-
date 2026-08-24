@@ -238,6 +238,16 @@ def _open_resources(ctx):
         parent=ctx.parent)
 
 
+def _open_equipment_groups(ctx):
+    from equipment_groups_editor_dialog import open_equipment_groups_editor
+    open_equipment_groups_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -262,6 +272,7 @@ ROUTES = (
     ("common/unit_tags", _open_unit_tags, "部队标签"),
     ("common/state_category", _open_state_category, "州类别"),
     ("common/resources", _open_resources, "资源"),
+    ("common/equipment_groups", _open_equipment_groups, "装备组"),
 )
 
 
