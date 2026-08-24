@@ -633,6 +633,66 @@ def _open_ideologies(ctx):
         parent=ctx.parent)
 
 
+def _open_dynamic_modifiers(ctx):
+    from dynamic_modifiers_editor_dialog import open_dynamic_modifiers_editor
+    open_dynamic_modifiers_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_operations(ctx):
+    from operations_editor_dialog import open_operations_editor
+    open_operations_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_scientist_traits(ctx):
+    from scientist_traits_editor_dialog import open_scientist_traits_editor
+    open_scientist_traits_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_combat_tactics(ctx):
+    from combat_tactics_editor_dialog import open_combat_tactics_editor
+    open_combat_tactics_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_triggered_modifiers(ctx):
+    from triggered_modifiers_editor_dialog import open_triggered_modifiers_editor
+    open_triggered_modifiers_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_event_modifiers(ctx):
+    from event_modifiers_editor_dialog import open_event_modifiers_editor
+    open_event_modifiers_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -696,6 +756,12 @@ ROUTES = (
     ("common/scripted_guis", _open_scripted_guis, "脚本 GUI "),
     ("common/country_leader", _open_country_leader, "国家领袖"),
     ("common/ideologies", _open_ideologies, "意识形态"),
+    ("common/dynamic_modifiers", _open_dynamic_modifiers, "动态修正"),
+    ("common/operations", _open_operations, "间谍行动"),
+    ("common/scientist_traits", _open_scientist_traits, "科学家特质"),
+    ("common/combat_tactics.txt", _open_combat_tactics, "战术"),
+    ("common/triggered_modifiers.txt", _open_triggered_modifiers, "触发修正"),
+    ("common/event_modifiers.txt", _open_event_modifiers, "事件修正"),
 )
 
 

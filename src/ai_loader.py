@@ -1022,100 +1022,11 @@ def load_modifiers(mod_path="", hoi4_path=""):
     return _cached("modifiers", mod_path, hoi4_path, loader)
 
 
-# ---------- 通用顶层块 loader 工厂（B2/B3 铺开） ----------
+# ---------- 通用顶层块 loader 工厂（B2/B3 铺开，独立模块控行数） ----------
 
 
-def _make_top_block_loader(folder, cache_key):
-    """生成 (parse, load) 对：common/<folder> 下每个顶层块 = 标量字段集。"""
+from generic_block_loaders import *  # noqa: E402,F401,F403 (B3 通用顶层块 loader re-export)
 
-    def _parse(content):
-        out = {}
-        for key, depth, start, end in _block_ranges(content):
-            if depth != 0:
-                continue
-            bt = content[start:end]
-            f = _fields(bt)
-            f["id"] = key
-            f["raw"] = bt
-            out[key] = f
-        return out
-
-    def _load(mod_path="", hoi4_path=""):
-        def loader():
-            out = {}
-            for fp in _scan_files(mod_path, hoi4_path, folder):
-                for eid, e in _parse(_read(fp)).items():
-                    e["file"] = fp
-                    e["rel"] = os.path.relpath(
-                        fp, hoi4_path or mod_path or os.path.dirname(fp)
-                    ).replace("\\", "/")
-                    out[eid] = e
-            return out
-        return _cached(cache_key, mod_path, hoi4_path, loader)
-
-    _parse.__name__ = "parse_" + cache_key
-    _load.__name__ = "load_" + cache_key
-    return _parse, _load
-
-
-(parse_occupation_laws, load_occupation_laws) = _make_top_block_loader(
-    "common/occupation_laws", "occupation_laws")
-(parse_resistance_activity, load_resistance_activity) = _make_top_block_loader(
-    "common/resistance_activity", "resistance_activity")
-(parse_peace_conference, load_peace_conference) = _make_top_block_loader(
-    "common/peace_conference", "peace_conference")
-(parse_abilities, load_abilities) = _make_top_block_loader(
-    "common/abilities", "abilities")
-(parse_aces, load_aces) = _make_top_block_loader(
-    "common/aces", "aces")
-(parse_collections, load_collections) = _make_top_block_loader(
-    "common/collections", "collections")
-(parse_mtth, load_mtth) = _make_top_block_loader(
-    "common/mtth", "mtth")
-(parse_frontend, load_frontend) = _make_top_block_loader(
-    "common/frontend", "frontend")
-
-
-(parse_medals, load_medals) = _make_top_block_loader(
-    "common/medals", "medals")
-(parse_ribbons, load_ribbons) = _make_top_block_loader(
-    "common/ribbons", "ribbons")
-(parse_unit_medals, load_unit_medals) = _make_top_block_loader(
-    "common/unit_medals", "unit_medals")
-(parse_raids, load_raids) = _make_top_block_loader(
-    "common/raids", "raids")
-(parse_timed_activities, load_timed_activities) = _make_top_block_loader(
-    "common/timed_activities", "timed_activities")
-(parse_intelligence, load_intelligence) = _make_top_block_loader(
-    "common/intelligence", "intelligence")
-(parse_generation, load_generation) = _make_top_block_loader(
-    "common/generation", "generation")
-(parse_operation_phases, load_operation_phases) = _make_top_block_loader(
-    "common/operation_phases", "operation_phases")
-
-
-(parse_map_modes, load_map_modes) = _make_top_block_loader(
-    "common/map_modes", "map_modes")
-(parse_operation_tokens, load_operation_tokens) = _make_top_block_loader(
-    "common/operation_tokens", "operation_tokens")
-(parse_scripted_diplomatic_actions, load_scripted_diplomatic_actions) = _make_top_block_loader(
-    "common/scripted_diplomatic_actions", "scripted_diplomatic_actions")
-(parse_scorers, load_scorers) = _make_top_block_loader(
-    "common/scorers", "scorers")
-(parse_modifier_definitions, load_modifier_definitions) = _make_top_block_loader(
-    "common/modifier_definitions", "modifier_definitions")
-(parse_technology_tags, load_technology_tags) = _make_top_block_loader(
-    "common/technology_tags", "technology_tags")
-
-
-(parse_resistance_compliance, load_resistance_compliance) = _make_top_block_loader(
-    "common/resistance_compliance", "resistance_compliance")
-(parse_scripted_guis, load_scripted_guis) = _make_top_block_loader(
-    "common/scripted_guis", "scripted_guis")
-(parse_country_leader, load_country_leader) = _make_top_block_loader(
-    "common/country_leader", "country_leader")
-(parse_ideologies, load_ideologies) = _make_top_block_loader(
-    "common/ideologies", "ideologies")
 
 
 # ---------- AI 派系战区 ----------
