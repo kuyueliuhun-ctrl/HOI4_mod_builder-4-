@@ -798,6 +798,34 @@ def load_strategic_locations(mod_path="", hoi4_path=""):
     return _cached("strategic_locations", mod_path, hoi4_path, loader)
 
 
+def parse_opinion_modifiers(content):
+    """解析 opinion_modifiers/*.txt：每个顶层块 = 一个观点修正。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_opinion_modifiers(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/opinion_modifiers"):
+            for mid, m in parse_opinion_modifiers(_read(fp)).items():
+                m["file"] = fp
+                m["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[mid] = m
+        return out
+    return _cached("opinion_modifiers", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
