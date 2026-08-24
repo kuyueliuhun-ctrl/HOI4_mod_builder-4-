@@ -826,6 +826,34 @@ def load_opinion_modifiers(mod_path="", hoi4_path=""):
     return _cached("opinion_modifiers", mod_path, hoi4_path, loader)
 
 
+def parse_wargoals(content):
+    """解析 wargoals/*.txt：每个顶层块 = 一个战争目标。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_wargoals(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/wargoals"):
+            for wid, w in parse_wargoals(_read(fp)).items():
+                w["file"] = fp
+                w["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[wid] = w
+        return out
+    return _cached("wargoals", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

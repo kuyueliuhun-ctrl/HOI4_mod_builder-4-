@@ -300,6 +300,16 @@ def _open_opinion_modifiers(ctx):
         parent=ctx.parent)
 
 
+def _open_wargoals(ctx):
+    from wargoals_editor_dialog import open_wargoals_editor
+    open_wargoals_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -330,6 +340,7 @@ ROUTES = (
     ("common/technology_sharing", _open_technology_sharing, "科技共享"),
     ("common/strategic_locations", _open_strategic_locations, "战略要地"),
     ("common/opinion_modifiers", _open_opinion_modifiers, "观点修正"),
+    ("common/wargoals", _open_wargoals, "战争目标"),
 )
 
 
