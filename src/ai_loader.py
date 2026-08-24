@@ -1028,6 +1028,8 @@ def load_modifiers(mod_path="", hoi4_path=""):
 from generic_block_loaders import *  # noqa: E402,F401,F403 (B3 通用顶层块 loader re-export)
 
 
+from generic_nested_loaders import *  # noqa: E402,F401,F403 (B3 嵌套实体 loader re-export)
+
 
 # ---------- AI 派系战区 ----------
 

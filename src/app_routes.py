@@ -693,6 +693,86 @@ def _open_event_modifiers(ctx):
         parent=ctx.parent)
 
 
+def _open_on_actions(ctx):
+    from on_actions_editor_dialog import open_on_actions_editor
+    open_on_actions_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_continuous_focus(ctx):
+    from continuous_focus_editor_dialog import open_continuous_focus_editor
+    open_continuous_focus_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_unit_leader_traits(ctx):
+    from unit_leader_traits_editor_dialog import open_unit_leader_traits_editor
+    open_unit_leader_traits_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_idea_tags(ctx):
+    from idea_tags_editor_dialog import open_idea_tags_editor
+    open_idea_tags_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_ideas(ctx):
+    from ideas_editor_dialog import open_ideas_editor
+    open_ideas_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_decisions(ctx):
+    from decisions_editor_dialog import open_decisions_editor
+    open_decisions_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_buildings(ctx):
+    from buildings_editor_dialog import open_buildings_editor
+    open_buildings_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_terrain(ctx):
+    from terrain_editor_dialog import open_terrain_editor
+    open_terrain_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -762,6 +842,14 @@ ROUTES = (
     ("common/combat_tactics.txt", _open_combat_tactics, "战术"),
     ("common/triggered_modifiers.txt", _open_triggered_modifiers, "触发修正"),
     ("common/event_modifiers.txt", _open_event_modifiers, "事件修正"),
+    ("common/on_actions", _open_on_actions, "on_actions 事件"),
+    ("common/continuous_focus", _open_continuous_focus, "持续国策"),
+    ("common/unit_leader", _open_unit_leader_traits, "将领特质"),
+    ("common/idea_tags", _open_idea_tags, "理念槽位"),
+    ("common/ideas", _open_ideas, "理念"),
+    ("common/decisions", _open_decisions, "决议"),
+    ("common/buildings", _open_buildings, "建筑"),
+    ("common/terrain", _open_terrain, "地形"),
 )
 
 

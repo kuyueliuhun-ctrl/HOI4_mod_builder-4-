@@ -5,6 +5,7 @@
 写回。新类型只需提供 loader 函数 + 目录名 + 标题即可复用。
 
 v2：接通侧栏 CRUD（创建/复制/改名/删除），全部走原子写 + 原版自动落 mod。
+块级操作抽象为 `_block_op_*`，供嵌套实体编辑器（nested_block_editor）覆写。
 """
 
 from __future__ import annotations
@@ -133,6 +134,24 @@ class SimpleBlockEditorDialog(QDialog):
             QMessageBox.information(self, "已保存", msg)
         return True
 
+    # ---------- 块级操作（子类可覆写） ----------
+
+    def _block_op_replace(self, content, ent_id, fields):
+        return replace_top_block_fields(content, ent_id, fields)
+
+    def _block_op_insert(self, content, new_id, after_id=None):
+        return insert_top_block(content, "\n%s = {\n}\n" % new_id,
+                                after_id=after_id)
+
+    def _block_op_duplicate(self, content, cur_id, new_id):
+        return duplicate_top_block(content, cur_id, new_id)
+
+    def _block_op_rename(self, content, cur_id, new_id):
+        return rename_top_block(content, cur_id, new_id)
+
+    def _block_op_delete(self, content, cur_id):
+        return delete_top_block(content, cur_id)
+
     # ---------- 保存（编辑字段） ----------
 
     def _on_save(self):
@@ -148,7 +167,7 @@ class SimpleBlockEditorDialog(QDialog):
             return
         values = self.tab.values()
         fields = {k: v for k, v in values.items() if v != ""}
-        content = replace_top_block_fields(content, ent["id"], fields)
+        content = self._block_op_replace(content, ent["id"], fields)
         if not self._write_mod_file(mod_fp, content):
             return
         for k, v in fields.items():
@@ -158,7 +177,7 @@ class SimpleBlockEditorDialog(QDialog):
             msg += "\n原版文件已自动复制到 mod"
         QMessageBox.information(self, "已保存", msg)
 
-    # ---------- 侧栏 CRUD（顶层块） ----------
+    # ---------- 侧栏 CRUD ----------
 
     def _on_create(self):
         new_id, ok = QInputDialog.getText(self, "新建实体", "新实体 id：")
@@ -174,8 +193,7 @@ class SimpleBlockEditorDialog(QDialog):
             QMessageBox.warning(self, "新建失败", "无法定位目标文件")
             return
         after_id = self.tab.sidebar.current_id() or None
-        content = insert_top_block(
-            content, "\n%s = {\n}\n" % new_id, after_id=after_id)
+        content = self._block_op_insert(content, new_id, after_id=after_id)
         if not self._write_mod_file(mod_fp, content,
                                     "已创建 %s" % new_id):
             return
@@ -197,7 +215,7 @@ class SimpleBlockEditorDialog(QDialog):
         mod_fp, content, _copied = self._read_mod_file(rel)
         if not mod_fp:
             return
-        content = duplicate_top_block(content, cur, new_id)
+        content = self._block_op_duplicate(content, cur, new_id)
         if not self._write_mod_file(mod_fp, content,
                                     "已复制为 %s" % new_id):
             return
@@ -219,7 +237,7 @@ class SimpleBlockEditorDialog(QDialog):
         mod_fp, content, _copied = self._read_mod_file(rel)
         if not mod_fp:
             return
-        content = rename_top_block(content, cur, new_id)
+        content = self._block_op_rename(content, cur, new_id)
         if not self._write_mod_file(mod_fp, content,
                                     "已重命名为 %s" % new_id):
             return
@@ -238,7 +256,7 @@ class SimpleBlockEditorDialog(QDialog):
         mod_fp, content, _copied = self._read_mod_file(rel)
         if not mod_fp:
             return
-        content = delete_top_block(content, cur)
+        content = self._block_op_delete(content, cur)
         if not self._write_mod_file(mod_fp, content,
                                     "已删除 %s" % cur):
             return
