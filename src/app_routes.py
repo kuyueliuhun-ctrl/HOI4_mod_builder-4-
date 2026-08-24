@@ -258,6 +258,17 @@ def _open_script_constants(ctx):
         parent=ctx.parent)
 
 
+def _open_scripted_localisation(ctx):
+    from scripted_localisation_editor_dialog import (
+        open_scripted_localisation_editor)
+    open_scripted_localisation_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -284,6 +295,7 @@ ROUTES = (
     ("common/resources", _open_resources, "资源"),
     ("common/equipment_groups", _open_equipment_groups, "装备组"),
     ("common/script_constants", _open_script_constants, "脚本常量"),
+    ("common/scripted_localisation", _open_scripted_localisation, "脚本化本地化"),
 )
 
 
