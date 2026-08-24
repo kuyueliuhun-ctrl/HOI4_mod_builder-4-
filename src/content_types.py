@@ -16,6 +16,7 @@ SPECIAL_TYPE_KEYS = (
 AI_TYPES = {
     "ai_strategy_plans", "ai_strategy", "ai_division", "ai_equipment",
     "ai_navy", "ai_faction_theaters", "ai_areas", "ai_focuses",
+    "ai_attitudes", "ai_personalities", "ai_peace", "mio_ai_weights",
 }
 
 
@@ -113,6 +114,10 @@ CONTENT_TYPES = [
     ("ai_faction_theaters", "AI派系战区", "🎭", ["common/ai_faction_theaters"], "ai_faction_theater", ".txt"),
     ("ai_focuses", "AI科研权重", "🌳", ["common/ai_focuses"], "ai_focus", ".txt"),
     ("ai_navy", "AI海军", "⚓", ["common/ai_navy"], "ai_navy", ".txt"),
+    ("ai_attitudes", "AI态度", "🧠", ["common/ai_attitudes"], None, ".txt"),
+    ("ai_personalities", "AI人格", "🎭", ["common/ai_personalities"], None, ".txt"),
+    ("ai_peace", "AI和平", "🕊️", ["common/ai_peace"], None, ".txt"),
+    ("mio_ai_weights", "MIO AI权重", "🏭", ["common/mio_ai_weights"], None, ".txt"),
     # ── 国家定义 / 其他 ──
     ("country_setup", "国家定义", "🏷️", ["common/country_tags", "common/countries"], "国家定义", ".txt"),
     ("wargoal", "战争目标", "⚔️", ["common/wargoals"], "战争目标", ".txt"),
