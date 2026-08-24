@@ -27,6 +27,7 @@ from ai_loader import (
     replace_ai_area_regions,
 )
 from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ui_widgets import source_badge
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
@@ -65,6 +66,8 @@ class AiAreaEditorDialog(QDialog):
         self.id_label = QLabel("—")
         self.id_label.setStyleSheet("font-weight:bold; font-size:15px;")
         right.addWidget(self.id_label)
+        self.source_label = source_badge()
+        right.addWidget(self.source_label)
 
         right.addWidget(QLabel("strategic_regions"))
         self.regions_list = QListWidget()
@@ -125,6 +128,12 @@ class AiAreaEditorDialog(QDialog):
             return
         self._current = area
         self.id_label.setText("%s  （%s）" % (area_id, area.get("file", "")))
+        fp = area.get("file", "") or ""
+        src = "game"
+        if self.mod_path and fp and os.path.normpath(fp).startswith(
+                os.path.normpath(self.mod_path)):
+            src = "mod"
+        self.source_label.setText(source_badge(src).text())
         self.regions_list.blockSignals(True)
         self.regions_list.clear()
         for r in area.get("strategic_regions", []):
