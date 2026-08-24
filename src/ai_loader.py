@@ -518,6 +518,34 @@ def load_mio_ai_weights(mod_path="", hoi4_path=""):
     return _cached("mio_ai_weights", mod_path, hoi4_path, loader)
 
 
+def parse_ai_peace(content):
+    """解析 ai_peace/*.txt：每个顶层块 = 一个 AI 和平策略（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_ai_peace(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/ai_peace"):
+            for pid, p in parse_ai_peace(_read(fp)).items():
+                p["file"] = fp
+                p["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[pid] = p
+        return out
+    return _cached("ai_peace", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
