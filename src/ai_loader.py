@@ -966,6 +966,34 @@ def load_country_tag_aliases(mod_path="", hoi4_path=""):
     return _cached("country_tag_aliases", mod_path, hoi4_path, loader)
 
 
+def parse_bookmarks(content):
+    """解析 bookmarks/*.txt：每个顶层块 = 一个剧本。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_bookmarks(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/bookmarks"):
+            for bid, b in parse_bookmarks(_read(fp)).items():
+                b["file"] = fp
+                b["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[bid] = b
+        return out
+    return _cached("bookmarks", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

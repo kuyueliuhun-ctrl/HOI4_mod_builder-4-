@@ -352,6 +352,16 @@ def _open_country_tag_aliases(ctx):
         parent=ctx.parent)
 
 
+def _open_bookmarks(ctx):
+    from bookmarks_editor_dialog import open_bookmarks_editor
+    open_bookmarks_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -387,6 +397,7 @@ ROUTES = (
     ("common/game_rules", _open_game_rules, "游戏规则"),
     ("common/autonomous_states", _open_autonomous_states, "自治状态"),
     ("common/country_tag_aliases", _open_country_tag_aliases, "国家别名"),
+    ("common/bookmarks", _open_bookmarks, "剧本"),
 )
 
 
