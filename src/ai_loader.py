@@ -630,6 +630,34 @@ def load_state_categories2(mod_path="", hoi4_path=""):
     return _cached("state_categories2", mod_path, hoi4_path, loader)
 
 
+def parse_resources(content):
+    """解析 resources/*.txt：每个顶层块 = 一个资源定义（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_resources2(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/resources"):
+            for rid, r in parse_resources(_read(fp)).items():
+                r["file"] = fp
+                r["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[rid] = r
+        return out
+    return _cached("resources2", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
