@@ -602,6 +602,34 @@ def load_unit_tags(mod_path="", hoi4_path=""):
     return _cached("unit_tags", mod_path, hoi4_path, loader)
 
 
+def parse_state_categories(content):
+    """解析 state_category/*.txt：每个顶层块 = 一个州类别（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_state_categories2(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/state_category"):
+            for cid, c in parse_state_categories(_read(fp)).items():
+                c["file"] = fp
+                c["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[cid] = c
+        return out
+    return _cached("state_categories2", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
