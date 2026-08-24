@@ -854,6 +854,34 @@ def load_wargoals(mod_path="", hoi4_path=""):
     return _cached("wargoals", mod_path, hoi4_path, loader)
 
 
+def parse_difficulty_settings(content):
+    """解析 difficulty_settings/*.txt：每个顶层块 = 一个难度档。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_difficulty_settings(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/difficulty_settings"):
+            for did, d in parse_difficulty_settings(_read(fp)).items():
+                d["file"] = fp
+                d["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[did] = d
+        return out
+    return _cached("difficulty_settings", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

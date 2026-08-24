@@ -310,6 +310,17 @@ def _open_wargoals(ctx):
         parent=ctx.parent)
 
 
+def _open_difficulty_settings(ctx):
+    from difficulty_settings_editor_dialog import (
+        open_difficulty_settings_editor)
+    open_difficulty_settings_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -341,6 +352,7 @@ ROUTES = (
     ("common/strategic_locations", _open_strategic_locations, "战略要地"),
     ("common/opinion_modifiers", _open_opinion_modifiers, "观点修正"),
     ("common/wargoals", _open_wargoals, "战争目标"),
+    ("common/difficulty_settings", _open_difficulty_settings, "难度设置"),
 )
 
 
