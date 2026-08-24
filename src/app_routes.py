@@ -178,6 +178,16 @@ def _open_ai_personalities(ctx):
         parent=ctx.parent)
 
 
+def _open_mio_ai_weights(ctx):
+    from ai_mio_weights_editor_dialog import open_mio_ai_weights_editor
+    open_mio_ai_weights_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -196,6 +206,7 @@ ROUTES = (
     ("common/ai_focuses", _open_ai_focus, "AI 科研权重"),
     ("common/ai_attitudes", _open_ai_attitudes, "AI 态度"),
     ("common/ai_personalities", _open_ai_personalities, "AI 人格"),
+    ("common/mio_ai_weights", _open_mio_ai_weights, "MIO AI 权重"),
 )
 
 

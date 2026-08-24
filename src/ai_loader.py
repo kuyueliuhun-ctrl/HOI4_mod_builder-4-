@@ -490,6 +490,34 @@ def load_ai_personalities(mod_path="", hoi4_path=""):
     return _cached("ai_personalities", mod_path, hoi4_path, loader)
 
 
+def parse_mio_ai_weights(content):
+    """解析 mio_ai_weights/*.txt：每个顶层块 = 一个 MIO 权重（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_mio_ai_weights(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/mio_ai_weights"):
+            for wid, w in parse_mio_ai_weights(_read(fp)).items():
+                w["file"] = fp
+                w["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[wid] = w
+        return out
+    return _cached("mio_ai_weights", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
