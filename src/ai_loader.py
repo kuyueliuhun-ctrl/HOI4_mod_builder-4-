@@ -742,6 +742,34 @@ def load_scripted_localisation(mod_path="", hoi4_path=""):
     return _cached("scripted_localisation", mod_path, hoi4_path, loader)
 
 
+def parse_technology_sharing(content):
+    """解析 technology_sharing/*.txt：每个顶层块 = 一个科技共享组。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_technology_sharing(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/technology_sharing"):
+            for tid, t in parse_technology_sharing(_read(fp)).items():
+                t["file"] = fp
+                t["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[tid] = t
+        return out
+    return _cached("technology_sharing", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

@@ -269,6 +269,16 @@ def _open_scripted_localisation(ctx):
         parent=ctx.parent)
 
 
+def _open_technology_sharing(ctx):
+    from technology_sharing_editor_dialog import open_technology_sharing_editor
+    open_technology_sharing_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -296,6 +306,7 @@ ROUTES = (
     ("common/equipment_groups", _open_equipment_groups, "装备组"),
     ("common/script_constants", _open_script_constants, "脚本常量"),
     ("common/scripted_localisation", _open_scripted_localisation, "脚本化本地化"),
+    ("common/technology_sharing", _open_technology_sharing, "科技共享"),
 )
 
 
