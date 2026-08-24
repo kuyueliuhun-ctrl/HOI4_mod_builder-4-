@@ -574,6 +574,34 @@ def load_special_projects(mod_path="", hoi4_path=""):
     return _cached("special_projects", mod_path, hoi4_path, loader)
 
 
+def parse_unit_tags(content):
+    """解析 unit_tags/*.txt：每个顶层块 = 一个部队标签（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_unit_tags(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/unit_tags"):
+            for uid, u in parse_unit_tags(_read(fp)).items():
+                u["file"] = fp
+                u["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[uid] = u
+        return out
+    return _cached("unit_tags", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

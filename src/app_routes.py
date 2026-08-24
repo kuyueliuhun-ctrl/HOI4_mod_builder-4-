@@ -208,6 +208,16 @@ def _open_special_project(ctx):
         parent=ctx.parent)
 
 
+def _open_unit_tags(ctx):
+    from unit_tags_editor_dialog import open_unit_tags_editor
+    open_unit_tags_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -229,6 +239,7 @@ ROUTES = (
     ("common/mio_ai_weights", _open_mio_ai_weights, "MIO AI 权重"),
     ("common/ai_peace", _open_ai_peace, "AI 和平"),
     ("common/special_projects", _open_special_project, "特殊计划"),
+    ("common/unit_tags", _open_unit_tags, "部队标签"),
 )
 
 
