@@ -462,6 +462,34 @@ def load_ai_attitudes(mod_path="", hoi4_path=""):
     return _cached("ai_attitudes", mod_path, hoi4_path, loader)
 
 
+def parse_ai_personalities(content):
+    """解析 ai_personalities/*.txt：每个顶层块 = 一个 AI 人格（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_ai_personalities(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/ai_personalities"):
+            for pid, p in parse_ai_personalities(_read(fp)).items():
+                p["file"] = fp
+                p["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[pid] = p
+        return out
+    return _cached("ai_personalities", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

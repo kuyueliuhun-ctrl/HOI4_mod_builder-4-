@@ -1119,3 +1119,38 @@ class AiAttitudesEditorTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AiPersonalitiesEditorTest(unittest.TestCase):
+    """AI 人格：loader 与编辑器冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def test_parse_and_editor(self):
+        from ai_loader import _AI_CACHE, load_ai_personalities
+        from ai_personalities_editor_dialog import AiPersonalitiesEditorDialog
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aipers_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_personalities"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_personalities", "GER.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("GER_AGGRESSIVE = {\n"
+                    "\twar_support = high\n"
+                    "\trisk_tolerance = 0.8\n"
+                    "}\n")
+        personalities = load_ai_personalities(mod, "")
+        self.assertIn("GER_AGGRESSIVE", personalities)
+        dlg = AiPersonalitiesEditorDialog(personalities, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.tab.sidebar.list.count(), 1)
+        dlg.close()
+
+
+if __name__ == "__main__":
+    unittest.main()
