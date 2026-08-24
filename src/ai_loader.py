@@ -938,6 +938,34 @@ def load_autonomous_states(mod_path="", hoi4_path=""):
     return _cached("autonomous_states", mod_path, hoi4_path, loader)
 
 
+def parse_country_tag_aliases(content):
+    """解析 country_tag_aliases/*.txt：每个顶层块 = 一个国家别名。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_country_tag_aliases(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/country_tag_aliases"):
+            for aid, a in parse_country_tag_aliases(_read(fp)).items():
+                a["file"] = fp
+                a["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[aid] = a
+        return out
+    return _cached("country_tag_aliases", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
