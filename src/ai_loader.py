@@ -1076,6 +1076,24 @@ def _make_top_block_loader(folder, cache_key):
     "common/frontend", "frontend")
 
 
+(parse_medals, load_medals) = _make_top_block_loader(
+    "common/medals", "medals")
+(parse_ribbons, load_ribbons) = _make_top_block_loader(
+    "common/ribbons", "ribbons")
+(parse_unit_medals, load_unit_medals) = _make_top_block_loader(
+    "common/unit_medals", "unit_medals")
+(parse_raids, load_raids) = _make_top_block_loader(
+    "common/raids", "raids")
+(parse_timed_activities, load_timed_activities) = _make_top_block_loader(
+    "common/timed_activities", "timed_activities")
+(parse_intelligence, load_intelligence) = _make_top_block_loader(
+    "common/intelligence", "intelligence")
+(parse_generation, load_generation) = _make_top_block_loader(
+    "common/generation", "generation")
+(parse_operation_phases, load_operation_phases) = _make_top_block_loader(
+    "common/operation_phases", "operation_phases")
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

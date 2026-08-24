@@ -453,6 +453,86 @@ def _open_frontend(ctx):
         parent=ctx.parent)
 
 
+def _open_medals(ctx):
+    from medals_editor_dialog import open_medals_editor
+    open_medals_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_ribbons(ctx):
+    from ribbons_editor_dialog import open_ribbons_editor
+    open_ribbons_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_unit_medals(ctx):
+    from unit_medals_editor_dialog import open_unit_medals_editor
+    open_unit_medals_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_raids(ctx):
+    from raids_editor_dialog import open_raids_editor
+    open_raids_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_timed_activities(ctx):
+    from timed_activities_editor_dialog import open_timed_activities_editor
+    open_timed_activities_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_intelligence(ctx):
+    from intelligence_editor_dialog import open_intelligence_editor
+    open_intelligence_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_generation(ctx):
+    from generation_editor_dialog import open_generation_editor
+    open_generation_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_operation_phases(ctx):
+    from operation_phases_editor_dialog import open_operation_phases_editor
+    open_operation_phases_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -498,6 +578,14 @@ ROUTES = (
     ("common/collections", _open_collections, "集合"),
     ("common/mtth", _open_mtth, "MTTH"),
     ("common/frontend", _open_frontend, "主界面"),
+    ("common/medals", _open_medals, "奖章"),
+    ("common/ribbons", _open_ribbons, "缎带"),
+    ("common/unit_medals", _open_unit_medals, "部队勋章"),
+    ("common/raids", _open_raids, "突袭"),
+    ("common/timed_activities", _open_timed_activities, "限时活动"),
+    ("common/intelligence", _open_intelligence, "情报"),
+    ("common/generation", _open_generation, "生成"),
+    ("common/operation_phases", _open_operation_phases, "行动阶段"),
 )
 
 
