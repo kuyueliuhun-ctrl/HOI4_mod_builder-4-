@@ -1094,6 +1094,20 @@ def _make_top_block_loader(folder, cache_key):
     "common/operation_phases", "operation_phases")
 
 
+(parse_map_modes, load_map_modes) = _make_top_block_loader(
+    "common/map_modes", "map_modes")
+(parse_operation_tokens, load_operation_tokens) = _make_top_block_loader(
+    "common/operation_tokens", "operation_tokens")
+(parse_scripted_diplomatic_actions, load_scripted_diplomatic_actions) = _make_top_block_loader(
+    "common/scripted_diplomatic_actions", "scripted_diplomatic_actions")
+(parse_scorers, load_scorers) = _make_top_block_loader(
+    "common/scorers", "scorers")
+(parse_modifier_definitions, load_modifier_definitions) = _make_top_block_loader(
+    "common/modifier_definitions", "modifier_definitions")
+(parse_technology_tags, load_technology_tags) = _make_top_block_loader(
+    "common/technology_tags", "technology_tags")
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

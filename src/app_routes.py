@@ -533,6 +533,66 @@ def _open_operation_phases(ctx):
         parent=ctx.parent)
 
 
+def _open_map_modes(ctx):
+    from map_modes_editor_dialog import open_map_modes_editor
+    open_map_modes_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_operation_tokens(ctx):
+    from operation_tokens_editor_dialog import open_operation_tokens_editor
+    open_operation_tokens_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_scripted_diplomatic_actions(ctx):
+    from scripted_diplomatic_actions_editor_dialog import open_scripted_diplomatic_actions_editor
+    open_scripted_diplomatic_actions_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_scorers(ctx):
+    from scorers_editor_dialog import open_scorers_editor
+    open_scorers_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_modifier_definitions(ctx):
+    from modifier_definitions_editor_dialog import open_modifier_definitions_editor
+    open_modifier_definitions_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_technology_tags(ctx):
+    from technology_tags_editor_dialog import open_technology_tags_editor
+    open_technology_tags_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -586,6 +646,12 @@ ROUTES = (
     ("common/intelligence", _open_intelligence, "情报"),
     ("common/generation", _open_generation, "生成"),
     ("common/operation_phases", _open_operation_phases, "行动阶段"),
+    ("common/map_modes", _open_map_modes, "地图模式"),
+    ("common/operation_tokens", _open_operation_tokens, "行动令牌"),
+    ("common/scripted_diplomatic_actions", _open_scripted_diplomatic_actions, "脚本化外交行动"),
+    ("common/scorers", _open_scorers, "计分器"),
+    ("common/modifier_definitions", _open_modifier_definitions, "修正量定义"),
+    ("common/technology_tags", _open_technology_tags, "科技标签"),
 )
 
 
