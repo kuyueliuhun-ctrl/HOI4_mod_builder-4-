@@ -372,6 +372,87 @@ def _open_modifiers(ctx):
         parent=ctx.parent)
 
 
+
+def _open_occupation_laws(ctx):
+    from occupation_laws_editor_dialog import open_occupation_laws_editor
+    open_occupation_laws_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_resistance_activity(ctx):
+    from resistance_activity_editor_dialog import open_resistance_activity_editor
+    open_resistance_activity_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_peace_conference(ctx):
+    from peace_conference_editor_dialog import open_peace_conference_editor
+    open_peace_conference_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_abilities(ctx):
+    from abilities_editor_dialog import open_abilities_editor
+    open_abilities_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_aces(ctx):
+    from aces_editor_dialog import open_aces_editor
+    open_aces_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_collections(ctx):
+    from collections_editor_dialog import open_collections_editor
+    open_collections_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_mtth(ctx):
+    from mtth_editor_dialog import open_mtth_editor
+    open_mtth_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_frontend(ctx):
+    from frontend_editor_dialog import open_frontend_editor
+    open_frontend_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -409,6 +490,14 @@ ROUTES = (
     ("common/country_tag_aliases", _open_country_tag_aliases, "国家别名"),
     ("common/bookmarks", _open_bookmarks, "剧本"),
     ("common/modifiers", _open_modifiers, "修正类型"),
+    ("common/occupation_laws", _open_occupation_laws, "占领法"),
+    ("common/resistance_activity", _open_resistance_activity, "抵抗活动"),
+    ("common/peace_conference", _open_peace_conference, "和会"),
+    ("common/abilities", _open_abilities, "特种能力"),
+    ("common/aces", _open_aces, "王牌"),
+    ("common/collections", _open_collections, "集合"),
+    ("common/mtth", _open_mtth, "MTTH"),
+    ("common/frontend", _open_frontend, "主界面"),
 )
 
 

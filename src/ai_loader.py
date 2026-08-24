@@ -1022,6 +1022,60 @@ def load_modifiers(mod_path="", hoi4_path=""):
     return _cached("modifiers", mod_path, hoi4_path, loader)
 
 
+# ---------- 通用顶层块 loader 工厂（B2/B3 铺开） ----------
+
+
+def _make_top_block_loader(folder, cache_key):
+    """生成 (parse, load) 对：common/<folder> 下每个顶层块 = 标量字段集。"""
+
+    def _parse(content):
+        out = {}
+        for key, depth, start, end in _block_ranges(content):
+            if depth != 0:
+                continue
+            bt = content[start:end]
+            f = _fields(bt)
+            f["id"] = key
+            f["raw"] = bt
+            out[key] = f
+        return out
+
+    def _load(mod_path="", hoi4_path=""):
+        def loader():
+            out = {}
+            for fp in _scan_files(mod_path, hoi4_path, folder):
+                for eid, e in _parse(_read(fp)).items():
+                    e["file"] = fp
+                    e["rel"] = os.path.relpath(
+                        fp, hoi4_path or mod_path or os.path.dirname(fp)
+                    ).replace("\\", "/")
+                    out[eid] = e
+            return out
+        return _cached(cache_key, mod_path, hoi4_path, loader)
+
+    _parse.__name__ = "parse_" + cache_key
+    _load.__name__ = "load_" + cache_key
+    return _parse, _load
+
+
+(parse_occupation_laws, load_occupation_laws) = _make_top_block_loader(
+    "common/occupation_laws", "occupation_laws")
+(parse_resistance_activity, load_resistance_activity) = _make_top_block_loader(
+    "common/resistance_activity", "resistance_activity")
+(parse_peace_conference, load_peace_conference) = _make_top_block_loader(
+    "common/peace_conference", "peace_conference")
+(parse_abilities, load_abilities) = _make_top_block_loader(
+    "common/abilities", "abilities")
+(parse_aces, load_aces) = _make_top_block_loader(
+    "common/aces", "aces")
+(parse_collections, load_collections) = _make_top_block_loader(
+    "common/collections", "collections")
+(parse_mtth, load_mtth) = _make_top_block_loader(
+    "common/mtth", "mtth")
+(parse_frontend, load_frontend) = _make_top_block_loader(
+    "common/frontend", "frontend")
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
