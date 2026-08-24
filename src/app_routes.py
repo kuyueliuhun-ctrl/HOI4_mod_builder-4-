@@ -321,6 +321,16 @@ def _open_difficulty_settings(ctx):
         parent=ctx.parent)
 
 
+def _open_game_rules(ctx):
+    from game_rules_editor_dialog import open_game_rules_editor
+    open_game_rules_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -353,6 +363,7 @@ ROUTES = (
     ("common/opinion_modifiers", _open_opinion_modifiers, "观点修正"),
     ("common/wargoals", _open_wargoals, "战争目标"),
     ("common/difficulty_settings", _open_difficulty_settings, "难度设置"),
+    ("common/game_rules", _open_game_rules, "游戏规则"),
 )
 
 
