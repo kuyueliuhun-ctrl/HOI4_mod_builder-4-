@@ -910,6 +910,34 @@ def load_game_rules(mod_path="", hoi4_path=""):
     return _cached("game_rules", mod_path, hoi4_path, loader)
 
 
+def parse_autonomous_states(content):
+    """解析 autonomous_states/*.txt：每个顶层块 = 一个自治状态。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_autonomous_states(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/autonomous_states"):
+            for aid, a in parse_autonomous_states(_read(fp)).items():
+                a["file"] = fp
+                a["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[aid] = a
+        return out
+    return _cached("autonomous_states", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
