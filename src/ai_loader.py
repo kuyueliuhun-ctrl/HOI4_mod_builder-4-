@@ -432,6 +432,36 @@ def load_ai_focuses(mod_path="", hoi4_path=""):
     return _cached("ai_focuses", mod_path, hoi4_path, loader)
 
 
+# ---------- AI 态度 ----------
+
+def parse_ai_attitudes(content):
+    """解析 ai_attitudes/*.txt，返回 {id: {flag: value, ...}}。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_ai_attitudes(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/ai_attitudes"):
+            for aid, a in parse_ai_attitudes(_read(fp)).items():
+                a["file"] = fp
+                a["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[aid] = a
+        return out
+    return _cached("ai_attitudes", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

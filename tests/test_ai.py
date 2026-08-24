@@ -1078,3 +1078,44 @@ class AiUiCommonTest(unittest.TestCase):
         sb.close()
 
 
+
+
+class AiAttitudesEditorTest(unittest.TestCase):
+    """AI 态度：loader 与编辑器冒烟。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _make_env(self):
+        from ai_loader import _AI_CACHE
+        _AI_CACHE.clear()
+        mod = _mkdtemp("dsh_aiatt_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "ai_attitudes"), exist_ok=True)
+        path = os.path.join(mod, "common", "ai_attitudes", "GER.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("GER = {\n"
+                    "\tuse_military_force = yes\n"
+                    "\tjoin_faction = no\n"
+                    "}\n")
+        return mod, path
+
+    def test_parse_and_editor(self):
+        from ai_loader import load_ai_attitudes
+        from ai_attitudes_editor_dialog import AiAttitudesEditorDialog
+        mod, path = self._make_env()
+        attitudes = load_ai_attitudes(mod, "")
+        self.assertIn("GER", attitudes)
+        self.assertEqual(attitudes["GER"].get("use_military_force"), "yes")
+        dlg = AiAttitudesEditorDialog(attitudes, mod, "")
+        dlg.show()
+        self.app.processEvents()
+        self.assertEqual(dlg.tab.sidebar.list.count(), 1)
+        dlg.close()
+
+
+if __name__ == "__main__":
+    unittest.main()

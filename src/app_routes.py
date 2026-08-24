@@ -158,6 +158,16 @@ def _open_ai_focus(ctx):
         parent=ctx.parent)
 
 
+def _open_ai_attitudes(ctx):
+    from ai_attitudes_editor_dialog import open_ai_attitudes_editor
+    open_ai_attitudes_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 # 路由表：按顺序匹配，命中即返回（不继续 fallback）。
 # 元组：(路径子串, 打开函数, 说明)
 ROUTES = (
@@ -174,6 +184,7 @@ ROUTES = (
     ("common/ai_equipment", _open_ai_equipment, "AI 装备"),
     ("common/ai_areas", _open_ai_area, "AI 区域"),
     ("common/ai_focuses", _open_ai_focus, "AI 科研权重"),
+    ("common/ai_attitudes", _open_ai_attitudes, "AI 态度"),
 )
 
 
