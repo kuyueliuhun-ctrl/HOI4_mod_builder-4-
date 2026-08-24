@@ -546,6 +546,34 @@ def load_ai_peace(mod_path="", hoi4_path=""):
     return _cached("ai_peace", mod_path, hoi4_path, loader)
 
 
+def parse_special_projects(content):
+    """解析 special_projects/*.txt：每个顶层块 = 一个特殊项目（标量字段集）。"""
+    out = {}
+    for key, depth, start, end in _block_ranges(content):
+        if depth != 0:
+            continue
+        bt = content[start:end]
+        f = _fields(bt)
+        f["id"] = key
+        f["raw"] = bt
+        out[key] = f
+    return out
+
+
+def load_special_projects(mod_path="", hoi4_path=""):
+    def loader():
+        out = {}
+        for fp in _scan_files(mod_path, hoi4_path, "common/special_projects"):
+            for pid, p in parse_special_projects(_read(fp)).items():
+                p["file"] = fp
+                p["rel"] = os.path.relpath(
+                    fp, hoi4_path or mod_path or os.path.dirname(fp)
+                ).replace("\\", "/")
+                out[pid] = p
+        return out
+    return _cached("special_projects", mod_path, hoi4_path, loader)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):
