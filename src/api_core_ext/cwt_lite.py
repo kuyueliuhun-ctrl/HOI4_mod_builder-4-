@@ -46,7 +46,20 @@ class CwtLiteMixin:
         file_issues = []
         dirs = ["common/national_focus", "common/ideas", "common/decisions",
                 "events", "history/states", "common/ideologies",
-                "history/units"]
+                "history/units",
+                # B3 批三① 扩充：覆盖 33 类型目录
+                "common/characters", "common/technologies", "common/buildings",
+                "common/modifiers", "common/opinion_modifiers",
+                "common/wargoals", "common/operations", "common/on_actions",
+                "map/strategicregions", "map/supplyareas",
+                "common/occupation_laws", "common/difficulty_settings",
+                "common/game_rules", "common/autonomous_states",
+                "common/dynamic_modifiers", "common/bookmarks",
+                "common/intelligence_agencies", "common/scripted_effects",
+                "common/scripted_triggers", "common/scripted_localisation",
+                "common/countries", "history/countries",
+                "common/state_category", "common/terrain", "common/resources",
+                "common/units"]
         for rel_dir in dirs:
             base = os.path.join(self.mod_path, *rel_dir.split("/"))
             if not os.path.isdir(base):

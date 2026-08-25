@@ -296,6 +296,23 @@ class CwtLiteCoreTest(unittest.TestCase):
         self.assertGreaterEqual(r["counts"]["files"], 1)
         self.assertIn("CWT-lite", r["note"])
 
+    def test_validate_project_scans_new_dirs(self):
+        """validate_hoi4_project 覆盖 33 类型目录（含 common/units）。"""
+        mod = _mkdtemp("cwt_scan_")
+        d = os.path.join(mod, "common", "national_focus")
+        os.makedirs(d)
+        with open(os.path.join(d, "ger.txt"), "w", encoding="utf-8") as f:
+            f.write("focus_tree = {\n\tfocus = {\n\t\tid = a\n\t\tx = 1\n\t}\n}\n")
+        u = os.path.join(mod, "common", "units")
+        os.makedirs(u)
+        with open(os.path.join(u, "infantry.txt"), "w", encoding="utf-8") as f:
+            f.write("sub_units = {\n\tinfantry = {\n\t\tsprite = infantry\n"
+                    "\t\tpriority = 1\n\t\tactive = yes\n\t}\n}\n")
+        core = _make_core(mod)
+        r = core.validate_hoi4_project({"max_files": 100})
+        self.assertGreaterEqual(r["counts"]["files"], 2)
+        self.assertEqual(r["counts"]["red"], 0)
+
     def test_validate_content_bad(self):
         core = _make_core(self._mod_with_focus())
         r = core.validate_hoi4_file({
