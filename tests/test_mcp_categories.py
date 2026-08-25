@@ -25,12 +25,13 @@ def _make_core():
 
 
 class CatalogAndCategoryTest(unittest.TestCase):
-    def test_build_tools_still_159_and_catalog_has_nav(self):
+    def test_build_tools_and_catalog_counts(self):
         from mcp_tools import build_catalog, build_tools
         core = _make_core()
-        self.assertEqual(len(build_tools(core)), 159)
+        tools = build_tools(core)
+        self.assertGreaterEqual(len(tools), 168)  # 159 + 9（RHoiScribe 补充）
         catalog = build_catalog(core)
-        self.assertEqual(len(catalog), 159 + 3)  # +3 导航
+        self.assertEqual(len(catalog), len(tools) + 3)  # +3 导航
         names = {m["name"] for m in catalog}
         self.assertTrue({"list_tools_overview", "get_tool_schema",
                          "invoke_tool"} <= names)

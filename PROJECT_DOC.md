@@ -194,7 +194,7 @@ hearts_of_iron_builder/
 | 内容生成器 | `content_generator_dialog.py`、`*_gen.py`、`mod_creator.py` | country/ideas/ideology/character/general/focus/事件生成器；新建 mod 工程骨架 | ✅ |
 | 撤销 | `undo_mgr.py`（81）、`write_utils.py`（114） | 文件写入撤销（画布 Ctrl+Z / 工具菜单）；原子写核心 | ✅ |
 | HTTP API | `api_server.py`（929）+ `api_core_ext/`（9 个域 Mixin） | `ApiCore` 唯一操作核心；仅绑定 127.0.0.1 + Bearer token；`/api/mcp/<tool>` 同源桥 | ✅ |
-| MCP | `mcp_server.py`（190）、`mcp_tools.py`（651） | stdio 传输；159 个工具注册表（唯一权威来源）；优先官方 mcp 库，回退内置零依赖实现 | ✅ |
+| MCP | `mcp_server.py`（190）、`mcp_tools.py`（651） | stdio 传输；168 个工具注册表（159 + B3 补 9，唯一权威来源）；A+B 分类暴露；优先官方 mcp 库，回退内置零依赖实现 | ✅ |
 | MIO 编辑器 | `mio_loader.py`（333）、`mio_editor_dialog.py`（473）、`mio_trait_tree.py`、`mio_policy_editor_dialog.py` | 特质树画布 + 特质增删改 + 图标选择 + 方针编辑器（552 MIO/22 方针） | ✅ |
 | 学说编辑器 | `doctrine_loader.py`（298）、`doctrine_editor_dialog.py`（491） | 主要学说→4 次要学说面板（陆军精通度+满级奖励徽章）→子学说编辑 | ✅ |
 | Mod 描述编辑器 | `mod_descriptor_loader.py`、`mod_descriptor_editor_dialog.py` | .mod 表单式编辑：name/version/supported_version/remote_file_id/path/archive/picture/tags/replace_path/dependencies + 其他条目原样保留；原子写 | ✅ |
@@ -269,11 +269,11 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 - **唯一操作核心 `ApiCore`**（`src/api_server.py`）：HTTP / MCP / CLI 共用，禁止另起实现；
   组合 9 个域 Mixin（`src/api_core_ext/`：states / designers / ai_content / bop / loc_tools /
   health / media / generators / project）。
-- **工具注册表 `src/mcp_tools.py::build_tools(core)`** 返回 **159 个工具**（基础 17 + 域扩展 142），
+- **工具注册表 `src/mcp_tools.py::build_tools(core)`** 返回 **168 个工具**（基础 17 + 域扩展 142 + B3 补 9），
   MCP 与 HTTP 同源，是工具清单的唯一权威来源。
 - **A+B 分类方案（2026-08-25）**：MCP `tools/list` 默认只暴露核心精选（22）+ 导航工具（`list_tools_overview` /
   `get_tool_schema` / `invoke_tool`，共 25）；`MCP_EXPOSE_CATEGORIES` 白名单可追加分类或 `all` 全开；
-  全部 159 个工具仍可经 `invoke_tool` 调用；HTTP 同步 `/api/mcp/overview` / `/api/mcp/schema` / `/api/mcp/invoke_tool`。
+  全部 168 个工具仍可经 `invoke_tool` 调用；HTTP 同步 `/api/mcp/overview` / `/api/mcp/schema` / `/api/mcp/invoke_tool`。
   详见 `docs/MCP与接口规格.md §6A`。
 - **方法约定**：dict 进 dict 出；数据层 lazy import；写方法清缓存 + `_notify_change(path)`；
   错误抛 `ValueError` → HTTP 400 / MCP 错误文本。
@@ -294,7 +294,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 | `/api/icon_manifest` | 图标库 manifest |
 | `/api/overlay_report` | 覆盖规则与增量报告 |
 | `/api/tools/format_pdx` / `vp_loc` / `error_log` / `register_icon_batch` | 独立工具 |
-| `/api/mcp/<tool_name>` | **同源桥**：可直调全部 159 个 MCP 工具 |
+| `/api/mcp/<tool_name>` | **同源桥**：可直调全部 168 个 MCP 工具 |
 | `/api/help` | 端点帮助 |
 
 **MCP**（stdio 传输；优先官方 mcp 库，未装回退内置零依赖实现）：工具域分布
@@ -379,7 +379,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 | 模板库 | **67** 个系统模板类别 + 顶层 `country_history`/`focus_tree`，共 **1,105** 个 `.txt` |
 | 词条库 `translations/` | **10** 个 json + README（QIUQI 主库 1887 + modcode 939 + diplo 11 + tfr 50 + tno 210 ≈ 3,097 条，另有效果/修正/自定义词条） |
 | 单位标牌库 | **448** 个标牌（`unit_counter_library/icon` + `manifest.json`） |
-| MCP 工具 | **159** 个（基础 17 + 域扩展 142，`src/mcp_tools.py` 唯一权威） |
+| MCP 工具 | **168** 个（基础 17 + 域扩展 142 + B3 补 9，`src/mcp_tools.py` 唯一权威） |
 | HTTP API | `ApiCore` + `api_core_ext/` **9** 个域 Mixin |
 | 文档 `docs/` | **12** 个 `.md` |
 | 架构分层 | 四层分离已落地，`check_layer_deps.py` 门禁通过 |
@@ -453,7 +453,7 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 - 2026-08-16 BOP 专用工作台、AI 内容编辑器（专用 UI + 固定侧边栏）；
 - 2026-08-18 四层分离重构落地（focus_view 拆分、工作台收敛、门禁上线）、src/ 包化；
 - 2026-08-19 本地化+QIUQI 词条库+实体资源工作台+RHoiScribe 吸收；
-- 2026-08-22 MCP 142 新工具（共 159）、UI 修复与建构批次 1~9；
+- 2026-08-22 MCP 142 新工具（共 159）、UI 修复与建构批次 1~9；2026-08-25 B3 补 9 个 RHoiScribe 缺失能力（共 168）；
 - 2026-08-23 Python 3.14 升级完成；整合计划 B2/B3 批量铺开；
 - 2026-08-25 学说编辑器落地（最近一次提交）；
 - 2026-08-25（本轮）与 hoi4modutilities 对比盘点：登记预览/模拟/校验/DLC 等 9 类缺口候选（§2.5）；
@@ -659,7 +659,7 @@ python tools/check_file_budget.py        # 行数预算
 | 参考文档 | 用途 |
 | --- | --- |
 | `docs/游戏文件内容详解.md` | 19 章 HOI4 机制/文件结构详解（国策/事件/地图/AI/本地化等），改专用 UI 前必查 |
-| `docs/MCP与接口规格.md` | 159 个 MCP 工具、HTTP 端点、ApiCore 约定、dry_run 清单、Claude Code 配置 |
+| `docs/MCP与接口规格.md` | 168 个 MCP 工具、HTTP 端点、ApiCore 约定、dry_run 清单、Claude Code 配置 |
 | `docs/整合计划.md` | **唯一执行总表**：B0~B3 进度、P1~P4 待办、需用户拍板清单 |
 | `docs/科技图标存储规则.md` | 科技图标三层结构与实测数据（GFX 命名/尺寸/DDS 格式） |
 | `docs/识图提示词.md` | 外部多模态模型识图规格（主 AI 不能读图时的协作流程） |
@@ -699,7 +699,7 @@ python tools/check_file_budget.py        # 行数预算
 | 内容类别 | 说明 | 去向 |
 | --- | --- | --- |
 | **游戏机制详解** | HOI4 文件结构/字段语义/加载回退/机制坑（19 章），是"游戏知识"而非"本程序功能" | 保留 `docs/游戏文件内容详解.md` |
-| **接口规格** | 159 个 MCP 工具逐条、HTTP 端点、dry_run 清单；本文档 §2.4 只有摘要 | 保留 `docs/MCP与接口规格.md` |
+| **接口规格** | 168 个 MCP 工具逐条、HTTP 端点、dry_run 清单；本文档 §2.4 只有摘要 | 保留 `docs/MCP与接口规格.md` |
 | **外部知识/工具映射** | QIUQI 词条矩阵、RHoiScribe 补全、识图提示词、学说识图、科技图标存储规则 | 保留对应 5 个 docs 文件 |
 | **开发流程 How-to** | 新增内容类型四件套、模板/词条维护、测试/验证流程 | 见下方附录 E |
 | **外部参考来源** | Scenario Forge（分析对象/方法论来源）、SF-ATS 验证契约模板 | 见下方附录 F |
@@ -781,7 +781,7 @@ python tools/check_file_budget.py        # 行数预算
 | 编码规范/常见错误/引用完整性/唯一标识 | `docs/游戏文件内容详解.md` 十八；RHoiScribe 补全 A-2、A-3 |
 | 常用 trigger/effect/modifier 速查 | `docs/游戏文件内容详解.md` 十九 |
 | HTTP API 端点 | `docs/MCP与接口规格.md` §3 |
-| MCP 159 工具清单/域分布 | `docs/MCP与接口规格.md` §4 |
+| MCP 168 工具清单/域分布 | `docs/MCP与接口规格.md` §4 |
 | dry_run 工具清单 | `docs/MCP与接口规格.md` §5 |
 | MCP Server 运行与配置 | `docs/MCP与接口规格.md` §6、§7 |
 | 外部多模态模型识图（界面/地图/设计器验收、UI 还原） | `docs/识图提示词.md` 一~八 |
@@ -818,7 +818,7 @@ python tools/check_file_budget.py        # 行数预算
 | 十九 | 速查附录（trigger/effect/modifier） |
 
 **`docs/MCP与接口规格.md`**：1 总览 → 2 架构与文件 → 3 HTTP API 端点 →
-4 MCP 工具清单（159，域0~域10）→ 5 dry_run 工具清单 → 6 Server 运行 → 7 验证。
+4 MCP 工具清单（168，域0~域10 + B3 补 9）→ 5 dry_run 工具清单 → 6 Server 运行 → 6A A+B 分类 → 6B B3 补充 → 7 验证。
 
 **`docs/科技图标存储规则.md`**：一 结论摘要 → 二 三层结构详解 → 三 图片规格（实测）→
 四 五个 mod 实测证据 → 五 配图标操作清单 → 六 编辑器实现现状。
@@ -875,3 +875,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.30 | 08-25 | P2：地图数据层色阶 | `map_data_layers`（VP/资源色阶、补给区分色、铁路折线、河流近似线）+ 地图编辑数据层下拉 + `set_overlay_pos`；真实数据全层冒烟通过 |
 | 6.31 | 08-25 | P2：世界地图整图导出 | 地图编辑「导出整图」：按图层 z 序合成完整世界地图 PNG（5632×2048）；`_compose_full_map`/`_export_full_map` |
 | 6.32 | 08-25 | B3：MCP A+B 分类方案 | 核心精选 22+3 导航默认暴露、`MCP_EXPOSE_CATEGORIES` 白名单、`invoke_tool` 调全部 159、HTTP overview/schema/invoke_tool |
+| 6.33 | 08-25 | B3：补充 RHoiScribe 缺失能力（9 工具） | `project_symbols` 符号/定义/引用/补全、`discover_environment`、`explain_diagnostic`、`edit_script_file`、`validate/repair_project`；工具总数 159→168 |

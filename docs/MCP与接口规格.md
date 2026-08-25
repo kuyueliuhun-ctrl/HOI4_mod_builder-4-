@@ -7,8 +7,8 @@
 ## 1. 总览
 
 - **统一核心**：`src/api_server.py` 中的 `ApiCore` 是 HTTP / MCP / CLI 共用的操作核心，禁止另起实现。
-- **MCP 工具数**：159 个 = 原有 17 + 域扩展 142。
-- **HTTP**：仅绑定 `127.0.0.1`，Bearer token 鉴权；提供 `/api/mcp/<tool_name>` 同源桥，可直接调用全部 159 个 MCP 工具。
+- **MCP 工具数**：168 个 = 原有 17 + 域扩展 142 + B3 补充 9（RHoiScribe 缺失能力）。
+- **HTTP**：仅绑定 `127.0.0.1`，Bearer token 鉴权；提供 `/api/mcp/<tool_name>` 同源桥，可直接调用全部 168 个 MCP 工具。
 - **MCP**：优先官方 `mcp` 库（FastMCP）；未安装时回退内置零依赖实现（newline JSON-RPC 2.0，协议 `2024-11-05`）。
 - **写回纪律**：所有写路径经 `write_utils.atomic_write_text`（或已有数据层内部原子写），禁止在接口层直接 `open(path, "w")`；本地化 yml 走 `utf-8-sig`。
 - **原版保护**：涉及游戏本体文件的写操作先 `ensure_file_in_mod` 复制到 mod，绝不直写游戏本体。
@@ -20,7 +20,7 @@
 | --- | --- |
 | `src/api_server.py` | `ApiCore` 组合 9 个域 Mixin；HTTP 服务 `_ApiHTTPServer` / `ApiHandler`；`/api/mcp/<tool_name>` 通用桥 |
 | `src/api_core_ext/` | 按域扩展 Mixin：`states` / `designers` / `ai_content` / `bop` / `loc_tools` / `health` / `media` / `generators` / `project` |
-| `src/mcp_tools.py` | `build_tools(core)` 返回 159 个工具注册表（schema + handler）；MCP / HTTP 共用 |
+| `src/mcp_tools.py` | `build_tools(core)` 返回 168 个工具注册表（schema + handler）；MCP / HTTP 共用 |
 | `src/mcp_server.py` | FastMCP 与内置零依赖 MCP Server 入口，消费 `build_tools` |
 | `src/mod_creator.py` | 新建 mod 骨架生成纯函数（从 ModCreatorDialog 下沉） |
 | `src/bop_loader.py` | BOP 查询与 `set_bop_initial_value` / `set_bop_fields` 保存下沉 |
@@ -54,7 +54,7 @@ API 方法约定：dict 进 dict 出；数据层 lazy import；写方法结束�
 
 鉴权：`Authorization: Bearer <token>`。错误映射：`ValueError` → 400；其他异常 → 500。
 
-## 4. MCP 工具清单（159）
+## 4. MCP 工具清单（168）
 
 参数格式：`名字* 类型`，`*` 表示必填。类型取值：`string` / `integer` / `number` / `boolean` / `array<...>` / `object`。
 
@@ -318,23 +318,41 @@ Claude Code 配置示例：
 
 ## 6A. A+B 分类方案（2026-08-25）
 
-为降低 159 个工具对 agent 的上下文/发现性负担，MCP 采用「核心精选 + 分类白名单 + 导航工具」渐进暴露：
+为降低 168 个工具对 agent 的上下文/发现性负担，MCP 采用「核心精选 + 分类白名单 + 导航工具」渐进暴露：
 
 - **默认 `tools/list` 只返回核心精选（约 22 个）+ 3 个导航工具**（共 25 个），其余工具不在列表中出现。
 - **3 个导航工具**（`mcp_server._build_nav_tools`，均可在 `tools/call` 直接调用）：
   - `list_tools_overview`：全部工具的分类目录（含未直接暴露的），返回 `{total, categories:{分类:[工具名...]}}`；
   - `get_tool_schema(name)`：任意工具的参数 schema + 分类；
-  - `invoke_tool(name, args)`：按名调用任意工具（**全部 159 个隐藏工具都可经它调用**，能力不丢）。
+  - `invoke_tool(name, args)`：按名调用任意工具（**全部 168 个隐藏工具都可经它调用**，能力不丢）。
 - **分类白名单**：环境变量 `MCP_EXPOSE_CATEGORIES`（逗号分隔分类名，或 `all` 全开）会让 `tools/list` 额外包含对应分类的全部工具。分类：`core / states-map / designers / oob / ai / bop / localisation / health / media / generators / project / nav`。
 - **HTTP 同步端点**：
   - `GET /api/mcp/overview` → 分类目录；
   - `GET /api/mcp/schema?name=<tool>` → 工具 schema；
   - `POST /api/mcp/invoke_tool` `{name, args}` → 调用任意工具。
-- 元数据来源：`mcp_tools.tool_category` / `CORE_TOOLS` / `NAV_TOOLS_META` / `build_catalog`（159 + 3 导航 = 162 条）。
+- 元数据来源：`mcp_tools.tool_category` / `CORE_TOOLS` / `NAV_TOOLS_META` / `build_catalog`（168 + 3 导航 = 171 条）。
 - 说明：MCP 客户端只能看到 `tools/list` 返回的工具，因此隐藏工具在客户端侧非「一等公民」（须经 `invoke_tool`）；官方 mcp 库路径同样只注册暴露集。
+
+## 6B. B3 补充：RHoiScribe 缺失能力（2026-08-25，9 个新工具）
+
+| 工具 | 分类 | 说明 |
+| --- | --- | --- |
+| `discover_environment` | core | 环境发现：游戏/mod/可执行/文档/error_log/版本 |
+| `list_workspace_symbols` | symbols | 工作区符号（块键 + id/name/token 值），可按关键词过滤 |
+| `find_definition` | symbols | 符号定义定位（优先块键，其次 id/name 值） |
+| `find_references` | symbols | 符号引用定位（按词出现，排除定义行） |
+| `suggest_completion` | symbols | 前缀补全候选（块键优先） |
+| `explain_diagnostic` | health | 诊断解释：子系统归类 + 可能原因 + 修复建议 |
+| `edit_script_file` | core | 块级编辑已有脚本：replace/insert + dry_run diff + 括号平衡检查 |
+| `validate_project` | health | 红黄绿项目校验（validate + health_check 分桶） |
+| `repair_project` | health | 项目修复：移除 .txt/.gfx/.gui 的 UTF-8 BOM（dry_run/apply） |
+
+实现：`src/project_symbols.py`（纯扫描/定义/引用/补全）+ `src/api_server.py::ApiCore` 新增方法 +
+`src/mcp_tools.py::_rho_tools` 注册。仍未落地的高成本项（CWT 类型规则校验 / 调试启动 / GUI-GFX 程序化生成 /
+Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知识映射与补全.md`。
 
 ## 7. 验证
 
-- `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥159、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
+- `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
 - `tools/verify_contracts.py`：语法编译、ruff、契约测试（402）、写入纪律、四层依赖、行数预算、UI 缺口探针全部通过。
 - 工具清单与本文档不同步时，以 `src/mcp_tools.py::build_tools()` 为唯一权威。

@@ -214,4 +214,25 @@ sound = { name = my_sound file = "sound/my_sound.wav" }
 
 ---
 
+## 五、MCP 工具落地（2026-08-25，对照 RHoiScribe 缺失能力）
+
+**已实现（9 个，注册进 `mcp_tools`，MCP 工具总数 168）：**
+
+| 工具 | 实现 | 对应 RHoiScribe 能力 |
+| --- | --- | --- |
+| `discover_environment` | `ApiCore.discover_environment` | `discover_hoi4_environment` |
+| `list_workspace_symbols` / `find_definition` / `find_references` / `suggest_completion` | `src/project_symbols.py` | CWT 语言智能（符号/定义/引用/补全）的文本级替代 |
+| `explain_diagnostic` | `ApiCore.explain_diagnostic`（复用 `error_log.classify_by_subsystem`） | `explain_hoi4_diagnostic` |
+| `edit_script_file` | `ApiCore.edit_script_file`（replace/insert + dry_run diff + 括号平衡） | `edit_hoi4_script_file` |
+| `validate_project` / `repair_project` | `ApiCore.validate_project`（红黄绿）/ `repair_project`（BOM 规范化） | `validate_hoi4_project` / `repair_hoi4_project` |
+
+**登记为待拍板的高成本项（未在本批实现）：**
+- CWT 类型规则校验（真实 PDX 语法/类型 schema，需引入 cwtools 式规则库或自研 schema）；
+- 调试启动（`validate_hoi4_debug_run` / 拉起 `hoi4.exe -debug_mode`，涉启动游戏进程，需拍板安全边界）；
+- GUI/GFX 程序化资产生成（`generate_gui_gfx_asset`，资产来源/质量需拍板）；
+- Agent 偏好持久化与工具审计日志（`*_agent_preference` / `query_tool_logs`）；
+- MCP `resources` / `prompts` 协议能力（当前仅 `tools`）。
+
+---
+
 > 本文档为 RHoiScribe 知识库在项目内的镜像补全；遇到 RHoiScribe 与游戏实际不符时，以游戏本体文件与 `游戏文件内容详解.md` 为准。

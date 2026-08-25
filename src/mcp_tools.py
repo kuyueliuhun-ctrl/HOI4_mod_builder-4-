@@ -630,6 +630,74 @@ def _domain10_tools(core):
     ]
 
 
+def _rho_tools(core):
+    """B3：补充 RHoiScribe 缺失能力（环境发现/符号/定义/引用/补全/解释/块级编辑/红黄绿/修复）。"""
+    return [
+        _tool("discover_environment",
+              "环境发现：游戏/mod/可执行/文档/error_log/版本（尽力而为）",
+              _obj({}),
+              lambda args: core.discover_environment()),
+        _tool("list_workspace_symbols",
+              "列出工作区符号（块键 + id/name/token 值），可按关键词过滤",
+              _obj({
+                  "keyword": _str("关键词过滤（可选）"),
+                  "limit": _int("最多返回数，默认 500"),
+                  "include_game": _bool("是否并入游戏目录（默认否）"),
+              }),
+              lambda args: core.list_workspace_symbols(args)),
+        _tool("find_definition",
+              "查找符号定义（优先块键，其次 id/name 值）",
+              _obj({
+                  "name": _str("符号名"),
+                  "include_game": _bool("是否并入游戏目录（默认否）"),
+              }, ["name"]),
+              lambda args: core.find_definition(args)),
+        _tool("find_references",
+              "查找符号引用（按词出现，排除定义行）",
+              _obj({
+                  "name": _str("符号名"),
+                  "limit": _int("最多返回数，默认 200"),
+                  "include_game": _bool("是否并入游戏目录（默认否）"),
+              }, ["name"]),
+              lambda args: core.find_references(args)),
+        _tool("suggest_completion",
+              "按前缀给出补全候选（块键优先）",
+              _obj({
+                  "prefix": _str("前缀"),
+                  "limit": _int("最多返回数，默认 50"),
+                  "include_game": _bool("是否并入游戏目录（默认否）"),
+              }, ["prefix"]),
+              lambda args: core.suggest_completion(args)),
+        _tool("explain_diagnostic",
+              "解释一条诊断/错误：子系统归类 + 可能原因 + 修复建议",
+              _obj({"diagnostic": _str("诊断文本或错误信息")},
+                   ["diagnostic"]),
+              lambda args: core.explain_diagnostic(args)),
+        _tool("edit_script_file",
+              "块级编辑已有脚本文件：replace 替换命名块内部文本 / insert 在 after_id 后插入新块；dry_run 返回 diff，括号不平衡禁止写入",
+              _obj({
+                  "path": _str("mod 内相对文件路径"),
+                  "block": _str("块名（replace 必填；insert 也用于描述）"),
+                  "action": _str("replace / insert，默认 replace"),
+                  "content": _str("新块内部文本（replace）或完整新块文本（insert）"),
+                  "after_id": _str("insert 时插到该顶层块之后（可选）"),
+                  "dry_run": _bool("默认 true 只预览，不写盘"),
+              }, ["path"]),
+              lambda args: core.edit_script_file(args)),
+        _tool("validate_project",
+              "红黄绿项目校验：封装 validate + health_check，按严重度分桶",
+              _obj({"max_issues": _int("健康检查最多问题数，默认 500")}),
+              lambda args: core.validate_project(args)),
+        _tool("repair_project",
+              "项目修复：移除 .txt/.gfx/.gui 的 UTF-8 BOM；dry_run 返回清单",
+              _obj({
+                  "dry_run": _bool("默认 true 只预览"),
+                  "bom": _bool("是否做 BOM 规范化，默认 true"),
+              }),
+              lambda args: core.repair_project(args)),
+    ]
+
+
 # ══════════════════════════════════════════════════════════════
 # 汇总
 # ══════════════════════════════════════════════════════════════
@@ -648,6 +716,7 @@ def build_tools(core):
     tools.extend(_domain8_tools(core))
     tools.extend(_domain9_tools(core))
     tools.extend(_domain10_tools(core))
+    tools.extend(_rho_tools(core))
     return tools
 
 
@@ -655,7 +724,7 @@ def build_tools(core):
 # A+B 分类方案（B3）：核心集 / 分类 / 目录元数据
 # ══════════════════════════════════════════════════════════════
 
-# 默认直接暴露给 MCP 客户端的核心精选集（约 22 个，跨域高价值）
+# 默认直接暴露给 MCP 客户端的核心精选集（约 28 个，跨域高价值）
 CORE_TOOLS = frozenset({
     "get_status", "list_types", "list_entities", "get_entity",
     "create_entity", "update_entity", "delete_entity",
@@ -664,6 +733,8 @@ CORE_TOOLS = frozenset({
     "list_sub_units", "search_equipment",
     "validate_mod", "health_check", "get_overlay_report",
     "list_countries", "create_mod", "list_templates", "get_template",
+    "discover_environment", "list_workspace_symbols", "find_definition",
+    "edit_script_file", "validate_project", "explain_diagnostic",
 })
 
 # 工具名 → 分类（未列出的回退 core）
@@ -723,6 +794,11 @@ _CATEGORY_TOOLS = {
         "validate_mod", "health_check", "scan_duplicate_ids",
         "undo_last_write", "get_undo_status", "coverage_report",
         "analyze_error_log", "get_overlay_report",
+        "explain_diagnostic", "validate_project", "repair_project",
+    ],
+    "symbols": [
+        "list_workspace_symbols", "find_definition", "find_references",
+        "suggest_completion",
     ],
     "media": [
         "upload_tech_icon", "get_icon_manifest", "register_icon_batch",
