@@ -707,6 +707,17 @@ def _rho_tools(core):
                   "approved": _bool("写盘需显式 true"),
               }, ["name"]),
               lambda args: core.generate_gui_gfx_asset(args)),
+        _tool("validate_hoi4_debug_run",
+              "调试启动预检：游戏/可执行/文档/launcher/error_log；launch=true+approved=true 才拉起 hoi4.exe -debug_mode",
+              _obj({
+                  "launch": _bool("是否尝试启动（默认 false）"),
+                  "approved": _bool("显式批准启动（默认 false）"),
+              }),
+              lambda args: core.validate_hoi4_debug_run(args)),
+        _tool("launch_hoi4_debug_with_rchadow",
+              "Rchadow 调试启动（外部工具未内置，返回引导）",
+              _obj({}),
+              lambda args: core.launch_hoi4_debug_with_rchadow(args)),
     ]
 
 
@@ -847,6 +858,9 @@ _CATEGORY_TOOLS = {
     "agent": [
         "list_agent_preferences", "set_agent_preference",
         "delete_agent_preference", "query_tool_logs", "export_tool_logs",
+    ],
+    "debug": [
+        "validate_hoi4_debug_run", "launch_hoi4_debug_with_rchadow",
     ],
     "media": [
         "upload_tech_icon", "get_icon_manifest", "register_icon_batch",

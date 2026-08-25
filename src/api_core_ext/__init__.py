@@ -10,6 +10,7 @@ from .generators import GeneratorsMixin
 from .project import ProjectMixin
 from .rho import RhoGapMixin
 from .agent import AgentMixin
+from .debug import DebugMixin
 
 __all__ = [
     "StatesMixin",
@@ -23,4 +24,5 @@ __all__ = [
     "ProjectMixin",
     "RhoGapMixin",
     "AgentMixin",
+    "DebugMixin",
 ]

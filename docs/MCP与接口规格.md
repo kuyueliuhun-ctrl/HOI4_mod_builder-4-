@@ -378,6 +378,13 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
 - 产物：PIL 程序化渐变圆角 PNG → `.gfx` spriteType 注册（复用 `ensure_sprite_in_gfx_file`）→ 可选 `.gui` 骨架。
 - 分类：`media`；工具总数 **174**（159 + 9 + 5 + 1）。
 
+## 6F. 调试启动（2026-08-25，批二④）
+
+- 工具：`validate_hoi4_debug_run`（预检游戏/可执行/文档/launcher/error_log；`launch=true`+`approved=true` 才拉起
+  `hoi4.exe -gdpr-compliant -debug_mode`）、`launch_hoi4_debug_with_rchadow`（Rchadow 外部工具未内置，返回引导）。
+- 安全边界：**显式 approved=true 才启动进程**；预检非全绿不启动。
+- 分类：`debug`；工具总数 **176**（159 + 9 + 5 + 1 + 2）。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
