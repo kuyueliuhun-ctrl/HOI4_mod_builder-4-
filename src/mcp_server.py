@@ -174,7 +174,8 @@ class BuiltinMcpServer:
                 "jsonrpc": "2.0", "id": msg_id,
                 "result": {
                     "protocolVersion": PROTOCOL_VERSION,
-                    "capabilities": {"tools": {}},
+                    "capabilities": {"tools": {}, "resources": {},
+                                     "prompts": {}},
                     "serverInfo": {"name": "hoi4-mod-builder",
                                    "version": "1.0.0"},
                 },
@@ -183,6 +184,50 @@ class BuiltinMcpServer:
             return
         elif method == "ping":
             self._send({"jsonrpc": "2.0", "id": msg_id, "result": {}})
+        elif method == "resources/list":
+            self._send({
+                "jsonrpc": "2.0", "id": msg_id,
+                "result": {"resources": self._list_resources()},
+            })
+        elif method == "resources/read":
+            uri = params.get("uri", "")
+            try:
+                content = self._read_resource(uri)
+                self._send({
+                    "jsonrpc": "2.0", "id": msg_id,
+                    "result": {"contents": [
+                        {"uri": uri, "mimeType": "application/json",
+                         "text": content}]},
+                })
+            except ValueError as e:
+                self._send({
+                    "jsonrpc": "2.0", "id": msg_id,
+                    "result": {"content": [
+                        {"type": "text", "text": f"资源错误: {e}"}],
+                        "isError": True},
+                })
+        elif method == "prompts/list":
+            self._send({
+                "jsonrpc": "2.0", "id": msg_id,
+                "result": {"prompts": self._list_prompts()},
+            })
+        elif method == "prompts/get":
+            name = params.get("name", "")
+            args = params.get("arguments") or {}
+            try:
+                prompt = self._get_prompt(name, args)
+                self._send({
+                    "jsonrpc": "2.0", "id": msg_id,
+                    "result": {"description": prompt["description"],
+                               "messages": prompt["messages"]},
+                })
+            except ValueError as e:
+                self._send({
+                    "jsonrpc": "2.0", "id": msg_id,
+                    "result": {"content": [
+                        {"type": "text", "text": f"提示错误: {e}"}],
+                        "isError": True},
+                })
         elif method == "tools/list":
             self._send({
                 "jsonrpc": "2.0", "id": msg_id,
@@ -224,6 +269,108 @@ class BuiltinMcpServer:
                     {"type": "text", "text": f"未知方法: {method}"}],
                     "isError": True},
             })
+
+    # ---------- resources / prompts（B3 批二 ①） ----------
+
+    @staticmethod
+    def _json_text(obj):
+        return json.dumps(obj, ensure_ascii=False, indent=2)
+
+    def _list_resources(self):
+        return [
+            {"uri": "hoi4://status", "name": "运行状态",
+             "description": "当前 mod/game 路径与内容类型数量",
+             "mimeType": "application/json"},
+            {"uri": "hoi4://tools/overview", "name": "工具分类目录",
+             "description": "全部 MCP 工具按分类概览",
+             "mimeType": "application/json"},
+            {"uri": "hoi4://terms", "name": "词条库",
+             "description": "本地化/词条库（可带 ?keyword= 过滤）",
+             "mimeType": "application/json"},
+            {"uri": "hoi4://docs/rhoiscribe", "name": "RHoiScribe 补全文档",
+             "description": "RHoiScribe 缺失能力落地与待拍板清单",
+             "mimeType": "text/markdown"},
+            {"uri": "hoi4://docs/mcp", "name": "MCP 接口规格",
+             "description": "MCP 工具清单与 A+B 分类说明",
+             "mimeType": "text/markdown"},
+        ]
+
+    def _read_resource(self, uri):
+        from project_paths import PROJECT_ROOT
+        if uri == "hoi4://status":
+            return self._json_text(self.core.status())
+        if uri == "hoi4://tools/overview":
+            cats = {}
+            for t in self.all_tools:
+                cats.setdefault(tool_category(t["name"]), []).append(t["name"])
+            return self._json_text({
+                "total": len(self.all_tools),
+                "categories": {k: sorted(v) for k, v in sorted(cats.items())}})
+        if uri == "hoi4://terms" or uri.startswith("hoi4://terms?"):
+            from urllib.parse import parse_qs
+            qs = uri.split("?", 1)[1] if "?" in uri else ""
+            q = parse_qs(qs)
+            keyword = q.get("keyword", [""])[0] if q else ""
+            try:
+                return self._json_text(
+                    self.core.search_terms({"keyword": keyword, "limit": 50}))
+            except Exception as e:
+                return self._json_text({"error": str(e)})
+        if uri in ("hoi4://docs/rhoiscribe", "hoi4://docs/mcp"):
+            fname = ("RHoiScribe知识映射与补全.md"
+                     if "rhoiscribe" in uri else "MCP与接口规格.md")
+            fp = os.path.join(PROJECT_ROOT, "docs", fname)
+            try:
+                with open(fp, "r", encoding="utf-8") as f:
+                    return f.read()
+            except Exception as e:
+                return str(e)
+        raise ValueError("未知资源: %s" % uri)
+
+    def _list_prompts(self):
+        return [
+            {"name": "create_focus", "description": "新建一个国策（含可用性/前置/奖励骨架）",
+             "arguments": [
+                 {"name": "country", "description": "国家 TAG", "required": False},
+                 {"name": "focus_id", "description": "国策 id", "required": False}]},
+            {"name": "validate_project", "description": "跑红黄绿校验并按结果修复",
+             "arguments": []},
+            {"name": "fix_error_log", "description": "分析 error.log 并解释/修复",
+             "arguments": [
+                 {"name": "path", "description": "error.log 相对 mod 路径",
+                  "required": False}]},
+            {"name": "edit_script_block", "description": "块级编辑一个脚本文件",
+             "arguments": [
+                 {"name": "path", "description": "文件相对路径", "required": False},
+                 {"name": "block", "description": "块名", "required": False}]},
+        ]
+
+    def _get_prompt(self, name, args):
+        country = str(args.get("country", ""))
+        focus_id = str(args.get("focus_id", ""))
+        path = str(args.get("path", ""))
+        block = str(args.get("block", ""))
+        if name == "create_focus":
+            text = ("用 create_focus_project 或 create_entity 新建国策；country=%s focus=%s。"
+                    "先 list_tools_overview 找可用工具，再按需补 localisation。"
+                    ) % (country or "<TAG>", focus_id or "<id>")
+        elif name == "validate_project":
+            text = ("1) 调用 validate_project 得到红/黄/绿；2) 红色项（重复 id 等）立即修复；"
+                    "3) 黄色项（引用/本地化缺失）用 find_references/explain_diagnostic 定位修复；"
+                    "4) 修复后重新 validate_project 确认。")
+        elif name == "fix_error_log":
+            text = ("调用 analyze_error_log（path=%s），对每条用 explain_diagnostic 解释并修复；"
+                    "error_log_path 可用 discover_environment 获取。") % (path or "<path>")
+        elif name == "edit_script_block":
+            text = ("用 edit_script_file 编辑 path=%s 的块 %s：先 dry_run=true 看 diff，"
+                    "确认后 dry_run=false 落盘。") % (path or "<path>", block or "<block>")
+        else:
+            raise ValueError("未知提示: %s" % name)
+        return {
+            "description": "工作流提示：%s" % name,
+            "messages": [{"role": "user",
+                          "content": {"type": "text", "text": text}}],
+        }
 
     def run(self):
         for line in sys.stdin:

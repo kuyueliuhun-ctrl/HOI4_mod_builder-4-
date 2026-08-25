@@ -129,5 +129,33 @@ class ExposureTest(unittest.TestCase):
         self.assertEqual(meta["category"], "bop")
 
 
+class ResourcesAndPromptsTest(unittest.TestCase):
+    def test_resources_and_prompts(self):
+        from mcp_server import BuiltinMcpServer
+        core = _make_core()
+        server = BuiltinMcpServer(core)
+        resources = server._list_resources()
+        self.assertGreaterEqual(len(resources), 4)
+        uris = {r["uri"] for r in resources}
+        self.assertIn("hoi4://status", uris)
+        self.assertIn("hoi4://tools/overview", uris)
+        self.assertIn("hoi4://terms", uris)
+        text = server._read_resource("hoi4://status")
+        self.assertIn("mod_path", text)
+        overview = server._read_resource("hoi4://tools/overview")
+        self.assertIn("categories", overview)
+        prompts = server._list_prompts()
+        self.assertGreaterEqual(len(prompts), 3)
+        names = {p["name"] for p in prompts}
+        self.assertIn("validate_project", names)
+        p = server._get_prompt("validate_project", {})
+        self.assertIn("messages", p)
+        self.assertEqual(p["messages"][0]["role"], "user")
+        with self.assertRaises(ValueError):
+            server._read_resource("hoi4://nope")
+        with self.assertRaises(ValueError):
+            server._get_prompt("nope", {})
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -275,6 +275,8 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
   `get_tool_schema` / `invoke_tool`，共 25）；`MCP_EXPOSE_CATEGORIES` 白名单可追加分类或 `all` 全开；
   全部 168 个工具仍可经 `invoke_tool` 调用；HTTP 同步 `/api/mcp/overview` / `/api/mcp/schema` / `/api/mcp/invoke_tool`。
   详见 `docs/MCP与接口规格.md §6A`。
+- **MCP resources/prompts（2026-08-25）**：内置 server 新增 `resources/list|read`（status / tools/overview / terms / 文档）
+  与 `prompts/list|get`（create_focus / validate_project / fix_error_log / edit_script_block）；见 `docs/MCP与接口规格.md §6C`。
 - **方法约定**：dict 进 dict 出；数据层 lazy import；写方法清缓存 + `_notify_change(path)`；
   错误抛 `ValueError` → HTTP 400 / MCP 错误文本。
 
@@ -876,3 +878,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.31 | 08-25 | P2：世界地图整图导出 | 地图编辑「导出整图」：按图层 z 序合成完整世界地图 PNG（5632×2048）；`_compose_full_map`/`_export_full_map` |
 | 6.32 | 08-25 | B3：MCP A+B 分类方案 | 核心精选 22+3 导航默认暴露、`MCP_EXPOSE_CATEGORIES` 白名单、`invoke_tool` 调全部 159、HTTP overview/schema/invoke_tool |
 | 6.33 | 08-25 | B3：补充 RHoiScribe 缺失能力（9 工具） | `project_symbols` 符号/定义/引用/补全、`discover_environment`、`explain_diagnostic`、`edit_script_file`、`validate/repair_project`；工具总数 159→168 |
+| 6.34 | 08-25 | B3 批二①：MCP resources/prompts | 内置 server resources/list|read + prompts/list|get（status/overview/terms/文档 + 4 工作流提示） |

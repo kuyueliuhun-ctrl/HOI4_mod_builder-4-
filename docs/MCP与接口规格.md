@@ -351,6 +351,18 @@ Claude Code 配置示例：
 `src/mcp_tools.py::_rho_tools` 注册。仍未落地的高成本项（CWT 类型规则校验 / 调试启动 / GUI-GFX 程序化生成 /
 Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知识映射与补全.md`。
 
+## 6C. MCP resources / prompts（2026-08-25，批二 ①）
+
+内置零依赖 MCP 实现新增 `resources` 与 `prompts` 能力（`initialize` capabilities 声明）：
+
+- **resources**（`resources/list` / `resources/read`）：
+  - `hoi4://status` 运行状态；`hoi4://tools/overview` 工具分类目录；
+  - `hoi4://terms?keyword=…` 词条库检索；`hoi4://docs/rhoiscribe`、`hoi4://docs/mcp` 项目文档。
+- **prompts**（`prompts/list` / `prompts/get`）：`create_focus` / `validate_project` / `fix_error_log` / `edit_script_block`
+  工作流提示（返回 user 角色消息文本）。
+- 实现位置：`src/mcp_server.py::BuiltinMcpServer`；官方 mcp 库路径暂只注册 tools（若后续 mcp 库可用再补
+  resources/prompts 动态注册）。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
