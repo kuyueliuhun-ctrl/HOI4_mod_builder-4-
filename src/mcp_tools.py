@@ -698,6 +698,37 @@ def _rho_tools(core):
     ]
 
 
+def _agent_tools(core):
+    """B3 批二②：Agent 偏好持久化 + 工具审计日志。"""
+    return [
+        _tool("list_agent_preferences",
+              "列出 Agent 持久化偏好（.runtime/agent_prefs.json）",
+              _obj({}),
+              lambda args: core.list_agent_preferences(args)),
+        _tool("set_agent_preference",
+              "设置 Agent 偏好（跨会话持久化）",
+              _obj({"key": _str("偏好键"), "value": _str("偏好值（任意 JSON 值）")},
+                   ["key"]),
+              lambda args: core.set_agent_preference(args)),
+        _tool("delete_agent_preference",
+              "删除 Agent 偏好",
+              _obj({"key": _str("偏好键")}, ["key"]),
+              lambda args: core.delete_agent_preference(args)),
+        _tool("query_tool_logs",
+              "查询工具调用审计日志（可按正则过滤）",
+              _obj({
+                  "regex": _str("正则过滤（可选）"),
+                  "limit": _int("最多返回数，默认 200"),
+              }),
+              lambda args: core.query_tool_logs(args)),
+        _tool("export_tool_logs",
+              "导出工具调用审计日志为文本（可按正则过滤）",
+              _obj({"regex": _str("正则过滤（可选）"),
+                    "limit": _int("最多返回数，默认 200")}),
+              lambda args: core.export_tool_logs(args)),
+    ]
+
+
 # ══════════════════════════════════════════════════════════════
 # 汇总
 # ══════════════════════════════════════════════════════════════
@@ -717,6 +748,7 @@ def build_tools(core):
     tools.extend(_domain9_tools(core))
     tools.extend(_domain10_tools(core))
     tools.extend(_rho_tools(core))
+    tools.extend(_agent_tools(core))
     return tools
 
 
@@ -799,6 +831,10 @@ _CATEGORY_TOOLS = {
     "symbols": [
         "list_workspace_symbols", "find_definition", "find_references",
         "suggest_completion",
+    ],
+    "agent": [
+        "list_agent_preferences", "set_agent_preference",
+        "delete_agent_preference", "query_tool_logs", "export_tool_logs",
     ],
     "media": [
         "upload_tech_icon", "get_icon_manifest", "register_icon_batch",

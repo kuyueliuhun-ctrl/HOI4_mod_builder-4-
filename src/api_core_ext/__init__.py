@@ -9,6 +9,7 @@ from .media import MediaMixin
 from .generators import GeneratorsMixin
 from .project import ProjectMixin
 from .rho import RhoGapMixin
+from .agent import AgentMixin
 
 __all__ = [
     "StatesMixin",
@@ -21,4 +22,5 @@ __all__ = [
     "GeneratorsMixin",
     "ProjectMixin",
     "RhoGapMixin",
+    "AgentMixin",
 ]

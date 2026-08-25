@@ -363,6 +363,14 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
 - 实现位置：`src/mcp_server.py::BuiltinMcpServer`；官方 mcp 库路径暂只注册 tools（若后续 mcp 库可用再补
   resources/prompts 动态注册）。
 
+## 6D. Agent 偏好持久化 + 工具审计日志（2026-08-25，批二②）
+
+- 偏好：`list_agent_preferences` / `set_agent_preference` / `delete_agent_preference`
+  （`.runtime/agent_prefs.json`，跨会话持久化）。
+- 审计：`query_tool_logs` / `export_tool_logs`（`.runtime/tool_logs.jsonl`，JSON lines，可按正则过滤）。
+- 埋点：MCP `tools/call`、HTTP `/api/mcp/invoke_tool` 与 `/api/mcp/<tool>` 桥自动记录 `log_tool_call`。
+- 分类：`agent`；工具总数 173（159 + 9 + 5）。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。

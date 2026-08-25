@@ -249,6 +249,7 @@ class BuiltinMcpServer:
                 return
             try:
                 result = tool["_handler"](args)
+                self._log_call(name, args, ok=True)
                 self._send({
                     "jsonrpc": "2.0", "id": msg_id,
                     "result": {"content": [
@@ -256,6 +257,7 @@ class BuiltinMcpServer:
                         "isError": False},
                 })
             except Exception as e:
+                self._log_call(name, args, ok=False)
                 self._send({
                     "jsonrpc": "2.0", "id": msg_id,
                     "result": {"content": [
@@ -271,6 +273,13 @@ class BuiltinMcpServer:
             })
 
     # ---------- resources / prompts（B3 批二 ①） ----------
+
+    def _log_call(self, name, args, ok=True):
+        """工具调用审计埋点（B3 批二②）。"""
+        try:
+            self.core.log_tool_call(name, args, ok=ok)
+        except Exception:
+            pass
 
     @staticmethod
     def _json_text(obj):

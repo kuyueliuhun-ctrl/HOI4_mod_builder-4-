@@ -61,6 +61,7 @@ from api_core_ext import (
     GeneratorsMixin,
     ProjectMixin,
     RhoGapMixin,
+    AgentMixin,
 )
 
 
@@ -89,7 +90,7 @@ def load_settings():
 
 class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
              LocToolsMixin, HealthMixin, MediaMixin, GeneratorsMixin,
-             ProjectMixin, RhoGapMixin):
+             ProjectMixin, RhoGapMixin, AgentMixin):
     """mod 制作操作核心：输入 dict → 输出 dict。"""
 
     def __init__(self, mod_path="", game_path=""):
@@ -835,6 +836,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._send(404, {"ok": False, "error": "未知工具: %s" % name})
                     return
                 result = t["_handler"](args)
+                try:
+                    self.core.log_tool_call(name, args, ok=True)
+                except Exception:
+                    pass
                 self._send(200, result if isinstance(result, dict)
                            else {"ok": True, "result": result})
             elif path.startswith("/api/mcp/") and self.command in ("GET", "POST"):
@@ -849,10 +854,18 @@ class ApiHandler(BaseHTTPRequestHandler):
                     body = q
                 try:
                     result = method(body)
+                    try:
+                        self.core.log_tool_call(tool_name, body, ok=True)
+                    except Exception:
+                        pass
                     self._send(200, result if isinstance(result, dict) else {"ok": True, "result": result})
                 except TypeError:
                     # 兼容无参方法
                     result = method()
+                    try:
+                        self.core.log_tool_call(tool_name, {}, ok=True)
+                    except Exception:
+                        pass
                     self._send(200, result if isinstance(result, dict) else {"ok": True, "result": result})
             else:
                 self._send(404, {"ok": False, "error": f"未知端点: {self.command} {self.path}"})
