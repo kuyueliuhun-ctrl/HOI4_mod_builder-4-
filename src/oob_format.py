@@ -1,6 +1,6 @@
 """算法层：编制/装备展示格式化纯函数（无 Qt 控件）。
 
-四层分离规范见 AGENTS.md §4.9：
+四层分离规范见 PROJECT_DOC.md §1.4：
 - 本模块只做数值/百分比/文本格式化；
 - 不依赖 QWidget、QPainter、connect。
 """

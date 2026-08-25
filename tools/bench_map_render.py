@@ -9,7 +9,7 @@
     python tools/bench_map_render.py
     python tools/bench_map_render.py --mod E:\\mods\\3350890356 --size 1440x900 --rounds 20
 
-参考基线（旧实现，AGENTS.md §6.2/6.3）：
+参考基线（旧实现，docs/历史迭代日志.md §6.2/6.3）：
     30x 平移单帧 3.7~8.5s（边界长线每帧整条描边）；矢量填充 30x 11.7ms/帧。
     本工具输出的是整帧 grab 耗时（含 blit/合成），可直接对比。
 """

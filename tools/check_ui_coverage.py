@@ -2,7 +2,7 @@
 """临时 UI 覆盖检测程序：调用 PDX 解析器查询“未覆盖词条”。
 
 用途：
-  按 AGENTS.md §4.12，检测当前 UI/工作台设计是否覆盖了参考目录中的全部内容。
+  按 PROJECT_DOC.md §4.2，检测当前 UI/工作台设计是否覆盖了参考目录中的全部内容。
   参考目录：
     1. 游戏根目录（settings.json 的 HOI4_path）
     2. mod 目录（settings.json 的 mod_path）

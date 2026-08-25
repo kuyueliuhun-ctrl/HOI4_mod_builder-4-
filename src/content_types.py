@@ -1,6 +1,6 @@
 """算法/数据层：内容类型注册表与图标规则（纯数据，无 Qt 控件）。
 
-四层分离规范见 AGENTS.md §4.9：
+四层分离规范见 PROJECT_DOC.md §1.4：
 - 本模块只保存 CONTENT_TYPES / ICON_RULES / SPECIAL_TYPE_KEYS 等纯数据；
 - 供 workbench（UI）、focus_view（控制器）、api_server 等模块共享；
 - 禁止 import PyQt6 控件类。

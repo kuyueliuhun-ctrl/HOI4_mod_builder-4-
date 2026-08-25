@@ -1,6 +1,6 @@
 """信号槽层（控制器）Mixin：国策/科技/实体画廊的交互编排。
 
-四层分离规范见 AGENTS.md §4.9：
+四层分离规范见 PROJECT_DOC.md §1.4：
 - 本模块只做「接线与编排」：connect、弹窗、调用算法/写文件、刷新 UI/绘图；
 - 绘图细节委托给 focus_render.py；算法细节下沉到 focus_algo.py 或已有数据层；
 - 不直接持有/拼装 UI 控件（UI 搭建留在 FocusView/独立 View 类）。

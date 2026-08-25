@@ -1,6 +1,6 @@
 """UI 层：工具菜单动作构建工厂。
 
-四层分离规范见 AGENTS.md §4.9：
+四层分离规范见 PROJECT_DOC.md §1.4：
 - 本模块只负责「在 QMenu 上创建 QAction」（UI 搭建）；
 - 不连接具体业务槽（信号连接留在 main_window 控制器层）；
 - 返回 dict 供调用方按名称取用动作。

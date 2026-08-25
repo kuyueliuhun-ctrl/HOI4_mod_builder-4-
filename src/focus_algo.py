@@ -1,6 +1,6 @@
 """算法层：国策/科技/实体画廊的纯逻辑（无 Qt 控件、无绘图、无文件编排）。
 
-四层分离规范见 AGENTS.md §4.9：
+四层分离规范见 PROJECT_DOC.md §1.4：
 - 本模块只做解析/序列化、坐标换算、布局/文本构建、块边界计算等纯逻辑；
 - 禁止 import PyQt6 控件类、禁止 QPainter/QGraphicsItem、禁止 connect；
 - 允许使用 QPointF 等纯值类型（若确有需要）与标准库。

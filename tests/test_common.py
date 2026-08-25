@@ -4,7 +4,7 @@
 - get_app(): offscreen QApplication 单例
 - make_temp_mod(tmpdir): 构造最小 mod 目录骨架
 - _send_move(widget, pos, buttons): 手工构造 QMouseEvent 发送移动事件
-  （QTest.mouseMove 在 offscreen 多窗口下不可靠，见 AGENTS §6.3-6）
+  （QTest.mouseMove 在 offscreen 多窗口下不可靠，见 PROJECT_DOC.md §5.4）
 """
 
 from __future__ import annotations
