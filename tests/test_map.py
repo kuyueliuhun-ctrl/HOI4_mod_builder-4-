@@ -617,6 +617,25 @@ class MapEditorDialogSmokeTest(unittest.TestCase):
         dlg.close()
         _STATE_CACHE.clear()
 
+    def test_export_full_map(self):
+        """整图导出：合成 8×8 完整世界地图并保存 PNG。"""
+        from map_editor_dialog import MapEditorDialog
+        from oob_map_editor import _STATE_CACHE
+        mod, game = self._make_env()
+        _STATE_CACHE.clear()
+        dlg = MapEditorDialog(mod_path=mod, game_path=game)
+        dlg.show()
+        self.app.processEvents()
+        pm = dlg._compose_full_map()
+        self.assertIsNotNone(pm)
+        self.assertFalse(pm.isNull())
+        self.assertEqual((pm.width(), pm.height()), (8, 8))
+        out = os.path.join(_mkdtemp("map_export_"), "world.png")
+        self.assertTrue(pm.save(out, "PNG"))
+        self.assertGreater(os.path.getsize(out), 0)
+        dlg.close()
+        _STATE_CACHE.clear()
+
     def test_hover_no_info_update(self):
         """悬停不再刷新右侧信息（只做目标省高亮）。"""
         from map_editor_dialog import MapEditorDialog

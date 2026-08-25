@@ -201,6 +201,7 @@ hearts_of_iron_builder/
 | 意识形态专用编辑器 | `ideologies_editor_dialog.py` + `load_ideologies_detail` + `political_editor_data.py` | 侧栏意识形态列表（15 个真实意识形态）；color/dynamic_faction_names/types/rules/modifiers/faction_modifiers 表单；CRUD；未知标量与子块原样保留 | ✅ |
 | 民族精神（理念）专用编辑器 | `ideas_editor_dialog.py` + `load_ideas_grouped` + `political_editor_data.py` | 按分类分组导航（避免 1.4 万条理念平铺）；块内原始脚本体编辑；分类内新建/复制/改名/删除；原子写 | ✅ |
 | 地图数据层色阶 | `map_data_layers.py` + `map_editor_dialog`（数据层下拉）+ `map_canvas.set_overlay_pos` | 胜利点/资源总量色阶覆盖层、补给区分类着色、铁路折线、河流近似线；真实数据冒烟全过 | ✅ |
+| 世界地图整图导出 | `map_editor_dialog._compose_full_map` / `_export_full_map` | 按画布图层 z 序（国家色/边界/地形/立体感/战区/数据层）合成完整世界地图并保存 PNG（5632×2048） | ✅ |
 | AI 集成 | `ai_assist.py`（154）、`ai_assist_dialog.py` | OpenAI 兼容接口直连（DeepSeek/OpenAI/通义千问等）；提示词助手 | ✅ |
 
 ### 2.2 通用编辑器四件套（B2/B3 批量的核心架构）
@@ -247,7 +248,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 **与 hoi4modutilities 对比发现的新候选缺口（详见 §2.5，需用户拍板是否进入执行）：**
 - 游戏状态模拟引擎（条件/剧本求值）+ 世界地图条件换色 / 国策·科技·MIO 可用性预览；
 - ~~地图数据层（河流/铁路/补给/资源/VP 色阶）~~ ✅（2026-08-25 已落地：`map_data_layers.py` + 地图编辑数据层下拉）与地图 QA 结构校验；
-- 事件树关系图、GUI 预览（.gui 渲染）、DDS/TGA 独立查看、世界地图整图导出、DLC 内容加载。
+- 事件树关系图、GUI 预览（.gui 渲染）、DDS/TGA 独立查看、~~世界地图整图导出~~ ✅（2026-08-25：地图编辑「导出整图」）、DLC 内容加载。
 - 注：其中部分曾列于 P4“系统预览等（暂缓）”，本轮盘点将其转为**明确候选待办**，是否做仍由用户拍板。
 
 **历史遗留 / 可选项（登记在 `docs/历史迭代日志.md` 附录 6.17，以整合计划为准）：**
@@ -455,7 +456,8 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 - 2026-08-25（本轮）B3 P39 闭环：.mod 专用编辑器 + .gui/.gfx 显式通用树路由（见附录 H 6.27）；
 - 2026-08-25（本轮）P2 兵牌图标接标牌库：OOB 地图兵牌与师编制槽位回退 448 标牌库，97% 兵种覆盖（见附录 H 6.28）；
 - 2026-08-25（本轮）P2 民族精神/意识形态专用 UI：意识形态表单编辑器 + 民族精神分类分组编辑器（见附录 H 6.29）；
-- 2026-08-25（本轮）P2 地图数据层色阶：VP/资源/补给区/铁路/河流五类数据覆盖层（见附录 H 6.30）。
+- 2026-08-25（本轮）P2 地图数据层色阶：VP/资源/补给区/铁路/河流五类数据覆盖层（见附录 H 6.30）；
+- 2026-08-25（本轮）P2 世界地图整图导出：地图编辑「导出整图」按图层合成全图 PNG（见附录 H 6.31）。
 
 ---
 
@@ -867,3 +869,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.28 | 08-25 | P2：兵牌图标接标牌库 | `unit_counter_library.find_counter_entry`（兵种→448 标牌，97% 覆盖）+ `unit_counter_icons`（QPixmap/QIcon）；`oob_map_editor`/`division_editor` GFX 失败回退标牌库，消除黑底占位 |
 | 6.29 | 08-25 | P2：民族精神/意识形态专用 UI | `political_editor_data`（子块替换/列表/嵌套整块替换/分类插入）；意识形态表单编辑器（15 意识形态）；民族精神分类分组编辑器（1.4 万条按分类导航 + CRUD） |
 | 6.30 | 08-25 | P2：地图数据层色阶 | `map_data_layers`（VP/资源色阶、补给区分色、铁路折线、河流近似线）+ 地图编辑数据层下拉 + `set_overlay_pos`；真实数据全层冒烟通过 |
+| 6.31 | 08-25 | P2：世界地图整图导出 | 地图编辑「导出整图」：按图层 z 序合成完整世界地图 PNG（5632×2048）；`_compose_full_map`/`_export_full_map` |

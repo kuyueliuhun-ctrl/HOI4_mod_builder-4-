@@ -135,6 +135,10 @@ class MapEditorDialog(QDialog):
         bar.addWidget(self.loc_btn)
         self.fit_btn = QPushButton("⌂ 全景")
         bar.addWidget(self.fit_btn)
+        self.export_btn = QPushButton("📷 导出整图")
+        self.export_btn.setToolTip("把当前图层叠加合成完整世界地图 PNG 导出")
+        self.export_btn.clicked.connect(self._export_full_map)
+        bar.addWidget(self.export_btn)
         layout.addLayout(bar)
 
         # 三栏：左（建筑类型）｜中（画布）｜右（地块信息）
@@ -456,6 +460,92 @@ class MapEditorDialog(QDialog):
         pm = self._rgba_to_pixmap(rgba)
         if pm is not None and not pm.isNull():
             self.canvas.set_overlay_pos("data_layer", pm, x0, y0, z=15)
+
+    # ------------------------------------------------------------ 整图导出
+
+    def _compose_full_map(self):
+        """按当前图层开关合成完整世界地图 QPixmap（与画布 z 序一致）。"""
+        from PyQt6.QtGui import QImage, QPainter, QPixmap
+        from PyQt6.QtCore import QPoint
+
+        base = self.map_data.base_pixmap()
+        if base.isNull():
+            return None
+        w, h = base.width(), base.height()
+        img = QImage(w, h, QImage.Format.Format_RGB32)
+        img.fill(0)
+        painter = QPainter(img)
+        try:
+            painter.drawPixmap(QPoint(0, 0), base)
+            # 与 canvas 叠层一致：country(10) border(11) terrain(12)
+            # hillshade(13) ai_theaters(14) data_layer(15)
+            if self.chk_country.isChecked():
+                try:
+                    by_owner = self.state_data.owner_province_map()
+                    owner_by_pid = {
+                        pid: tag
+                        for tag, pids in by_owner.items()
+                        for pid in pids
+                    }
+                    pm = self.map_data.country_overlay_pixmap(
+                        owner_by_pid, tag_colors=self.country_colors)
+                    if not pm.isNull():
+                        painter.drawPixmap(0, 0, pm)
+                except Exception:
+                    pass
+            if self.chk_border.isChecked():
+                pm = self.map_data.edge_overlay_pixmap()
+                if not pm.isNull():
+                    painter.drawPixmap(0, 0, pm)
+            if self.chk_terrain.isChecked():
+                pm = self.map_data.terrain_pixmap()
+                if pm is not None and not pm.isNull():
+                    painter.drawPixmap(0, 0, pm)
+            if self.chk_hillshade.isChecked():
+                pm = self.map_data.hillshade_pixmap()
+                if pm is not None and not pm.isNull():
+                    painter.drawPixmap(0, 0, pm)
+            if self.chk_ai_theaters.isChecked():
+                pids = self._ai_theater_province_ids()
+                if pids:
+                    pm = self.map_data.theater_outline_pixmap(pids)
+                    if not pm.isNull():
+                        painter.drawPixmap(0, 0, pm)
+            data_item = self.canvas._overlays.get("data_layer")
+            if data_item is not None and not data_item.pixmap().isNull():
+                pm = data_item.pixmap()
+                pos = data_item.pos()
+                painter.drawPixmap(int(pos.x()), int(pos.y()), pm)
+        finally:
+            painter.end()
+        return QPixmap.fromImage(img)
+
+    def _export_full_map(self):
+        """选择路径并导出完整世界地图 PNG。"""
+        from PyQt6.QtWidgets import QFileDialog
+
+        default = os.path.join(
+            os.path.expanduser("~"), "hoi4_world_map.png")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "导出完整世界地图", default, "PNG 图片 (*.png)")
+        if not path:
+            return
+        if not path.lower().endswith(".png"):
+            path += ".png"
+        try:
+            pm = self._compose_full_map()
+            if pm is None or pm.isNull():
+                QMessageBox.information(self, "导出", "底图不可用，无法导出")
+                return
+            if not pm.save(path, "PNG"):
+                raise RuntimeError("保存 PNG 失败")
+        except Exception as e:
+            QMessageBox.critical(self, "导出失败", "导出整图失败：%s" % e)
+            return
+        QMessageBox.information(
+            self, "导出完成",
+            "已导出 %dx%d 完整世界地图：\n%s"
+            % (pm.width(), pm.height(), path))
 
     def _ai_theater_province_ids(self):
         """返回所有 AI 派系战区覆盖的地块 ID 集合。"""
