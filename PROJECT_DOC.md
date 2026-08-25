@@ -271,6 +271,10 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
   health / media / generators / project）。
 - **工具注册表 `src/mcp_tools.py::build_tools(core)`** 返回 **159 个工具**（基础 17 + 域扩展 142），
   MCP 与 HTTP 同源，是工具清单的唯一权威来源。
+- **A+B 分类方案（2026-08-25）**：MCP `tools/list` 默认只暴露核心精选（22）+ 导航工具（`list_tools_overview` /
+  `get_tool_schema` / `invoke_tool`，共 25）；`MCP_EXPOSE_CATEGORIES` 白名单可追加分类或 `all` 全开；
+  全部 159 个工具仍可经 `invoke_tool` 调用；HTTP 同步 `/api/mcp/overview` / `/api/mcp/schema` / `/api/mcp/invoke_tool`。
+  详见 `docs/MCP与接口规格.md §6A`。
 - **方法约定**：dict 进 dict 出；数据层 lazy import；写方法清缓存 + `_notify_change(path)`；
   错误抛 `ValueError` → HTTP 400 / MCP 错误文本。
 
@@ -870,3 +874,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.29 | 08-25 | P2：民族精神/意识形态专用 UI | `political_editor_data`（子块替换/列表/嵌套整块替换/分类插入）；意识形态表单编辑器（15 意识形态）；民族精神分类分组编辑器（1.4 万条按分类导航 + CRUD） |
 | 6.30 | 08-25 | P2：地图数据层色阶 | `map_data_layers`（VP/资源色阶、补给区分色、铁路折线、河流近似线）+ 地图编辑数据层下拉 + `set_overlay_pos`；真实数据全层冒烟通过 |
 | 6.31 | 08-25 | P2：世界地图整图导出 | 地图编辑「导出整图」：按图层 z 序合成完整世界地图 PNG（5632×2048）；`_compose_full_map`/`_export_full_map` |
+| 6.32 | 08-25 | B3：MCP A+B 分类方案 | 核心精选 22+3 导航默认暴露、`MCP_EXPOSE_CATEGORIES` 白名单、`invoke_tool` 调全部 159、HTTP overview/schema/invoke_tool |

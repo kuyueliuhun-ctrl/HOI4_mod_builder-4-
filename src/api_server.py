@@ -804,6 +804,38 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._send(200, self.core.analyze_error_log(self._read_json()))
             elif path == "/api/tools/register_icon_batch" and self.command == "POST":
                 self._send(200, self.core.register_icon_batch(self._read_json()))
+            elif path == "/api/mcp/overview" and self.command == "GET":
+                from mcp_tools import build_catalog
+                cats = {}
+                for meta in build_catalog(self.core):
+                    cats.setdefault(meta["category"], []).append(meta["name"])
+                self._send(200, {
+                    "total": sum(len(v) for v in cats.values()),
+                    "categories": {k: sorted(v) for k, v in sorted(cats.items())},
+                    "note": "未直接暴露的工具请用 invoke_tool 调用；用 /api/mcp/schema?name= 查参数。",
+                })
+            elif path == "/api/mcp/schema" and self.command == "GET":
+                from mcp_tools import build_catalog
+                name = q.get("name", "")
+                meta = next((m for m in build_catalog(self.core)
+                             if m["name"] == name), None)
+                if meta is None:
+                    self._send(404, {"ok": False, "error": "未知工具: %s" % name})
+                else:
+                    self._send(200, meta)
+            elif path == "/api/mcp/invoke_tool" and self.command == "POST":
+                from mcp_tools import build_tools
+                body = self._read_json()
+                name = body.get("name", "")
+                args = body.get("args") or {}
+                t = next((x for x in build_tools(self.core)
+                          if x["name"] == name), None)
+                if t is None:
+                    self._send(404, {"ok": False, "error": "未知工具: %s" % name})
+                    return
+                result = t["_handler"](args)
+                self._send(200, result if isinstance(result, dict)
+                           else {"ok": True, "result": result})
             elif path.startswith("/api/mcp/") and self.command in ("GET", "POST"):
                 tool_name = urllib.parse.unquote(path[len("/api/mcp/"):])
                 method = getattr(self.core, tool_name, None)

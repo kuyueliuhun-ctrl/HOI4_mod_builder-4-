@@ -54,7 +54,88 @@ def _force_utf8_stdio():
 # 工具注册表（HTTP API 与 MCP 共用同一 ApiCore）
 # ══════════════════════════════════════════════════════════════
 
-from mcp_tools import build_tools  # noqa: E402
+from mcp_tools import (  # noqa: E402
+    NAV_TOOLS_META,
+    build_tools,
+    tool_category,
+)
+from mcp_tools import CORE_TOOLS  # noqa: E402
+
+
+# ══════════════════════════════════════════════════════════════
+# A+B 分类方案：核心精选 + 分类白名单 + 导航工具
+# ══════════════════════════════════════════════════════════════
+
+def _schema_obj(properties, required=None):
+    return {"type": "object", "properties": properties,
+            "required": required or []}
+
+
+def _schema_str(desc=""):
+    return {"type": "string", "description": desc}
+
+
+def _schema_obj_type(desc=""):
+    return {"type": "object", "description": desc}
+
+
+def _nav_tool(name, description, schema, handler):
+    return {"name": name, "description": description,
+            "inputSchema": schema, "_handler": handler}
+
+
+def _build_nav_tools(all_tools):
+    """导航工具：概览 / 查 schema / 通用调度（全部工具皆可经 invoke_tool 调用）。"""
+
+    def _overview(_args):
+        cats = {}
+        for t in all_tools:
+            cats.setdefault(tool_category(t["name"]), []).append(t["name"])
+        return {
+            "total": len(all_tools),
+            "categories": {k: sorted(v) for k, v in sorted(cats.items())},
+            "note": "未直接暴露的工具请用 invoke_tool 调用；用 get_tool_schema 查参数。",
+        }
+
+    def _schema(args):
+        name = str(args.get("name", ""))
+        t = next((x for x in all_tools if x["name"] == name), None)
+        if t is None:
+            raise ValueError("未知工具: %s" % name)
+        return {"name": t["name"], "description": t["description"],
+                "inputSchema": t["inputSchema"],
+                "category": tool_category(name)}
+
+    def _invoke(args):
+        name = str(args.get("name", ""))
+        call_args = args.get("args") or {}
+        t = next((x for x in all_tools if x["name"] == name), None)
+        if t is None:
+            raise ValueError("未知工具: %s" % name)
+        return t["_handler"](call_args)
+
+    handlers = {"list_tools_overview": _overview,
+                "get_tool_schema": _schema,
+                "invoke_tool": _invoke}
+    out = []
+    for name, desc, schema in NAV_TOOLS_META:
+        out.append(_nav_tool(name, desc, schema, handlers[name]))
+    return out
+
+
+def _exposed_names(all_tools):
+    """A+B 暴露名单：核心精选 + 导航；MCP_EXPOSE_CATEGORIES 可追加分类或 all。"""
+    names = set(CORE_TOOLS)
+    env = os.environ.get("MCP_EXPOSE_CATEGORIES", "").strip()
+    if env.lower() == "all":
+        names = {t["name"] for t in all_tools}
+    else:
+        cats = {c.strip() for c in env.split(",") if c.strip()}
+        for t in all_tools:
+            if tool_category(t["name"]) in cats:
+                names.add(t["name"])
+    names.update({name for name, _desc, _schema in NAV_TOOLS_META})
+    return names
 
 
 # ══════════════════════════════════════════════════════════════
@@ -71,7 +152,11 @@ class BuiltinMcpServer:
 
     def __init__(self, core):
         self.core = core
-        self.tools = [t for t in build_tools(core)]
+        self.all_tools = [t for t in build_tools(core)]
+        self.all_tools.extend(_build_nav_tools(self.all_tools))
+        self.exposed_names = _exposed_names(self.all_tools)
+        self.tools = [t for t in self.all_tools
+                      if t["name"] in self.exposed_names]
 
     def _send(self, obj):
         sys.stdout.write(json.dumps(obj, ensure_ascii=False) + "\n")
@@ -108,7 +193,7 @@ class BuiltinMcpServer:
         elif method == "tools/call":
             name = params.get("name", "")
             args = params.get("arguments") or {}
-            tool = next((t for t in self.tools if t["name"] == name), None)
+            tool = next((t for t in self.all_tools if t["name"] == name), None)
             if tool is None:
                 self._send({
                     "jsonrpc": "2.0", "id": msg_id,
@@ -155,8 +240,13 @@ class BuiltinMcpServer:
 def run_with_official_lib(core):
     """使用官方 mcp 库（若已安装）。"""
     from mcp.server.fastmcp import FastMCP
+    all_tools = [t for t in build_tools(core)]
+    all_tools.extend(_build_nav_tools(all_tools))
+    exposed_names = _exposed_names(all_tools)
     mcp = FastMCP("hoi4-mod-builder")
-    for t in build_tools(core):
+    for t in all_tools:
+        if t["name"] not in exposed_names:
+            continue  # A+B：只注册核心精选 + 白名单分类 + 导航工具
         name, desc, schema = t["name"], t["description"], t["inputSchema"]
         handler = t["_handler"]
         mcp.add_tool(name, desc, schema, handler)

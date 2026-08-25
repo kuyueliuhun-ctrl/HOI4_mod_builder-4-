@@ -316,6 +316,23 @@ Claude Code 配置示例：
 ```
 若未安装官方 `mcp` 库，`BuiltinMcpServer` 使用 newline-delimited JSON-RPC 2.0 over stdio，支持 `initialize` / `notifications/initialized` / `ping` / `tools/list` / `tools/call`。
 
+## 6A. A+B 分类方案（2026-08-25）
+
+为降低 159 个工具对 agent 的上下文/发现性负担，MCP 采用「核心精选 + 分类白名单 + 导航工具」渐进暴露：
+
+- **默认 `tools/list` 只返回核心精选（约 22 个）+ 3 个导航工具**（共 25 个），其余工具不在列表中出现。
+- **3 个导航工具**（`mcp_server._build_nav_tools`，均可在 `tools/call` 直接调用）：
+  - `list_tools_overview`：全部工具的分类目录（含未直接暴露的），返回 `{total, categories:{分类:[工具名...]}}`；
+  - `get_tool_schema(name)`：任意工具的参数 schema + 分类；
+  - `invoke_tool(name, args)`：按名调用任意工具（**全部 159 个隐藏工具都可经它调用**，能力不丢）。
+- **分类白名单**：环境变量 `MCP_EXPOSE_CATEGORIES`（逗号分隔分类名，或 `all` 全开）会让 `tools/list` 额外包含对应分类的全部工具。分类：`core / states-map / designers / oob / ai / bop / localisation / health / media / generators / project / nav`。
+- **HTTP 同步端点**：
+  - `GET /api/mcp/overview` → 分类目录；
+  - `GET /api/mcp/schema?name=<tool>` → 工具 schema；
+  - `POST /api/mcp/invoke_tool` `{name, args}` → 调用任意工具。
+- 元数据来源：`mcp_tools.tool_category` / `CORE_TOOLS` / `NAV_TOOLS_META` / `build_catalog`（159 + 3 导航 = 162 条）。
+- 说明：MCP 客户端只能看到 `tools/list` 返回的工具，因此隐藏工具在客户端侧非「一等公民」（须经 `invoke_tool`）；官方 mcp 库路径同样只注册暴露集。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥159、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。

@@ -649,3 +649,138 @@ def build_tools(core):
     tools.extend(_domain9_tools(core))
     tools.extend(_domain10_tools(core))
     return tools
+
+
+# ══════════════════════════════════════════════════════════════
+# A+B 分类方案（B3）：核心集 / 分类 / 目录元数据
+# ══════════════════════════════════════════════════════════════
+
+# 默认直接暴露给 MCP 客户端的核心精选集（约 22 个，跨域高价值）
+CORE_TOOLS = frozenset({
+    "get_status", "list_types", "list_entities", "get_entity",
+    "create_entity", "update_entity", "delete_entity",
+    "read_file", "write_file", "list_files",
+    "search_terms", "get_state", "list_states",
+    "list_sub_units", "search_equipment",
+    "validate_mod", "health_check", "get_overlay_report",
+    "list_countries", "create_mod", "list_templates", "get_template",
+})
+
+# 工具名 → 分类（未列出的回退 core）
+_CATEGORY_TOOLS = {
+    "states-map": [
+        "list_states", "get_state", "get_province", "get_owner_provinces",
+        "set_state_owner", "set_state_building", "set_state_category",
+        "set_country_color", "list_building_types", "list_country_colors",
+        "batch_set_state_fields", "sort_state_file", "list_regions",
+        "create_region", "set_region_provinces", "remove_region",
+    ],
+    "designers": [
+        "list_ship_hulls", "list_ship_modules", "list_ship_designs",
+        "get_ship_design", "create_ship_design", "update_ship_design",
+        "rename_ship_design", "delete_ship_design", "sync_ship_design",
+        "list_plane_hulls", "list_plane_modules", "list_plane_designs",
+        "get_plane_design", "create_plane_design", "update_plane_design",
+        "rename_plane_design", "delete_plane_design", "sync_plane_design",
+        "list_tank_hulls", "list_tank_modules", "list_tank_designs",
+        "get_tank_design", "create_tank_design", "update_tank_design",
+        "rename_tank_design", "delete_tank_design", "sync_tank_design",
+        "list_design_templates", "save_design_template", "load_design_template",
+    ],
+    "oob": [
+        "list_oob_files", "list_division_templates", "get_division_template",
+        "create_division_template", "update_division_template",
+        "delete_division_template", "list_sub_units", "search_equipment",
+    ],
+    "ai": [
+        "set_ai_plan_focus_order",
+        "ai_plan_list", "ai_plan_create", "ai_plan_update", "ai_plan_delete",
+        "ai_plan_rename", "ai_plan_duplicate",
+        "ai_strategy_list", "ai_strategy_create", "ai_strategy_update",
+        "ai_strategy_delete", "ai_strategy_rename", "ai_strategy_duplicate",
+        "ai_ai_template_list", "ai_ai_template_create", "ai_ai_template_update",
+        "ai_ai_template_delete", "ai_ai_template_rename", "ai_ai_template_duplicate",
+        "ai_equipment_list", "ai_equipment_create", "ai_equipment_update",
+        "ai_equipment_delete", "ai_equipment_rename", "ai_equipment_duplicate",
+        "ai_navy_list", "ai_navy_create", "ai_navy_update", "ai_navy_delete",
+        "ai_navy_rename", "ai_navy_duplicate",
+        "ai_area_list", "ai_area_create", "ai_area_update", "ai_area_delete",
+        "ai_area_rename", "ai_area_duplicate",
+        "ai_focus_list", "ai_focus_create", "ai_focus_update", "ai_focus_delete",
+        "ai_focus_rename", "ai_focus_duplicate",
+        "ai_theater_list", "ai_theater_create", "ai_theater_update",
+        "ai_theater_delete", "ai_theater_rename", "ai_theater_duplicate",
+    ],
+    "bop": [
+        "list_bop", "get_bop", "set_bop_initial_value", "set_bop_fields",
+    ],
+    "localisation": [
+        "write_localisation", "search_localisation", "list_missing_localisation",
+        "batch_fill_localisation", "search_terms", "get_term", "add_user_term",
+        "update_user_term", "remove_user_term", "vp_loc_dry_run",
+    ],
+    "health": [
+        "validate_mod", "health_check", "scan_duplicate_ids",
+        "undo_last_write", "get_undo_status", "coverage_report",
+        "analyze_error_log", "get_overlay_report",
+    ],
+    "media": [
+        "upload_tech_icon", "get_icon_manifest", "register_icon_batch",
+        "upload_entity_icon", "convert_dds", "import_unit_counters",
+        "list_unit_counters",
+    ],
+    "generators": [
+        "generate_ideas", "generate_ideologies", "generate_characters",
+        "generate_generals", "generate_country_bootstrap",
+        "generate_focus_package", "generate_event", "create_focus_project",
+    ],
+    "project": [
+        "list_countries", "copy_country_files", "create_blank_overrides",
+        "create_new_country_files", "create_mod", "apply_template",
+        "get_template", "list_templates",
+    ],
+}
+_CATEGORY_MAP = {
+    name: cat
+    for cat, names in _CATEGORY_TOOLS.items()
+    for name in names
+}
+
+
+def tool_category(name):
+    """工具名 → 分类（未登记回退 core）。"""
+    return _CATEGORY_MAP.get(name, "core")
+
+
+# 导航工具元数据（MCP server 与 HTTP 共用；handler 由 mcp_server 装配）
+NAV_TOOLS_META = [
+    ("list_tools_overview",
+     "列出全部 MCP 工具的分类目录（含未直接暴露的工具），供先看分类再选定工具",
+     _obj({})),
+    ("get_tool_schema",
+     "获取任意 MCP 工具的参数 schema（含未直接暴露的工具）",
+     _obj({"name": _str("工具名")}, ["name"])),
+    ("invoke_tool",
+     "按名调用任意 MCP 工具（含未直接暴露的工具）；参数对象放 args",
+     _obj({"name": _str("工具名"),
+           "args": _obj_type("工具参数对象（可空）")}, ["name"])),
+]
+
+
+def build_catalog(core):
+    """返回全部工具 + 导航工具的元数据（含分类/核心标记/schema），供 HTTP/概览使用。"""
+    metas = []
+    for t in build_tools(core):
+        metas.append({
+            "name": t["name"],
+            "description": t["description"],
+            "category": tool_category(t["name"]),
+            "core": t["name"] in CORE_TOOLS,
+            "inputSchema": t["inputSchema"],
+        })
+    for name, desc, schema in NAV_TOOLS_META:
+        metas.append({
+            "name": name, "description": desc,
+            "category": "nav", "core": True, "inputSchema": schema,
+        })
+    return metas
