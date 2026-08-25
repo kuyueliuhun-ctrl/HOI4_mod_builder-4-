@@ -113,13 +113,21 @@ def equip_cn_name(key):
 
 
 def unit_icon(name, sub_units, gfx_map, mod_path, hoi4_path):
-    """兵种图标 QIcon（GFX_unit_<type>_icon_medium），失败回退缩写文本占位。"""
+    """兵种图标 QIcon（GFX_unit_<type>_icon_medium），失败回退单位标牌库，再回退 None。"""
     from icon_resolver import resolve_pixmap
     try:
         pm = resolve_pixmap(f"GFX_unit_{name}_icon_medium", gfx_map=gfx_map,
                             mod_path=mod_path, hoi4_path=hoi4_path)
         if pm is not None and not pm.isNull():
             return QIcon(pm)
+    except Exception:
+        pass
+    # 回退：单位标牌库（P2：兵牌图标接标牌库）
+    try:
+        from unit_counter_icons import counter_qicon
+        icon = counter_qicon(name)
+        if icon is not None:
+            return icon
     except Exception:
         pass
     return None

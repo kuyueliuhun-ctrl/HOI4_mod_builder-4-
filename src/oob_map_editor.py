@@ -108,6 +108,13 @@ def _counter_pixmap(typ, sub_units, gfx_map, mod_path, hoi4_path):
     except Exception:
         pm = None
     if pm is None or pm.isNull():
+        # 回退：单位标牌库（P2：兵牌图标接标牌库）
+        try:
+            from unit_counter_icons import counter_pixmap
+            pm = counter_pixmap(typ, COUNTER_W, COUNTER_H)
+        except Exception:
+            pm = None
+    if pm is None or pm.isNull():
         pm = QPixmap(COUNTER_W, COUNTER_H)
         pm.fill(QColor(18, 18, 18))
     pm = pm.scaled(COUNTER_W, COUNTER_H,

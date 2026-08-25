@@ -175,6 +175,180 @@ class UnitCounterLibrary:
                             entry["file"].replace("/", os.sep))
 
 
+# ---------------------------------------------------------------------------
+# 兵种类型 → 标牌库条目 解析（P2：兵牌图标接标牌库）
+# ---------------------------------------------------------------------------
+
+# HOI4 sub_units 类型键 → 标牌库名称主干（不含 unit_/onmap_unit_/support_unit_ 前缀、_icon 后缀）
+# 覆盖「键名与库内名称不一致」的常见兵种；其余靠精确匹配 + 后缀剥离兜底。
+_TYPE_STEM_ALIASES = {
+    "mountaineers": "mountain",
+    "paratrooper": "paratroop",
+    "light_armor": "light_tank",
+    "medium_armor": "medium_tank",
+    "amphibious_armor": "amphibious_tank",
+    "amphibious_light_armor": "light_amphibious_tank",
+    "amphibious_medium_armor": "medium_amphibious_tank",
+    "amphibious_heavy_armor": "heavy_amphibious_tank",
+    "artillery": "art",
+    "anti_tank": "at",
+    "anti_tank_battery": "at",
+    "rocket_artillery": "rocket_art",
+    "rocket_artillery_brigade": "rocket_art",
+    "rocket_battery": "rocket_art",
+    "penal_battalion": "penal_infantry",
+    "anti_air_brigade": "anti_air",
+    "anti_tank_brigade": "at",
+    "artillery_brigade": "art",
+    "mot_anti_air_brigade": "mot_anti_air",
+    "mot_anti_tank_brigade": "mot_at",
+    "mot_artillery_brigade": "mot_art",
+    "mot_rocket_artillery_brigade": "mot_rocket_art",
+    "motorized_rocket_brigade": "mot_rocket_art",
+    "mot_recon": "motorized_recon",
+    "light_tank_recon": "armored_car_recon",
+    "motorized_military_police": "motorized_military_police",
+    "self_propelled_super_heavy_artillery": "self_propelled_super_heavy_artillery",
+    "super_heavy_artillery": "super_heavy_artillery",
+    "super_heavy_railway_gun": "super_heavy_railway_gun_unit",
+    # 自走防空 / 自走火炮 / 坦克歼击车（各吨位）
+    "heavy_sp_anti_air_brigade": "heavy_spaa",
+    "heavy_sp_anti_air_support": "heavy_spaa",
+    "heavy_sp_artillery_brigade": "heavy_spart",
+    "heavy_sp_artillery_support": "heavy_spart",
+    "light_sp_anti_air_brigade": "light_spaa",
+    "light_sp_anti_air_support": "light_spaa",
+    "light_sp_artillery_brigade": "light_spart",
+    "light_sp_artillery_support": "light_spart",
+    "medium_sp_anti_air_brigade": "medium_spaa",
+    "medium_sp_anti_air_support": "medium_spaa",
+    "medium_sp_artillery_brigade": "medium_spart",
+    "medium_sp_artillery_support": "medium_spart",
+    "modern_sp_anti_air_brigade": "modern_spaa",
+    "modern_sp_anti_air_support": "modern_spaa",
+    "modern_sp_artillery_brigade": "modern_spart",
+    "modern_sp_artillery_support": "modern_spart",
+    "super_heavy_sp_anti_air_brigade": "super_heavy_armor_antiair",
+    "super_heavy_sp_artillery_brigade": "super_heavy_armor_artillery",
+    "heavy_flame_tank": "heavy_flamethrower_tank",
+    "light_flame_tank": "light_flamethrower_tank",
+    "medium_flame_tank": "medium_flamethrower_tank",
+    "battle_cruiser": "battlecruiser",
+    "airborne_light_armor": "light_tank",
+    "ballistic_missile": "v2_rocket",
+    "nuclear_missile": "v2_rocket",
+    "rocket_interceptor": "v2_rocket",
+    "sam_missile": "v2_rocket",
+    "strat_bomber_intercontinental": "strat_bomber",
+    "cv_cas": "cas",
+    "cv_fighter": "fighter",
+    "cv_nav_bomber": "nav_bomber",
+    "cv_suicide_craft": "suicide_craft",
+    "pioneer_support": "pioneers_support",
+    "heavy_tank_destroyer_brigade": "heavy_tank_destroyer",
+    "heavy_tank_destroyer_support": "heavy_tank_destroyer",
+    "light_tank_destroyer_brigade": "light_tank_destroyer",
+    "light_tank_destroyer_support": "light_tank_destroyer",
+    "medium_tank_destroyer_brigade": "medium_tank_destroyer",
+    "medium_tank_destroyer_support": "medium_tank_destroyer",
+    "modern_tank_destroyer_brigade": "modern_tank_destroyer",
+    "modern_tank_destroyer_support": "modern_tank_destroyer",
+    "super_heavy_tank_destroyer_brigade": "super_heavy_armor_at",
+    # 海军 / 支援舰
+    "repair_ship": "repair_support_ship",
+    "support_ship": "general_support_ship",
+    # HQ（hq_* 优先具体名，未命中回落通用 HQ）
+    "hq_air_liaison": "hq_air_liason",
+    "hq_naval_liaison": "hq_naval_liason",
+    "hq_specops": "hq_specops",
+}
+
+# 可剥离的后缀（先剥后缀再看库）
+_TYPE_SUFFIXES = ("_brigade", "_battalion", "_support",
+                  "_battery", "_company", "_regiment", "_platoon")
+
+# 带 _icon 后缀的标牌名称前缀（按优先级依次尝试）
+_COUNTER_PREFIXES = ("unit", "onmap_unit", "support_unit")
+
+# 无 _icon 后缀的空中/海军标牌前缀（如 onmap_fighter / onmap_battleship）
+_COUNTER_RAW_PREFIXES = ("onmap",)
+
+# 通用 HQ 兜底名
+_HQ_FALLBACK = "support_unit_hq_icon"
+
+
+def _candidate_stems(unit_type):
+    """生成候选名称主干（去重保序）。"""
+    t = str(unit_type or "").strip().replace("-", "_").lower()
+    if not t:
+        return []
+    seen = []
+
+    def _add(x):
+        x = x.strip("_")
+        if x and x not in seen:
+            seen.append(x)
+
+    # 别名（规范大图）优先，其次原始键，最后剥离后缀
+    alias = _TYPE_STEM_ALIASES.get(t)
+    if alias:
+        _add(alias)
+    _add(t)
+    for suf in _TYPE_SUFFIXES:
+        if t.endswith(suf):
+            _add(t[: -len(suf)])
+            break
+    return seen
+
+
+def find_counter_entry(unit_type, lib=None):
+    """兵种类型 → 标牌库条目（dict）或 None。
+
+    按优先级尝试 `unit_<stem>_icon` / `onmap_unit_<stem>_icon` /
+    `support_unit_<stem>_icon` / `onmap_<stem>`（空中/海军无 _icon 后缀）；
+    hq_* 未命中具体 HQ 图标时回落通用 HQ 图标。lib 可传入已加载的
+    UnitCounterLibrary，缺省用进程级缓存实例。
+    """
+    if lib is None:
+        lib = _get_library()
+    if not lib.is_ready:
+        return None
+    stems = _candidate_stems(unit_type)
+    for stem in stems:
+        for prefix in _COUNTER_PREFIXES:
+            entry = lib.get("%s_%s_icon" % (prefix, stem))
+            if entry:
+                return entry
+        for prefix in _COUNTER_RAW_PREFIXES:
+            entry = lib.get("%s_%s" % (prefix, stem))
+            if entry:
+                return entry
+        # 库名本身就是主干（如 pioneers_support）
+        entry = lib.get(stem)
+        if entry:
+            return entry
+    # HQ 兜底
+    t = str(unit_type or "").strip().replace("-", "_").lower()
+    if t.startswith("hq_"):
+        entry = lib.get(_HQ_FALLBACK)
+        if entry:
+            return entry
+    return None
+
+
+# 进程级库实例缓存（避免每次查询都读 manifest）
+_lib_cache = {}
+
+
+def _get_library(lib_dir=None):
+    lib_dir = lib_dir or default_library_dir()
+    lib = _lib_cache.get(lib_dir)
+    if lib is None:
+        lib = UnitCounterLibrary(lib_dir)
+        _lib_cache[lib_dir] = lib
+    return lib
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:

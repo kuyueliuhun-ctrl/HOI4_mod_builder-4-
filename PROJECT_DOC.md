@@ -176,6 +176,7 @@ hearts_of_iron_builder/
 | 力量平衡 BOP | `bop_loader.py`（851）+ `bop_editor_dialog.py`（626）+ `bop_editor_pages.py`（764） | 数据层解析 common/bop + 决议动作；仿游戏内 BOP 弹窗（深色历史风）；本地化/修正展示/区间滑块/动作编辑；保存走 ensure_file_in_mod + 原子写 | ✅ |
 | 师编制 v2 | `division_editor.py`（1091）、`oob_loader.py`（1027）、`oob_stats.py`（313）、`oob_format.py`、`sub_unit_editor_dialog.py`（425）、`names_group_dialog.py` | 仿游戏内 Division Designer：顶部模板下拉 + 数据面板 + 地形矩阵；技术数据“营字段优先→主装备回退”；军种识别 `detect_oob_kinds` 自动拉起对应设计器 | ✅ |
 | OOB 入口/地编 | `initial_oob_editor.py`（246）、`oob_map_editor.py`（640） | 打开 OOB 直接进师编制设计器；地图放置复用 MapCanvas（get_map_data/get_state_data 单例缓存） | ✅ |
+| 兵牌图标接入 | `unit_counter_library.py`（含 `find_counter_entry` 兵种→标牌解析，97% 覆盖）、`unit_counter_icons.py` | OOB 地图兵牌与师编制槽位在 GFX 解析失败时回退单位标牌库（448 标牌），消除黑底占位；按兵种缓存 | ✅ |
 | 舰艇设计器 | `ship_design.py`（817）+ `ship_design_dialog.py`（486） | hull/modules/variants + upgrades 写回；槽位网格；属性估算（基础+addΣ×multiply 累积）；原版自动落 mod | ✅ |
 | 飞机设计器 | `plane_design.py`（533）+ `plane_design_dialog.py`（473） | airframe/modules/variants + modules 写回；同款跨国家同步 | ✅ |
 | 坦克设计器 | `tank_design.py`（415）+ `tank_design_dialog.py`（441） | chassis/modules/variants，复用 plane 的 modules 写回 | ✅ |
@@ -228,8 +229,8 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 | 批次 | 内容 | 状态 |
 | --- | --- | --- |
 | P1 需调研 | 大洲划分 / 批量填鸭(AOR) / 电台生成 / H4MPS 审查 / 核心圈层 / IRIS / 大众脸 | ⬜ 未开始 |
-| P2 需复刻/实现 | 自生成 GUI 决议包、民族精神/意识形态专用 UI、编制小项、兵牌图标接标牌库、RHoiScribe MCP 插件 | ⬜ 未开始 |
-| P2.5 已知限制 | 数值估算、未定义 airframe 容错、version_name 联动、兵牌图标、装备 IC 花费（已登记） | ⬜ 长期 |
+| P2 需复刻/实现 | 自生成 GUI 决议包、民族精神/意识形态专用 UI、编制小项、~~兵牌图标接标牌库~~ ✅、RHoiScribe MCP 插件 | ⬜ 未开始 |
+| P2.5 已知限制 | 数值估算、未定义 airframe 容错、version_name 联动、装备 IC 花费（已登记） | ⬜ 长期 |
 | P3 转模板/文档 | RHoiScribe 补全、特殊案例/教程提炼 | ⬜ 未开始 |
 | P4 暂缓/外部/不做 | 旗帜、议会 GUI、Shader、电台 OGG、系统预览等 | ⬜ 暂缓 |
 
@@ -247,7 +248,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 - 注：其中部分曾列于 P4“系统预览等（暂缓）”，本轮盘点将其转为**明确候选待办**，是否做仍由用户拍板。
 
 **历史遗留 / 可选项（登记在 `docs/历史迭代日志.md` 附录 6.17，以整合计划为准）：**
-- 兵牌图标可接入单位标牌库（当前 OOB 用 `GFX_unit_<type>_icon_medium` 解析，失败回退黑底占位）；
+- ~~兵牌图标接入单位标牌库~~ ✅（2026-08-25 已落地：OOB 地图兵牌与师编制槽位 GFX 解析失败时回退 448 标牌库，97% 兵种覆盖）；
 - Scenario Forge 移植剩余方向：导出前校验面板产品化、build_snapshot 溯源台账、关键地区高危 id 清单；
 - 编制编辑器：模板改名后部署引用不一致提示、装备 IC 花费估算、OOB 海军/空军 version_name 设计解析（调研完成未实现）。
 
@@ -448,7 +449,8 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 - 2026-08-23 Python 3.14 升级完成；整合计划 B2/B3 批量铺开；
 - 2026-08-25 学说编辑器落地（最近一次提交）；
 - 2026-08-25（本轮）与 hoi4modutilities 对比盘点：登记预览/模拟/校验/DLC 等 9 类缺口候选（§2.5）；
-- 2026-08-25（本轮）B3 P39 闭环：.mod 专用编辑器 + .gui/.gfx 显式通用树路由（见附录 H 6.27）。
+- 2026-08-25（本轮）B3 P39 闭环：.mod 专用编辑器 + .gui/.gfx 显式通用树路由（见附录 H 6.27）；
+- 2026-08-25（本轮）P2 兵牌图标接标牌库：OOB 地图兵牌与师编制槽位回退 448 标牌库，97% 兵种覆盖（见附录 H 6.28）。
 
 ---
 
@@ -857,3 +859,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.25 | 08-25 | 与 hoi4modutilities 对比盘点 | 梳理 9 类功能缺口（预览/模拟/地图数据层/地图 QA/事件树/GUI/DDS/DLC/导出），登记为候选待办（§2.5） |
 | 6.26 | 08-25 | DeepSeek 视觉识图工作流 | 用 `deepseek-v4-flash-vision-exp` 识图 MIO/学说 UI → 编辑器设计；工作流见 §2.6 |
 | 6.27 | 08-25 | B3 P39 闭环：Mod 描述编辑器 + GUI/GFX 路由 | `mod_descriptor_loader`/`mod_descriptor_editor_dialog`（表单式 .mod 编辑）；`app_routes` 新增 descriptor.mod / interface / gfx 显式路由；ui_gap_probe 新增 4 类型 spec + 根目录扫描 |
+| 6.28 | 08-25 | P2：兵牌图标接标牌库 | `unit_counter_library.find_counter_entry`（兵种→448 标牌，97% 覆盖）+ `unit_counter_icons`（QPixmap/QIcon）；`oob_map_editor`/`division_editor` GFX 失败回退标牌库，消除黑底占位 |
