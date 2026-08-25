@@ -397,6 +397,12 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
   `_WRAPPER_TYPES` + `_iter_entity_blocks` 支持 wrapper 型顶层块（characters/technologies/
   buildings/modifiers/operations…）与 strategic_region/supply_area 顶层块遍历。
   真实数据校验（character/technology/building/bookmark/strategic_region/on_action/game_rule）→ 0 红。
+- **批三①b 深度扩充（2026-08-26）**：`_iter_entity_blocks` 覆盖真实结构——决议 category 顶层块
+  （任意键 → 直接子块即 decision）、modifier/operation/occupation_law/game_rule/dynamic_modifier
+  顶层块即实体、wargoal `wargoal_types` 包装、autonomous_state/intelligence_agency 固定键顶层块；
+  数值字段引入 `var_int`/`var_number`（容忍 `@const`/`var_*`/`[表达式]`/`global.x` 命名空间变量）；
+  event `title/desc` 允许块或本地化键标量；block 字段遇 `key=` 换行 `{` 的空值产物不报红。
+  **全量真实数据冒烟：24 类型 mod+game 共 6,388 文件 0 红**。
 - 分类：`health`；工具总数 **178**（159 + 9 + 5 + 1 + 2 + 2）。
 
 ## 7. 验证

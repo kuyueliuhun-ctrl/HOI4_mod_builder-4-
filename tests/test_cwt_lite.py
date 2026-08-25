@@ -71,6 +71,124 @@ class CwtLiteRulesTest(unittest.TestCase):
             red = [i for i in issues if i["severity"] == "red"]
             self.assertEqual(bool(red), expect_red, type_key)
 
+    def test_decision_category_traversal(self):
+        """真实决议文件为「顶层 category 块 → 直接子块即 decision」结构。"""
+        from cwt_lite_rules import validate_content
+        content = (
+            "GER_ops = {\n"
+            "\tGER_anarchist_union = {\n"
+            "\t\ticon = GFX_decision_x\n"
+            "\t\tdays_remove = DAYS_REMOVE_SOMETHING\n"
+            "\t\tfire_only_once = yes\n"
+            "\t}\n"
+            "}\n")
+        issues = validate_content(content, "decision")
+        red = [i for i in issues if i["severity"] == "red"]
+        self.assertEqual(red, [], "category 结构 + var_int 变量天数不应红")
+
+    def test_top_level_entity_types(self):
+        """modifier/operation/occupation_law/game_rule/dynamic_modifier 顶层块即实体。"""
+        from cwt_lite_rules import validate_content
+        cases = [
+            ("modifier",
+             "_test_mod = {\n\ticon = GFX_mod_x\n\tis_percent = yes\n}\n", False),
+            ("operation",
+             "op_rescue = {\n\tname = op_rescue\n\ticon = GFX_op\n\tdays = 35\n\tnetwork_strength = 30\n}\n",
+             False),
+            ("occupation_law",
+             "civilian_oversight = {\n\ticon = 5\n\tdefault_law = yes\n}\n", False),
+            ("game_rule",
+             "rule_ai = {\n\tname = \"RULE_NAME\"\n\tgroup = \"GRP\"\n\trequired_dlc = \"LaR\"\n}\n",
+             False),
+            ("dynamic_modifier",
+             "test_dyn = {\n\ticon = \"GFX_idea_unknown\"\n\tattacker_modifier = no\n}\n",
+             False),
+        ]
+        for type_key, content, expect_red in cases:
+            issues = validate_content(content, type_key)
+            red = [i for i in issues if i["severity"] == "red"]
+            self.assertEqual(bool(red), expect_red, type_key)
+
+    def test_wargoal_wrapper_and_fixed_top(self):
+        from cwt_lite_rules import validate_content
+        # wargoal_types wrapper
+        wargoal = (
+            "wargoal_types = {\n"
+            "\ttake_state = {\n\t\tgenerate_base_cost = 200\n\t\tthreat = 10\n\t}\n"
+            "}\n")
+        red = [i for i in validate_content(wargoal, "wargoal")
+               if i["severity"] == "red"]
+        self.assertEqual(red, [])
+        # autonomous_state 固定键顶层块
+        ast = (
+            "autonomy_state = {\n"
+            "\tid = autonomy_colony\n\tis_puppet = yes\n\tmin_freedom_level = 0.6\n"
+            "}\n")
+        red = [i for i in validate_content(ast, "autonomous_state")
+               if i["severity"] == "red"]
+        self.assertEqual(red, [])
+        # intelligence_agency 固定键顶层块
+        ia = (
+            "intelligence_agency = {\n"
+            "\tpicture = GFX_ia_usa\n\tnames = { \"A\" \"B\" }\n"
+            "\tdefault = { tag = USA }\n}\n")
+        red = [i for i in validate_content(ia, "intelligence_agency")
+               if i["severity"] == "red"]
+        self.assertEqual(red, [])
+
+    def test_event_title_desc_block_or_string(self):
+        from cwt_lite_rules import validate_content
+        # 标量本地化键（非块）
+        scalar = (
+            "country_event = {\n\tid = ev.1\n\ttitle = ev.1.t\n\tdesc = ev.1.d\n"
+            "\tis_triggered_only = yes\n}\n")
+        red = [i for i in validate_content(scalar, "event")
+               if i["severity"] == "red"]
+        self.assertEqual(red, [])
+        # 块形态（text = {...}）
+        block = (
+            "country_event = {\n\tid = ev.2\n"
+            "\ttitle = { text = ev.2.t }\n\tdesc = { text = ev.2.d }\n}\n")
+        red = [i for i in validate_content(block, "event")
+               if i["severity"] == "red"]
+        self.assertEqual(red, [])
+
+    def test_script_ref_and_var_ident(self):
+        from cwt_lite_rules import validate_content
+        # @常量、var_*、[表达式] 在数值位合法
+        for content, t in [
+            ("focus_tree = {\n\tfocus = {\n\t\tid = a\n\t\tx = 1\n\t\tcost = @my_cost\n\t}\n}\n", "focus"),
+            ("focus_tree = {\n\tfocus = {\n\t\tid = a\n\t\tx = var_x\n\t}\n}\n", "focus"),
+        ]:
+            red = [i for i in validate_content(content, t)
+                   if i["severity"] == "red"]
+            self.assertEqual(red, [], t)
+        # 纯字母数字裸词仍按非法 int 报红
+        bad = ("focus_tree = {\n\tfocus = {\n\t\tid = a\n\t\tx = nope\n\t}\n}\n")
+        red = [i for i in validate_content(bad, "focus")
+               if i["severity"] == "red"]
+        self.assertTrue(red)
+        # 命名空间变量（global.x / CZE.x）在 var_* 位合法
+        dotted = (
+            "GER_ops = {\n"
+            "\tGER_decision = {\n"
+            "\t\tdays_remove = global.days_add_support\n"
+            "\t}\n"
+            "}\n")
+        red = [i for i in validate_content(dotted, "decision")
+               if i["severity"] == "red"]
+        self.assertEqual(red, [])
+
+    def test_state_block_empty_value_artifact(self):
+        """`key =` 换行 `{` 产生的空值 '' 不应把 block 字段报红。"""
+        from cwt_lite_rules import validate_content
+        content = (
+            "state = {\n\tid = 1\n\tname = \"STATE_1\"\n\thistory=\n\t{\n"
+            "\t\towner = GER\n\t}\n}\n")
+        red = [i for i in validate_content(content, "state")
+               if i["severity"] == "red"]
+        self.assertEqual(red, [])
+
 
 class CwtLiteCoreTest(unittest.TestCase):
     def _mod_with_focus(self):
