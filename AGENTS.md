@@ -162,7 +162,7 @@ python ui_gap_probe.py --dump-all --output 已分析.md
    `tech_view.py`（算法+图元）、`tree_model.py`（模型）。当前主要违规标本：
    `focus_view.py`（2476 行/101 方法/133 状态字段，五合一），按本规范应逐步拆为
    `FocusView` 瘦壳 + `focus_algo.py` + `focus_render.py` + `focus_view_ctrl.py`。
-   分层重构计划见 `docs/分层重构计划.md`。
+   分层重构已完成，见 §6.20；原计划文档已删除。
 10. **禁止输出预览图（重要）**：不得生成/保存 UI 预览截图（如 `*_预览.png`、
     `主题预览.png`、`地编_*.png` 等）到项目目录或提交到仓库。需要验证界面时，
     使用 offscreen 冒烟/统计方式，或直接让用户查看实际窗口；不产出截图产物。
@@ -852,11 +852,11 @@ python ui_gap_probe.py --dump-all --output 已分析.md
 
 ### 6.20 已完成：四层分离分层重构（2026-08-16 立项，2026-08-18 落地）
 
-开发规范已写入 §4 第 9 条；详细执行计划见 **`docs/分层重构计划.md`**。
+开发规范已写入 §4 第 9 条；详细执行计划已完成并归档（原 `docs/分层重构计划.md` 已删除）。
 当前状态：**已完成（跳过未制作专属 UI 的工作台）**。要点：
 
 1. ✅ 四层分离开发规范已写入 AGENTS.md §4.9（算法 ← 绘图 ← UI ← 信号槽，单向依赖）。
-2. ✅ `docs/分层重构计划.md` 已创建，按工作台逐个定位（focus_view 试点 → 全工作台收敛 → 自动化门禁）。
+2. ✅ 分层重构计划已创建并执行（focus_view 试点 → 全工作台收敛 → 自动化门禁；原计划文档已删除）。
 3. ✅ P1 `focus_view.py` 拆分：
    - 2476 行 → **1188 行**；
    - 科技树 → `TechTreeControllerMixin`（focus_view_ctrl.py）+ `focus_render.render_tech_tree`；
