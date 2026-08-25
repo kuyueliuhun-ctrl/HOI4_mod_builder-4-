@@ -45,6 +45,15 @@ class CwtLiteRulesTest(unittest.TestCase):
         self.assertEqual(infer_type("map/strategicregions/1.txt"),
                          "strategic_region")
         self.assertEqual(infer_type("common/bookmarks/b.txt"), "bookmark")
+        self.assertEqual(infer_type("common/scripted_effects/x.txt"),
+                         "scripted_effect")
+        self.assertEqual(infer_type("common/scripted_triggers/x.txt"),
+                         "scripted_trigger")
+        self.assertEqual(infer_type("common/scripted_localisation/x.txt"),
+                         "scripted_localisation")
+        self.assertEqual(infer_type("common/countries/ABC.txt"), "country")
+        self.assertEqual(infer_type("history/countries/ABC.txt"),
+                         "country_history")
         self.assertIsNone(infer_type("localisation/en.txt"))
 
     def test_new_wrapper_types_validate(self):
@@ -188,6 +197,46 @@ class CwtLiteRulesTest(unittest.TestCase):
         red = [i for i in validate_content(content, "state")
                if i["severity"] == "red"]
         self.assertEqual(red, [])
+
+    def test_file_entity_and_scripted_types(self):
+        from cwt_lite_rules import validate_content
+        # country：整文件即实体，顶层字段直接校验
+        c = "graphical_culture = western_gfx\ngraphical_culture_2d = western_2d\n"
+        issues = validate_content(c, "country")
+        self.assertEqual([i for i in issues if i["severity"] == "red"], [])
+        # country_history：顶层字段；block 期望字段出现非空标量报红
+        ch = ("capital = 127\nset_research_slots = 3\n"
+              "set_technology = {\n\tinfantry_weapons = 1\n}\n")
+        issues = validate_content(ch, "country_history")
+        self.assertEqual([i for i in issues if i["severity"] == "red"], [])
+        bad = "set_technology = 123\n"
+        issues = validate_content(bad, "country_history")
+        self.assertTrue([i for i in issues if i["severity"] == "red"])
+        # scripted_effect / scripted_trigger：空 catalog，仅识别+遍历，不误报
+        se = "my_effect = {\n\tadd_political_power = 66\n}\n"
+        issues = validate_content(se, "scripted_effect")
+        self.assertEqual([i for i in issues if i["severity"] == "red"], [])
+        self.assertFalse([i for i in issues if i["severity"] == "yellow"])
+        st = "is_valid_token = {\n\tNOT = { has_dlc = \"LaR\" }\n}\n"
+        issues = validate_content(st, "scripted_trigger")
+        self.assertEqual([i for i in issues if i["severity"] == "red"], [])
+        # scripted_localisation：defined_text 顶层块，name 标量 + text 块合法
+        sl = ("defined_text = {\n\tname = GetName\n\ttext = {\n"
+              "\t\ttrigger = { always = yes }\n\t\tlocalization_key = X\n\t}\n}\n")
+        issues = validate_content(sl, "scripted_localisation")
+        self.assertEqual([i for i in issues if i["severity"] == "red"], [])
+        # text 期望块却给标量 → 红
+        sl_bad = "defined_text = {\n\tname = GetName\n\ttext = OOPS\n}\n"
+        issues = validate_content(sl_bad, "scripted_localisation")
+        self.assertTrue([i for i in issues if i["severity"] == "red"])
+
+    def test_oversize_file_skipped(self):
+        """超大文件跳过解析（黄色提示，不红不挂起）。"""
+        import cwt_lite_rules
+        big = "a" * (cwt_lite_rules.MAX_PARSE_CHARS + 10)
+        issues = cwt_lite_rules.validate_content(big, "scripted_localisation")
+        self.assertEqual([i for i in issues if i["severity"] == "red"], [])
+        self.assertTrue([i for i in issues if i["severity"] == "yellow"])
 
 
 class CwtLiteCoreTest(unittest.TestCase):

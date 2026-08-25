@@ -403,6 +403,13 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
   数值字段引入 `var_int`/`var_number`（容忍 `@const`/`var_*`/`[表达式]`/`global.x` 命名空间变量）；
   event `title/desc` 允许块或本地化键标量；block 字段遇 `key=` 换行 `{` 的空值产物不报红。
   **全量真实数据冒烟：24 类型 mod+game 共 6,388 文件 0 红**。
+- **批三①c 再扩充（2026-08-26）**：新增 5 类型 → **29 类**——`scripted_effect`/`scripted_trigger`
+  （空 catalog 仅识别+遍历）、`scripted_localisation`（defined_text：name/text/trigger/
+  localization_key）、`country`/`country_history`（整文件即实体，直接校验顶层字段，如
+  graphical_culture/capital/set_research_slots/oob/set_technology/add_ideas…）；
+  `infer_type` 新增 5 条路径；`MAX_PARSE_CHARS` 超大文件（>2MB，如 19 万行自动生成 RU 本地化）
+  跳过解析返回黄色提示，避免既有解析器性能问题导致挂起。
+  **全量真实数据冒烟：5 新类型 mod+game 共 2,419 文件 0 红**。
 - 分类：`health`；工具总数 **178**（159 + 9 + 5 + 1 + 2 + 2）。
 
 ## 7. 验证

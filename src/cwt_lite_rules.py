@@ -188,6 +188,25 @@ RULE_CATALOG = {
         "picture": "string", "names": "list_string",
         "default": "block", "available": "block",
     },
+    # 顶层块即实体：内容为任意 effect/trigger 块，无可校验直接标量字段（仅类型识别/遍历）
+    "scripted_effect": {},
+    "scripted_trigger": {},
+    "scripted_localisation": {
+        "name": "string", "text": "block", "trigger": "block",
+        "localization_key": "string",
+    },
+    # 整文件即实体（country 定义为 top-level 字段；country_history 为单国历史）
+    "country": {
+        "graphical_culture": "string", "graphical_culture_2d": "string",
+    },
+    "country_history": {
+        "capital": "var_int", "set_research_slots": "var_int",
+        "oob": "string", "set_technology": "block",
+        "add_ideas": "string", "set_politics": "block",
+        "add_war_support": "var_number",
+        "add_equipment": "block", "add_equipment_to_stockpile": "block",
+        "set_convoys": "var_int",
+    },
 }
 
 # wrapper → 实体 的常见类型（wrapper 内直接子块即实体；值可为多个候选键）
@@ -210,11 +229,16 @@ _WRAPPER_TYPES = {
 }
 
 # 顶层块即实体（任意键）的类型：modifier 文件直接列修正块，operation/occupation_law/
-# game_rule/dynamic_modifier 同理（部分文件也可能用 wrapper，见 _WRAPPER_TYPES）
+# game_rule/dynamic_modifier/scripted_effect/scripted_trigger/scripted_localisation 同理
+# （部分文件也可能用 wrapper，见 _WRAPPER_TYPES）
 _TOP_LEVEL_ENTITY_TYPES = frozenset({
     "modifier", "dynamic_modifier", "operation",
-    "occupation_law", "game_rule",
+    "occupation_law", "game_rule", "scripted_effect",
+    "scripted_trigger", "scripted_localisation",
 })
+
+# 整文件即实体（无外层实体块）的类型，校验时直接检查顶层字段
+_FILE_ENTITY_TYPES = frozenset({"country", "country_history"})
 
 _TYPE_KEYS = tuple(RULE_CATALOG.keys())
 
@@ -270,6 +294,16 @@ def infer_type(path):
         return "bookmark"
     if "common/intelligence_agencies" in p:
         return "intelligence_agency"
+    if "common/scripted_effects" in p:
+        return "scripted_effect"
+    if "common/scripted_triggers" in p:
+        return "scripted_trigger"
+    if "common/scripted_localisation" in p:
+        return "scripted_localisation"
+    if "common/countries" in p:
+        return "country"
+    if "history/countries" in p:
+        return "country_history"
     return None
 
 
@@ -389,31 +423,48 @@ def _type_ok(expected, value):
     return False
 
 
+# 超过该长度的文件跳过解析（自动生成大文件如 19 万行脚本本地化会卡死解析器，
+# 属既有解析器性能问题；跳过避免冒烟挂起，改为黄色提示）。
+MAX_PARSE_CHARS = 2_000_000
+
+
+def _validate_children(children, rules, issues):
+    """校验一组子节点的直接标量字段。"""
+    for child in children:
+        if child.node_type != "value":
+            continue
+        expected = rules.get(child.key)
+        if expected is None:
+            continue  # 未知字段不报，避免误报
+        if not _type_ok(expected, child.value):
+            issues.append({
+                "severity": "red",
+                "message": "字段 %s 期望 %s，实际值 %r" % (
+                    child.key, expected, child.value),
+            })
+
+
 def validate_content(content, type_key):
     """校验脚本内容，返回 [{severity, message}]。"""
     rules = RULE_CATALOG.get(type_key)
-    if not rules:
+    if rules is None:
         return [{"severity": "yellow", "message": "未知类型: %s" % type_key}]
     try:
+        if len(content) > MAX_PARSE_CHARS:
+            return [{"severity": "yellow",
+                     "message": "文件过大（%d 字符）跳过解析" % len(content)}]
         nodes = parse_pdx_text_to_nodes(content)
     except Exception as e:
         return [{"severity": "red", "message": "解析失败: %s" % e}]
     issues = []
+    if type_key in _FILE_ENTITY_TYPES:
+        # 整文件即实体：country / country_history 的顶层字段直接校验
+        _validate_children(nodes, rules, issues)
+        return issues
     found = False
     for block in _iter_entity_blocks(nodes, type_key):
         found = True
-        for child in block.children:
-            if child.node_type != "value":
-                continue
-            expected = rules.get(child.key)
-            if expected is None:
-                continue  # 未知字段不报，避免误报
-            if not _type_ok(expected, child.value):
-                issues.append({
-                    "severity": "red",
-                    "message": "字段 %s 期望 %s，实际值 %r" % (
-                        child.key, expected, child.value),
-                })
+        _validate_children(block.children, rules, issues)
     if not found:
         issues.append({"severity": "yellow",
                        "message": "未找到 %s 类型实体块" % type_key})
