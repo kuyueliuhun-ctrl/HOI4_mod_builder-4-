@@ -54,7 +54,7 @@
 
 | 环境 | 路径 | 版本 | 用途 |
 | --- | --- | --- | --- |
-| Windows | `.venv\Scripts\python.exe` | 3.14.5 | 用户启动器；旧 3.8.10 备份为 `.venv_py38_backup` |
+| Windows | `.venv\Scripts\python.exe` | 3.14.5 | 用户启动器；旧 3.8.10 备份 `.venv_py38_backup` 已于 2025-08-25 清理 |
 | WSL/Linux | `/root/hoi4_builder_venv/bin/python` | 3.14.4 | 开发/测试 |
 | CI | GitHub Actions `verify.yml` | 3.14 | `push`/`PR` 自动跑 `verify_contracts.py` |
 
