@@ -38,7 +38,38 @@ class CwtLiteRulesTest(unittest.TestCase):
         self.assertEqual(infer_type("common/national_focus/ger.txt"), "focus")
         self.assertEqual(infer_type("common/ideas/x.txt"), "idea")
         self.assertEqual(infer_type("history/states/1.txt"), "state")
+        self.assertEqual(infer_type("common/characters/ger.txt"), "character")
+        self.assertEqual(infer_type("common/technologies/x.txt"), "technology")
+        self.assertEqual(infer_type("common/buildings/b.txt"), "building")
+        self.assertEqual(infer_type("common/operations/o.txt"), "operation")
+        self.assertEqual(infer_type("map/strategicregions/1.txt"),
+                         "strategic_region")
+        self.assertEqual(infer_type("common/bookmarks/b.txt"), "bookmark")
         self.assertIsNone(infer_type("localisation/en.txt"))
+
+    def test_new_wrapper_types_validate(self):
+        from cwt_lite_rules import validate_content
+        cases = [
+            ("character",
+             "characters = {\n\tGER_a = {\n\t\tname = a\n\t\troles = { }\n\t}\n}\n",
+             False),
+            ("technology",
+             "technologies = {\n\ttech_x = {\n\t\tstart_year = 1936\n\t}\n}\n",
+             False),
+            ("technology",
+             "technologies = {\n\ttech_x = {\n\t\tstart_year = nope\n\t}\n}\n",
+             True),
+            ("bookmark",
+             "bookmarks = {\n\tbm1 = {\n\t\tname = x\n\t\tstart_date = 1936.1.1\n\t}\n}\n",
+             False),
+            ("strategic_region",
+             "strategic_region = {\n\tid = 1\n\tprovinces = { 1 2 }\n}\n",
+             False),
+        ]
+        for type_key, content, expect_red in cases:
+            issues = validate_content(content, type_key)
+            red = [i for i in issues if i["severity"] == "red"]
+            self.assertEqual(bool(red), expect_red, type_key)
 
 
 class CwtLiteCoreTest(unittest.TestCase):

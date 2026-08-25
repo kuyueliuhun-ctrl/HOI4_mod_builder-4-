@@ -54,6 +54,107 @@ RULE_CATALOG = {
         "name": "string", "regiments": "block", "support": "block",
         "is_locked": "bool", "division_names_group": "string",
     },
+    "character": {
+        "name": "string", "portraits": "block", "country": "string",
+        "roles": "block",
+    },
+    "technology": {
+        "start_year": "int", "cost": "int", "research_speed": "number",
+        "path": "block", "allow": "block", "effects": "block",
+        "ai_will_do": "block", "can_research": "block", "folder": "string",
+        "dependencies": "block", "categories": "block",
+    },
+    "building": {
+        "icon": "string", "is_buildable": "bool", "can_be_damaged": "bool",
+        "damage_chance": "number", "prerequisite": "block",
+        "show_adjacency": "bool", "value": "number", "one_per_state": "bool",
+    },
+    "modifier": {
+        "icon": "string", "is_percent": "bool", "is_equip": "bool",
+        "is_good": "bool",
+    },
+    "opinion_modifier": {
+        "opinion": "number", "decay": "number", "max_opinion": "number",
+        "min_opinion": "number", "previous_opinion_effect": "number",
+        "same_ideology": "number",
+    },
+    "wargoal": {
+        "type": "string", "allowed_states": "block", "can_use": "block",
+        "is_triggered_only": "bool", "expire": "block", "cost": "number",
+        "days": "int",
+    },
+    "operation": {
+        "name": "string", "icon": "string", "prerequisite": "block",
+        "cost": "number", "available": "block", "selectable": "block",
+        "complete_effect": "block", "days": "int", "assets": "block",
+        "start_equipment": "block",
+    },
+    "on_action": {
+        "events": "block", "random_events": "block",
+    },
+    "strategic_region": {
+        "id": "int", "name": "string", "provinces": "list_int",
+        "weather": "block", "static_modifiers": "block",
+    },
+    "supply_area": {
+        "id": "int", "name": "string", "value": "int", "states": "list_int",
+    },
+    "occupation_law": {
+        "icon": "string", "default": "bool", "movement_cost": "number",
+        "compliance_gain": "number", "state_resistance_target": "number",
+        "state_armed_force_friction": "number", "soft_cost": "number",
+        "unlock": "string",
+    },
+    "difficulty_setting": {
+        "starting_equipment_factor": "number", "ai_equipment_factor": "number",
+        "ai_training_factor": "number", "ai_templates_factor": "number",
+        "ai_division_attack_factor": "number",
+        "ai_division_defence_factor": "number",
+        "ai_bonus_for_cheat": "bool",
+    },
+    "game_rule": {
+        "name": "string", "group": "string", "default": "string",
+        "option": "block",
+    },
+    "autonomous_state": {
+        "name": "string", "hidden": "bool", "manpower": "number",
+        "industry": "number", "foreign_manpower": "number",
+        "foreign_industry": "number", "army": "number", "navy": "number",
+        "air_force": "number", "min_autonomy": "number",
+        "max_autonomy": "number",
+    },
+    "dynamic_modifier": {
+        "icon": "string", "visible": "block", "desc": "string",
+        "hidden": "bool",
+    },
+    "bookmark": {
+        "name": "string", "start_date": "string", "event": "string",
+        "picture": "string", "default": "bool", "popup": "string",
+        "effects": "block",
+    },
+    "intelligence_agency": {
+        "country": "string", "agency_name": "string", "logo": "string",
+        "color": "list_int", "intelligence_funding": "int",
+    },
+}
+
+# wrapper → 实体 的常见类型（wrapper 内直接子块即实体）
+_WRAPPER_TYPES = {
+    "character": "characters",
+    "technology": "technologies",
+    "building": "buildings",
+    "modifier": "modifiers",
+    "opinion_modifier": "opinion_modifiers",
+    "wargoal": "wargoals",
+    "operation": "operations",
+    "on_action": "on_actions",
+    "occupation_law": "occupation_laws",
+    "difficulty_setting": "difficulty_settings",
+    "game_rule": "game_rules",
+    "autonomous_state": "autonomous_states",
+    "dynamic_modifier": "dynamic_modifiers",
+    "bookmark": "bookmarks",
+    "intelligence_agency": "intelligence_agencies",
 }
 
 _TYPE_KEYS = tuple(RULE_CATALOG.keys())
@@ -76,7 +177,51 @@ def infer_type(path):
         return "ideology"
     if "history/units" in p or "common/units" in p:
         return "division_template"
+    if "common/characters" in p:
+        return "character"
+    if "common/technologies" in p:
+        return "technology"
+    if "common/buildings" in p:
+        return "building"
+    if "common/modifiers" in p:
+        return "modifier"
+    if "common/opinion_modifiers" in p:
+        return "opinion_modifier"
+    if "common/wargoals" in p:
+        return "wargoal"
+    if "common/operations" in p:
+        return "operation"
+    if "common/on_actions" in p:
+        return "on_action"
+    if "map/strategicregions" in p:
+        return "strategic_region"
+    if "map/supplyareas" in p:
+        return "supply_area"
+    if "common/occupation_laws" in p:
+        return "occupation_law"
+    if "common/difficulty_settings" in p:
+        return "difficulty_setting"
+    if "common/game_rules" in p:
+        return "game_rule"
+    if "common/autonomous_states" in p:
+        return "autonomous_state"
+    if "common/dynamic_modifiers" in p:
+        return "dynamic_modifier"
+    if "common/bookmarks" in p:
+        return "bookmark"
+    if "common/intelligence_agencies" in p:
+        return "intelligence_agency"
     return None
+
+
+def _children_of_wrapper(nodes, wrapper_key):
+    """产出 wrapper 块内的直接子块（实体）。"""
+    for node in nodes:
+        if node.node_type != "block" or node.key != wrapper_key:
+            continue
+        for child in node.children:
+            if child.node_type == "block":
+                yield child
 
 
 def _iter_entity_blocks(nodes, type_key):
@@ -108,6 +253,15 @@ def _iter_entity_blocks(nodes, type_key):
                 if ideo.node_type == "block":
                     yield ideo
         elif type_key == "division_template" and child.key == "division_template":
+            yield child
+        elif type_key == "strategic_region" and child.key == "strategic_region":
+            yield child
+        elif type_key == "supply_area" and child.key == "supply_area":
+            yield child
+    # wrapper 型：复用通用遍历（循环结束后再扫一次，避免上面 return 结构）
+    wrapper = _WRAPPER_TYPES.get(type_key)
+    if wrapper:
+        for child in _children_of_wrapper(nodes, wrapper):
             yield child
 
 
