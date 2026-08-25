@@ -793,6 +793,16 @@ def _open_mio_policies(ctx):
         parent=ctx.parent)
 
 
+def _open_doctrine(ctx):
+    from doctrine_editor_dialog import open_doctrine_editor
+    open_doctrine_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 def _open_on_actions(ctx):
     from on_actions_editor_dialog import open_on_actions_editor
     open_on_actions_editor(
@@ -960,6 +970,7 @@ ROUTES = (
     ("common/defines", _open_defines, "游戏定义"),
     ("common/military_industrial_organization/organizations", _open_mio, "MIO 编辑器"),
     ("common/military_industrial_organization/policies", _open_mio_policies, "MIO 方针"),
+    ("common/doctrines", _open_doctrine, "学说编辑器"),
 )
 
 
