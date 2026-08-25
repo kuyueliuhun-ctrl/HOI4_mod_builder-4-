@@ -241,6 +241,32 @@ UI_COVERAGE_SPECS = {
         "note": "变体（模块/升级）由三设计器覆盖；其余块走树编辑器，逐步收敛（收敛计划挂 docs/整合计划.md 通用类型 F 批）",
         "ci_exempt": True,
     },
+
+    # ---------------- P39 高级文件：GUI/GFX/Mod 描述 ----------------
+    "gui": {
+        "label": "GUI 文件（通用树）",
+        "top": "*",
+        "covered": ["*", "*.**"],
+        "note": "interface/*.gui 由通用树形编辑器完整读写（显式路由 _open_generic_tree）",
+    },
+    "gui_edit": {
+        "label": "GUI 编辑（通用树）",
+        "top": "*",
+        "covered": ["*", "*.**"],
+        "note": "interface/*.gui 由通用树形编辑器完整读写（显式路由 _open_generic_tree）",
+    },
+    "gfx_definition": {
+        "label": "图形定义（通用树）",
+        "top": "*",
+        "covered": ["*", "*.**"],
+        "note": "gfx/*.gfx 由通用树形编辑器完整读写（显式路由 _open_generic_tree）",
+    },
+    "mod_descriptor": {
+        "label": "Mod 描述专用编辑器",
+        "top": "*",
+        "covered": ["*", "*.**"],
+        "note": "descriptor.mod 由专用表单编辑器读写（name/version/supported_version/remote_file_id/path/archive/picture/tags/replace_path/dependencies + 其他条目保留）",
+    },
 }
 
 
@@ -264,12 +290,26 @@ _PDX_EXTS = {".txt", ".gfx", ".gui", ".lua", ".mod", ".csv"}
 def _iter_type_files(root, folders, max_files=0):
     """遍历 root 下匹配 folders 前缀的 PDX 文件。"""
     norm_folders = []
+    scan_root = False
     for f in folders:
         f = f.strip("/")
         if f == ".":
-            continue
-        norm_folders.append(f)
+            scan_root = True
+        else:
+            norm_folders.append(f)
     seen = 0
+    # 根目录本身（mod_descriptor 类型 folder="."）：只扫 root 顶层 .mod/.txt 等
+    if scan_root:
+        for name in sorted(os.listdir(root)):
+            ext = os.path.splitext(name)[1].lower()
+            if ext not in _PDX_EXTS:
+                continue
+            fp = os.path.join(root, name)
+            if os.path.isfile(fp):
+                yield fp
+                seen += 1
+                if max_files and seen >= max_files:
+                    return
     for dp, dirs, names in os.walk(root):
         dirs[:] = [d for d in dirs if d not in _SKIP_DIR_PARTS]
         rel = os.path.relpath(dp, root).replace("\\", "/")

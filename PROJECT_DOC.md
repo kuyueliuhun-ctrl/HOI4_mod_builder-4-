@@ -196,6 +196,7 @@ hearts_of_iron_builder/
 | MCP | `mcp_server.py`（190）、`mcp_tools.py`（651） | stdio 传输；159 个工具注册表（唯一权威来源）；优先官方 mcp 库，回退内置零依赖实现 | ✅ |
 | MIO 编辑器 | `mio_loader.py`（333）、`mio_editor_dialog.py`（473）、`mio_trait_tree.py`、`mio_policy_editor_dialog.py` | 特质树画布 + 特质增删改 + 图标选择 + 方针编辑器（552 MIO/22 方针） | ✅ |
 | 学说编辑器 | `doctrine_loader.py`（298）、`doctrine_editor_dialog.py`（491） | 主要学说→4 次要学说面板（陆军精通度+满级奖励徽章）→子学说编辑 | ✅ |
+| Mod 描述编辑器 | `mod_descriptor_loader.py`、`mod_descriptor_editor_dialog.py` | .mod 表单式编辑：name/version/supported_version/remote_file_id/path/archive/picture/tags/replace_path/dependencies + 其他条目原样保留；原子写 | ✅ |
 | AI 集成 | `ai_assist.py`（154）、`ai_assist_dialog.py` | OpenAI 兼容接口直连（DeepSeek/OpenAI/通义千问等）；提示词助手 | ✅ |
 
 ### 2.2 通用编辑器四件套（B2/B3 批量的核心架构）
@@ -237,7 +238,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 | 项 | 说明 |
 | --- | --- |
 | B2 · P23 国家历史专用化 | `ci_exempt` 长期项，建议豁免（当前通用编辑器可编辑） |
-| B3 · P39 高级文件 | 行动阶段/抵抗活动/限时活动/defines 已落地；**.gui / .gfx / .mod 待补** |
+| ~~B3 · P39 高级文件~~ | ✅ 已全部落地：行动阶段/抵抗活动/限时活动/defines + **.mod 专用编辑器** + **.gui/.gfx 显式通用树路由** |
 
 **与 hoi4modutilities 对比发现的新候选缺口（详见 §2.5，需用户拍板是否进入执行）：**
 - 游戏状态模拟引擎（条件/剧本求值）+ 世界地图条件换色 / 国策·科技·MIO 可用性预览；
@@ -423,7 +424,7 @@ QT_QPA_PLATFORM=offscreen PYTHONPATH=src python -m unittest discover -s tests -t
 | B0 公共组件（`ui_widgets.py` 等） | ✅ 已完成 |
 | B1 AI 工作台（P10~P16） | ✅ 已完成 |
 | B2 通用类型（P17~P27） | 🔶 **基本完成**（P17~P22/P24~P27 已落地；P23 国家历史建议豁免） |
-| B3 全量覆盖（P28~P39） | 🔶 **大部分落地**（P28~P38 主体完成；P39 部分落地，.gui/.gfx/.mod 待补） |
+| B3 全量覆盖（P28~P39） | ✅ **已全部落地**（P39 已闭环：.mod 专用编辑器 + .gui/.gfx 显式通用树路由） |
 | 未完成计划 P1~P4 | ⬜ 未开始（按拍板/调研推进） |
 
 **Git 状态**：分支 `main`，工作区干净，与 `origin/main` 同步。
@@ -446,7 +447,8 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 - 2026-08-22 MCP 142 新工具（共 159）、UI 修复与建构批次 1~9；
 - 2026-08-23 Python 3.14 升级完成；整合计划 B2/B3 批量铺开；
 - 2026-08-25 学说编辑器落地（最近一次提交）；
-- 2026-08-25（本轮）与 hoi4modutilities 对比盘点：登记预览/模拟/校验/DLC 等 9 类缺口候选（§2.5）。
+- 2026-08-25（本轮）与 hoi4modutilities 对比盘点：登记预览/模拟/校验/DLC 等 9 类缺口候选（§2.5）；
+- 2026-08-25（本轮）B3 P39 闭环：.mod 专用编辑器 + .gui/.gfx 显式通用树路由（见附录 H 6.27）。
 
 ---
 
@@ -854,3 +856,4 @@ python tools/check_file_budget.py        # 行数预算
 | — | 08-25 | B2/B3 批量铺开 + 学说编辑器 | 脚本库/MIO/派系/装备/学说等 |
 | 6.25 | 08-25 | 与 hoi4modutilities 对比盘点 | 梳理 9 类功能缺口（预览/模拟/地图数据层/地图 QA/事件树/GUI/DDS/DLC/导出），登记为候选待办（§2.5） |
 | 6.26 | 08-25 | DeepSeek 视觉识图工作流 | 用 `deepseek-v4-flash-vision-exp` 识图 MIO/学说 UI → 编辑器设计；工作流见 §2.6 |
+| 6.27 | 08-25 | B3 P39 闭环：Mod 描述编辑器 + GUI/GFX 路由 | `mod_descriptor_loader`/`mod_descriptor_editor_dialog`（表单式 .mod 编辑）；`app_routes` 新增 descriptor.mod / interface / gfx 显式路由；ui_gap_probe 新增 4 类型 spec + 根目录扫描 |

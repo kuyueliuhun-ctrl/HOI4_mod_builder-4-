@@ -773,6 +773,51 @@ def _open_defines(ctx):
         parent=ctx.parent)
 
 
+def _open_mod_descriptor(ctx):
+    from mod_descriptor_editor_dialog import open_mod_descriptor_editor
+    open_mod_descriptor_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_generic_tree(ctx):
+    """GUI/GFX 等无专用编辑器的 PDX 文件：显式走通用树形编辑器。"""
+    from PyQt6.QtWidgets import QMessageBox
+    from focus_view import CUSTOM_STATEMENT_PATH
+    from generic_tree_editor import GenericTreeEditor
+    from gui_translator import get_translator
+    from localization_mgr import get_localization_manager
+    from tree_node import tree_from_pdx_text
+    try:
+        with open(ctx.file_path, "r", encoding="utf-8-sig") as f:
+            content = f.read()
+        file_lines = content.splitlines()
+        editor = GenericTreeEditor(
+            root_node=tree_from_pdx_text(content),
+            file_path=ctx.file_path,
+            file_lines=file_lines,
+            block_range=(1, len(file_lines) + 1),
+            translator=get_translator(),
+            custom_statement_path=CUSTOM_STATEMENT_PATH,
+            loc_manager=get_localization_manager(),
+            parent=ctx.parent,
+            title="GUI/GFX 内容编辑",
+            hoi4_path=ctx.hoi4_path,
+            mod_path=ctx.mod_path,
+        )
+        refresh = getattr(ctx.parent, "_refresh_tree", None)
+        if refresh is not None:
+            editor.tree_saved.connect(refresh)
+        editor.show()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        QMessageBox.critical(ctx.parent, "错误", "打开失败: %s" % e)
+
+
 def _open_mio(ctx):
     from mio_editor_dialog import open_mio_editor
     open_mio_editor(
@@ -971,6 +1016,9 @@ ROUTES = (
     ("common/military_industrial_organization/organizations", _open_mio, "MIO 编辑器"),
     ("common/military_industrial_organization/policies", _open_mio_policies, "MIO 方针"),
     ("common/doctrines", _open_doctrine, "学说编辑器"),
+    ("interface", _open_generic_tree, "GUI 文件（通用树）"),
+    ("gfx", _open_generic_tree, "图形定义（通用树）"),
+    ("descriptor.mod", _open_mod_descriptor, "Mod 描述专用编辑器"),
 )
 
 
