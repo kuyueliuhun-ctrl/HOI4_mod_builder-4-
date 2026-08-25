@@ -767,6 +767,13 @@ class MapCanvas(QGraphicsView):
             self._overlays[key] = item
         item.setPixmap(pixmap)
 
+    def set_overlay_pos(self, key, pixmap, x, y, z=10):
+        """设置带像素偏移的叠加层（数据层覆盖层用 bbox 局部）。"""
+        self.set_overlay(key, pixmap, z)
+        item = self._overlays.get(key)
+        if item is not None:
+            item.setPos(x, y)
+
     def remove_overlay(self, key):
         item = self._overlays.pop(key, None)
         if item is not None:

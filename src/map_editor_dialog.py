@@ -30,6 +30,15 @@ from building_lib import load_building_types, load_country_colors
 from ai_loader import load_ai_faction_theaters
 from ai_ui_common import KeyValueTableEditor
 from map_region_ops import parse_region_file
+from map_data_layers import (
+    build_categorical_overlay, build_line_overlay, build_river_overlay,
+    build_value_overlay, load_railways, load_supply_areas,
+    state_vp_and_resources,
+)
+
+
+# 数据层下拉选项（P2 ③：地图数据层色阶）
+DATA_LAYERS = ("无", "胜利点 VP", "资源总量", "补给区", "铁路", "河流")
 
 
 class MapEditorDialog(QDialog):
@@ -107,6 +116,14 @@ class MapEditorDialog(QDialog):
         theater_btn = QPushButton("战区列表")
         theater_btn.clicked.connect(self._open_theater_list)
         bar.addWidget(theater_btn)
+        bar.addSpacing(10)
+        bar.addWidget(QLabel("数据层"))
+        self.data_layer_combo = QComboBox()
+        self.data_layer_combo.addItems(DATA_LAYERS)
+        self.data_layer_combo.setMaximumWidth(140)
+        self.data_layer_combo.currentTextChanged.connect(
+            self._on_data_layer_changed)
+        bar.addWidget(self.data_layer_combo)
         bar.addStretch(1)
 
         self.loc_edit = QLineEdit()
@@ -372,6 +389,73 @@ class MapEditorDialog(QDialog):
             if pids:
                 pm = self.map_data.theater_outline_pixmap(pids)
                 self.canvas.set_overlay("ai_theaters", pm, z=14)
+        # 数据层覆盖层跟随刷新
+        self._apply_data_layer()
+
+    # ------------------------------------------------------------ 数据层
+
+    def _on_data_layer_changed(self, _text):
+        self._apply_data_layer()
+
+    @staticmethod
+    def _rgba_to_pixmap(rgba):
+        """numpy HxWx4 RGBA -> QPixmap（UI 层）。"""
+        from PyQt6.QtGui import QImage, QPixmap
+        h, w = rgba.shape[0], rgba.shape[1]
+        img = QImage(rgba.data, w, h, w * 4,
+                     QImage.Format.Format_RGBA8888).copy()
+        return QPixmap.fromImage(img)
+
+    def _apply_data_layer(self):
+        self.canvas.remove_overlay("data_layer")
+        key = self.data_layer_combo.currentText()
+        if key == "无":
+            return
+        idm = self.map_data.id_map
+        if idm is None:
+            return
+        try:
+            if key == "胜利点 VP":
+                vp, _ = state_vp_and_resources(self.state_data.states)
+                rgba, x0, y0 = build_value_overlay(idm, vp, alpha=150)
+            elif key == "资源总量":
+                _, res = state_vp_and_resources(self.state_data.states)
+                rgba, x0, y0 = build_value_overlay(idm, res, alpha=150)
+            elif key == "补给区":
+                areas, _meta = load_supply_areas(self.mod_path,
+                                                 self.game_path)
+                pid_area = {}
+                for sid, aid in areas.items():
+                    info = self.state_data.states.get(sid)
+                    if info:
+                        for pid in info.get("provinces", []):
+                            pid_area[pid] = aid
+                rgba, x0, y0 = build_categorical_overlay(
+                    idm, pid_area, alpha=150)
+            elif key == "铁路":
+                self.map_data.precompute_centroids()
+                segs = load_railways(self.mod_path, self.game_path)
+                rgba, x0, y0 = build_line_overlay(
+                    int(idm.shape[1]), int(idm.shape[0]), segs,
+                    self.map_data.province_centroid, alpha=220)
+            elif key == "河流":
+                rivers_path = ""
+                for base in (self.game_path, self.mod_path):
+                    if base and os.path.isfile(
+                            os.path.join(base, "map", "rivers.bmp")):
+                        rivers_path = os.path.join(base, "map", "rivers.bmp")
+                        break
+                rgba, x0, y0 = build_river_overlay(rivers_path, alpha=170)
+            else:
+                return
+        except Exception as e:
+            QMessageBox.information(self, "数据层", "生成失败：%s" % e)
+            return
+        if rgba is None:
+            return
+        pm = self._rgba_to_pixmap(rgba)
+        if pm is not None and not pm.isNull():
+            self.canvas.set_overlay_pos("data_layer", pm, x0, y0, z=15)
 
     def _ai_theater_province_ids(self):
         """返回所有 AI 派系战区覆盖的地块 ID 集合。"""

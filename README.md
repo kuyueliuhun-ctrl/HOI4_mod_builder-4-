@@ -32,7 +32,7 @@
 | 意识形态编辑器 | 侧栏意识形态列表 + color/派系名/types/rules/modifiers/faction_modifiers 表单 + CRUD |
 | 民族精神编辑器 | 按分类分组导航 1.4 万条理念，块内原始脚本体编辑 + 分类内 CRUD |
 | AI 内容编辑器 | 8 类 AI 内容完全专用 UI，实体级 CRUD，未知字段保留 |
-| 地图编辑器 | 三栏布局（建筑类型 / 画布 / 地块信息），框选划分 strategicregions / supplyareas / states |
+| 地图编辑器 | 三栏布局（建筑类型 / 画布 / 地块信息），框选划分 strategicregions / supplyareas / states；**数据层色阶**（VP/资源总量/补给区/铁路/河流覆盖层） |
 
 ### 通用编辑器四件套（B2/B3 批量落地核心）
 - **SimpleBlockEditor**：通用顶层块动态编辑器（60+ 个内容类型薄壳 ≤25 行）
