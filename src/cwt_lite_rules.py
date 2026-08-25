@@ -207,6 +207,24 @@ RULE_CATALOG = {
         "add_equipment": "block", "add_equipment_to_stockpile": "block",
         "set_convoys": "var_int",
     },
+    "state_category": {
+        "local_building_slots": "var_int", "color": "list_int",
+    },
+    "terrain": {
+        "color": "list_int", "movement_cost": "var_number",
+        "combat_width": "var_int", "combat_support_width": "var_int",
+        "is_water": "bool", "naval_terrain": "bool", "sound_type": "string",
+        "match_value": "var_int", "minimum_seazone_dominance": "var_int",
+        "attrition": "var_number", "supply_flow_penalty_factor": "var_number",
+        "truck_attrition_factor": "var_number",
+        "ai_terrain_importance_factor": "var_number",
+        "naval_mine_hit_chance": "var_number", "sickness_chance": "var_number",
+        "positioning": "var_number", "navy_visibility": "var_number",
+        "enemy_army_bonus_air_superiority_factor": "var_number",
+    },
+    "resource": {
+        "icon_frame": "var_int", "cic": "var_number", "convoys": "var_number",
+    },
 }
 
 # wrapper → 实体 的常见类型（wrapper 内直接子块即实体；值可为多个候选键）
@@ -226,6 +244,9 @@ _WRAPPER_TYPES = {
     "dynamic_modifier": ("dynamic_modifiers",),
     "bookmark": ("bookmarks",),
     "intelligence_agency": ("intelligence_agencies",),
+    "state_category": ("state_categories",),
+    "terrain": ("categories",),
+    "resource": ("resources",),
 }
 
 # 顶层块即实体（任意键）的类型：modifier 文件直接列修正块，operation/occupation_law/
@@ -304,6 +325,12 @@ def infer_type(path):
         return "country"
     if "history/countries" in p:
         return "country_history"
+    if "common/state_category" in p:
+        return "state_category"
+    if "common/terrain" in p:
+        return "terrain"
+    if "common/resources" in p:
+        return "resource"
     return None
 
 

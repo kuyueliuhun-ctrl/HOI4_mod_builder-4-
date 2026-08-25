@@ -410,6 +410,11 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
   `infer_type` 新增 5 条路径；`MAX_PARSE_CHARS` 超大文件（>2MB，如 19 万行自动生成 RU 本地化）
   跳过解析返回黄色提示，避免既有解析器性能问题导致挂起。
   **全量真实数据冒烟：5 新类型 mod+game 共 2,419 文件 0 红**。
+- **批三①d 再扩充（2026-08-26）**：新增 3 类型 → **32 类**——`state_category`
+  （state_categories wrapper：local_building_slots/color）、`terrain`
+  （categories wrapper：movement_cost/combat_width/is_water/naval_terrain/sound_type…）、
+  `resource`（resources wrapper：icon_frame/cic/convoys）；`infer_type` 新增 3 条路径。
+  **全量真实数据冒烟：3 新类型 mod+game 17 文件 0 红**。
 - 分类：`health`；工具总数 **178**（159 + 9 + 5 + 1 + 2 + 2）。
 
 ## 7. 验证

@@ -54,6 +54,11 @@ class CwtLiteRulesTest(unittest.TestCase):
         self.assertEqual(infer_type("common/countries/ABC.txt"), "country")
         self.assertEqual(infer_type("history/countries/ABC.txt"),
                          "country_history")
+        self.assertEqual(infer_type("common/state_category/city.txt"),
+                         "state_category")
+        self.assertEqual(infer_type("common/terrain/00_terrain.txt"), "terrain")
+        self.assertEqual(infer_type("common/resources/00_resources.txt"),
+                         "resource")
         self.assertIsNone(infer_type("localisation/en.txt"))
 
     def test_new_wrapper_types_validate(self):
@@ -73,6 +78,23 @@ class CwtLiteRulesTest(unittest.TestCase):
              False),
             ("strategic_region",
              "strategic_region = {\n\tid = 1\n\tprovinces = { 1 2 }\n}\n",
+             False),
+            ("state_category",
+             "state_categories = {\n\tcity = {\n\t\tlocal_building_slots = 6\n\t}\n}\n",
+             False),
+            ("state_category",
+             "state_categories = {\n\tcity = {\n\t\tcolor = 5\n\t}\n}\n",
+             True),
+            ("terrain",
+             "categories = {\n\tforest = {\n\t\tcolor = { 89 199 85 }\n"
+             "\t\tmovement_cost = 1.5\n\t\tis_water = no\n\t}\n}\n",
+             False),
+            ("terrain",
+             "categories = {\n\tforest = {\n\t\tis_water = 1\n\t}\n}\n",
+             True),
+            ("resource",
+             "resources = {\n\toil = {\n\t\ticon_frame = 1\n\t\tcic = 0.125\n"
+             "\t\tconvoys = 0.1\n\t}\n}\n",
              False),
         ]
         for type_key, content, expect_red in cases:
