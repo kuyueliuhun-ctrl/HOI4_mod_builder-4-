@@ -11,6 +11,7 @@ from .project import ProjectMixin
 from .rho import RhoGapMixin
 from .agent import AgentMixin
 from .debug import DebugMixin
+from .cwt_lite import CwtLiteMixin
 
 __all__ = [
     "StatesMixin",
@@ -25,4 +26,5 @@ __all__ = [
     "RhoGapMixin",
     "AgentMixin",
     "DebugMixin",
+    "CwtLiteMixin",
 ]

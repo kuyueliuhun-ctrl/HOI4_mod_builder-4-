@@ -63,6 +63,7 @@ from api_core_ext import (
     RhoGapMixin,
     AgentMixin,
     DebugMixin,
+    CwtLiteMixin,
 )
 
 
@@ -91,7 +92,8 @@ def load_settings():
 
 class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
              LocToolsMixin, HealthMixin, MediaMixin, GeneratorsMixin,
-             ProjectMixin, RhoGapMixin, AgentMixin, DebugMixin):
+             ProjectMixin, RhoGapMixin, AgentMixin, DebugMixin,
+             CwtLiteMixin):
     """mod 制作操作核心：输入 dict → 输出 dict。"""
 
     def __init__(self, mod_path="", game_path=""):

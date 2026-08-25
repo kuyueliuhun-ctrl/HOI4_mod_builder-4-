@@ -718,6 +718,18 @@ def _rho_tools(core):
               "Rchadow 调试启动（外部工具未内置，返回引导）",
               _obj({}),
               lambda args: core.launch_hoi4_debug_with_rchadow(args)),
+        _tool("validate_hoi4_file",
+              "CWT-lite 文件校验：按路径推断类型或显式 type，检查常见字段类型（红黄）",
+              _obj({
+                  "path": _str("mod 内相对路径（与 content 二选一）"),
+                  "content": _str("脚本内容（无 path 时用）"),
+                  "type": _str("类型（focus/idea/decision/event/state/ideology/division_template，可选）"),
+              }),
+              lambda args: core.validate_hoi4_file(args)),
+        _tool("validate_hoi4_project",
+              "CWT-lite 项目校验：扫描常见类型目录汇总红黄绿",
+              _obj({"max_files": _int("最多扫描文件数，默认 100")}),
+              lambda args: core.validate_hoi4_project(args)),
     ]
 
 
@@ -850,6 +862,7 @@ _CATEGORY_TOOLS = {
         "undo_last_write", "get_undo_status", "coverage_report",
         "analyze_error_log", "get_overlay_report",
         "explain_diagnostic", "validate_project", "repair_project",
+        "validate_hoi4_file", "validate_hoi4_project",
     ],
     "symbols": [
         "list_workspace_symbols", "find_definition", "find_references",

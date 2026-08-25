@@ -385,6 +385,14 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
 - 安全边界：**显式 approved=true 才启动进程**；预检非全绿不启动。
 - 分类：`debug`；工具总数 **176**（159 + 9 + 5 + 1 + 2）。
 
+## 6G. CWT-lite 类型规则校验（2026-08-25，批二⑤）
+
+- 工具：`validate_hoi4_file`（按路径推断类型或显式 `type`，校验常见字段类型，红黄绿）、
+  `validate_hoi4_project`（扫描常见类型目录批量汇总）。
+- 规则库：`src/cwt_lite_rules.py`（focus/idea/decision/event/state/ideology/division_template 字段类型 catalog；
+  自研 PDX 解析；未知字段不报避免误报）。**为轻量替代，非 cwtools 全量**。
+- 分类：`health`；工具总数 **178**（159 + 9 + 5 + 1 + 2 + 2）。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。

@@ -29,7 +29,7 @@ class CatalogAndCategoryTest(unittest.TestCase):
         from mcp_tools import build_catalog, build_tools
         core = _make_core()
         tools = build_tools(core)
-        self.assertGreaterEqual(len(tools), 176)  # 159 + 9 + 5 + 1 + 2（debug）
+        self.assertGreaterEqual(len(tools), 178)  # 159 + 9 + 5 + 1 + 2 + 2（cwt）
         catalog = build_catalog(core)
         self.assertEqual(len(catalog), len(tools) + 3)  # +3 导航
         names = {m["name"] for m in catalog}

@@ -216,7 +216,7 @@ sound = { name = my_sound file = "sound/my_sound.wav" }
 
 ## 五、MCP 工具落地（2026-08-25，对照 RHoiScribe 缺失能力）
 
-**已实现（9 个，注册进 `mcp_tools`，MCP 工具总数 168）：**
+**已实现（两批共 19 个，注册进 `mcp_tools`，MCP 工具总数 178）：**
 
 | 工具 | 实现 | 对应 RHoiScribe 能力 |
 | --- | --- | --- |
@@ -225,13 +225,14 @@ sound = { name = my_sound file = "sound/my_sound.wav" }
 | `explain_diagnostic` | `ApiCore.explain_diagnostic`（复用 `error_log.classify_by_subsystem`） | `explain_hoi4_diagnostic` |
 | `edit_script_file` | `ApiCore.edit_script_file`（replace/insert + dry_run diff + 括号平衡） | `edit_hoi4_script_file` |
 | `validate_project` / `repair_project` | `ApiCore.validate_project`（红黄绿）/ `repair_project`（BOM 规范化） | `validate_hoi4_project` / `repair_hoi4_project` |
+| `validate_hoi4_file` / `validate_hoi4_project` | `src/cwt_lite_rules.py` + `CwtLiteMixin`（内置常见类型 catalog，轻量替代） | CWT 类型规则校验（CWT-lite） |
+| `validate_hoi4_debug_run` / `launch_hoi4_debug_with_rchadow` | `src/api_core_ext/debug.py`（approved 门禁拉起） | 调试启动 |
+| `generate_gui_gfx_asset` | `src/procedural_assets.py` + `MediaMixin`（dry_run+approved） | GUI/GFX 程序化生成 |
+| `list/set/delete_agent_preference` + `query/export_tool_logs` | `src/api_core_ext/agent.py` | Agent 偏好 / 工具审计 |
+| MCP `resources`/`prompts` | `src/mcp_server.py::BuiltinMcpServer`（§6C） | resources/prompts 协议 |
 
-**登记为待拍板的高成本项（未在本批实现）：**
-- CWT 类型规则校验（真实 PDX 语法/类型 schema，需引入 cwtools 式规则库或自研 schema）；
-- 调试启动（`validate_hoi4_debug_run` / 拉起 `hoi4.exe -debug_mode`，涉启动游戏进程，需拍板安全边界）；
-- GUI/GFX 程序化资产生成（`generate_gui_gfx_asset`，资产来源/质量需拍板）；
-- Agent 偏好持久化与工具审计日志（`*_agent_preference` / `query_tool_logs`）；
-- MCP `resources` / `prompts` 协议能力（当前仅 `tools`）。
+**说明**：CWT 类型校验为**轻量替代**（自研规则 catalog，非 cwtools 全量）；调试启动需显式 `approved=true` 才拉起游戏进程；
+GUI/GFX 生成需 `approved=true` 写盘。均可在后续按需扩充规则库与深度。
 
 ---
 
