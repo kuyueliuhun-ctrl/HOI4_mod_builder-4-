@@ -773,6 +773,26 @@ def _open_defines(ctx):
         parent=ctx.parent)
 
 
+def _open_mio(ctx):
+    from mio_editor_dialog import open_mio_editor
+    open_mio_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_mio_policies(ctx):
+    from mio_policy_editor_dialog import open_mio_policy_editor
+    open_mio_policy_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 def _open_on_actions(ctx):
     from on_actions_editor_dialog import open_on_actions_editor
     open_on_actions_editor(
@@ -938,6 +958,8 @@ ROUTES = (
     ("common/units/equipment", _open_equipment_definitions, "装备定义"),
     ("common/names", _open_names, "命名列表"),
     ("common/defines", _open_defines, "游戏定义"),
+    ("common/military_industrial_organization/organizations", _open_mio, "MIO 编辑器"),
+    ("common/military_industrial_organization/policies", _open_mio_policies, "MIO 方针"),
 )
 
 
