@@ -144,6 +144,9 @@ def _make_nested_block_loader(folder, cache_key, entity_depth=1,
     wrapper_keys=("idea_categories",))
 (parse_ideas, load_ideas) = _make_nested_block_loader(
     "common/ideas", "ideas", entity_depth=2, wrapper_keys=("ideas",))
+(parse_ideologies_detail, load_ideologies_detail) = _make_nested_block_loader(
+    "common/ideologies", "ideologies_detail", entity_depth=1,
+    wrapper_keys=("ideologies",))
 (parse_decisions, load_decisions) = _make_nested_block_loader(
     "common/decisions", "decisions", entity_depth=1)
 (parse_buildings, load_buildings) = _make_nested_block_loader(
@@ -156,3 +159,57 @@ def _make_nested_block_loader(folder, cache_key, entity_depth=1,
 
 (parse_equipment_definitions, load_equipment_definitions) = _make_nested_block_loader(
     "common/units/equipment", "equipment_definitions", entity_depth=1)
+
+
+def _make_grouped_nested_loader(folder, cache_key, wrapper_keys=None,
+                                entity_depth=2):
+    """生成带分类分组的嵌套 loader（wrapper → 分类块 → 实体块）。
+
+    用于 ideas：实体 parent_id = 分类块 key（如 country / economic_laws），
+    供专用 UI 按分类分组显示与 CRUD。
+    """
+
+    def _parse(content):
+        out = {}
+        for wkey, wd, ws, we in _block_ranges(content):
+            if wd != 0:
+                continue
+            if wrapper_keys and wkey not in wrapper_keys:
+                continue
+            wt = content[ws:we]
+            for ckey, cd, cs, ce in _block_ranges(wt):
+                if cd != entity_depth - 1:
+                    continue
+                ct = wt[cs:ce]
+                for ekey, ed, es, ee in _block_ranges(ct):
+                    if ed != 1:
+                        continue
+                    bt = ct[es:ee]
+                    f = _fields(bt)
+                    f["id"] = ekey
+                    f["name"] = ekey
+                    f["parent_id"] = ckey
+                    f["raw"] = bt
+                    out[ekey] = f
+        return out
+
+    def _load(mod_path="", hoi4_path=""):
+        def loader():
+            out = {}
+            for fp in _scan_files(mod_path, hoi4_path, folder):
+                for eid, e in _parse(_read(fp)).items():
+                    e["file"] = fp
+                    e["rel"] = os.path.relpath(
+                        fp, hoi4_path or mod_path or os.path.dirname(fp)
+                    ).replace("\\", "/")
+                    out[eid] = e
+            return out
+        return _cached(cache_key, mod_path, hoi4_path, loader)
+
+    _parse.__name__ = "parse_" + cache_key
+    _load.__name__ = "load_" + cache_key
+    return _parse, _load
+
+
+(parse_ideas_grouped, load_ideas_grouped) = _make_grouped_nested_loader(
+    "common/ideas", "ideas_grouped", wrapper_keys=("ideas",), entity_depth=2)

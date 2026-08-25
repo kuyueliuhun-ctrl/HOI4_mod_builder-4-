@@ -55,7 +55,7 @@ class IdeasEditorDialogTest(unittest.TestCase):
         dlg = IdeasEditorDialog(mod, "")
         dlg.show()
         self.app.processEvents()
-        self.assertGreaterEqual(dlg.tab.sidebar.list.count(), 1)
+        self.assertGreaterEqual(dlg.sidebar.list.count(), 1)
         dlg.close()
 
     def test_crud_create_rename_delete(self):
@@ -66,17 +66,17 @@ class IdeasEditorDialogTest(unittest.TestCase):
         dlg = IdeasEditorDialog(mod, "")
         dlg.show()
         self.app.processEvents()
-        before = dlg.tab.sidebar.list.count()
+        before = dlg.sidebar.list.count()
         with mock.patch.object(QInputDialog, "getText",
                                return_value=("NEW_ENT", True)), \
              mock.patch.object(QMessageBox, "information",
                                return_value=QMessageBox.StandardButton.Ok):
             dlg._on_create()
         self.app.processEvents()
-        self.assertEqual(dlg.tab.sidebar.list.count(), before + 1)
+        self.assertEqual(dlg.sidebar.list.count(), before + 1)
         with open(path, "r", encoding="utf-8") as f:
             self.assertIn("NEW_ENT", f.read())
-        dlg.tab.sidebar.set_current("NEW_ENT")
+        dlg.sidebar.set_current("NEW_ENT")
         self.app.processEvents()
         with mock.patch.object(QInputDialog, "getText",
                                return_value=("RENAMED", True)), \

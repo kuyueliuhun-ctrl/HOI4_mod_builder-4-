@@ -29,6 +29,8 @@
 | MIO 编辑器 | 特质树画布 + 特质增删改 + 图标选择 + 方针编辑器（552 MIO / 22 方针） |
 | 学说编辑器 | 主要学说 → 4 次要学说面板（陆军精通度 + 满级奖励徽章）→ 子学说编辑 |
 | Mod 描述编辑器 | `descriptor.mod` 表单式编辑（name/版本/工坊 ID/路径/封面/tags/replace_path/dependencies），未知条目原样保留 |
+| 意识形态编辑器 | 侧栏意识形态列表 + color/派系名/types/rules/modifiers/faction_modifiers 表单 + CRUD |
+| 民族精神编辑器 | 按分类分组导航 1.4 万条理念，块内原始脚本体编辑 + 分类内 CRUD |
 | AI 内容编辑器 | 8 类 AI 内容完全专用 UI，实体级 CRUD，未知字段保留 |
 | 地图编辑器 | 三栏布局（建筑类型 / 画布 / 地块信息），框选划分 strategicregions / supplyareas / states |
 

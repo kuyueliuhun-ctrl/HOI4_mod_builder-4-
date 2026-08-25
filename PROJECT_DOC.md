@@ -198,6 +198,8 @@ hearts_of_iron_builder/
 | MIO 编辑器 | `mio_loader.py`（333）、`mio_editor_dialog.py`（473）、`mio_trait_tree.py`、`mio_policy_editor_dialog.py` | 特质树画布 + 特质增删改 + 图标选择 + 方针编辑器（552 MIO/22 方针） | ✅ |
 | 学说编辑器 | `doctrine_loader.py`（298）、`doctrine_editor_dialog.py`（491） | 主要学说→4 次要学说面板（陆军精通度+满级奖励徽章）→子学说编辑 | ✅ |
 | Mod 描述编辑器 | `mod_descriptor_loader.py`、`mod_descriptor_editor_dialog.py` | .mod 表单式编辑：name/version/supported_version/remote_file_id/path/archive/picture/tags/replace_path/dependencies + 其他条目原样保留；原子写 | ✅ |
+| 意识形态专用编辑器 | `ideologies_editor_dialog.py` + `load_ideologies_detail` + `political_editor_data.py` | 侧栏意识形态列表（15 个真实意识形态）；color/dynamic_faction_names/types/rules/modifiers/faction_modifiers 表单；CRUD；未知标量与子块原样保留 | ✅ |
+| 民族精神（理念）专用编辑器 | `ideas_editor_dialog.py` + `load_ideas_grouped` + `political_editor_data.py` | 按分类分组导航（避免 1.4 万条理念平铺）；块内原始脚本体编辑；分类内新建/复制/改名/删除；原子写 | ✅ |
 | AI 集成 | `ai_assist.py`（154）、`ai_assist_dialog.py` | OpenAI 兼容接口直连（DeepSeek/OpenAI/通义千问等）；提示词助手 | ✅ |
 
 ### 2.2 通用编辑器四件套（B2/B3 批量的核心架构）
@@ -229,7 +231,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 | 批次 | 内容 | 状态 |
 | --- | --- | --- |
 | P1 需调研 | 大洲划分 / 批量填鸭(AOR) / 电台生成 / H4MPS 审查 / 核心圈层 / IRIS / 大众脸 | ⬜ 未开始 |
-| P2 需复刻/实现 | 自生成 GUI 决议包、民族精神/意识形态专用 UI、编制小项、~~兵牌图标接标牌库~~ ✅、RHoiScribe MCP 插件 | ⬜ 未开始 |
+| P2 需复刻/实现 | 自生成 GUI 决议包、~~民族精神/意识形态专用 UI~~ ✅、编制小项、~~兵牌图标接标牌库~~ ✅、RHoiScribe MCP 插件 | ⬜ 未开始 |
 | P2.5 已知限制 | 数值估算、未定义 airframe 容错、version_name 联动、装备 IC 花费（已登记） | ⬜ 长期 |
 | P3 转模板/文档 | RHoiScribe 补全、特殊案例/教程提炼 | ⬜ 未开始 |
 | P4 暂缓/外部/不做 | 旗帜、议会 GUI、Shader、电台 OGG、系统预览等 | ⬜ 暂缓 |
@@ -450,7 +452,8 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 - 2026-08-25 学说编辑器落地（最近一次提交）；
 - 2026-08-25（本轮）与 hoi4modutilities 对比盘点：登记预览/模拟/校验/DLC 等 9 类缺口候选（§2.5）；
 - 2026-08-25（本轮）B3 P39 闭环：.mod 专用编辑器 + .gui/.gfx 显式通用树路由（见附录 H 6.27）；
-- 2026-08-25（本轮）P2 兵牌图标接标牌库：OOB 地图兵牌与师编制槽位回退 448 标牌库，97% 兵种覆盖（见附录 H 6.28）。
+- 2026-08-25（本轮）P2 兵牌图标接标牌库：OOB 地图兵牌与师编制槽位回退 448 标牌库，97% 兵种覆盖（见附录 H 6.28）；
+- 2026-08-25（本轮）P2 民族精神/意识形态专用 UI：意识形态表单编辑器 + 民族精神分类分组编辑器（见附录 H 6.29）。
 
 ---
 
@@ -860,3 +863,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.26 | 08-25 | DeepSeek 视觉识图工作流 | 用 `deepseek-v4-flash-vision-exp` 识图 MIO/学说 UI → 编辑器设计；工作流见 §2.6 |
 | 6.27 | 08-25 | B3 P39 闭环：Mod 描述编辑器 + GUI/GFX 路由 | `mod_descriptor_loader`/`mod_descriptor_editor_dialog`（表单式 .mod 编辑）；`app_routes` 新增 descriptor.mod / interface / gfx 显式路由；ui_gap_probe 新增 4 类型 spec + 根目录扫描 |
 | 6.28 | 08-25 | P2：兵牌图标接标牌库 | `unit_counter_library.find_counter_entry`（兵种→448 标牌，97% 覆盖）+ `unit_counter_icons`（QPixmap/QIcon）；`oob_map_editor`/`division_editor` GFX 失败回退标牌库，消除黑底占位 |
+| 6.29 | 08-25 | P2：民族精神/意识形态专用 UI | `political_editor_data`（子块替换/列表/嵌套整块替换/分类插入）；意识形态表单编辑器（15 意识形态）；民族精神分类分组编辑器（1.4 万条按分类导航 + CRUD） |

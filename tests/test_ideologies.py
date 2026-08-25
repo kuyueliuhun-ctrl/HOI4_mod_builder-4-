@@ -27,7 +27,7 @@ class IdeologiesEditorDialog(unittest.TestCase):
         cls.app = QApplication.instance() or QApplication([])
 
     def test_parse_and_editor(self):
-        from ai_loader import _AI_CACHE, load_ideologies
+        from ai_loader import _AI_CACHE, load_ideologies_detail
         from ideologies_editor_dialog import IdeologiesEditorDialog
         _AI_CACHE.clear()
         mod = _mkdtemp("dsh_ideologies_")
@@ -35,13 +35,19 @@ class IdeologiesEditorDialog(unittest.TestCase):
         os.makedirs(os.path.join(mod, "common", "ideologies"), exist_ok=True)
         path = os.path.join(mod, "common", "ideologies", "all.txt")
         with open(path, "w", encoding="utf-8") as f:
-            f.write("SAMPLE = {\n\tkey = value\n}\n")
-        items = load_ideologies(mod, "")
+            f.write("""ideologies = {
+	SAMPLE = {
+		key = value
+		color = { 1 2 3 }
+	}
+}
+""")
+        items = load_ideologies_detail(mod, "")
         self.assertIn("SAMPLE", items)
         dlg = IdeologiesEditorDialog(mod, "")
         dlg.show()
         self.app.processEvents()
-        self.assertEqual(dlg.tab.sidebar.list.count(), 1)
+        self.assertEqual(dlg.sidebar.list.count(), 1)
         dlg.close()
 
 
