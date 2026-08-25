@@ -81,6 +81,71 @@ class MediaMixin:
                 "image_file": os.path.join(target_dir, icon_base + ".png"),
                 "gfx_file": gfx_file}
 
+    def generate_gui_gfx_asset(self, data=None):
+        """程序化 GUI/GFX 资产生成（B3 批二③）。
+
+        {name, size?, colors?, gui?, output_root?, dry_run?, approved?}
+        - dry_run=true 返回计划文件清单；写盘需 approved=true 且 dry_run=false。
+        - 生成 PNG（PIL 渐变圆角）+ .gfx spriteType 注册 + 可选 .gui 骨架。
+        """
+        data = data or {}
+        name = (data.get("name") or "").strip()
+        if not name:
+            raise ValueError("缺少 name")
+        approved = bool(data.get("approved", False))
+        dry_run = bool(data.get("dry_run", True))
+        make_gui = bool(data.get("gui", False))
+        raw_size = data.get("size") or (64, 64)
+        if isinstance(raw_size, (list, tuple)) and len(raw_size) == 2:
+            size = (int(raw_size[0]), int(raw_size[1]))
+        else:
+            size = (64, 64)
+        colors = data.get("colors") or ["#3b82f6", "#1d4ed8"]
+        output_root = (data.get("output_root") or "").strip().strip("/")
+        subdir = output_root or "gfx/interface/procedural"
+        png_rel = "%s/%s.png" % (subdir, name)
+        gfx_rel = "%s/%s.gfx" % (subdir, name)
+        gui_rel = "interface/%s.gui" % name if make_gui else ""
+        plans = [{"file": png_rel, "kind": "png"},
+                 {"file": gfx_rel, "kind": "gfx"}]
+        if gui_rel:
+            plans.append({"file": gui_rel, "kind": "gui"})
+        if dry_run:
+            return {"ok": True, "dry_run": True,
+                    "approved_required": not approved,
+                    "name": name, "sprite_name": "GFX_%s" % name,
+                    "files": plans}
+        if not approved:
+            raise ValueError("程序化生成需显式 approved=true（避免覆盖已有素材）")
+        from procedural_assets import generate_asset_png
+        png_abs = os.path.join(self.mod_path, *png_rel.split("/"))
+        os.makedirs(os.path.dirname(png_abs), exist_ok=True)
+        generate_asset_png(png_abs, name, size=size, colors=colors)
+        gfx_abs = os.path.join(self.mod_path, *gfx_rel.split("/"))
+        os.makedirs(os.path.dirname(gfx_abs), exist_ok=True)
+        from tech_icon_ops import ensure_sprite_in_gfx_file
+        ensure_sprite_in_gfx_file(gfx_abs, "GFX_%s" % name, png_rel)
+        written = [png_rel, gfx_rel]
+        if make_gui:
+            gui_abs = os.path.join(self.mod_path, *gui_rel.split("/"))
+            os.makedirs(os.path.dirname(gui_abs), exist_ok=True)
+            gui_text = (
+                'windowType = {\n'
+                '\tname = "%s_window"\n'
+                '\tposition = { x = 0 y = 0 }\n'
+                '\tsize = { width = %d height = %d }\n'
+                '\ticonButton = {\n'
+                '\t\tname = "%s_icon"\n'
+                '\t\tquadTextureSprite = "GFX_%s"\n'
+                '\t}\n'
+                '}\n') % (name, size[0], size[1], name, name)
+            from write_utils import atomic_write_text
+            atomic_write_text(gui_abs, gui_text, encoding="utf-8")
+            written.append(gui_rel)
+        self._notify_change(png_abs)
+        return {"ok": True, "dry_run": False, "name": name,
+                "sprite_name": "GFX_%s" % name, "written": written}
+
     def convert_dds(self, data=None):
         data = data or {}
         path = (data.get("path") or "").strip()

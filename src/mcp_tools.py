@@ -695,6 +695,18 @@ def _rho_tools(core):
                   "bom": _bool("是否做 BOM 规范化，默认 true"),
               }),
               lambda args: core.repair_project(args)),
+        _tool("generate_gui_gfx_asset",
+              "程序化 GUI/GFX 资产生成：PIL 渐变 PNG + .gfx spriteType 注册 + 可选 .gui 骨架；需 dry_run 后 approved=true 写盘",
+              _obj({
+                  "name": _str("资产名（会生成 GFX_<name> 与文件）"),
+                  "size": _arr(_int(), "宽高 [w, h]，默认 [64,64]"),
+                  "colors": _arr(_str(), "渐变两端颜色 hex，默认蓝系"),
+                  "gui": _bool("是否同时生成 .gui 骨架（默认否）"),
+                  "output_root": _str("输出相对目录（默认 gfx/interface/procedural）"),
+                  "dry_run": _bool("默认 true 只返回计划"),
+                  "approved": _bool("写盘需显式 true"),
+              }, ["name"]),
+              lambda args: core.generate_gui_gfx_asset(args)),
     ]
 
 
@@ -839,7 +851,7 @@ _CATEGORY_TOOLS = {
     "media": [
         "upload_tech_icon", "get_icon_manifest", "register_icon_batch",
         "upload_entity_icon", "convert_dds", "import_unit_counters",
-        "list_unit_counters",
+        "list_unit_counters", "generate_gui_gfx_asset",
     ],
     "generators": [
         "generate_ideas", "generate_ideologies", "generate_characters",

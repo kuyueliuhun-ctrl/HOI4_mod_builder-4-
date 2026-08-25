@@ -371,6 +371,13 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
 - 埋点：MCP `tools/call`、HTTP `/api/mcp/invoke_tool` 与 `/api/mcp/<tool>` 桥自动记录 `log_tool_call`。
 - 分类：`agent`；工具总数 173（159 + 9 + 5）。
 
+## 6E. GUI/GFX 程序化资产生成（2026-08-25，批二③）
+
+- 工具：`generate_gui_gfx_asset`（`src/api_core_ext/media.py` + `src/procedural_assets.py`）。
+- 流程：`dry_run=true` 返回计划文件清单；写盘需 `approved=true` 且 `dry_run=false`。
+- 产物：PIL 程序化渐变圆角 PNG → `.gfx` spriteType 注册（复用 `ensure_sprite_in_gfx_file`）→ 可选 `.gui` 骨架。
+- 分类：`media`；工具总数 **174**（159 + 9 + 5 + 1）。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
