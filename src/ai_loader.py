@@ -1031,6 +1031,9 @@ from generic_block_loaders import *  # noqa: E402,F401,F403 (B3 通用顶层块 
 from generic_nested_loaders import *  # noqa: E402,F401,F403 (B3 嵌套实体 loader re-export)
 
 
+from raw_block_loaders import *  # noqa: E402,F401,F403 (B2-P17 脚本库 loader re-export)
+
+
 # ---------- AI 派系战区 ----------
 
 def parse_ai_faction_theaters(content):

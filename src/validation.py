@@ -54,7 +54,7 @@ def _is_entity_key(key):
 _ENTITY_TYPES = {
     "character", "idea", "focus", "event", "decision", "tech", "state",
     "super_event", "bookmark", "country_history", "advisor_assign",
-    "scripted", "mio", "equipment", "unit", "initial_oob", "special_project",
+    "scripted_effects", "scripted_triggers", "script_enums", "mio", "equipment", "unit", "initial_oob", "special_project",
     "doctrine", "intelligence", "autonomy", "country_setup", "dynamic_modifier",
     "modifier_definition", "ai_strategy", "ai_division", "wargoal",
     "ideologies", "continuous_focus", "on_actions", "operations", "bop",

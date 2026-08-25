@@ -18,7 +18,7 @@ from write_utils import atomic_write_text
 _DESC_TYPES = {
     "focus", "idea", "decision", "tech", "character",
     "country_leader", "advisor_assign", "ideology", "bookmark",
-    "scripted", "mio", "equipment", "unit", "state", "idea_tag",
+    "scripted_effects", "scripted_triggers", "script_enums", "mio", "equipment", "unit", "state", "idea_tag",
     "opinion_modifiers", "operations", "on_actions", "wargoal",
 }
 

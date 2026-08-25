@@ -693,6 +693,36 @@ def _open_event_modifiers(ctx):
         parent=ctx.parent)
 
 
+def _open_scripted_effects(ctx):
+    from scripted_effects_editor_dialog import open_scripted_effects_editor
+    open_scripted_effects_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_scripted_triggers(ctx):
+    from scripted_triggers_editor_dialog import open_scripted_triggers_editor
+    open_scripted_triggers_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_script_enums(ctx):
+    from script_enums_editor_dialog import open_script_enums_editor
+    open_script_enums_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 def _open_on_actions(ctx):
     from on_actions_editor_dialog import open_on_actions_editor
     open_on_actions_editor(
@@ -850,6 +880,9 @@ ROUTES = (
     ("common/decisions", _open_decisions, "决议"),
     ("common/buildings", _open_buildings, "建筑"),
     ("common/terrain", _open_terrain, "地形"),
+    ("common/scripted_effects", _open_scripted_effects, "效果结构体（脚本库）"),
+    ("common/scripted_triggers", _open_scripted_triggers, "条件结构体（脚本库）"),
+    ("common/script_enums.txt", _open_script_enums, "枚举结构体（脚本库）"),
 )
 
 

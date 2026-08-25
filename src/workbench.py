@@ -300,26 +300,11 @@ class WorkbenchDock(QDockWidget):
         key = self._current_type
         folders, exts = self._type_folders_ext(key)
         entities = []
-        seen = set()
-        for rel in folders:
-            base = self.mod_path if rel == "." else os.path.join(self.mod_path, rel)
-            if not os.path.isdir(base):
+        for fp in self._iter_rel_files(self.mod_path, folders, exts):
+            content = self._read_file(fp)
+            if not content:
                 continue
-            for root, _dirs, names in os.walk(base):
-                for name in sorted(names):
-                    if not self._ext_matches(name, exts):
-                        continue
-                    fp = os.path.join(root, name)
-                    if not os.path.isfile(fp):
-                        continue
-                    real = os.path.realpath(fp)
-                    if real in seen:
-                        continue
-                    seen.add(real)
-                    content = self._read_file(fp)
-                    if not content:
-                        continue
-                    entities.extend(self._entities_for_file(key, content, fp))
+            entities.extend(self._entities_for_file(key, content, fp))
         return self._filter_entities(entities)
 
     def _current_country_tags(self):
@@ -453,22 +438,7 @@ class WorkbenchDock(QDockWidget):
 
         key = self._current_type
         folders, exts = self._type_folders_ext(key)
-        files = []
-        seen = set()
-        for rel in folders:
-            base = self.mod_path if rel == "." else os.path.join(self.mod_path, rel)
-            if not os.path.isdir(base):
-                continue
-            for root, _dirs, names in os.walk(base):
-                for name in sorted(names):
-                    fp = os.path.join(root, name)
-                    if os.path.isfile(fp) and self._ext_matches(name, exts):
-                        real = os.path.realpath(fp)
-                        if real in seen:
-                            continue
-                        seen.add(real)
-                        files.append(fp)
-        return files
+        return list(self._iter_rel_files(self.mod_path, folders, exts))
 
     @staticmethod
     def _type_folders_ext(key):
@@ -492,6 +462,36 @@ class WorkbenchDock(QDockWidget):
         """判断文件名是否匹配扩展名列表（大小写不敏感）。"""
         lower = name.lower()
         return any(lower.endswith(e) for e in exts)
+
+    @classmethod
+    def _iter_rel_files(cls, mod_path, folders, exts):
+        """遍历内容类型文件，支持目录递归与单文件相对路径。
+
+        folders 中若元素以 .txt 结尾，视为单个文件相对路径（如
+        common/script_enums.txt），否则视为目录递归扫描。
+        """
+        seen = set()
+        for rel in folders or []:
+            if rel.lower().endswith(".txt"):
+                fp = os.path.join(mod_path, rel)
+                if os.path.isfile(fp):
+                    real = os.path.realpath(fp)
+                    if real not in seen:
+                        seen.add(real)
+                        yield fp
+                continue
+            base = mod_path if rel == "." else os.path.join(mod_path, rel)
+            if not os.path.isdir(base):
+                continue
+            for root, _dirs, names in os.walk(base):
+                for name in sorted(names):
+                    fp = os.path.join(root, name)
+                    if os.path.isfile(fp) and cls._ext_matches(name, exts):
+                        real = os.path.realpath(fp)
+                        if real in seen:
+                            continue
+                        seen.add(real)
+                        yield fp
 
     @staticmethod
     def _blank_pdx(text):

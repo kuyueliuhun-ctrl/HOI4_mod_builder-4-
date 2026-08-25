@@ -54,8 +54,10 @@ CONTENT_TYPES = [
     ("bookmark", "剧本", "🎬", ["common/bookmarks"], "bookmark", ".txt"),
     ("country_history", "国家设置", "🏛️", ["history/countries"], "country_history", ".txt"),
     ("advisor_assign", "顾问分配", "👔", ["history/general"], "顾问分配", ".txt"),
-    # ── 脚本 / 触发 ──
-    ("scripted", "脚本化效果", "🧩", ["common/scripted_effects", "common/scripted_triggers"], "scripted", ".txt"),
+    # ── 脚本 / 触发（B2-P17 脚本库：三个类型共用 RawBlockEditor） ──
+    ("scripted_effects", "效果结构体", "🧩", ["common/scripted_effects"], "scripted", ".txt"),
+    ("scripted_triggers", "条件结构体", "🎯", ["common/scripted_triggers"], "scripted", ".txt"),
+    ("script_enums", "枚举结构体", "📋", ["common/script_enums.txt"], None, ".txt"),
     ("scripted_localisation", "脚本化本地化", "🌐", ["common/scripted_localisation"], "脚本化本地化", ".txt"),
     ("scripted_guis", "脚本化界面", "🖼️", ["common/scripted_guis"], "脚本化界面", ".txt"),
     ("scripted_diplomatic_actions", "脚本化外交行动", "🕊️", ["common/scripted_diplomatic_actions"], None, ".txt"),

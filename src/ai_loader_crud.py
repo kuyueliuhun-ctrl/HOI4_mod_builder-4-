@@ -1094,4 +1094,37 @@ def rename_ai_navy_taskforce(content, old_id, new_id):
 def duplicate_ai_navy_taskforce(content, taskforce_id, new_id):
     return duplicate_top_block(content, taskforce_id, new_id)
 
-__all__ = ['replace_ai_plan_focus_order', 'replace_ai_strategy_entries', 'parse_ai_target_variant', 'replace_ai_equipment_target_variant', 'replace_top_block_fields', 'replace_ai_template_target_template', 'replace_ai_plan_field', 'insert_top_block', 'delete_top_block', 'rename_top_block', 'duplicate_top_block', 'replace_top_block_child', 'insert_ai_strategy_group', 'delete_ai_strategy_group', 'rename_ai_strategy_group', 'duplicate_ai_strategy_group', 'insert_ai_focus', 'delete_ai_focus', 'rename_ai_focus', 'duplicate_ai_focus', 'insert_ai_area', 'delete_ai_area', 'rename_ai_area', 'duplicate_ai_area', 'replace_ai_area_regions', 'replace_ai_area_block', 'replace_top_block_field', 'insert_ai_faction_theater', 'delete_ai_faction_theater', 'rename_ai_faction_theater', 'duplicate_ai_faction_theater', 'replace_ai_region_list', 'upsert_top_block_child', 'insert_ai_template_role', 'delete_ai_template_role', 'rename_ai_template_role', 'duplicate_ai_template_role', 'insert_ai_template_target', 'delete_ai_template_target', 'rename_ai_template_target', 'duplicate_ai_template_target', 'replace_ai_template_target_field', 'insert_ai_equipment_group', 'delete_ai_equipment_group', 'rename_ai_equipment_group', 'duplicate_ai_equipment_group', 'insert_ai_equipment_variant', 'delete_ai_equipment_variant', 'rename_ai_equipment_variant', 'duplicate_ai_equipment_variant', 'replace_ai_equipment_variant_field', 'replace_ai_equipment_allowed_modules', 'replace_or_upsert_nested_child', 'insert_ai_plan', 'delete_ai_plan', 'rename_ai_plan', 'duplicate_ai_plan', 'insert_ai_navy_goal', 'delete_ai_navy_goal', 'rename_ai_navy_goal', 'duplicate_ai_navy_goal', 'insert_ai_navy_fleet', 'delete_ai_navy_fleet', 'rename_ai_navy_fleet', 'duplicate_ai_navy_fleet', 'insert_ai_navy_taskforce', 'delete_ai_navy_taskforce', 'rename_ai_navy_taskforce', 'duplicate_ai_navy_taskforce']
+
+def replace_block_body(content, block_id, body):
+    """替换顶层块的花括号内部内容（保留外层 `key = {` 前缀与 `}`）。
+
+    用于脚本库（scripted_effects/triggers/enums）的原始脚本体编辑：
+    只替换被编辑块内部，其余文件内容原样保留。
+    """
+    body_text = (body or "").strip("\n")
+    for key, depth, start, _end in _block_ranges(content):
+        if depth != 0 or key != block_id:
+            continue
+        bs, be = _find_block_bounds(content, start)
+        brace = content.find("{", bs)
+        if brace < 0:
+            continue
+        d = 0
+        close = -1
+        for i in range(brace, be):
+            c = content[i]
+            if c == "{":
+                d += 1
+            elif c == "}":
+                d -= 1
+                if d == 0:
+                    close = i
+                    break
+        if close < 0:
+            continue
+        new_block = content[bs:brace + 1] + "\n" + body_text + "\n" + content[close]
+        return content[:bs] + new_block + content[close + 1:]
+    return content
+
+
+__all__ = ['replace_ai_plan_focus_order', 'replace_ai_strategy_entries', 'parse_ai_target_variant', 'replace_ai_equipment_target_variant', 'replace_top_block_fields', 'replace_ai_template_target_template', 'replace_ai_plan_field', 'insert_top_block', 'delete_top_block', 'rename_top_block', 'duplicate_top_block', 'replace_top_block_child', 'insert_ai_strategy_group', 'delete_ai_strategy_group', 'rename_ai_strategy_group', 'duplicate_ai_strategy_group', 'insert_ai_focus', 'delete_ai_focus', 'rename_ai_focus', 'duplicate_ai_focus', 'insert_ai_area', 'delete_ai_area', 'rename_ai_area', 'duplicate_ai_area', 'replace_ai_area_regions', 'replace_ai_area_block', 'replace_top_block_field', 'insert_ai_faction_theater', 'delete_ai_faction_theater', 'rename_ai_faction_theater', 'duplicate_ai_faction_theater', 'replace_ai_region_list', 'upsert_top_block_child', 'insert_ai_template_role', 'delete_ai_template_role', 'rename_ai_template_role', 'duplicate_ai_template_role', 'insert_ai_template_target', 'delete_ai_template_target', 'rename_ai_template_target', 'duplicate_ai_template_target', 'replace_ai_template_target_field', 'insert_ai_equipment_group', 'delete_ai_equipment_group', 'rename_ai_equipment_group', 'duplicate_ai_equipment_group', 'insert_ai_equipment_variant', 'delete_ai_equipment_variant', 'rename_ai_equipment_variant', 'duplicate_ai_equipment_variant', 'replace_ai_equipment_variant_field', 'replace_ai_equipment_allowed_modules', 'replace_or_upsert_nested_child', 'insert_ai_plan', 'delete_ai_plan', 'rename_ai_plan', 'duplicate_ai_plan', 'insert_ai_navy_goal', 'delete_ai_navy_goal', 'rename_ai_navy_goal', 'duplicate_ai_navy_goal', 'insert_ai_navy_fleet', 'delete_ai_navy_fleet', 'rename_ai_navy_fleet', 'duplicate_ai_navy_fleet', 'insert_ai_navy_taskforce', 'delete_ai_navy_taskforce', 'rename_ai_navy_taskforce', 'duplicate_ai_navy_taskforce', 'replace_block_body']
