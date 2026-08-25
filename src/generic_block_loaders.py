@@ -13,7 +13,7 @@ from oob_loader import _block_ranges
 from ai_loader_crud import _fields
 
 
-def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt"):
+def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt", recursive=False):
     """扫描 mod/游戏下某个相对目录，返回文件绝对路径列表（mod 优先去重）。"""
     out = []
     seen = set()
@@ -22,6 +22,18 @@ def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt"):
             continue
         d = os.path.join(base, rel_dir)
         if not os.path.isdir(d):
+            continue
+        if recursive:
+            for root, _dirs, names in os.walk(d):
+                for name in sorted(names):
+                    if not name.lower().endswith(ext):
+                        continue
+                    fp = os.path.join(root, name)
+                    real = os.path.realpath(fp)
+                    if real in seen:
+                        continue
+                    seen.add(real)
+                    out.append(fp)
             continue
         for name in sorted(os.listdir(d)):
             if not name.lower().endswith(ext):
@@ -53,10 +65,11 @@ def _cached(kind, mod_path, hoi4_path, loader):
     return data
 
 
-def _make_top_block_loader(folder, cache_key, file_mode=False):
+def _make_top_block_loader(folder, cache_key, file_mode=False, recursive=False):
     """生成 (parse, load) 对：每个顶层块 = 标量字段集。
 
     folder 为目录（common/<folder>/*.txt）或单个文件（common/xxx.txt）。
+    recursive 时对目录递归扫描子目录（如 common/factions）。
     """
 
     def _parse(content):
@@ -88,7 +101,7 @@ def _make_top_block_loader(folder, cache_key, file_mode=False):
                 seen.add(real)
                 res.append(fp)
             return res
-        return _scan_files(mod_path, hoi4_path, folder)
+        return _scan_files(mod_path, hoi4_path, folder, recursive=recursive)
 
     def _load(mod_path="", hoi4_path=""):
         def loader():
@@ -180,3 +193,9 @@ def _make_top_block_loader(folder, cache_key, file_mode=False):
     "common/triggered_modifiers.txt", "triggered_modifiers", file_mode=True)
 (parse_event_modifiers, load_event_modifiers) = _make_top_block_loader(
     "common/event_modifiers.txt", "event_modifiers", file_mode=True)
+
+
+(parse_factions, load_factions) = _make_top_block_loader(
+    "common/factions", "factions", recursive=True)
+(parse_focus_inlay_windows, load_focus_inlay_windows) = _make_top_block_loader(
+    "common/focus_inlay_windows", "focus_inlay_windows")

@@ -152,3 +152,7 @@ def _make_nested_block_loader(folder, cache_key, entity_depth=1,
 (parse_terrain, load_terrain) = _make_nested_block_loader(
     "common/terrain/00_terrain.txt", "terrain", entity_depth=1,
     file_mode=True)
+
+
+(parse_equipment_definitions, load_equipment_definitions) = _make_nested_block_loader(
+    "common/units/equipment", "equipment_definitions", entity_depth=1)

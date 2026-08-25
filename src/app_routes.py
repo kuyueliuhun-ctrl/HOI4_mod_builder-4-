@@ -723,6 +723,36 @@ def _open_script_enums(ctx):
         parent=ctx.parent)
 
 
+def _open_factions(ctx):
+    from factions_editor_dialog import open_factions_editor
+    open_factions_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_focus_inlay_windows(ctx):
+    from focus_inlay_windows_editor_dialog import open_focus_inlay_windows_editor
+    open_focus_inlay_windows_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_equipment_definitions(ctx):
+    from equipment_definitions_editor_dialog import open_equipment_definitions_editor
+    open_equipment_definitions_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 def _open_on_actions(ctx):
     from on_actions_editor_dialog import open_on_actions_editor
     open_on_actions_editor(
@@ -883,6 +913,9 @@ ROUTES = (
     ("common/scripted_effects", _open_scripted_effects, "效果结构体（脚本库）"),
     ("common/scripted_triggers", _open_scripted_triggers, "条件结构体（脚本库）"),
     ("common/script_enums.txt", _open_script_enums, "枚举结构体（脚本库）"),
+    ("common/factions", _open_factions, "派系"),
+    ("common/focus_inlay_windows", _open_focus_inlay_windows, "国策内嵌窗口"),
+    ("common/units/equipment", _open_equipment_definitions, "装备定义"),
 )
 
 
