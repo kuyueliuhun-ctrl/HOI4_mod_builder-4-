@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import re
+
 from tree_node import parse_pdx_text_to_nodes
 
 # 类型 → 直接标量字段类型映射（缺失字段不报；unknown 标量不报）
@@ -225,6 +227,45 @@ RULE_CATALOG = {
     "resource": {
         "icon_frame": "var_int", "cic": "var_number", "convoys": "var_number",
     },
+    "unit": {
+        "sprite": "string", "priority": "var_int", "active": "bool",
+        "map_icon_category": "string", "max_organisation": "var_number",
+        "weight": "var_number", "supply_consumption": "var_number",
+        "max_strength": "var_number", "ai_priority": "var_int",
+        "group": "string", "manpower": "var_int",
+        "default_morale": "var_number", "training_time": "var_int",
+        "combat_width": "var_int", "abbreviation": "string",
+        "breakthrough": "var_number", "can_be_parachuted": "bool",
+        "suppression": "var_number", "soft_attack": "var_number",
+        "regimental": "bool", "hard_attack": "var_number",
+        "defense": "var_number", "affects_speed": "bool",
+        "same_support_type": "string", "land_air_wing_size": "var_int",
+        "transport": "string", "type": "string",
+        "mega_carrier_air_wing_size": "var_int", "recon": "var_int",
+        "special_forces": "bool", "armor_value": "var_number",
+        "maximum_speed": "var_number", "is_artillery_brigade": "bool",
+        "allow_in_army_hq": "bool", "allow_in_non_army_hq": "bool",
+        "deployment_cost": "var_int", "carrier_air_wing_size": "var_int",
+        "marines": "bool", "air_attack": "var_number",
+        "critical_part_damage_chance_mult": "var_int",
+        "hit_profile_mult": "var_number", "divisional": "bool",
+        "entrenchment": "var_number",
+        "own_equipment_fuel_consumption_mult": "var_number",
+        "ap_attack": "var_number", "can_exfiltrate_from_coast": "bool",
+        "submarine_carrier_air_wing_size": "var_int",
+        "initiative": "var_number", "suppression_factor": "var_number",
+        "equipment_capture_factor": "var_number", "cavalry": "bool",
+        "reliability": "var_number", "supply_consumption_factor": "var_number",
+        "casualty_trickleback": "var_number",
+        "experience_loss_factor": "var_number", "reliability_factor": "var_number",
+        "naval_strike_attack": "var_number", "hardness": "var_number",
+        "mountaineers": "bool",
+        "acclimatization_hot_climate_gain_factor": "var_int",
+        "acclimatization_cold_climate_gain_factor": "var_int",
+        "fuel_consumption_factor": "var_number",
+        "division_3d_model_priority": "var_int", "rangers": "bool",
+        "recovery": "var_number", "need": "block", "categories": "block",
+    },
 }
 
 # wrapper → 实体 的常见类型（wrapper 内直接子块即实体；值可为多个候选键）
@@ -247,6 +288,7 @@ _WRAPPER_TYPES = {
     "state_category": ("state_categories",),
     "terrain": ("categories",),
     "resource": ("resources",),
+    "unit": ("sub_units",),
 }
 
 # 顶层块即实体（任意键）的类型：modifier 文件直接列修正块，operation/occupation_law/
@@ -279,8 +321,10 @@ def infer_type(path):
         return "state"
     if "common/ideologies" in p:
         return "ideology"
-    if "history/units" in p or "common/units" in p:
+    if "history/units" in p:
         return "division_template"
+    if "common/units" in p:
+        return "unit"
     if "common/characters" in p:
         return "character"
     if "common/technologies" in p:
@@ -420,6 +464,13 @@ def _is_var_ident(value):
     return all(c.isalnum() or c in "_." for c in s)
 
 
+def _var_value_ok(value):
+    """var_* 位：数字 / 脚本引用 / 裸标识符 / 点号数字（如 3.5.5 mod 写法）。"""
+    s = str(value).strip()
+    return (_is_script_ref(value) or _is_var_ident(value)
+            or bool(re.fullmatch(r"\d+(\.\d+)+", s)))
+
+
 def _type_ok(expected, value):
     if expected in ("int", "number"):
         try:
@@ -438,7 +489,7 @@ def _type_ok(expected, value):
                 float(value)
             return True
         except Exception:
-            return _is_script_ref(value) or _is_var_ident(value)
+            return _var_value_ok(value)
     if expected == "bool":
         return str(value).lower() in ("yes", "no", "true", "false")
     if expected == "string":

@@ -59,6 +59,9 @@ class CwtLiteRulesTest(unittest.TestCase):
         self.assertEqual(infer_type("common/terrain/00_terrain.txt"), "terrain")
         self.assertEqual(infer_type("common/resources/00_resources.txt"),
                          "resource")
+        self.assertEqual(infer_type("common/units/x.txt"), "unit")
+        self.assertEqual(infer_type("history/units/x.txt"),
+                         "division_template")
         self.assertIsNone(infer_type("localisation/en.txt"))
 
     def test_new_wrapper_types_validate(self):
@@ -96,6 +99,13 @@ class CwtLiteRulesTest(unittest.TestCase):
              "resources = {\n\toil = {\n\t\ticon_frame = 1\n\t\tcic = 0.125\n"
              "\t\tconvoys = 0.1\n\t}\n}\n",
              False),
+            ("unit",
+             "sub_units = {\n\tinfantry = {\n\t\tsprite = infantry\n"
+             "\t\tpriority = 1\n\t\tactive = yes\n\t\ttype = infantry\n\t}\n}\n",
+             False),
+            ("unit",
+             "sub_units = {\n\tinfantry = {\n\t\tactive = 1\n\t}\n}\n",
+             True),
         ]
         for type_key, content, expect_red in cases:
             issues = validate_content(content, type_key)

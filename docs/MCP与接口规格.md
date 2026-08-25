@@ -415,6 +415,11 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
   （categories wrapper：movement_cost/combat_width/is_water/naval_terrain/sound_type…）、
   `resource`（resources wrapper：icon_frame/cic/convoys）；`infer_type` 新增 3 条路径。
   **全量真实数据冒烟：3 新类型 mod+game 17 文件 0 红**。
+- **批三①e 再扩充（2026-08-26）**：新增 `unit` → **33 类**——`common/units` 的
+  `sub_units` wrapper（sprite/priority/active/max_organisation/supply_consumption/
+  breakthrough/soft_attack…约 60 字段）；`common/units` 推断从 division_template 修正为
+  unit（history/units 仍为 division_template）；`var_*` 增加点号数字容忍（3.5.5 mod 写法）。
+  **全量真实数据冒烟：unit mod+game 548 文件 0 红**。
 - 分类：`health`；工具总数 **178**（159 + 9 + 5 + 1 + 2 + 2）。
 
 ## 7. 验证
