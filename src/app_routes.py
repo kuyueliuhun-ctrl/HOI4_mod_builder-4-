@@ -753,6 +753,26 @@ def _open_equipment_definitions(ctx):
         parent=ctx.parent)
 
 
+def _open_names(ctx):
+    from names_editor_dialog import open_names_editor
+    open_names_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
+def _open_defines(ctx):
+    from defines_editor_dialog import open_defines_editor
+    open_defines_editor(
+        ctx.file_path,
+        mod_path=ctx.mod_path,
+        hoi4_path=ctx.hoi4_path,
+        entity_id=ctx.entity_id,
+        parent=ctx.parent)
+
+
 def _open_on_actions(ctx):
     from on_actions_editor_dialog import open_on_actions_editor
     open_on_actions_editor(
@@ -916,6 +936,8 @@ ROUTES = (
     ("common/factions", _open_factions, "派系"),
     ("common/focus_inlay_windows", _open_focus_inlay_windows, "国策内嵌窗口"),
     ("common/units/equipment", _open_equipment_definitions, "装备定义"),
+    ("common/names", _open_names, "命名列表"),
+    ("common/defines", _open_defines, "游戏定义"),
 )
 
 

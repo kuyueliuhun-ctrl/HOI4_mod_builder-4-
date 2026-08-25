@@ -13,7 +13,7 @@ from oob_loader import _block_ranges
 from ai_loader_crud import _inner_block_text
 
 
-def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt"):
+def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt", exts=None):
     out = []
     seen = set()
     for base in (mod_path, hoi4_path):
@@ -22,8 +22,9 @@ def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt"):
         d = os.path.join(base, rel_dir)
         if not os.path.isdir(d):
             continue
+        allowed = exts or [ext]
         for name in sorted(os.listdir(d)):
-            if not name.lower().endswith(ext):
+            if not any(name.lower().endswith(e) for e in allowed):
                 continue
             fp = os.path.join(d, name)
             real = os.path.realpath(fp)
@@ -52,7 +53,7 @@ def _cached(kind, mod_path, hoi4_path, loader):
     return data
 
 
-def _make_raw_block_loader(folder, cache_key, file_mode=False):
+def _make_raw_block_loader(folder, cache_key, file_mode=False, ext=".txt", exts=None):
     """生成 (parse, load) 对：每个顶层块 = {id, name, body(块内原文), raw}。"""
 
     def _parse(content):
@@ -86,7 +87,7 @@ def _make_raw_block_loader(folder, cache_key, file_mode=False):
                 seen.add(real)
                 res.append(fp)
             return res
-        return _scan_files(mod_path, hoi4_path, folder)
+        return _scan_files(mod_path, hoi4_path, folder, exts=exts or [ext])
 
     def _load(mod_path="", hoi4_path=""):
         def loader():
@@ -112,3 +113,9 @@ def _make_raw_block_loader(folder, cache_key, file_mode=False):
     "common/scripted_triggers", "scripted_triggers")
 (parse_script_enums, load_script_enums) = _make_raw_block_loader(
     "common/script_enums.txt", "script_enums", file_mode=True)
+
+
+(parse_names, load_names) = _make_raw_block_loader(
+    "common/names", "names")
+(parse_defines, load_defines) = _make_raw_block_loader(
+    "common/defines", "defines", exts=[".lua", ".txt"])
