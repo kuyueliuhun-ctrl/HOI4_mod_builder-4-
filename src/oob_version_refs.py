@@ -134,3 +134,76 @@ def version_refs_in_file(file_path):
     with open(file_path, "r", encoding="utf-8-sig", errors="replace") as f:
         content = f.read()
     return extract_version_refs(content)
+
+
+def iter_oob_files(mod_path, game_path=None):
+    """产出 (relpath, file_path)——mod 优先，同 relpath 去重（mod 覆盖游戏）。"""
+    seen = set()
+    for base in ((game_path or ""), mod_path or ""):
+        d = os.path.join(base, "history", "units")
+        if not os.path.isdir(d):
+            continue
+        for dp, _dirs, fns in os.walk(d):
+            for fn in sorted(fns):
+                if not fn.lower().endswith(".txt"):
+                    continue
+                fp = os.path.join(dp, fn)
+                rel = os.path.relpath(fp, d).replace("\\", "/")
+                if rel in seen:
+                    continue
+                seen.add(rel)
+                yield rel, fp
+
+
+def oob_refs_for_design(mod_path, game_path, kind, owner, design_name):
+    """找 (kind, owner, design_name) 在 mod+game OOB 中的引用（含文件相对路径）。"""
+    hits = []
+    owner = (owner or "").strip().upper()
+    for rel, fp in iter_oob_files(mod_path, game_path):
+        try:
+            with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
+                content = f.read()
+        except Exception:
+            continue
+        for r in extract_version_refs(content):
+            if r["kind"] == kind and r["owner"] == owner \
+                    and r["version_name"] == design_name:
+                hit = dict(r)
+                hit["file"] = rel
+                hits.append(hit)
+    return hits
+
+
+def rename_oob_version_refs(mod_path, kind, owner, old_name, new_name,
+                            dry_run=True):
+    """把 mod 内 history/units 中 (kind, owner) 的 version_name old→new。
+
+    文本级精确替换 `version_name = "old"` 与 `version_name = old` 两种写法。
+    Returns:
+        {"dry_run", "count", "files"}
+    """
+    from write_utils import atomic_write_text
+    owner = (owner or "").strip().upper()
+    updated, total = [], 0
+    for rel, fp in iter_oob_files(mod_path, None):
+        try:
+            with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
+                content = f.read()
+        except Exception:
+            continue
+        refs = [r for r in extract_version_refs(content)
+                if r["kind"] == kind and r["owner"] == owner
+                and r["version_name"] == old_name]
+        if not refs:
+            continue
+        new = content.replace('version_name = "%s"' % old_name,
+                              'version_name = "%s"' % new_name)
+        new = new.replace("version_name = %s" % old_name,
+                          'version_name = "%s"' % new_name)
+        if new == content:
+            continue
+        total += len(refs)
+        if not dry_run:
+            atomic_write_text(fp, new)
+        updated.append(rel)
+    return {"dry_run": dry_run, "count": total, "files": updated}

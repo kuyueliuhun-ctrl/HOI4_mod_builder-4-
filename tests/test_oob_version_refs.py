@@ -91,6 +91,53 @@ class OobVersionRefsTest(unittest.TestCase):
         self.assertEqual(extract_version_refs(big), [])
 
 
+class OobRefLinkageTest(unittest.TestCase):
+    def _make_mod(self):
+        import tempfile
+        mod = tempfile.mkdtemp(prefix="oob_link_")
+        d = os.path.join(mod, "history", "units")
+        os.makedirs(d, exist_ok=True)
+        p = os.path.join(d, "AFG_xxx.txt")
+        content = (
+            'air_wings = {\n'
+            '\t267 = { small_plane_cas_airframe_0 = { owner = "AFG" '
+            'amount = 28 creator = "ENG" version_name = "Old Name" } }\n'
+            '}\n'
+        )
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(content)
+        return mod, p
+
+    def test_rename_oob_version_refs(self):
+        from oob_version_refs import rename_oob_version_refs
+        mod, p = self._make_mod()
+        r = rename_oob_version_refs(mod, "plane", "AFG",
+                                    "Old Name", "New Name", dry_run=True)
+        self.assertEqual(r["count"], 1)
+        self.assertEqual(r["files"], ["AFG_xxx.txt"])
+        # 未 dry_run 真正落盘
+        r2 = rename_oob_version_refs(mod, "plane", "AFG",
+                                     "Old Name", "New Name", dry_run=False)
+        self.assertEqual(r2["count"], 1)
+        with open(p, encoding="utf-8") as f:
+            out = f.read()
+        self.assertIn('version_name = "New Name"', out)
+        self.assertNotIn("Old Name", out)
+
+    def test_oob_refs_for_design(self):
+        from oob_version_refs import oob_refs_for_design
+        mod, _p = self._make_mod()
+        hits = oob_refs_for_design(mod, "", "plane", "AFG", "Old Name")
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["file"], "AFG_xxx.txt")
+        self.assertEqual(hits[0]["amount"], "28")
+        # 无关 owner/name 不命中
+        self.assertEqual(oob_refs_for_design(mod, "", "plane", "GER",
+                                             "Old Name"), [])
+        self.assertEqual(oob_refs_for_design(mod, "", "ship", "AFG",
+                                             "Old Name"), [])
+
+
 @unittest.skipUnless(os.path.isdir(REAL_MOD) or os.path.isdir(REAL_GAME),
                      "需要真实 mod/game 目录才运行")
 class OobVersionRefsRealTest(unittest.TestCase):

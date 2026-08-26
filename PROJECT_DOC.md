@@ -899,3 +899,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.42 | 08-26 | P0-5 收口：装备缓存清理 no-op | oob_stats.clear_equip_stats_cache() 真清缓存 | docs/已知问题与修复.md |
 | 6.43 | 08-26 | P2.5：未定义 airframe 容错 | plane_design_stats 对 None airframe 容错归零 | docs/整合计划.md P2.5 |
 | 6.44 | 08-26 | P2.5：version_name 联动（后端） | oob_version_refs.py 解析 air_wings/ship/force_equipment_variants 引用并与设计库比对；ApiCore.check_oob_version_names | docs/整合计划.md P2.5 |
+| 6.45 | 08-26 | P2.5：version_name 联动（UI） | 设计器底部 OOB 引用入口 + 改名批量同步 OOB（designer_base.py） | docs/整合计划.md P2.5 |

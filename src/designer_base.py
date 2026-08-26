@@ -18,6 +18,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
+    QDialogButtonBox,
     QGridLayout,
     QGroupBox,
     QHBoxLayout,
@@ -25,6 +26,8 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QTextEdit,
+    QVBoxLayout,
 )
 
 PANEL_WIDTH = 330
@@ -103,6 +106,7 @@ class VariantDesignerBase(QDialog):
         self.setWindowTitle(self.TITLE)
         self.resize(1280, 780)
         self._build_ui()
+        self._build_oob_refs_row()
         self._load_data()
         self._refresh_countries()
 
@@ -231,6 +235,114 @@ class VariantDesignerBase(QDialog):
         self.current_name = name or ""
         self.current_variant = variants.get(self.current_name)
         self._rebuild_editor()
+
+    # ---------- OOB version_name 联动 ----------
+
+    def _kind(self):
+        return (getattr(type(self), "KIND", "") or "").lower()
+
+    def _build_oob_refs_row(self):
+        """在设计器底部追加一行「OOB 引用（version_name）」入口。"""
+        lay = self.layout()
+        if lay is None or not isinstance(lay, QVBoxLayout):
+            return
+        row = QHBoxLayout()
+        self.oob_refs_btn = QPushButton("🔄 OOB 引用（version_name）")
+        self.oob_refs_btn.clicked.connect(self._open_oob_refs_dialog)
+        hint = QLabel("查看/同步该设计在 OOB 中的 version_name 引用（改名时自动提示）")
+        hint.setStyleSheet("color:#5d6b7a;")
+        row.addWidget(self.oob_refs_btn)
+        row.addWidget(hint)
+        row.addStretch(1)
+        lay.addLayout(row)
+
+    def _oob_refs_for_current(self):
+        """当前 (kind, tag, 设计名) 的 OOB 引用清单；非 ship/plane/tank 或异常返回 []。"""
+        kind = self._kind()
+        if kind not in ("plane", "ship", "tank") or not self.current_name:
+            return []
+        try:
+            from oob_version_refs import oob_refs_for_design
+        except Exception:
+            return []
+        try:
+            return oob_refs_for_design(
+                self.mod_path, self.hoi4_path, kind,
+                self.current_tag, self.current_name)
+        except Exception:
+            return []
+
+    def _open_oob_refs_dialog(self):
+        kind = self._kind()
+        if not self.current_name:
+            QMessageBox.information(self, "OOB 引用", "未选择设计。")
+            return
+        refs = self._oob_refs_for_current()
+        lines = [
+            "设计：%s   [%s]   国家：%s" % (
+                self.current_name,
+                (self.current_variant or {}).get("type", ""),
+                self.current_tag or ""),
+            "OOB 引用（version_name）：%d 处" % len(refs),
+            "",
+        ]
+        for r in refs[:200]:
+            loc = (r.get("ship_name") or "") and ("舰艇 " + r["ship_name"] + "  ")
+            amt = (r.get("amount") or "") and ("数量 " + r["amount"] + "  ")
+            lines.append("  • %s  %s  %s%s%s" % (
+                r["file"], r["equipment"], loc, amt, r["version_name"]))
+        if len(refs) > 200:
+            lines.append("  …（仅显示前 200 条）")
+        dlg = QDialog(self)
+        dlg.setWindowTitle("OOB 引用（%s）" % kind)
+        dlg.resize(620, 380)
+        lay = QVBoxLayout(dlg)
+        te = QTextEdit()
+        te.setReadOnly(True)
+        te.setPlainText("\n".join(lines))
+        lay.addWidget(te)
+        btn = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        btn.rejected.connect(dlg.reject)
+        btn.accepted.connect(dlg.accept)
+        lay.addWidget(btn)
+        dlg.exec()
+
+    def _sync_oob_after_rename(self, old_name, new_name):
+        """设计改名后：提示并同步 OOB 里引用旧名的 version_name。"""
+        kind = self._kind()
+        if kind not in ("plane", "ship", "tank"):
+            return
+        try:
+            from oob_version_refs import oob_refs_for_design, \
+                rename_oob_version_refs
+        except Exception:
+            return
+        refs = oob_refs_for_design(
+            self.mod_path, self.hoi4_path, kind,
+            self.current_tag, old_name)
+        if not refs:
+            return
+        files = sorted({r["file"] for r in refs})
+        preview = "\n".join(files[:8]) + ("\n…" if len(files) > 8 else "")
+        ret = QMessageBox.question(
+            self, "同步 OOB 引用",
+            "设计已改名为「%s」。\n发现 %d 处 OOB 引用旧名（%d 个文件）：\n%s\n\n"
+            "是否把这些 OOB 的 version_name 一并改为「%s」？" % (
+                new_name, len(refs), len(files), preview, new_name),
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if ret != QMessageBox.Yes:
+            return
+        try:
+            r = rename_oob_version_refs(
+                self.mod_path, kind, self.current_tag,
+                old_name, new_name, dry_run=False)
+        except Exception as e:  # noqa: BLE001
+            QMessageBox.critical(self, "OOB 同步失败", str(e))
+            return
+        if r["count"]:
+            QMessageBox.information(
+                self, "OOB 已同步",
+                "已更新 %d 处引用（%d 个文件）。" % (r["count"], len(r["files"])))
 
     # ---------- 高级字段 ----------
 
@@ -680,6 +792,9 @@ class VariantDesignerBase(QDialog):
                                 + ("\n\n（该国家文件原本只在游戏目录，已自动复制到 mod）"
                                    if copied else ""))
         self.saved.emit()
+        if old_name != new_name:
+            # 改名联动：提示并同步 OOB version_name 引用
+            self._sync_oob_after_rename(old_name, new_name)
 
     def _reset(self):
         if not self.current_tag:
