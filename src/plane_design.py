@@ -380,8 +380,13 @@ def load_plane_variants(mod_path="", hoi4_path=""):
 # ---------- 属性汇总（基础值估算） ----------
 
 def plane_design_stats(variant, airframe, modules=None):
-    """飞机设计属性估算：airframe 基础 + 模块 add Σ + multiply 累积乘。"""
+    """飞机设计属性估算：airframe 基础 + 模块 add Σ + multiply 累积乘。
+
+    未定义 airframe 时容错为空字典（统计归零，不崩溃）。
+    """
     modules = modules or {}
+    if airframe is None:
+        airframe = {}
     stats = dict(airframe.get("stats") or {})
     slots = variant.get("modules") or {}
     mults = {}

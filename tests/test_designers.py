@@ -571,6 +571,14 @@ class PlaneDesignLoaderTest(unittest.TestCase):
         self.assertEqual(st["slot_count"], 2)
         self.assertEqual(st["empty_slots"], 0)
 
+    def test_plane_design_stats_undefined_airframe_tolerated(self):
+        """未定义 airframe（None）容错：不崩溃，统计归零。"""
+        from plane_design import plane_design_stats
+        v = {"type": "unknown_airframe", "modules": {"engine_slot": "engine_1_1x"}}
+        st = plane_design_stats(v, None, {})
+        self.assertEqual(st["cost"], 0.0)
+        self.assertEqual(st["slot_count"], 0)
+
     def test_plane_variant_writeback(self):
         """modules 块 apply/insert/remove/rename。"""
         from plane_design import apply_variant_modules, insert_variant, \
