@@ -453,14 +453,26 @@ class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
                 "text": build_vp_loc_text(vps, lang="simp_chinese")}
 
     def analyze_error_log(self, data):
-        """分析错误日志：{path(相对mod) 或 absolute_path} → 归类。"""
+        """分析错误日志：{path(相对mod) 或 absolute_path(限mod/game根内)} → 归类。"""
         rel = (data.get("path") or "").strip()
+        fp = ""
         if rel:
             fp = self._safe_join(rel)
             if not fp:
                 raise ValueError("非法路径")
         else:
-            fp = data.get("absolute_path", "")
+            abs_path = (data.get("absolute_path") or "").strip()
+            if not abs_path:
+                raise ValueError("需要 path 或 absolute_path")
+            # 只读入口同样限 mod/game 根内，防任意文件读取
+            within_mod = self.mod_path and path_safety.is_within(
+                self.mod_path, abs_path)
+            within_game = self.game_path and path_safety.is_within(
+                self.game_path, abs_path)
+            if not (within_mod or within_game):
+                raise ValueError(
+                    "absolute_path 必须位于 mod 或 game 目录内（防任意文件读取）")
+            fp = abs_path
         if not fp or not os.path.isfile(fp):
             raise ValueError("日志文件不存在")
         from error_log import analyze_file, summarize, classify_by_subsystem

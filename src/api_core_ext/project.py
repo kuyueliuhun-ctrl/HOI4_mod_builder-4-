@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import os
+import re
+
+import path_safety
 
 
 class ProjectMixin:
@@ -72,6 +75,45 @@ class ProjectMixin:
         return {"ok": True, "dry_run": False, "op": op, "tag": tag,
                 "count": len(files), "files": files}
 
+    def _mod_create_allowed_roots(self):
+        """返回允许创建 mod 的根目录集合（settings 白名单 + 当前 mod 父目录）。"""
+        roots = set()
+        from api_server import load_settings
+        settings = load_settings()
+        for key in ("mod_folder_path", "mod_file_path"):
+            v = (settings.get(key) or "").strip()
+            if v:
+                roots.add(os.path.abspath(os.fspath(v)))
+        if self.mod_path:
+            roots.add(os.path.abspath(
+                os.path.dirname(os.path.abspath(self.mod_path))))
+        return sorted(roots)
+
+    def _check_mod_create_path(self, value, label):
+        """校验新建 mod 路径必须在允许根内；返回规范化绝对路径。"""
+        raw = str(value or "").strip()
+        if not raw:
+            raise ValueError("缺少 %s" % label)
+        roots = self._mod_create_allowed_roots()
+        if not roots:
+            raise ValueError(
+                "未配置允许创建 mod 的根目录（settings mod_folder_path/"
+                "mod_file_path，或先加载一个 mod）")
+        norm_raw = raw.replace("\\", "/")
+        is_abs = os.path.isabs(raw) or bool(re.match(r"^[A-Za-z]:", norm_raw))
+        if is_abs:
+            for r in roots:
+                if path_safety.is_within(r, raw):
+                    return os.path.abspath(os.fspath(raw))
+            raise ValueError("%s 超出允许的 mod 创建根目录" % label)
+        if norm_raw.startswith("/") or ".." in norm_raw.split("/"):
+            raise ValueError("%s 不允许绝对/盘符/.. 越界" % label)
+        # 相对路径解析到第一个允许根
+        fp = os.path.abspath(os.path.join(roots[0], raw))
+        if not any(path_safety.is_within(r, fp) for r in roots):
+            raise ValueError("%s 超出允许的 mod 创建根目录" % label)
+        return fp
+
     def create_mod(self, data=None):
         data = data or {}
         name = (data.get("name") or "").strip()
@@ -85,13 +127,20 @@ class ProjectMixin:
                          mod_folder_path).strip()
         tag = (data.get("tag") or "").strip().upper()
         dry_run = bool(data.get("dry_run", True))
+        approved = bool(data.get("approved", False))
         if not name or not folder or not version:
             raise ValueError("需要 name/folder/version")
         if not mod_folder_path:
             raise ValueError("缺少 path 或 mod_folder_path")
+        if not dry_run and not approved:
+            raise ValueError("创建 mod 为高权限写操作，需 approved=true 确认")
+        mod_folder_abs = self._check_mod_create_path(mod_folder_path,
+                                                     "mod_folder_path")
+        mod_file_abs = self._check_mod_create_path(mod_file_path,
+                                                   "mod_file_path")
         from mod_creator import build_mod_files, write_mod_files
         files = build_mod_files(name, folder, version, tags,
-                                mod_folder_path, mod_file_path, tag)
+                                mod_folder_abs, mod_file_abs, tag)
         if dry_run:
             return {"ok": True, "dry_run": True, "count": len(files),
                     "files": [{"path": f["path"], "summary": ""}

@@ -895,3 +895,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.38 | 08-25 | B3 批二⑤：CWT-lite 类型规则校验 | `cwt_lite_rules.py` + `validate_hoi4_file/project`；工具 176→178 |
 | 6.39 | 08-26 | P0 五连修复 | mod 覆盖游戏、PDX 解析加固、path_safety 越界防护、撤销字节无损、OOB 保存修复 | `docs/已知问题与修复.md` |
 | 6.40 | 08-26 | B3 批三：CWT 33 类型 + MCP 全量冒烟 | CWT 24→33 类型/真实结构/var_*/33 目录项目扫描；MCP 178 工具默认冒烟 ok=40 error=0、search keyword/category 修复 | docs/MCP与接口规格.md §6G/§6H |
+| 6.41 | 08-26 | P0-3 收口：安全加固 | analyze_error_log 限 mod/game 根、import_unit_counters output_dir 限 mod 内、create_mod approved 门禁 + 路径白名单根 | docs/已知问题与修复.md |

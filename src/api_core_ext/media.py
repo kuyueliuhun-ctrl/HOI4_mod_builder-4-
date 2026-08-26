@@ -190,6 +190,11 @@ class MediaMixin:
         dry_run = bool(data.get("dry_run", True))
         from unit_counter_library import import_unit_counter_library
         out_dir = data.get("output_dir") or ""
+        out_abs = ""
+        if out_dir:
+            out_abs = self._safe_join(out_dir)
+            if not out_abs:
+                raise ValueError("output_dir 必须为 mod 内相对路径")
         if dry_run:
             return {"ok": True, "dry_run": True, "files": [
                 {"path": out_dir or "unit_counter_library/",
@@ -197,7 +202,7 @@ class MediaMixin:
             ]}
         if not self.game_path:
             raise ValueError("需要 game_path 才能导入单位标牌")
-        r = import_unit_counter_library(self.game_path, out_dir=out_dir or None)
+        r = import_unit_counter_library(self.game_path, out_dir=out_abs or None)
         return {"ok": True, "dry_run": False,
                 "library_dir": r.get("out_dir", out_dir),
                 "count": r.get("total", 0), "skipped": r.get("skipped", 0),

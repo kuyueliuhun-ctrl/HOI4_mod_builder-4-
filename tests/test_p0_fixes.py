@@ -287,5 +287,93 @@ class OobSaveCorruptionTest(unittest.TestCase):
         self.assertEqual(out.count("division_template = {"), 1)
 
 
+class P0FollowupSecurityTest(unittest.TestCase):
+    """P0-3 收口项：analyze_error_log / import_unit_counters / create_mod。"""
+
+    def _core(self, mod):
+        from api_server import ApiCore
+        return ApiCore(mod_path=mod, game_path="")
+
+    def test_analyze_error_log_rejects_arbitrary_absolute(self):
+        mod = _mkdtemp("p0_follow_")
+        core = self._core(mod)
+        with self.assertRaises(ValueError):
+            core.analyze_error_log({"absolute_path": "/etc/passwd"})
+        with self.assertRaises(ValueError):
+            core.analyze_error_log({})
+
+    def test_analyze_error_log_accepts_mod_relative(self):
+        mod = _mkdtemp("p0_follow_")
+        rel = "logs/error.log"
+        p = os.path.join(mod, *rel.split("/"))
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
+            f.write("ERROR: test\n")
+        core = self._core(mod)
+        r = core.analyze_error_log({"path": rel})
+        self.assertTrue(r["ok"])
+
+    def test_analyze_error_log_accepts_game_absolute(self):
+        game = "/mnt/e/SteamLibrary/steamapps/common/Hearts of Iron IV"
+        if not os.path.isdir(game):
+            self.skipTest("无真实游戏目录")
+        sample = os.path.join(game, "common/defines/00_defines.lua")
+        if not os.path.isfile(sample):
+            sample = os.path.join(game, "common/defines/00_defines.txt")
+        if not os.path.isfile(sample):
+            self.skipTest("无 game 样例文件")
+        mod = _mkdtemp("p0_follow_")
+        from api_server import ApiCore
+        core = ApiCore(mod_path=mod, game_path=game)
+        r = core.analyze_error_log({"absolute_path": sample})
+        self.assertTrue(r["ok"])
+
+    def test_import_unit_counters_output_dir_restricted(self):
+        mod = _mkdtemp("p0_follow_")
+        core = self._core(mod)
+        with self.assertRaises(ValueError):
+            core.import_unit_counters(
+                {"output_dir": "/tmp/evil", "dry_run": True})
+        with self.assertRaises(ValueError):
+            core.import_unit_counters(
+                {"output_dir": "../evil", "dry_run": True})
+        r = core.import_unit_counters(
+            {"output_dir": "unit_counter_library", "dry_run": True})
+        self.assertTrue(r["ok"])
+        self.assertTrue(r["dry_run"])
+
+    def test_create_mod_gate_and_path_whitelist(self):
+        mods_root = _mkdtemp("p0_mods_")
+        current = os.path.join(mods_root, "current_mod")
+        os.makedirs(current, exist_ok=True)
+        core = self._core(current)
+        base = {"name": "Test Mod", "folder_name": "test_mod",
+                "version": "1.14.*",
+                "mod_folder_path": os.path.join(mods_root, "new_mod"),
+                "mod_file_path": os.path.join(mods_root, "new_mod"),
+                "dry_run": True}
+        r = core.create_mod(base)
+        self.assertTrue(r["ok"])
+        # 越界路径拒绝
+        bad = dict(base)
+        bad["mod_folder_path"] = "/tmp/evil"
+        with self.assertRaises(ValueError):
+            core.create_mod(bad)
+        # 非 dry_run 必须 approved
+        need_approve = dict(base)
+        need_approve["dry_run"] = False
+        with self.assertRaises(ValueError):
+            core.create_mod(need_approve)
+        # approved + 合法路径 → 真写，且写路径限在允许根内
+        ok_write = dict(need_approve)
+        ok_write["approved"] = True
+        r = core.create_mod(ok_write)
+        self.assertTrue(r["ok"])
+        self.assertFalse(r["dry_run"])
+        self.assertGreater(r["count"], 0)
+        for f in r["files"]:
+            self.assertTrue(f.startswith(mods_root), f)
+
+
 if __name__ == "__main__":
     unittest.main()
