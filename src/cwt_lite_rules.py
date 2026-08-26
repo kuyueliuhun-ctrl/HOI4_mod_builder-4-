@@ -306,75 +306,50 @@ _FILE_ENTITY_TYPES = frozenset({"country", "country_history"})
 _TYPE_KEYS = tuple(RULE_CATALOG.keys())
 
 
+_PATH_TYPE_RULES = (
+    ("common/national_focus", "focus"),
+    ("common/ideas", "idea"),
+    ("common/decisions", "decision"),
+    ("/events/", "event"),
+    ("events/", "event"),
+    ("history/states", "state"),
+    ("common/ideologies", "ideology"),
+    ("history/units", "division_template"),
+    ("common/units", "unit"),
+    ("common/characters", "character"),
+    ("common/technologies", "technology"),
+    ("common/buildings", "building"),
+    ("common/modifiers", "modifier"),
+    ("common/opinion_modifiers", "opinion_modifier"),
+    ("common/wargoals", "wargoal"),
+    ("common/operations", "operation"),
+    ("common/on_actions", "on_action"),
+    ("map/strategicregions", "strategic_region"),
+    ("map/supplyareas", "supply_area"),
+    ("common/occupation_laws", "occupation_law"),
+    ("common/difficulty_settings", "difficulty_setting"),
+    ("common/game_rules", "game_rule"),
+    ("common/autonomous_states", "autonomous_state"),
+    ("common/dynamic_modifiers", "dynamic_modifier"),
+    ("common/bookmarks", "bookmark"),
+    ("common/intelligence_agencies", "intelligence_agency"),
+    ("common/scripted_effects", "scripted_effect"),
+    ("common/scripted_triggers", "scripted_trigger"),
+    ("common/scripted_localisation", "scripted_localisation"),
+    ("common/countries", "country"),
+    ("history/countries", "country_history"),
+    ("common/state_category", "state_category"),
+    ("common/terrain", "terrain"),
+    ("common/resources", "resource"),
+)
+
+
 def infer_type(path):
     """从 mod 相对路径推断内容类型（无法推断返回 None）。"""
     p = (path or "").replace("\\", "/")
-    if "common/national_focus" in p:
-        return "focus"
-    if "common/ideas" in p:
-        return "idea"
-    if "common/decisions" in p:
-        return "decision"
-    if "/events/" in p or p.startswith("events/"):
-        return "event"
-    if "history/states" in p:
-        return "state"
-    if "common/ideologies" in p:
-        return "ideology"
-    if "history/units" in p:
-        return "division_template"
-    if "common/units" in p:
-        return "unit"
-    if "common/characters" in p:
-        return "character"
-    if "common/technologies" in p:
-        return "technology"
-    if "common/buildings" in p:
-        return "building"
-    if "common/modifiers" in p:
-        return "modifier"
-    if "common/opinion_modifiers" in p:
-        return "opinion_modifier"
-    if "common/wargoals" in p:
-        return "wargoal"
-    if "common/operations" in p:
-        return "operation"
-    if "common/on_actions" in p:
-        return "on_action"
-    if "map/strategicregions" in p:
-        return "strategic_region"
-    if "map/supplyareas" in p:
-        return "supply_area"
-    if "common/occupation_laws" in p:
-        return "occupation_law"
-    if "common/difficulty_settings" in p:
-        return "difficulty_setting"
-    if "common/game_rules" in p:
-        return "game_rule"
-    if "common/autonomous_states" in p:
-        return "autonomous_state"
-    if "common/dynamic_modifiers" in p:
-        return "dynamic_modifier"
-    if "common/bookmarks" in p:
-        return "bookmark"
-    if "common/intelligence_agencies" in p:
-        return "intelligence_agency"
-    if "common/scripted_effects" in p:
-        return "scripted_effect"
-    if "common/scripted_triggers" in p:
-        return "scripted_trigger"
-    if "common/scripted_localisation" in p:
-        return "scripted_localisation"
-    if "common/countries" in p:
-        return "country"
-    if "history/countries" in p:
-        return "country_history"
-    if "common/state_category" in p:
-        return "state_category"
-    if "common/terrain" in p:
-        return "terrain"
-    if "common/resources" in p:
-        return "resource"
+    for frag, typ in _PATH_TYPE_RULES:
+        if frag in p:
+            return typ
     return None
 
 
@@ -388,9 +363,8 @@ def _children_of_wrapper(nodes, wrapper_keys):
                 yield child
 
 
-def _iter_entity_blocks(nodes, type_key):
-    """从顶层块列表（parse_pdx_text_to_nodes 返回值）中产出实体块节点。"""
-    wrapper = _WRAPPER_TYPES.get(type_key)
+def _iter_special_entity_blocks(nodes, type_key):
+    """pass 1：固定键顶层块 / 事件 / 国策树 / 理念 / 决议（category 包装）。"""
     fixed_top = {
         "state": "state",
         "strategic_region": "strategic_region",
@@ -399,7 +373,6 @@ def _iter_entity_blocks(nodes, type_key):
         "intelligence_agency": "intelligence_agency",
         "division_template": "division_template",
     }.get(type_key)
-    # pass 1：固定键顶层块 / 事件 / 国策树 / 理念 / 决议（category 包装）
     for child in nodes:
         if child.node_type != "block":
             continue
@@ -423,8 +396,6 @@ def _iter_entity_blocks(nodes, type_key):
                 if ideo.node_type == "block":
                     yield ideo
         elif type_key == "decision":
-            # 顶层块即 category，其直接子块即 decision；
-            # 若顶层块为 `decisions = {...}` 则多包一层 category。
             if child.key == "decisions":
                 for cat in child.children:
                     if cat.node_type == "block":
@@ -435,11 +406,16 @@ def _iter_entity_blocks(nodes, type_key):
                 for d in child.children:
                     if d.node_type == "block":
                         yield d
-    # pass 2：wrapper 型
+
+
+def _iter_entity_blocks(nodes, type_key):
+    """从顶层块列表（parse_pdx_text_to_nodes 返回值）中产出实体块节点。"""
+    yield from _iter_special_entity_blocks(nodes, type_key)
+
+    wrapper = _WRAPPER_TYPES.get(type_key)
     if wrapper:
-        for child in _children_of_wrapper(nodes, wrapper):
-            yield child
-    # pass 3：顶层块即实体（跳过 wrapper 容器块，避免重复）
+        yield from _children_of_wrapper(nodes, wrapper)
+
     if type_key in _TOP_LEVEL_ENTITY_TYPES:
         for child in nodes:
             if child.node_type != "block":

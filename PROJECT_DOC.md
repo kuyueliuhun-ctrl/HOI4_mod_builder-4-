@@ -921,3 +921,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.63 | 08-26 | AiContentMixin._ai_action 重构 | 拆出 _ai_list/_ai_create/_ai_mutate；AI/MCP 93 测试全绿 | docs/历史迭代日志.md |
 | 6.64 | 08-26 | oob_stats.division_stats 重构 | 提取 _accumulate_division_item；SubUnitStatsTest 6 例全绿 | docs/历史迭代日志.md |
 | 6.65 | 08-26 | tree_model.data 按 role 拆分 | data 主函数精简；+2 测试 | docs/历史迭代日志.md |
+| 6.66 | 08-26 | cwt_lite_rules 重构 | infer_type 表驱动；_iter_entity_blocks 拆子生成器 | docs/历史迭代日志.md |
