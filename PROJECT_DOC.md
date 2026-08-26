@@ -919,3 +919,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.61 | 08-26 | advisor_assign_dialog 复杂函数重构 | load_character_assignments/_load_current/_on_save/_setup_ui 拆分；新增纯逻辑助手；+3 测试 | docs/历史迭代日志.md |
 | 6.62 | 08-26 | tree_node.from_focus_load 重构 | 抽出 prerequisite/mutex/multi-block/reward/unknown 解析助手；+2 测试 | docs/历史迭代日志.md |
 | 6.63 | 08-26 | AiContentMixin._ai_action 重构 | 拆出 _ai_list/_ai_create/_ai_mutate；AI/MCP 93 测试全绿 | docs/历史迭代日志.md |
+| 6.64 | 08-26 | oob_stats.division_stats 重构 | 提取 _accumulate_division_item；SubUnitStatsTest 6 例全绿 | docs/历史迭代日志.md |

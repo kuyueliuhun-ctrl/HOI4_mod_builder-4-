@@ -211,6 +211,60 @@ def _find_equip(equip_stats, need_key):
 
 
 
+
+def _accumulate_division_item(stats, info, speeds, orgs, rels, trainings,
+                              equip_stats):
+    """把一个营/支援连属性累加到 stats 中（含装备回退与地形聚合）。"""
+    stats["width"] += info.get("combat_width") or 0
+    stats["hp"] += info.get("max_strength") or 0
+    stats["manpower"] += int(info.get("manpower") or 0)
+    stats["org_regain"] += info.get("org_regain") or 0
+    stats["recon"] += info.get("recon") or 0
+    stats["suppression"] += info.get("suppression") or 0
+    stats["weight"] += info.get("weight") or 0
+    stats["supply"] += info.get("supply_consumption") or 0
+    stats["fuel"] += info.get("fuel_consumption") or 0
+    stats["initiative"] += info.get("initiative") or 0
+    spd = info.get("maximum_speed")
+    if spd:
+        speeds.append(spd)
+    org = info.get("max_organisation")
+    if org:
+        orgs.append(org)
+    rel = info.get("reliability")
+    if rel is not None:
+        rels.append(rel)
+    tr = info.get("training_time")
+    if tr:
+        trainings.append(tr)
+
+    main_eq = _find_equip(equip_stats, _main_need(info.get("need") or {})) or {}
+    for f, key in (("soft", "soft_attack"), ("hard", "hard_attack"),
+                   ("air", "air_attack"), ("defense", "defense"),
+                   ("breakthrough", "breakthrough"),
+                   ("armor", "armor"), ("piercing", "piercing")):
+        v = info.get(key)
+        if v is None:
+            v = main_eq.get(key) or 0
+        stats[f] += v or 0
+
+    for eq, cnt in (info.get("need") or {}).items():
+        stats["equipment"][eq] = stats["equipment"].get(eq, 0) + cnt
+    for t, mv in (info.get("terrain") or {}).items():
+        acc = stats["terrain"].setdefault(t, [0.0, 0])
+        acc[0] += mv
+        acc[1] += 1
+    for t, full in (info.get("terrain_full") or {}).items():
+        box = stats.setdefault("terrain_full", {}).setdefault(
+            t, {"movement": [0.0, 0], "attack": [0.0, 0],
+                "defence": [0.0, 0]})
+        box["movement"][0] += full.get("movement") or 0
+        box["movement"][1] += 1
+        box["attack"][0] += full.get("attack") or 0
+        box["attack"][1] += 1
+        box["defence"][0] += full.get("defence") or 0
+        box["defence"][1] += 1
+
 def division_stats(tpl, sub_units=None, equip_stats=None):
     """按 HOI4 基础规则汇总师编制属性（基础值估算，未含科技/将领修正）。
 
@@ -246,57 +300,8 @@ def division_stats(tpl, sub_units=None, equip_stats=None):
     for typ, _is_sup in items:
         info = sub_units.get(typ) or {}
         n_items += 1
-        stats["width"] += info.get("combat_width") or 0
-        stats["hp"] += info.get("max_strength") or 0
-        stats["manpower"] += int(info.get("manpower") or 0)
-        stats["org_regain"] += info.get("org_regain") or 0
-        stats["recon"] += info.get("recon") or 0
-        stats["suppression"] += info.get("suppression") or 0
-        stats["weight"] += info.get("weight") or 0
-        stats["supply"] += info.get("supply_consumption") or 0
-        stats["fuel"] += info.get("fuel_consumption") or 0
-        stats["initiative"] += info.get("initiative") or 0
-        spd = info.get("maximum_speed")
-        if spd:
-            speeds.append(spd)
-        org = info.get("max_organisation")
-        if org:
-            orgs.append(org)
-        rel = info.get("reliability")
-        if rel is not None:
-            rels.append(rel)
-        tr = info.get("training_time")
-        if tr:
-            trainings.append(tr)
-        # 攻击类：营字段优先，缺失回退主装备基础值
-        main_eq = _find_equip(equip_stats, _main_need(info.get("need") or {})) or {}
-        for f, key in (("soft", "soft_attack"), ("hard", "hard_attack"),
-                       ("air", "air_attack"), ("defense", "defense"),
-                       ("breakthrough", "breakthrough"),
-                       ("armor", "armor"), ("piercing", "piercing")):
-            v = info.get(key)
-            if v is None:
-                v = main_eq.get(key) or 0
-            stats[f] += v or 0
-        # 装备需求聚合
-        for eq, cnt in (info.get("need") or {}).items():
-            stats["equipment"][eq] = stats["equipment"].get(eq, 0) + cnt
-        # 地形 movement 聚合（加权计数，取平均）
-        for t, mv in (info.get("terrain") or {}).items():
-            acc = stats["terrain"].setdefault(t, [0.0, 0])
-            acc[0] += mv
-            acc[1] += 1
-        # 地形三项（movement/attack/defence）
-        for t, full in (info.get("terrain_full") or {}).items():
-            box = stats.setdefault("terrain_full", {}).setdefault(
-                t, {"movement": [0.0, 0], "attack": [0.0, 0],
-                    "defence": [0.0, 0]})
-            box["movement"][0] += full.get("movement") or 0
-            box["movement"][1] += 1
-            box["attack"][0] += full.get("attack") or 0
-            box["attack"][1] += 1
-            box["defence"][0] += full.get("defence") or 0
-            box["defence"][1] += 1
+        _accumulate_division_item(
+            stats, info, speeds, orgs, rels, trainings, equip_stats)
 
     stats["speed"] = min(speeds) if speeds else None
     stats["org"] = (sum(orgs) / len(orgs)) if orgs else 0.0
