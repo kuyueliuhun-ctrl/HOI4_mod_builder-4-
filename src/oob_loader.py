@@ -876,9 +876,8 @@ def save_sub_unit(mod_path, hoi4_path, unit_id, fields=None,
 
 def _clear_oob_caches():
     # 兵种目前不缓存；装备统计有模块级缓存，写兵种后一并清理避免旧值残留
-    cache = globals().get('_EQUIP_STATS_CACHE')
-    if cache is not None:
-        cache.clear()
+    from oob_stats import clear_equip_stats_cache
+    clear_equip_stats_cache()
 
 
 # ---------- division_names_group（命名组） ----------

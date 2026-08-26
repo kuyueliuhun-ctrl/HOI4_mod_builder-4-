@@ -374,6 +374,15 @@ class P0FollowupSecurityTest(unittest.TestCase):
         for f in r["files"]:
             self.assertTrue(f.startswith(mods_root), f)
 
+    def test_oob_equip_cache_clear_not_noop(self):
+        """P0-5: _EQUIP_STATS_CACHE 清理不再是无操作（原 globals 查不到）。"""
+        import oob_loader
+        import oob_stats
+        oob_stats._EQUIP_STATS_CACHE.clear()
+        oob_stats._EQUIP_STATS_CACHE["test_key"] = {"v": 1}
+        oob_loader._clear_oob_caches()
+        self.assertEqual(oob_stats._EQUIP_STATS_CACHE, {})
+
 
 if __name__ == "__main__":
     unittest.main()

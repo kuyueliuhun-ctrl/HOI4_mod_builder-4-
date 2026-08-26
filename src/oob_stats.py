@@ -33,6 +33,11 @@ _SUB_KNOWN_SCALARS = frozenset((
 
 _EQUIP_STATS_CACHE = {}
 
+
+def clear_equip_stats_cache():
+    """清空装备统计缓存（OOB/兵种写后调用，防旧值残留）。"""
+    _EQUIP_STATS_CACHE.clear()
+
 def _node_field_value(node, key):
     """块节点的直接子 value 字段值。"""
     for c in node.children:
