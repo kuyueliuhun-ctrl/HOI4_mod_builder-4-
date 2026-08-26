@@ -199,55 +199,13 @@ class TreeNode:
                 node.add_child(TreeNode("value", f.strip("{} ").strip(), ""))
             root.add_child(node)
 
-        # 解析 prerequisite 前置条件
         if known.prerequisite:
-            prereqs = known.prerequisite if isinstance(known.prerequisite, list) else [known.prerequisite]
-            raw_prereqs = raw_fields.get("prerequisite", [])
-            # 规范化原始行数据：确保是列表的列表
-            if isinstance(raw_prereqs, list) and raw_prereqs and isinstance(raw_prereqs[0], list):
-                pass  # 已是列表的列表格式
-            else:
-                raw_prereqs = [raw_prereqs] if raw_prereqs else []
-            for pi, p in enumerate(prereqs):
-                raw = raw_prereqs[pi] if pi < len(raw_prereqs) else None
-                if isinstance(raw, str):
-                    raw = [raw]
-                node = TreeNode("block", "prerequisite", raw_lines=raw)
-                block_text = p.strip()
-                # 解析大括号内的 focus 引用
-                if block_text.startswith("{") and block_text.endswith("}"):
-                    inner = block_text[1:-1].strip()
-                    focus_ids = re.findall(r'focus\s*=\s*([\w\.\-]+)', inner)
-                    for fid in focus_ids:
-                        node.add_child(TreeNode("value", "focus", fid))
-                else:
-                    node.add_child(TreeNode("value", "focus", block_text))
-                root.add_child(node)
+            _add_prerequisite_nodes(
+                root, known.prerequisite, raw_fields.get("prerequisite", []))
 
-        # 解析 mutually_exclusive 互斥关系
         if known.mutually_exclusive:
-            mutex = known.mutually_exclusive if isinstance(known.mutually_exclusive, list) else [known.mutually_exclusive]
-            raw_mutex = raw_fields.get("mutually_exclusive", [])
-            # 规范化原始行数据
-            if isinstance(raw_mutex, list) and raw_mutex and isinstance(raw_mutex[0], list):
-                pass
-            else:
-                raw_mutex = [raw_mutex] if raw_mutex else []
-            for mi, m in enumerate(mutex):
-                raw = raw_mutex[mi] if mi < len(raw_mutex) else None
-                if isinstance(raw, str):
-                    raw = [raw]
-                node = TreeNode("block", "mutually_exclusive", raw_lines=raw)
-                block_text = m.strip()
-                # 解析大括号内的 focus 引用
-                if block_text.startswith("{") and block_text.endswith("}"):
-                    inner = block_text[1:-1].strip()
-                    focus_ids = re.findall(r'focus\s*=\s*([\w\.\-]+)', inner)
-                    for fid in focus_ids:
-                        node.add_child(TreeNode("value", "focus", fid))
-                else:
-                    node.add_child(TreeNode("value", "focus", block_text))
-                root.add_child(node)
+            _add_mutex_nodes(
+                root, known.mutually_exclusive, raw_fields.get("mutually_exclusive", []))
 
         # 解析 will_lead_to_war_with 字段
         if known.will_lead_to_war_with:
@@ -269,7 +227,6 @@ class TreeNode:
                 root.add_child(TreeNode("value", field_name, v,
                                         raw_lines=raw_fields.get(field_name)))
 
-        # 批量解析多块类型字段（ai_will_do, available, allow_branch 等）
         multi_block_fields = [
             ("ai_will_do", _parse_ai_will_do),       # AI 意愿计算块
             ("available", _parse_block_field),        # 可用条件块
@@ -280,52 +237,100 @@ class TreeNode:
             ("cancel", _parse_block_field),           # 取消条件块
         ]
         for field_name, parser_fn in multi_block_fields:
-            val = getattr(known, field_name, None)
-            if val is None:
-                continue  # 字段不存在则跳过
-            raw = raw_fields.get(field_name)
-            items = val if isinstance(val, list) else [val]
-            # 规范化原始数据为列表格式
-            if isinstance(raw, list) and raw and isinstance(raw[0], list):
-                raw_list = raw
-            else:
-                raw_list = [raw] * len(items) if raw else [None] * len(items)
-            for idx, item in enumerate(items):
-                raw_item = raw_list[idx] if idx < len(raw_list) else None
-                if isinstance(raw_item, str):
-                    raw_item = [raw_item]
-                node = TreeNode("block", field_name, raw_lines=raw_item)
-                if field_name == "ai_will_do":
-                    parser_fn(node, item)  # ai_will_do 使用专门的解析器
-                else:
-                    parser_fn(node, field_name, item)  # 其他使用通用块解析器
-                root.add_child(node)
+            _add_multi_block_nodes(
+                root, field_name, parser_fn,
+                getattr(known, field_name, None), raw_fields.get(field_name))
 
-        # 解析 completion_reward 完成奖励
-        if known.completion_reward:
-            val = known.completion_reward
-            raw = raw_fields.get("completion_reward")
-            items = val if isinstance(val, list) else [val]
-            if isinstance(raw, list) and raw and isinstance(raw[0], list):
-                raw_list = raw
-            else:
-                raw_list = [raw] * len(items) if raw else [None] * len(items)
-            for idx, item in enumerate(items):
-                raw_item = raw_list[idx] if idx < len(raw_list) else None
-                if isinstance(raw_item, str):
-                    raw_item = [raw_item]
-                node = TreeNode("block", "completion_reward", raw_lines=raw_item)
-                _parse_completion_reward(node, item)
-                root.add_child(node)
+        _add_completion_reward_nodes(
+            root, known.completion_reward, raw_fields.get("completion_reward"))
 
-        # 解析未知字段（反序列化中未显式定义的字段）
-        if known.unknown:
-            for uk, uv in known.unknown.items():
-                root.add_child(TreeNode("value", uk, str(uv).strip('"') if isinstance(uv, str) else str(uv[0]).strip('"'),
-                                        raw_lines=raw_fields.get(uk)))
+        _add_unknown_fields(root, known.unknown, raw_fields)
 
         return root
 
+
+
+def _normalize_raw_items(raw, count):
+    """把原始行字段规范化为与条目数等长的列表（每项可含多行）。"""
+    if isinstance(raw, list) and raw and isinstance(raw[0], list):
+        raw_list = raw
+    else:
+        raw_list = [raw] * count if raw else [None] * count
+    out = []
+    for idx in range(count):
+        item = raw_list[idx] if idx < len(raw_list) else None
+        if isinstance(item, str):
+            item = [item]
+        out.append(item)
+    return out
+
+
+def _add_prerequisite_nodes(root, prereq, raw_prereqs):
+    """把 prerequisite 字段转为 block 节点挂到 root。"""
+    prereqs = prereq if isinstance(prereq, list) else [prereq]
+    raw_list = _normalize_raw_items(raw_prereqs, len(prereqs))
+    for pi, p in enumerate(prereqs):
+        node = TreeNode("block", "prerequisite", raw_lines=raw_list[pi])
+        block_text = p.strip()
+        if block_text.startswith("{") and block_text.endswith("}"):
+            inner = block_text[1:-1].strip()
+            for fid in re.findall(r'focus\s*=\s*([\w\.\-]+)', inner):
+                node.add_child(TreeNode("value", "focus", fid))
+        else:
+            node.add_child(TreeNode("value", "focus", block_text))
+        root.add_child(node)
+
+
+def _add_mutex_nodes(root, mutex, raw_mutex):
+    """把 mutually_exclusive 字段转为 block 节点挂到 root。"""
+    mutex_list = mutex if isinstance(mutex, list) else [mutex]
+    raw_list = _normalize_raw_items(raw_mutex, len(mutex_list))
+    for mi, m in enumerate(mutex_list):
+        node = TreeNode("block", "mutually_exclusive", raw_lines=raw_list[mi])
+        block_text = m.strip()
+        if block_text.startswith("{") and block_text.endswith("}"):
+            inner = block_text[1:-1].strip()
+            for fid in re.findall(r'focus\s*=\s*([\w\.\-]+)', inner):
+                node.add_child(TreeNode("value", "focus", fid))
+        else:
+            node.add_child(TreeNode("value", "focus", block_text))
+        root.add_child(node)
+
+
+def _add_multi_block_nodes(root, field_name, parser_fn, val, raw):
+    """批量解析 ai_will_do/available/allow_branch 等多块字段。"""
+    if val is None:
+        return
+    items = val if isinstance(val, list) else [val]
+    raw_list = _normalize_raw_items(raw, len(items))
+    for idx, item in enumerate(items):
+        node = TreeNode("block", field_name, raw_lines=raw_list[idx])
+        if field_name == "ai_will_do":
+            parser_fn(node, item)
+        else:
+            parser_fn(node, field_name, item)
+        root.add_child(node)
+
+
+def _add_completion_reward_nodes(root, val, raw):
+    """解析 completion_reward 字段的多个块。"""
+    if not val:
+        return
+    items = val if isinstance(val, list) else [val]
+    raw_list = _normalize_raw_items(raw, len(items))
+    for idx, item in enumerate(items):
+        node = TreeNode("block", "completion_reward", raw_lines=raw_list[idx])
+        _parse_completion_reward(node, item)
+        root.add_child(node)
+
+
+def _add_unknown_fields(root, unknown, raw_fields):
+    """把反序列化未识别的字段作为 value 节点挂到 root。"""
+    if not unknown:
+        return
+    for uk, uv in unknown.items():
+        v = str(uv).strip('"') if isinstance(uv, str) else str(uv[0]).strip('"')
+        root.add_child(TreeNode("value", uk, v, raw_lines=raw_fields.get(uk)))
 
 def _parse_ai_will_do(parent, data):
     """解析 ai_will_do 数据为树节点，挂载到 parent 节点下。

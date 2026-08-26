@@ -917,3 +917,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.59 | 08-26 | 设计器 load_* 系列重构 | 新增 equipment_loader.py 通用加载层；ship/tank/plane 9 个 load_* 改为薄封装；真实数据冒烟通过 | docs/历史迭代日志.md |
 | 6.60 | 08-26 | API 路由表化重构 | ApiHandler._route 巨型 if-elif 改为 _ROUTE_TABLE + _dispatch + 26 个 handler；HTTP 冒烟通过 | docs/历史迭代日志.md |
 | 6.61 | 08-26 | advisor_assign_dialog 复杂函数重构 | load_character_assignments/_load_current/_on_save/_setup_ui 拆分；新增纯逻辑助手；+3 测试 | docs/历史迭代日志.md |
+| 6.62 | 08-26 | tree_node.from_focus_load 重构 | 抽出 prerequisite/mutex/multi-block/reward/unknown 解析助手；+2 测试 | docs/历史迭代日志.md |
