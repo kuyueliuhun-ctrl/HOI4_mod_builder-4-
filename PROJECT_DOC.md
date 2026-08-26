@@ -902,3 +902,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.45 | 08-26 | P2.5：version_name 联动（UI） | 设计器底部 OOB 引用入口 + 改名批量同步 OOB（designer_base.py） | docs/整合计划.md P2.5 |
 | 6.46 | 08-26 | P2.5：装备 IC 花费估算 | 装备统计采集 build_cost_ic；division_ic_cost 汇总；division_editor 显示每装备 IC + 总 IC | docs/整合计划.md P2.5 |
 | 6.47 | 08-26 | 编制改名部署引用提示 | oob_deployments_for_template / rename_deployment_template_refs；division_editor 保存时检测改名并同步 | 历史日志附录 6.17 |
+| 6.48 | 08-26 | Scenario Forge 后端 + P1 调研 | build_snapshot 台账 / high_risk_ids 高危清单；大洲/核心圈层/外部工具调研落盘 | docs/P1_*_调研.md |
