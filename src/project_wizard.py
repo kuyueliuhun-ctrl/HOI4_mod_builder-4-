@@ -15,6 +15,7 @@
 import os
 
 import icon_ops
+import path_safety
 
 
 def _append_block(path, block, header=""):
@@ -52,6 +53,7 @@ def _write_loc_entries(mod_path, tag, entries):
     """把词条写入 mod 本地化文件（追加式，不覆盖已有词条）。"""
     if not entries:
         return ""
+    path_safety.validate_component(tag, "tag")
     loc_dir = os.path.join(mod_path, "localisation", "simp_chinese")
     os.makedirs(loc_dir, exist_ok=True)
     path = os.path.join(loc_dir, f"{tag}_mod_l_simp_chinese.yml")

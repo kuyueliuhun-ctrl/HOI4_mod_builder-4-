@@ -160,7 +160,8 @@ def load_ship_hulls(mod_path="", hoi4_path=""):
         return _HULLS_CACHE[key]
     result = {}
     archetypes = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units", "equipment")
@@ -288,7 +289,8 @@ def load_ship_modules(mod_path="", hoi4_path=""):
     if key in _MODULES_CACHE:
         return _MODULES_CACHE[key]
     result = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units", "equipment", "modules")
@@ -356,7 +358,8 @@ def load_ship_variants(mod_path="", hoi4_path=""):
         return _VARIANTS_CACHE[key]
     self_hull_keys = set(load_ship_hulls(mod_path, hoi4_path).keys())
     result = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "history", "countries")

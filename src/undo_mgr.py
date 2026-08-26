@@ -16,15 +16,18 @@ MAX_ENTRIES = 50
 
 class FileUndoManager:
     def __init__(self, max_entries=MAX_ENTRIES):
-        self._stack = []          # [(path, old_content)]
+        self._stack = []          # [(path, old_bytes)]
         self._max = max_entries
 
     def before_write(self, path):
-        """写文件前调用：读取旧内容压栈（文件不存在则跳过）。"""
+        """写文件前调用：读取原始字节压栈（文件不存在则跳过）。
+
+        使用字节快照，撤销时可无损恢复 BOM / CRLF / 任意编码。
+        """
         if not path or not os.path.isfile(path):
             return
         try:
-            with open(path, "r", encoding="utf-8-sig", errors="ignore") as f:
+            with open(path, "rb") as f:
                 old = f.read()
         except Exception:
             return
@@ -38,19 +41,22 @@ class FileUndoManager:
     def undo(self):
         """撤销最近一次写入，恢复旧内容。
 
+        成功后才弹出栈顶；恢复失败时保留撤销条目，避免永久丢失最后一次可恢复状态。
+
         Returns:
             (str, bool): (文件路径, 是否成功)
         """
         if not self._stack:
             return "", False
-        path, old = self._stack.pop()
+        path, old = self._stack[-1]
         try:
             # 恢复写入同样走原子写（不登记快照，避免把自己压回撤销栈）
-            from write_utils import atomic_write_text
-            atomic_write_text(path, old, undo=False)
-            return path, True
+            from write_utils import atomic_write_bytes
+            atomic_write_bytes(path, old, undo=False)
         except Exception:
             return path, False
+        self._stack.pop()
+        return path, True
 
     def clear(self):
         self._stack.clear()

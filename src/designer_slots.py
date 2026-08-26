@@ -166,7 +166,8 @@ def load_upgrade_definitions(hoi4_path="", mod_path=""):
         return _UPGRADE_CACHE[key]
     result = {}
     files = ("land_upgrades.txt", "air_upgrades.txt", "naval_upgrades.txt")
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units", "equipment", "upgrades")

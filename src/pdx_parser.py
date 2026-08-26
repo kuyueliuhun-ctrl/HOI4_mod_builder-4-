@@ -5,6 +5,38 @@ import re
 COMPARE_OPERATORS = (">=", "<=", "==", "!=", ">", "<")
 
 
+def _strip_comments(text):
+    """移除 `#` 到行尾的注释，但保留引号字符串内的 `#`。
+
+    同时检测未闭合引号：结束仍处于字符串内则抛 ValueError，
+    避免静默把引号后的内容当普通 token。
+    """
+    chars = list(text)
+    n = len(chars)
+    in_str = False
+    i = 0
+    while i < n:
+        c = chars[i]
+        if in_str:
+            if c == '"':
+                in_str = False
+            i += 1
+            continue
+        if c == '"':
+            in_str = True
+            i += 1
+            continue
+        if c == '#':
+            while i < n and chars[i] != '\n':
+                chars[i] = ' '
+                i += 1
+            continue
+        i += 1
+    if in_str:
+        raise ValueError("PDX 文本存在未闭合的引号")
+    return ''.join(chars)
+
+
 def parse_pdx_script(text):
     """将 Paradox 游戏引擎 PDX 脚本解析为嵌套的 Python 字典/列表结构。
 
@@ -20,17 +52,20 @@ def parse_pdx_script(text):
     返回:
         嵌套的 dict/list 结构
     """
-    # 移除注释（# 开头到行尾的内容）
-    text = re.sub(r'#.*', '', text)
+    # 移除注释（# 开头到行尾的内容），但保留引号字符串内的 #。
+    # 未闭合引号直接报错（不再静默截断）。
+    text = _strip_comments(text)
     # 分词：匹配符号、等号、大括号、比较运算符和字符串/关键字
-    # 识别: { } = >= <= == != > < "字符串" 标识符(字母数字点连字符)
+    # 识别: { } = >= <= == != > < "字符串" 标识符
+    # 标识符允许 @ : + / ( ) , 等 PDX 中常见的无引号字符（不再静默丢弃）
     # 同时记录每个 token 的行号（1-indexed）
     raw_tokens = []
-    for m in re.finditer(r'\{|\}|>=|<=|==|!=|=|>|<|"[^"]*"|[\w\.\-]+', text):
+    for m in re.finditer(
+            r'\{|\}|>=|<=|==|!=|=|>|<|"[^"]*"|[^\s\{\}=<>#]+', text):
         line_no = text[:m.start()].count('\n') + 1
         raw_tokens.append((m.group(0), line_no))
 
-    def parse_block(iterator):
+    def parse_block(iterator, top=False):
         """递归解析一个代码块（大括号包裹的内容）。
 
         遍历 token 迭代器，构建当前块的字典表示。
@@ -38,14 +73,19 @@ def parse_pdx_script(text):
 
         参数:
             iterator: (token, line_number) 迭代器
+            top: True 表示这是顶层块；顶层出现多余的 `}` 直接报错
         返回:
              当前块解析后的字典对象
         """
         obj = {}
         key = None  # 当前待赋值的键名（读到 = 左侧后暂存）
         key_line = 0  # 键名所在的行号
+        closed = False
         for token, line_no in iterator:
             if token == '}':
+                if top:
+                    raise ValueError("PDX 文本存在多余的 }")
+                closed = True
                 break  # 块结束，返回解析结果
             elif token == '=':
                 continue  # 等号是分隔符，跳过
@@ -110,7 +150,9 @@ def parse_pdx_script(text):
         # 处理结尾的未赋值 key
         if key is not None:
             obj[key] = ""
+        if not top and not closed:
+            raise ValueError("PDX 文本存在未闭合的 {")
         return obj
 
     # 从 token 迭代器开始解析顶层块
-    return parse_block(iter(raw_tokens))
+    return parse_block(iter(raw_tokens), top=True)

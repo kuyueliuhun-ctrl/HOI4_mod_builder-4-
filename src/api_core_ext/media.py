@@ -6,6 +6,8 @@ import io
 import os
 import re
 
+import path_safety
+
 
 class MediaMixin:
     """图标上传、DDS 转换、单位标牌。"""
@@ -37,7 +39,8 @@ class MediaMixin:
         field_path = slot or (cfg.get("field") or "")
         if isinstance(field_path, list):
             field_path = field_path[0] if field_path else ""
-        icon_base = (data.get("icon_base") or entity_id).strip()
+        icon_base = path_safety.validate_component(
+            (data.get("icon_base") or entity_id).strip(), "icon_base")
         subdir = upload.get("subdir", "gfx/interface/goals").strip("/")
         target_dir = os.path.join(self.mod_path, subdir.replace("/", os.sep))
         os.makedirs(target_dir, exist_ok=True)
@@ -92,6 +95,7 @@ class MediaMixin:
         name = (data.get("name") or "").strip()
         if not name:
             raise ValueError("缺少 name")
+        name = path_safety.validate_component(name, "name")
         approved = bool(data.get("approved", False))
         dry_run = bool(data.get("dry_run", True))
         make_gui = bool(data.get("gui", False))
@@ -110,6 +114,9 @@ class MediaMixin:
                  {"file": gfx_rel, "kind": "gfx"}]
         if gui_rel:
             plans.append({"file": gui_rel, "kind": "gui"})
+        # 输出路径必须落在 mod 根内（防 output_root/name 越界）
+        if not self._safe_join(png_rel):
+            raise ValueError("非法输出路径（仅允许 mod 内相对路径）")
         if dry_run:
             return {"ok": True, "dry_run": True,
                     "approved_required": not approved,
@@ -153,19 +160,23 @@ class MediaMixin:
         recursive = bool(data.get("recursive", False))
         if not path:
             raise ValueError("缺少 path")
-        # path 可以是 mod 内相对路径或绝对路径
+        # 只允许 mod 内相对路径（防任意文件读/写；游戏素材需先复制到 mod）
         fp = self._safe_join(path)
         if not fp:
-            fp = path
+            raise ValueError("path 必须为 mod 内相对路径（不允许绝对路径或 .. 越界）")
         if not os.path.exists(fp):
             raise ValueError("路径不存在: %s" % path)
         from dds_convert import dds_to_png, png_to_dds, convert_dir
         if os.path.isdir(fp):
-            out_dir = data.get("output_dir") or (fp + "_out")
-            convert_dir(fp, out_dir, recursive=recursive,
+            rel_dir = os.path.relpath(fp, self.mod_path)
+            out_rel = data.get("output_dir") or (rel_dir + "_out")
+            out_fp = self._safe_join(out_rel)
+            if not out_fp:
+                raise ValueError("output_dir 必须为 mod 内相对路径")
+            convert_dir(fp, out_fp, recursive=recursive,
                         direction=direction)
             return {"ok": True, "direction": direction, "dir": fp,
-                    "out_dir": out_dir}
+                    "out_dir": out_fp}
         if direction == "dds2png":
             out = dds_to_png(fp)
         elif direction == "png2dds":

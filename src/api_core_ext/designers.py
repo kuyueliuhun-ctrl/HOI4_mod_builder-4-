@@ -491,6 +491,8 @@ class DesignersMixin:
 
     def _oob_read_path(self, rel):
         # 只读：mod 优先，回退游戏（不复制到 mod）
+        if not self._safe_join(rel):
+            raise ValueError("非法 OOB 路径（仅允许 mod 内相对路径）")
         fp = os.path.join(self.mod_path, rel)
         if os.path.isfile(fp):
             return fp
@@ -502,6 +504,8 @@ class DesignersMixin:
 
     def _oob_write_path(self, rel):
         # 写：mod 优先，否则自动复制原版到 mod
+        if not self._safe_join(rel):
+            raise ValueError("非法 OOB 路径（仅允许 mod 内相对路径）")
         fp = os.path.join(self.mod_path, rel)
         if os.path.isfile(fp):
             return fp

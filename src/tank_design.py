@@ -135,7 +135,8 @@ def load_tank_chassis(mod_path="", hoi4_path=""):
         return _TANKS_CACHE[key]
     result = {}
     archetypes = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units", "equipment")
@@ -264,7 +265,8 @@ def load_tank_modules(mod_path="", hoi4_path=""):
     if key in _TANK_MODULES_CACHE:
         return _TANK_MODULES_CACHE[key]
     result = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units", "equipment", "modules")
@@ -325,7 +327,8 @@ def load_tank_variants(mod_path="", hoi4_path=""):
     chassis = load_tank_chassis(mod_path, hoi4_path)
     known = set(chassis.keys()) | tank_derived_names(chassis)
     result = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "history", "countries")

@@ -149,7 +149,8 @@ def load_plane_airframes(mod_path="", hoi4_path=""):
         return _AIRFRAMES_CACHE[key]
     result = {}
     archetypes = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units", "equipment")
@@ -278,7 +279,8 @@ def load_plane_modules(mod_path="", hoi4_path=""):
     if key in _PLANE_MODULES_CACHE:
         return _PLANE_MODULES_CACHE[key]
     result = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units", "equipment", "modules")
@@ -341,7 +343,8 @@ def load_plane_variants(mod_path="", hoi4_path=""):
     airframes = load_plane_airframes(mod_path, hoi4_path)
     known = set(airframes.keys()) | plane_derived_names(airframes)
     result = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "history", "countries")

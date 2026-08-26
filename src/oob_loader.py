@@ -278,7 +278,8 @@ def load_sub_units(mod_path="", hoi4_path=""):
                        src: 定义源文件路径}
     """
     result = {}
-    for base in (mod_path, hoi4_path):
+    # 覆盖顺序：先读游戏，后读 mod，后写覆盖先写 → mod 覆盖游戏
+    for base in (hoi4_path, mod_path):
         if not base:
             continue
         d = os.path.join(base, "common", "units")
@@ -610,6 +611,7 @@ class OobFile:
         existing.sort()
 
         # 按块内 name 字段匹配模板对象（块顺序可能与列表顺序不一致）
+        # 无 name 字段的模板也要能匹配（否则会被当作“已删除”删掉再重写加 name=""）。
         used = set()
         pos_map = {}
         for start, end in existing:
@@ -617,7 +619,10 @@ class OobFile:
             for t in self.templates:
                 if id(t) in used:
                     continue
-                if f'name = "{t.name}"' in block_text:
+                name_m = re.search(r'\bname\s*=\s*"([^"]*)"', block_text)
+                tname = name_m.group(1) if name_m else None
+                matched = (tname == t.name) if t.name else (tname is None or tname == "")
+                if matched:
                     pos_map[start] = (t, end)
                     used.add(id(t))
                     break
@@ -997,12 +1002,15 @@ def save_names_group(content, group_id, fields):
         return "division_names_group = {\n" + new_group + "\n}\n"
     start, end = outer
     outer_block = content[start:end]
-    # 查找已有组块
+    # 查找已有组块（用精确闭合位置；_block_ranges 的 end 对“最后一个子块”
+    # 会延伸到外层 } 之后，直接替换会丢掉外层 }）
     group_range = None
-    for key, depth, s2, e2 in _block_ranges(outer_block):
-        if depth == 1 and key == group_id:
-            group_range = (s2, e2)
-            break
+    outer_clean = _blank_pdx(outer_block)
+    m = re.search(re.escape(group_id) + r'\s*=\s*\{', outer_block)
+    if m:
+        brace = outer_block.find("{", m.start())
+        close = _block_close_pos(outer_clean, brace)
+        group_range = (m.start(), close + 1)
     if group_range is not None:
         gs, ge = group_range
         # 替换整行（含组块前缩进），避免 new_group 自带缩进造成双重缩进

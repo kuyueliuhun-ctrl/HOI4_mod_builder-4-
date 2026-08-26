@@ -49,6 +49,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import icon_ops
+import path_safety
 
 from api_core_ext import (
     StatesMixin,
@@ -325,6 +326,7 @@ class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
         target = ""
         country = (data.get("country") or "").strip().upper()
         if country:
+            path_safety.validate_component(country, "country")
             for fp in files:
                 content = WorkbenchDock._read_file(fp)
                 if country in WorkbenchDock._detect_country_tags(fp, content):
@@ -422,15 +424,11 @@ class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
         return {"ok": True, "path": rel_path, "size": len(content)}
 
     def _safe_join(self, rel_path):
-        """把 mod 内相对路径安全拼接到 mod 根（越界/绝对路径返回 None）。"""
-        rel_path = (rel_path or "").replace("\\", "/").lstrip("/")
-        if not rel_path or os.path.isabs(rel_path) or ".." in rel_path.split("/"):
+        """把 mod 内相对路径安全拼接到 mod 根（越界/绝对/符号链接逃逸返回 None）。"""
+        try:
+            return path_safety.safe_join(self.mod_path, rel_path)
+        except (TypeError, ValueError):
             return None
-        fp = os.path.normpath(os.path.join(self.mod_path, rel_path))
-        root = os.path.normpath(self.mod_path)
-        if not fp.startswith(root + os.sep) and fp != root:
-            return None
-        return fp
 
     # ---------- 工具接口（第一批复刻工具） ----------
 
@@ -495,6 +493,8 @@ class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
         focus_id = (data.get("focus_id") or "").strip()
         if not country or not focus_id:
             raise ValueError("项目需要 country 与 focus_id")
+        path_safety.validate_component(country, "country")
+        path_safety.validate_component(focus_id, "focus_id")
         # 目标国策文件：该国现有文件，否则新建
         from workbench import WorkbenchDock
         base = os.path.join(self.mod_path, "common", "national_focus")
@@ -534,6 +534,7 @@ class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
     def write_localisation(self, data):
         self.ensure_mod()
         tag = (data.get("tag") or "generic").strip().upper()
+        path_safety.validate_component(tag, "tag")
         entries = data.get("entries") or {}
         if not isinstance(entries, dict) or not entries:
             raise ValueError("缺少 entries（{key: value}）")

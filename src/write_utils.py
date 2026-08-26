@@ -101,6 +101,44 @@ def atomic_write_text(path, text, *, encoding="utf-8", newline="", undo=True,
     return path
 
 
+def atomic_write_bytes(path, data, *, undo=False):
+    """原子写原始字节（无损恢复用：保留 BOM/CRLF/任何编码）。
+
+    撤销管理器用其恢复写前快照，避免 utf-8-sig 读入 + utf-8 写回丢 BOM/CRLF。
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("atomic_write_bytes 需要 bytes，收到 %s" % type(data).__name__)
+    path = os.fspath(path)
+    if undo:
+        try:
+            from undo_mgr import before_write
+            before_write(path)
+        except Exception:
+            pass
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(prefix=".dsh_write_", suffix=".tmp",
+                                    dir=directory)
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(bytes(data))
+        try:
+            os.replace(tmp_path, path)
+        except PermissionError:
+            try:
+                os.chmod(path, 0o666)
+            except OSError:
+                pass
+            os.replace(tmp_path, path)
+    except Exception:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+    return path
+
+
 def read_text_contract(path, *, encoding="utf-8", errors="ignore"):
     """读文本文件并做契约校验（供健康检查/扫描使用）。
 

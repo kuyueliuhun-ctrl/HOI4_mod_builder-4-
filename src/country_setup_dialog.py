@@ -13,6 +13,8 @@
 import os
 import re
 
+import path_safety
+
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
     QLineEdit, QPushButton, QMessageBox, QRadioButton, QButtonGroup,
@@ -367,6 +369,7 @@ def create_new_country_files(mod_path, tag, dirs, game_path=None):
     if not mod_path:
         return []
     tag = tag.upper()
+    path_safety.validate_component(tag, "tag")
     created = []
     for rel_dir in dirs:
         if rel_dir == "common/countries":

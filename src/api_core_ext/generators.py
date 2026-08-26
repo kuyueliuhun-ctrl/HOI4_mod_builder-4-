@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import os
 
+import path_safety
+
 
 class GeneratorsMixin:
     """内容生成器。"""
@@ -15,7 +17,8 @@ class GeneratorsMixin:
     def _gen_files(self, kind, data, result):
         """把生成器 result 转为 files 列表。"""
         kind = (kind or "").strip()
-        filename = (data.get("filename") or "generated").strip()
+        filename = path_safety.validate_component(
+            (data.get("filename") or "generated").strip(), "filename")
         files = []
         # 脚本文本
         text = result.get("text")
