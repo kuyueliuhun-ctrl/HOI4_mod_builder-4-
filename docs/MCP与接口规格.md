@@ -7,8 +7,8 @@
 ## 1. 总览
 
 - **统一核心**：`src/api_server.py` 中的 `ApiCore` 是 HTTP / MCP / CLI 共用的操作核心，禁止另起实现。
-- **MCP 工具数**：168 个 = 原有 17 + 域扩展 142 + B3 补充 9（RHoiScribe 缺失能力）。
-- **HTTP**：仅绑定 `127.0.0.1`，Bearer token 鉴权；提供 `/api/mcp/<tool_name>` 同源桥，可直接调用全部 168 个 MCP 工具。
+- **MCP 工具数**：178 个 = 原有 17 + 域扩展 142 + B3 9（RHoiScribe）+ agent 5 + GFX 1 + debug 2 + CWT 2。
+- **HTTP**：仅绑定 `127.0.0.1`，Bearer token 鉴权；提供 `/api/mcp/<tool_name>` 同源桥，可直接调用全部 178 个 MCP 工具。
 - **MCP**：优先官方 `mcp` 库（FastMCP）；未安装时回退内置零依赖实现（newline JSON-RPC 2.0，协议 `2024-11-05`）。
 - **写回纪律**：所有写路径经 `write_utils.atomic_write_text`（或已有数据层内部原子写），禁止在接口层直接 `open(path, "w")`；本地化 yml 走 `utf-8-sig`。
 - **原版保护**：涉及游戏本体文件的写操作先 `ensure_file_in_mod` 复制到 mod，绝不直写游戏本体。
@@ -20,7 +20,7 @@
 | --- | --- |
 | `src/api_server.py` | `ApiCore` 组合 9 个域 Mixin；HTTP 服务 `_ApiHTTPServer` / `ApiHandler`；`/api/mcp/<tool_name>` 通用桥 |
 | `src/api_core_ext/` | 按域扩展 Mixin：`states` / `designers` / `ai_content` / `bop` / `loc_tools` / `health` / `media` / `generators` / `project` |
-| `src/mcp_tools.py` | `build_tools(core)` 返回 168 个工具注册表（schema + handler）；MCP / HTTP 共用 |
+| `src/mcp_tools.py` | `build_tools(core)` 返回 178 个工具注册表（schema + handler）；MCP / HTTP 共用 |
 | `src/mcp_server.py` | FastMCP 与内置零依赖 MCP Server 入口，消费 `build_tools` |
 | `src/mod_creator.py` | 新建 mod 骨架生成纯函数（从 ModCreatorDialog 下沉） |
 | `src/bop_loader.py` | BOP 查询与 `set_bop_initial_value` / `set_bop_fields` 保存下沉 |
@@ -54,7 +54,7 @@ API 方法约定：dict 进 dict 出；数据层 lazy import；写方法结束�
 
 鉴权：`Authorization: Bearer <token>`。错误映射：`ValueError` → 400；其他异常 → 500。
 
-## 4. MCP 工具清单（168）
+## 4. MCP 工具清单（178）
 
 参数格式：`名字* 类型`，`*` 表示必填。类型取值：`string` / `integer` / `number` / `boolean` / `array<...>` / `object`。
 
@@ -212,6 +212,8 @@ API 方法约定：dict 进 dict 出；数据层 lazy import；写方法结束�
 | `ai_theater_update` | 更新AI 派系战区 | `id` string<br>`field` string<br>`value` string<br>`quoted` boolean<br>`content` string<br>`focus_order` array<string><br>`entries` array<object><br>`strategic_regions` array<integer><br>`regions` array<integer><br>`preferred_countries` array<string><br>`role_id` string<br>`target_id` string<br>`group_id` string<br>`variant_id` string |
 | `set_ai_plan_focus_order` | 设置 AI 战略计划的国策顺序（等价 focus_order_picker 结果） | `plan_id*` string<br>`ordered_focus_ids*` array<string> |
 
+> AI 工具必填规则：`create/update/delete` 必须 `id`；`rename/duplicate` 必须 `id` 和 `new`；`ai_navy_*` 必须 `section`。完整说明见 §6I。
+
 ### 域5：BOP（4 个）
 
 | 工具 | 说明 | 参数 |
@@ -272,7 +274,7 @@ API 方法约定：dict 进 dict 出；数据层 lazy import；写方法结束�
 | `apply_template` | 应用模板到目标文件（支持变量替换） | `template_name*` string<br>`target_path*` string<br>`variables` object |
 | `copy_country_files` | 复制原版国家文件到 mod（默认 dry_run） | `tag*` string<br>`dirs*` array<string><br>`dry_run` boolean |
 | `create_blank_overrides` | 创建空覆盖接管（默认 dry_run） | `tag*` string<br>`dirs*` array<string><br>`dry_run` boolean |
-| `create_mod` | 新建 mod 项目骨架（默认 dry_run） | `name*` string<br>`folder_name*` string<br>`version*` string<br>`tags` array<string><br>`mod_folder_path` string<br>`mod_file_path` string<br>`tag` string<br>`dry_run` boolean |
+| `create_mod` | 新建 mod 项目骨架（默认 dry_run；落盘需 `approved=true`） | `name*` string<br>`folder_name*` string<br>`version*` string<br>`mod_folder_path*` string<br>`tags` array<string><br>`mod_file_path` string<br>`tag` string<br>`dry_run` boolean<br>`approved` boolean |
 | `create_new_country_files` | 创建全新国家文件（默认 dry_run） | `tag*` string<br>`dirs*` array<string><br>`dry_run` boolean |
 | `get_template` | 读取模板内容 | `template_name*` string |
 | `list_countries` | 列出国家（tag/中文名/[mod 已接管]） | — |
@@ -318,19 +320,19 @@ Claude Code 配置示例：
 
 ## 6A. A+B 分类方案（2026-08-25）
 
-为降低 168 个工具对 agent 的上下文/发现性负担，MCP 采用「核心精选 + 分类白名单 + 导航工具」渐进暴露：
+为降低 178 个工具对 agent 的上下文/发现性负担，MCP 采用「核心精选 + 分类白名单 + 导航工具」渐进暴露：
 
 - **默认 `tools/list` 只返回核心精选（约 22 个）+ 3 个导航工具**（共 25 个），其余工具不在列表中出现。
 - **3 个导航工具**（`mcp_server._build_nav_tools`，均可在 `tools/call` 直接调用）：
   - `list_tools_overview`：全部工具的分类目录（含未直接暴露的），返回 `{total, categories:{分类:[工具名...]}}`；
   - `get_tool_schema(name)`：任意工具的参数 schema + 分类；
-  - `invoke_tool(name, args)`：按名调用任意工具（**全部 168 个隐藏工具都可经它调用**，能力不丢）。
+  - `invoke_tool(name, args)`：按名调用任意工具（**全部 178 个隐藏工具都可经它调用**，能力不丢）。
 - **分类白名单**：环境变量 `MCP_EXPOSE_CATEGORIES`（逗号分隔分类名，或 `all` 全开）会让 `tools/list` 额外包含对应分类的全部工具。分类：`core / states-map / designers / oob / ai / bop / localisation / health / media / generators / project / nav`。
 - **HTTP 同步端点**：
   - `GET /api/mcp/overview` → 分类目录；
   - `GET /api/mcp/schema?name=<tool>` → 工具 schema；
   - `POST /api/mcp/invoke_tool` `{name, args}` → 调用任意工具。
-- 元数据来源：`mcp_tools.tool_category` / `CORE_TOOLS` / `NAV_TOOLS_META` / `build_catalog`（168 + 3 导航 = 171 条）。
+- 元数据来源：`mcp_tools.tool_category` / `CORE_TOOLS` / `NAV_TOOLS_META` / `build_catalog`（178 + 3 导航 = 181 条）。
 - 说明：MCP 客户端只能看到 `tools/list` 返回的工具，因此隐藏工具在客户端侧非「一等公民」（须经 `invoke_tool`）；官方 mcp 库路径同样只注册暴露集。
 
 ## 6B. B3 补充：RHoiScribe 缺失能力（2026-08-25，9 个新工具）
@@ -357,13 +359,15 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
 
 - **resources**（`resources/list` / `resources/read`）：
   - `hoi4://status` 运行状态；`hoi4://tools/overview` 工具分类目录；
-  - `hoi4://terms?keyword=…` 词条库检索；`hoi4://docs/rhoiscribe`、`hoi4://docs/mcp` 项目文档。
+  - `hoi4://terms?keyword=…` 词条库检索；`hoi4://docs/rhoiscribe`、`hoi4://docs/mcp`、`hoi4://docs/quickstart` 项目文档。
 - **prompts**（`prompts/list` / `prompts/get`）：`create_focus` / `validate_project` / `fix_error_log` / `edit_script_block`
-  工作流提示（返回 user 角色消息文本）。
+  工作流提示，以及 `create_mod_from_scratch`（从零新建 mod 的端到端步骤）。
 - 实现位置：`src/mcp_server.py::BuiltinMcpServer`；官方 mcp 库路径暂只注册 tools（若后续 mcp 库可用再补
   resources/prompts 动态注册）。
 
 ## 6D. Agent 偏好持久化 + 工具审计日志（2026-08-25，批二②）
+
+> 注意：6D-6G 中的“工具总数”是各批次落地时的累计快照；当前唯一权威为 `src/mcp_tools.py::build_tools()`，共 178 个。
 
 - 偏好：`list_agent_preferences` / `set_agent_preference` / `delete_agent_preference`
   （`.runtime/agent_prefs.json`，跨会话持久化）。
@@ -443,9 +447,30 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
   `skipUnless` 跳过；真实环境跑全量默认冒烟断言 0 error）。
 - 分类：`health`；工具总数 **178**。
 
+## 6I. P0/P1 可发现性修补（2026-08-26）
+
+针对空白智能体“能不能明白该怎么做”的评估结果，补齐以下可发现性缺口：
+
+- **`create_mod` schema 修正**：
+  - `mod_folder_path` 改为必填（与 handler 一致）；
+  - 新增 `approved` 布尔参数；描述明确“`dry_run=false` 时须 `approved=true`”。
+- **AI CRUD 必填修正**：
+  - `ai_*_create/update/delete` 必填 `id`；
+  - `ai_*_rename/duplicate` 必填 `id`、`new`；
+  - `ai_navy_*` 必填 `section`（goal/fleet/taskforce）。
+- **生成器示例**：
+  - 7 个 `generate_*` 工具的 schema 均附加 `examples` 字段，包含最小可运行入参；
+  - `generate_event` 补充 `event_ids` / `title` / `desc` / `option` 可选参数；
+  - `generate_focus_package` 补充 `tree_id` / `with_icon_gfx`；
+  - `generate_generals` 补充 `character_id`。
+- **新增 `hoi4://docs/quickstart` 资源**：
+  - 对应 `docs/MCP_quickstart.md`，给出 `create_mod → 内容 → 本地化 → 校验` 的最小端到端示例。
+- **新增 `create_mod_from_scratch` prompt**：
+  - 返回从零建 mod 的完整步骤，并提示隐藏工具经 `invoke_tool` 调用。
+
 ## 7. 验证
 
-- `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
+- `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥178、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
 - `tests/test_mcp_smoke_real.py`：真实数据全量 178 工具默认冒烟（guarded，0 error）。
 - `tools/verify_contracts.py`：语法编译、ruff、契约测试（402）、写入纪律、四层依赖、行数预算、UI 缺口探针全部通过。
 - 工具清单与本文档不同步时，以 `src/mcp_tools.py::build_tools()` 为唯一权威。

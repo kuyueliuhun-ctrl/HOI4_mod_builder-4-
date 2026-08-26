@@ -302,6 +302,9 @@ class BuiltinMcpServer:
             {"uri": "hoi4://docs/mcp", "name": "MCP 接口规格",
              "description": "MCP 工具清单与 A+B 分类说明",
              "mimeType": "text/markdown"},
+            {"uri": "hoi4://docs/quickstart", "name": "从零建 Mod 快速开始",
+             "description": "最小可运行 mod 的端到端示例（create_mod → 内容 → 本地化 → 校验）",
+             "mimeType": "text/markdown"},
         ]
 
     def _read_resource(self, uri):
@@ -325,9 +328,14 @@ class BuiltinMcpServer:
                     self.core.search_terms({"keyword": keyword, "limit": 50}))
             except Exception as e:
                 return self._json_text({"error": str(e)})
-        if uri in ("hoi4://docs/rhoiscribe", "hoi4://docs/mcp"):
-            fname = ("RHoiScribe知识映射与补全.md"
-                     if "rhoiscribe" in uri else "MCP与接口规格.md")
+        if uri in ("hoi4://docs/rhoiscribe", "hoi4://docs/mcp",
+                   "hoi4://docs/quickstart"):
+            if "rhoiscribe" in uri:
+                fname = "RHoiScribe知识映射与补全.md"
+            elif "quickstart" in uri:
+                fname = "MCP_quickstart.md"
+            else:
+                fname = "MCP与接口规格.md"
             fp = os.path.join(PROJECT_ROOT, "docs", fname)
             try:
                 with open(fp, "r", encoding="utf-8") as f:
@@ -352,6 +360,11 @@ class BuiltinMcpServer:
              "arguments": [
                  {"name": "path", "description": "文件相对路径", "required": False},
                  {"name": "block", "description": "块名", "required": False}]},
+            {"name": "create_mod_from_scratch", "description": "从零新建一个 mod 并添加国策/事件/本地化的完整步骤",
+             "arguments": [
+                 {"name": "name", "description": "模组显示名", "required": False},
+                 {"name": "folder_name", "description": "文件夹名", "required": False},
+                 {"name": "mod_folder_path", "description": "mod 内容根目录", "required": False}]},
         ]
 
     def _get_prompt(self, name, args):
@@ -359,6 +372,9 @@ class BuiltinMcpServer:
         focus_id = str(args.get("focus_id", ""))
         path = str(args.get("path", ""))
         block = str(args.get("block", ""))
+        mod_name = str(args.get("name", ""))
+        folder = str(args.get("folder_name", ""))
+        mod_folder = str(args.get("mod_folder_path", ""))
         if name == "create_focus":
             text = ("用 create_focus_project 或 create_entity 新建国策；country=%s focus=%s。"
                     "先 list_tools_overview 找可用工具，再按需补 localisation。"
@@ -373,6 +389,19 @@ class BuiltinMcpServer:
         elif name == "edit_script_block":
             text = ("用 edit_script_file 编辑 path=%s 的块 %s：先 dry_run=true 看 diff，"
                     "确认后 dry_run=false 落盘。") % (path or "<path>", block or "<block>")
+        elif name == "create_mod_from_scratch":
+            text = (
+                "从零新建 mod 的标准流程：\n"
+                "1) 先 discover_environment / get_status 确认 mod 根目录与游戏路径。\n"
+                "2) 调用 create_mod：name=%s folder_name=%s mod_folder_path=%s；"
+                "先 dry_run=true 预览文件清单，确认后 dry_run=false 且 approved=true 落盘。\n"
+                "3) 用 list_tools_overview 查看全部隐藏工具；本任务常用 generate_focus_package、"
+                "generate_event、write_localisation、validate_project。\n"
+                "4) 若这些工具不在 tools/list 中，用 get_tool_schema 查参数，再经 invoke_tool 调用。\n"
+                "5) 添加内容后调用 validate_project / validate_mod 修复红黄项。\n"
+                "6) 可读取资源 hoi4://docs/quickstart 获取最小可运行示例。"
+            ) % (mod_name or "<name>", folder or "<folder>",
+                 mod_folder or "<mod_folder_path>")
         else:
             raise ValueError("未知提示: %s" % name)
         return {

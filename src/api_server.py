@@ -30,7 +30,7 @@
   GET    /api/tools/vp_loc                   → VP 本地化干跑
   POST   /api/tools/error_log                → 错误日志分析
   POST   /api/tools/register_icon_batch      → 批量补注册图标
-  POST   /api/mcp/<tool_name>                → 通用同源工具桥（159 个 MCP 工具均可调用）
+  POST   /api/mcp/<tool_name>                → 通用同源工具桥（178 个 MCP 工具均可调用）
   GET    /api/help                           → 端点说明
 
 写操作自动进入撤销管理器（undo_mgr），GUI 内嵌模式下自动刷新界面。
@@ -681,7 +681,7 @@ class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
             "GET    /api/tools/vp_loc     （干跑 VP 本地化，不写文件）",
             "POST   /api/tools/error_log  {path|absolute_path}",
             "POST   /api/tools/register_icon_batch  {path,type?}",
-            "POST   /api/mcp/<tool_name> 通用同源工具桥（159 个 MCP 工具均可调用）",
+            "POST   /api/mcp/<tool_name> 通用同源工具桥（178 个 MCP 工具均可调用）",
             "GET    /api/help",
         ]}
 

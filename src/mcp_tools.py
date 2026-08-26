@@ -1,4 +1,4 @@
-"""MCP 工具注册表：159 个工具（现有 17 + 新增 142）
+"""MCP 工具注册表：178 个工具（现有 17 + 域扩展 142 + B3 9 + agent 5 + GFX 1 + debug 2 + CWT 2）
 
 与 HTTP API 共用 ApiCore。工具 schema 供 MCP Agent 选择。
 """
@@ -440,6 +440,16 @@ def _ai_params(kind, action):
     return {**id_params, **extra}
 
 
+def _ai_required(kind, action):
+    """AI CRUD 必填参数：所有写动作都要 id；rename/duplicate 还要 new；navy 还要 section。"""
+    req = ["id"]
+    if action in ("rename", "duplicate"):
+        req.append("new")
+    if kind == "navy" and action != "list":
+        req.append("section")
+    return req
+
+
 def _ai_tools(core):
     tools = []
     for kind in _AI_KINDS_LABEL:
@@ -453,7 +463,7 @@ def _ai_tools(core):
                                   "delete": "删除", "rename": "重命名",
                                   "duplicate": "复制"}[action],
                                  _AI_KINDS_LABEL[kind])
-                schema = _obj(_ai_params(kind, action))
+                schema = _obj(_ai_params(kind, action), _ai_required(kind, action))
             tools.append(_tool(name, desc, schema,
                                lambda args, k=kind, a=action:
                                getattr(core, "ai_%s_%s" % (k, a))(args)))
@@ -576,18 +586,78 @@ def _domain9_tools(core):
         ("generate_focus_package", "生成国策三件套", "focus_package", "focuses"),
         ("generate_event", "生成事件", "event", "event_id"),
     ]
+    examples = {
+        "ideas": [{
+            "id": "GER_test_idea",
+            "picture": "GFX_idea_GER_test_idea",
+            "modifier": "production_factory_bonus = 0.1",
+        }],
+        "ideologies": [{
+            "id": "example_ideology",
+            "color": [255, 255, 255],
+        }],
+        "groups": [{
+            "tag": "GER",
+            "characters": [{
+                "id": "ger_leader",
+                "name_loc": "GER_ger_leader",
+                "portraits": ["gfx/interface/portraits/ger_leader.dds"],
+            }],
+        }],
+        "leaders": [{
+            "name_loc": "GER_general_1",
+            "ideology": "neutrality",
+            "traits": ["politician"],
+        }],
+        "countries": [{
+            "tag": "XXX",
+            "name": "新建国家",
+            "file_name": "New Country",
+        }],
+        "focuses": [{
+            "id": "GER_test_focus",
+            "x": 0,
+            "y": 0,
+            "icon": "GFX_goal_generic_focus",
+            "prerequisite": ["GER_other_focus"],
+            "mutually_exclusive": ["GER_other_focus"],
+        }],
+    }
     tools = []
     for name, desc, kind, payload_key in specs:
         props = {
             "dry_run": _bool("默认 true 只返回预览"),
             "filename": _str("输出文件名主干（可选）"),
         }
+        ex = None
         if payload_key == "event_id":
-            props["event_id"] = _str("事件 id（可选）")
+            props["event_id"] = _str("事件 id（可选，与 event_ids 二选一）")
             props["namespace"] = _str("命名空间（可选）")
+            props["event_ids"] = _arr(_str(), "多个事件 id（可选；提供时生成命名空间块）")
+            props["title"] = _str("事件标题占位（可选）")
+            props["desc"] = _str("事件描述占位（可选）")
+            props["option"] = _str("事件选项占位（可选）")
+            ex = {
+                "event_id": "GER_test_event",
+                "namespace": "GER",
+                "title": "测试事件",
+                "desc": "测试事件描述",
+                "option": "确认",
+                "dry_run": True,
+            }
         else:
-            props[payload_key] = _arr(_obj_type(), "结构化入参")
-        tools.append(_tool(name, "%s（默认 dry_run）" % desc, _obj(props),
+            if payload_key == "focuses":
+                props["tree_id"] = _str("国策树 id（默认 PROJECT）")
+                props["with_icon_gfx"] = _bool("是否生成图标 GFX（默认 true）")
+            elif payload_key == "leaders":
+                props["character_id"] = _str("角色 id 前缀（默认 leader）")
+            props[payload_key] = _arr(
+                _obj_type("字段见下方 examples；如 " + repr(examples[payload_key])),
+                "结构化入参（可空则生成空预览）")
+            ex = {"dry_run": True, payload_key: examples[payload_key]}
+        schema = _obj(props)
+        schema["examples"] = [ex]
+        tools.append(_tool(name, "%s（默认 dry_run）" % desc, schema,
                            lambda args: getattr(core, name)(args)))
     return tools
 
@@ -608,15 +678,17 @@ def _domain10_tools(core):
               _obj({"tag": _str("国家 tag"), "dirs": _arr(_str(), "目录列表"),
                     "dry_run": _bool("默认 true 只预览")}, ["tag", "dirs"]),
               lambda args: core.create_new_country_files(args)),
-        _tool("create_mod", "新建 mod 项目骨架（默认 dry_run）",
+        _tool("create_mod",
+              "新建 mod 项目骨架（默认 dry_run；落盘需 dry_run=false 且 approved=true）",
               _obj({"name": _str("模组显示名"), "folder_name": _str("文件夹名"),
                     "version": _str("支持版本，默认 1.14.*"),
                     "tags": _arr(_str(), "标签列表（可选）"),
-                    "mod_folder_path": _str("mod 内容根目录（或 path）"),
+                    "mod_folder_path": _str("mod 内容根目录（必填；兼容旧参数 path）"),
                     "mod_file_path": _str(".mod 文件目录（可选，默认同 mod_folder_path）"),
                     "tag": _str("可选初始国家 tag"),
-                    "dry_run": _bool("默认 true 只预览")},
-                   ["name", "folder_name", "version"]),
+                    "dry_run": _bool("默认 true 只预览"),
+                    "approved": _bool("写盘确认：dry_run=false 时必须 true")},
+                   ["name", "folder_name", "version", "mod_folder_path"]),
               lambda args: core.create_mod(args)),
         _tool("apply_template", "应用模板到目标文件（支持变量替换）",
               _obj({"template_name": _str("模板名"),

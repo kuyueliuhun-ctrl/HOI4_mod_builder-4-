@@ -63,6 +63,43 @@ class CatalogAndCategoryTest(unittest.TestCase):
         self.assertIn("get_status", CORE_TOOLS)
         self.assertIn("validate_mod", CORE_TOOLS)
 
+    def test_p0_create_mod_schema_requires_path_and_approved(self):
+        from mcp_tools import build_tools
+        core = _make_core()
+        tools = {t["name"]: t for t in build_tools(core)}
+        schema = tools["create_mod"]["inputSchema"]
+        self.assertIn("mod_folder_path", schema["required"])
+        self.assertIn("approved", schema["properties"])
+        self.assertIn("dry_run", schema["properties"])
+
+    def test_p0_ai_crud_schema_required(self):
+        from mcp_tools import build_tools
+        core = _make_core()
+        tools = {t["name"]: t for t in build_tools(core)}
+        self.assertEqual(tools["ai_plan_create"]["inputSchema"]["required"], ["id"])
+        self.assertEqual(tools["ai_plan_rename"]["inputSchema"]["required"],
+                         ["id", "new"])
+        self.assertEqual(tools["ai_navy_create"]["inputSchema"]["required"],
+                         ["id", "section"])
+        self.assertEqual(tools["ai_navy_delete"]["inputSchema"]["required"],
+                         ["id", "section"])
+
+    def test_p1_generator_examples_attached(self):
+        from mcp_tools import build_tools
+        core = _make_core()
+        tools = {t["name"]: t for t in build_tools(core)}
+        for name in ("generate_ideas", "generate_ideologies",
+                     "generate_characters", "generate_generals",
+                     "generate_country_bootstrap", "generate_focus_package",
+                     "generate_event"):
+            schema = tools[name]["inputSchema"]
+            self.assertIn("examples", schema, name)
+            self.assertIsInstance(schema["examples"], list, name)
+            self.assertTrue(schema["examples"], name)
+        event_props = tools["generate_event"]["inputSchema"]["properties"]
+        for key in ("event_ids", "title", "desc", "option"):
+            self.assertIn(key, event_props, key)
+
 
 class ExposureTest(unittest.TestCase):
     def test_default_exposes_core_and_nav_only(self):
@@ -135,22 +172,31 @@ class ResourcesAndPromptsTest(unittest.TestCase):
         core = _make_core()
         server = BuiltinMcpServer(core)
         resources = server._list_resources()
-        self.assertGreaterEqual(len(resources), 4)
+        self.assertGreaterEqual(len(resources), 5)
         uris = {r["uri"] for r in resources}
         self.assertIn("hoi4://status", uris)
         self.assertIn("hoi4://tools/overview", uris)
         self.assertIn("hoi4://terms", uris)
+        self.assertIn("hoi4://docs/quickstart", uris)
         text = server._read_resource("hoi4://status")
         self.assertIn("mod_path", text)
         overview = server._read_resource("hoi4://tools/overview")
         self.assertIn("categories", overview)
+        quickstart = server._read_resource("hoi4://docs/quickstart")
+        self.assertIn("create_mod", quickstart)
+        self.assertIn("write_localisation", quickstart)
         prompts = server._list_prompts()
-        self.assertGreaterEqual(len(prompts), 3)
+        self.assertGreaterEqual(len(prompts), 4)
         names = {p["name"] for p in prompts}
         self.assertIn("validate_project", names)
+        self.assertIn("create_mod_from_scratch", names)
         p = server._get_prompt("validate_project", {})
         self.assertIn("messages", p)
         self.assertEqual(p["messages"][0]["role"], "user")
+        p2 = server._get_prompt("create_mod_from_scratch",
+                                {"name": "x", "folder_name": "y",
+                                 "mod_folder_path": "z"})
+        self.assertIn("create_mod", p2["messages"][0]["content"]["text"])
         with self.assertRaises(ValueError):
             server._read_resource("hoi4://nope")
         with self.assertRaises(ValueError):
