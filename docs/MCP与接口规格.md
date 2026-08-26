@@ -423,8 +423,29 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
   **全量真实数据冒烟：unit mod+game 548 文件 0 红；真实 mod project 扫描 300 文件 0 红**。
 - 分类：`health`；工具总数 **178**（159 + 9 + 5 + 1 + 2 + 2）。
 
+## 6H. MCP 全量工具真实数据冒烟（2026-08-26，批三②）
+
+- 工具：`tools/smoke_mcp_tools.py`——对真实 mod（`/mnt/e/mods/3350890356`）跑全量
+  **178 个工具**默认冒烟（`--full` 含重型）；自动构造参数、写工具要求 `dry_run`、
+  数据缺失记 `skip-data`（非致命）、重型工具记 `skipped-heavy`。
+- 结果（默认模式）：**ok=40 error=0**（另有 skipped=36 / skipped-write=56 /
+  skip-data=7 / skipped-heavy=39）；退出码 0。
+- 踩坑与修复：
+  1. **挂死定位**：`get_icon_manifest`（`build_icon_manifest` 全库扫描 mod+game
+     spriteType，实测 **238s / 20,430 条**）→ 归入 `HEAVY_TOOLS`；
+     `list_missing_localisation`/`batch_fill_localisation`
+     （`check_localisation_coverage` 全项目扫描，实测 **202s / 8,193 条缺失**）→ 归入
+     `HEAVY_TOOLS`。
+  2. **真实 bug**：`list_unit_counters` 调 `lib.search(keyword=, category=)` 但
+     `UnitCounterLibrary.search(kw=)` 不接收 → 修复 `unit_counter_library.search`
+     兼容 `keyword/category`（`src/unit_counter_library.py`）。
+- 回归：新增 `tests/test_mcp_smoke_real.py`（guarded：无真实 mod/game 目录时
+  `skipUnless` 跳过；真实环境跑全量默认冒烟断言 0 error）。
+- 分类：`health`；工具总数 **178**。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥168、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
+- `tests/test_mcp_smoke_real.py`：真实数据全量 178 工具默认冒烟（guarded，0 error）。
 - `tools/verify_contracts.py`：语法编译、ruff、契约测试（402）、写入纪律、四层依赖、行数预算、UI 缺口探针全部通过。
 - 工具清单与本文档不同步时，以 `src/mcp_tools.py::build_tools()` 为唯一权威。

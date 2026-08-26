@@ -64,6 +64,22 @@ class CounterResolverTest(unittest.TestCase):
         self.assertIsNone(self._entry("explosive_ammo"))
         self.assertIsNone(self._entry("totally_unknown_unit"))
 
+    def test_search_keyword_category_compat(self):
+        """UnitCounterLibrary.search 兼容 kw/keyword/category 传参。"""
+        from unit_counter_library import UnitCounterLibrary
+        lib = UnitCounterLibrary()
+        kw = lib.search(kw="infantry")
+        key = lib.search(keyword="infantry")
+        self.assertIsInstance(kw, list)
+        self.assertEqual(len(kw), len(key))
+        self.assertTrue(kw)
+        self.assertTrue(all("infantry" in e["name"] for e in kw))
+        # category 过滤不抛异常
+        cat = lib.search(keyword="unit", category="land")
+        self.assertIsInstance(cat, list)
+        all_items = lib.search()
+        self.assertGreater(len(all_items), 0)
+
 
 class CounterIconSmokeTest(unittest.TestCase):
     def test_pixmap_and_icon(self):

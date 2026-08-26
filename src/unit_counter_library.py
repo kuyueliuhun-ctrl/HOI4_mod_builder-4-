@@ -161,10 +161,17 @@ class UnitCounterLibrary:
         return [e for e in self._by_name.values()
                 if e.get("category") == category]
 
-    def search(self, kw=""):
+    def search(self, kw="", keyword=None, category=None):
+        """按名称子串 / 类别筛选标牌库条目。
+
+        kw 为旧调用；keyword/category 兼容 `list_unit_counters` 的传参。
+        """
+        q = kw or keyword or ""
         out = []
         for name, e in sorted(self._by_name.items()):
-            if kw and kw not in name:
+            if q and q not in name:
+                continue
+            if category and e.get("category") != category:
                 continue
             out.append(e)
         return out
