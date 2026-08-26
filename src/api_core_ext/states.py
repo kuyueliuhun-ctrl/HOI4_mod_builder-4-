@@ -42,10 +42,12 @@ class StatesMixin:
                             continue
                         if int(parts[0].strip()) == int(pid):
                             rows = {
-                                "type": parts[1].strip() if len(parts) > 1 else "",
+                                # definition.csv 列：0=id,1=R,2=G,3=B,
+                                # 4=type,5=coastal,6=terrain,7=continent
+                                "type": parts[4].strip() if len(parts) > 4 else "",
                                 "terrain": parts[6].strip() if len(parts) > 6 else "",
-                                "coastal": parts[7].strip().lower() in ("yes", "true", "1")
-                                if len(parts) > 7 else False,
+                                "coastal": parts[5].strip().lower() in ("yes", "true", "1")
+                                if len(parts) > 5 else False,
                             }
                             return rows
             except Exception:
