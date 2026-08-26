@@ -253,8 +253,8 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 
 **历史遗留 / 可选项（登记在 `docs/历史迭代日志.md` 附录 6.17，以整合计划为准）：**
 - ~~兵牌图标接入单位标牌库~~ ✅（2026-08-25 已落地：OOB 地图兵牌与师编制槽位 GFX 解析失败时回退 448 标牌库，97% 兵种覆盖）；
-- Scenario Forge 移植剩余方向：导出前校验面板产品化、build_snapshot 溯源台账、关键地区高危 id 清单；
-- 编制编辑器：模板改名后部署引用不一致提示、装备 IC 花费估算、OOB 海军/空军 version_name 设计解析（调研完成未实现）。
+- ~~Scenario Forge 移植剩余方向：导出前校验面板产品化、build_snapshot 溯源台账、关键地区高危 id 清单~~ ✅（2026-08-26 已全部闭环：`health_check_dialog.py` 工具菜单入口 + `export_health` 8 类检查含 high_risk；`build_snapshot.py` 快照/差异/保存；`high_risk_ids.py` 覆盖/保留字风险）；
+- ~~编制编辑器：模板改名后部署引用不一致提示、装备 IC 花费估算、OOB 海军/空军 version_name 设计解析~~ ✅（2026-08-26 已全部闭环：`rename_deployment_template_refs` + 改名弹窗同步；`division_ic_cost` + 编辑器 IC 展示；`oob_version_refs.py` 解析 air_wings/ship equipment/force_equipment_variants 并与设计器联动）。
 
 **触发式/长期项：** `generic_tree_editor.py` / `advisor_assign_dialog.py` / `map_canvas.py`
 行数预算白名单保留，下次功能改动时顺手拆分。
