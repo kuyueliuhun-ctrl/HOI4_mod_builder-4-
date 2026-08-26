@@ -73,6 +73,8 @@ class StateData:
         self.states = {}
         # 地块ID -> 州ID 反向索引
         self.province_to_state = {}
+        # 国家 TAG -> 核心州 ID 集合（add_core_of，B3/P1 核心圈层）
+        self.cores_by_tag = {}
         # 海军基地列表 [(地块ID, 等级, 州ID), ...]
         self.naval_bases = []
         # 空军基地列表 [(地块ID, 等级, 州ID), ...]
@@ -80,16 +82,19 @@ class StateData:
         # 州类别 -> 建筑位（common/state_category）
         self.categories = load_state_categories(mod_path, hoi4_path)
         self._load()
+        self._build_cores_index()
 
     def reload(self):
         """写回 mod 后重新加载（mod 覆盖游戏后新内容生效）。"""
         self.states = {}
         self.province_to_state = {}
+        self.cores_by_tag = {}
         self.naval_bases = []
         self.air_bases = []
         self.categories = load_state_categories(
             self.mod_path, self.hoi4_path)
         self._load()
+        self._build_cores_index()
 
     # ---------- 加载 ----------
 
@@ -132,7 +137,7 @@ class StateData:
         info = {"id": 0, "name_key": "", "provinces": [], "naval": {},
                 "air_level": 0, "owner": "", "state_category": "",
                 "manpower": 0, "resources": {}, "victory_points": [],
-                "buildings": {}, "buildings_pid": {}, "src": src}
+                "buildings": {}, "buildings_pid": {}, "cores": [], "src": src}
         for child in node.children:
             if child.node_type == "value":
                 if child.key == "id":
@@ -194,6 +199,10 @@ class StateData:
         for child in history_node.children:
             if child.node_type == "value" and child.key == "owner":
                 info["owner"] = child.value.strip().strip('"').upper()
+            elif child.node_type == "value" and child.key == "add_core_of":
+                # 可重复标量键：一个州可归属多个国家的核心
+                info.setdefault("cores", []).append(
+                    child.value.strip().strip('"').upper())
             elif child.node_type == "value" and child.key == "name" \
                     and not info.get("name_key"):
                 info["name_key"] = child.value
@@ -241,6 +250,13 @@ class StateData:
         if info["air_level"] > 0:
             anchor = info["provinces"][0] if info["provinces"] else 0
             self.air_bases.append((anchor, info["air_level"], sid))
+
+    def _build_cores_index(self):
+        """构建 国家TAG -> 核心州ID 集合 反查索引。"""
+        self.cores_by_tag = {}
+        for sid, info in self.states.items():
+            for tag in info.get("cores") or []:
+                self.cores_by_tag.setdefault(tag, set()).add(sid)
 
     # ---------- 查询 ----------
 

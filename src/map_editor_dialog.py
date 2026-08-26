@@ -30,15 +30,10 @@ from building_lib import load_building_types, load_country_colors
 from ai_loader import load_ai_faction_theaters
 from ai_ui_common import KeyValueTableEditor
 from map_region_ops import parse_region_file
-from map_data_layers import (
-    build_categorical_overlay, build_line_overlay, build_river_overlay,
-    build_value_overlay, load_railways, load_supply_areas,
-    state_vp_and_resources,
-)
 
 
 # 数据层下拉选项（P2 ③：地图数据层色阶）
-DATA_LAYERS = ("无", "胜利点 VP", "资源总量", "补给区", "铁路", "河流", "大洲")
+DATA_LAYERS = ("无", "胜利点 VP", "资源总量", "补给区", "铁路", "河流", "大洲", "核心圈层")
 
 
 class MapEditorDialog(QDialog):
@@ -415,52 +410,11 @@ class MapEditorDialog(QDialog):
         key = self.data_layer_combo.currentText()
         if key == "无":
             return
-        idm = self.map_data.id_map
-        if idm is None:
-            return
         try:
-            if key == "胜利点 VP":
-                vp, _ = state_vp_and_resources(self.state_data.states)
-                rgba, x0, y0 = build_value_overlay(idm, vp, alpha=150)
-            elif key == "资源总量":
-                _, res = state_vp_and_resources(self.state_data.states)
-                rgba, x0, y0 = build_value_overlay(idm, res, alpha=150)
-            elif key == "补给区":
-                areas, _meta = load_supply_areas(self.mod_path,
-                                                 self.game_path)
-                pid_area = {}
-                for sid, aid in areas.items():
-                    info = self.state_data.states.get(sid)
-                    if info:
-                        for pid in info.get("provinces", []):
-                            pid_area[pid] = aid
-                rgba, x0, y0 = build_categorical_overlay(
-                    idm, pid_area, alpha=150)
-            elif key == "铁路":
-                self.map_data.precompute_centroids()
-                segs = load_railways(self.mod_path, self.game_path)
-                rgba, x0, y0 = build_line_overlay(
-                    int(idm.shape[1]), int(idm.shape[0]), segs,
-                    self.map_data.province_centroid, alpha=220)
-            elif key == "河流":
-                rivers_path = ""
-                for base in (self.game_path, self.mod_path):
-                    if base and os.path.isfile(
-                            os.path.join(base, "map", "rivers.bmp")):
-                        rivers_path = os.path.join(base, "map", "rivers.bmp")
-                        break
-                rgba, x0, y0 = build_river_overlay(rivers_path, alpha=170)
-            elif key == "大洲":
-                # 州 → 大洲（definition.csv 第 8 列，省多数表决）→ 省展开
-                from continents import load_state_continents, \
-                    state_continent_overlay
-                scont = load_state_continents(
-                    self.state_data, self.mod_path, self.game_path)
-                pid_cat = state_continent_overlay(self.state_data, scont)
-                rgba, x0, y0 = build_categorical_overlay(
-                    idm, pid_cat, alpha=150)
-            else:
-                return
+            from map_overlay_factory import build_layer_overlay
+            rgba, x0, y0 = build_layer_overlay(
+                key, self.map_data, self.state_data, self.mod_path,
+                self.game_path, current_pid=self._current_pid)
         except Exception as e:
             QMessageBox.information(self, "数据层", "生成失败：%s" % e)
             return
