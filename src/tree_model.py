@@ -142,91 +142,97 @@ class FocusTreeModel(QAbstractItemModel):
 
         return self.createIndex(node.parent.child_index(), 0, node.parent)
 
+    def _display_for_node(self, node):
+        """DisplayRole：生成节点的树形展示文本。"""
+        if node.key == self.VIRTUAL_TRANSLATION_KEY and node.parent == self.root_node:
+            return f"📖 翻译 ({len(self._fixed_field_ids)}个字段)"
+        if node.key == self.VIRTUAL_DESCRIPTION_KEY and node.parent == self.root_node:
+            return f"📝 文本描述 ({len(self._fixed_field_ids)}个字段)"
+
+        vp = getattr(node, "_virtual_parent_key", None)
+        if vp in (self.VIRTUAL_TRANSLATION_KEY, self.VIRTUAL_DESCRIPTION_KEY):
+            return self._display_virtual_child(node, vp)
+
+        if self.translator:
+            cn_key, cn_val = self.translator.translate_node(node.key, node.value)
+        else:
+            cn_key, cn_val = node.key, node.value
+
+        if node.node_type == "block":
+            if node.key == "focus" and self.loc_manager:
+                cn_name = self.loc_manager.get_name(node.value)
+                if cn_name:
+                    return f"📁 {node.value}--{cn_name}"
+            if cn_key and cn_key != node.key:
+                return f"📁 {node.key}--{cn_key}"
+            return f"📁 {node.key}"
+
+        if not node.key:
+            if node.value:
+                vtext = node.value
+                if cn_val and cn_val != node.value:
+                    vtext += f"--{cn_val}"
+                return f"📄 {vtext}"
+            return f"📄 (值)"
+        if node.value:
+            vtext = node.value
+            if cn_val and cn_val != node.value:
+                vtext += f"--{cn_val}"
+            key_text = node.key
+            if cn_key and cn_key != node.key:
+                key_text = f"{node.key}--{cn_key}"
+            return f"📄 {key_text} = {vtext}"
+        vals = [p for p in node.key.split() if p]
+        if not vals:
+            return f"📄 (值)"
+        return f"📄 " + "\n".join(vals)
+
+    def _display_virtual_child(self, node, vp):
+        """虚拟翻译/描述子条目的展示文本。"""
+        field_id = node.key
+        if not self.translation_editor:
+            return f"📄 {field_id}"
+        name = self.translation_editor.get_name(field_id)
+        desc = self.translation_editor.get_desc(field_id)
+        if vp == self.VIRTUAL_TRANSLATION_KEY:
+            if name:
+                return f"📄 {name}"
+            return f"📄 {field_id}（无翻译）"
+        if desc:
+            return f"📄 {desc}"
+        return f"📄 {field_id}（无描述）"
+
+    def _edit_for_node(self, node):
+        """EditRole：可编辑文本。"""
+        vp = getattr(node, "_virtual_parent_key", None)
+        if vp in (self.VIRTUAL_TRANSLATION_KEY, self.VIRTUAL_DESCRIPTION_KEY):
+            if self.translation_editor:
+                field_id = node.key
+                if vp == self.VIRTUAL_TRANSLATION_KEY:
+                    return self.translation_editor.get_name(field_id)
+                return self.translation_editor.get_desc(field_id)
+        return node.value
+
+    def _tooltip_for_node(self, node):
+        """ToolTipRole：节点提示文本。"""
+        if node.key in (self.VIRTUAL_TRANSLATION_KEY, self.VIRTUAL_DESCRIPTION_KEY) and node.parent == self.root_node:
+            return f"点击展开查看{node.key}详情"
+        return f"类型: {'块' if node.node_type == 'block' else '值'}\n键: {node.key}\n值: {node.value}"
+
     def data(self, index: QModelIndex, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
             return None
-
         node = self._safe_pointer(index)
         if node is None:
             return None
-
         if role == Qt.ItemDataRole.DisplayRole:
-            if node.key == self.VIRTUAL_TRANSLATION_KEY and node.parent == self.root_node:
-                return f"📖 翻译 ({len(self._fixed_field_ids)}个字段)"
-            if node.key == self.VIRTUAL_DESCRIPTION_KEY and node.parent == self.root_node:
-                return f"📝 文本描述 ({len(self._fixed_field_ids)}个字段)"
-
-            vp = getattr(node, "_virtual_parent_key", None)
-            if vp in (self.VIRTUAL_TRANSLATION_KEY, self.VIRTUAL_DESCRIPTION_KEY):
-                field_id = node.key
-                if self.translation_editor:
-                    name = self.translation_editor.get_name(field_id)
-                    desc = self.translation_editor.get_desc(field_id)
-                    if vp == self.VIRTUAL_TRANSLATION_KEY:
-                        if name:
-                            return f"📄 {name}"
-                        return f"📄 {field_id}（无翻译）"
-                    else:
-                        if desc:
-                            return f"📄 {desc}"
-                        return f"📄 {field_id}（无描述）"
-                return f"📄 {field_id}"
-
-            if self.translator:
-                cn_key, cn_val = self.translator.translate_node(node.key, node.value)
-            else:
-                cn_key, cn_val = node.key, node.value
-
-            if node.node_type == "block":
-                if node.key == "focus" and self.loc_manager:
-                    cn_name = self.loc_manager.get_name(node.value)
-                    if cn_name:
-                        return f"📁 {node.value}--{cn_name}"
-                if cn_key and cn_key != node.key:
-                    return f"📁 {node.key}--{cn_key}"
-                return f"📁 {node.key}"
-            else:
-                # 键名为空：只有值，不显示等号
-                if not node.key:
-                    if node.value:
-                        vtext = node.value
-                        if cn_val and cn_val != node.value:
-                            vtext += f"--{cn_val}"
-                        return f"📄 {vtext}"
-                    return f"📄 (值)"
-                # 有值的键值对：正常显示等号
-                if node.value:
-                    vtext = node.value
-                    if cn_val and cn_val != node.value:
-                        vtext += f"--{cn_val}"
-                    key_text = node.key
-                    if cn_key and cn_key != node.key:
-                        key_text = f"{node.key}--{cn_key}"
-                    return f"📄 {key_text} = {vtext}"
-                # 只有值而没有等号（裸值）：不显示等号，多个值用换行隔开
-                vals = [p for p in node.key.split() if p]
-                if not vals:
-                    return f"📄 (值)"
-                return f"📄 " + "\n".join(vals)
-
+            return self._display_for_node(node)
         if role == Qt.ItemDataRole.EditRole:
-            vp = getattr(node, "_virtual_parent_key", None)
-            if vp in (self.VIRTUAL_TRANSLATION_KEY, self.VIRTUAL_DESCRIPTION_KEY):
-                if self.translation_editor:
-                    field_id = node.key
-                    if vp == self.VIRTUAL_TRANSLATION_KEY:
-                        return self.translation_editor.get_name(field_id)
-                    return self.translation_editor.get_desc(field_id)
-            return node.value
-
+            return self._edit_for_node(node)
         if role == Qt.ItemDataRole.ToolTipRole:
-            if node.key in (self.VIRTUAL_TRANSLATION_KEY, self.VIRTUAL_DESCRIPTION_KEY) and node.parent == self.root_node:
-                return f"点击展开查看{node.key}详情"
-            return f"类型: {'块' if node.node_type == 'block' else '值'}\n键: {node.key}\n值: {node.value}"
-
+            return self._tooltip_for_node(node)
         if role == Qt.ItemDataRole.UserRole:
             return node
-
         return None
 
     def flags(self, index: QModelIndex):
