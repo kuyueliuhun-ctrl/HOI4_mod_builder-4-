@@ -172,7 +172,7 @@ hearts_of_iron_builder/
 | 事件编辑器 | `event_data.py`（486）+ `event_editor_dialog.py`（1044） | 完整版：unit_leader_event、文件级其他字段、结构化 option/effect | ✅ |
 | 科技编辑器 | `tech_data.py`（452）+ `tech_editor_dialog.py`（812）、`tech_icon_ops.py` | 完整版：technologies 包装/零散 folder、allow/加成块、画布双击联动；科技图标自动写 gfx | ✅ |
 | 角色编辑器 | `character_data.py`（522）+ `character_editor_dialog.py`（718） | 只替换 name/portraits 区，保留 roles；字符级块定位 | ✅ |
-| 顾问分配 | `advisor_assign_dialog.py`（1254） | `generic_advisors.txt` 顾问分配识别与编辑（大文件，行数预算白名单） | ✅ |
+| 顾问分配 | `advisor_assign_dialog.py`（1297） | `generic_advisors.txt` 顾问分配识别与编辑（大文件，行数预算白名单） | ✅ |
 | 力量平衡 BOP | `bop_loader.py`（851）+ `bop_editor_dialog.py`（626）+ `bop_editor_pages.py`（764） | 数据层解析 common/bop + 决议动作；仿游戏内 BOP 弹窗（深色历史风）；本地化/修正展示/区间滑块/动作编辑；保存走 ensure_file_in_mod + 原子写 | ✅ |
 | 师编制 v2 | `division_editor.py`（1091）、`oob_loader.py`（1027）、`oob_stats.py`（313）、`oob_format.py`、`sub_unit_editor_dialog.py`（425）、`names_group_dialog.py` | 仿游戏内 Division Designer：顶部模板下拉 + 数据面板 + 地形矩阵；技术数据“营字段优先→主装备回退”；军种识别 `detect_oob_kinds` 自动拉起对应设计器 | ✅ |
 | OOB 入口/地编 | `initial_oob_editor.py`（246）、`oob_map_editor.py`（640） | 打开 OOB 直接进师编制设计器；地图放置复用 MapCanvas（get_map_data/get_state_data 单例缓存） | ✅ |
@@ -916,3 +916,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.58 | 08-26 | 工作台右键强制树编辑 | force_tree_file_selected 信号 + _open_generic_tree_editor 跳过专用路由 | docs/历史迭代日志.md |
 | 6.59 | 08-26 | 设计器 load_* 系列重构 | 新增 equipment_loader.py 通用加载层；ship/tank/plane 9 个 load_* 改为薄封装；真实数据冒烟通过 | docs/历史迭代日志.md |
 | 6.60 | 08-26 | API 路由表化重构 | ApiHandler._route 巨型 if-elif 改为 _ROUTE_TABLE + _dispatch + 26 个 handler；HTTP 冒烟通过 | docs/历史迭代日志.md |
+| 6.61 | 08-26 | advisor_assign_dialog 复杂函数重构 | load_character_assignments/_load_current/_on_save/_setup_ui 拆分；新增纯逻辑助手；+3 测试 | docs/历史迭代日志.md |

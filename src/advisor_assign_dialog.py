@@ -356,6 +356,83 @@ def find_character_block(lines, char_name):
     return None
 
 
+
+def _find_child(node, key):
+    """查找节点的直接子节点（缺失返回 None）。"""
+    for c in node.children:
+        if c.key == key:
+            return c
+    return None
+
+
+def _replace_child(parent, old, new):
+    """用新节点替换父节点的旧子节点。"""
+    parent.children[parent.children.index(old)] = new
+
+
+def _char_name_from_text(text):
+    """从分配块文本提取角色名（name/token_base，剔除行内注释）。"""
+    for line in text.split("\n"):
+        s = line.strip()
+        if s.startswith("name =") or s.startswith("name="):
+            name = s.split("=", 1)[1].strip()
+            if "#" in name:
+                name = name.split("#", 1)[0].strip()
+            return name
+        if s.startswith("token_base =") or s.startswith("token_base="):
+            name = s.split("=", 1)[1].strip()
+            if "#" in name:
+                name = name.split("#", 1)[0].strip()
+            return name
+    return ""
+
+
+def _find_assign_block(root):
+    """在树根中定位 every_possible_country/every_other_country 块。"""
+    for child in root.children:
+        if child.node_type == "block" and child.key in (
+                "every_possible_country", "every_other_country"):
+            return child
+    return None
+
+
+def _get_limit_block(block_node):
+    """获取分配块的 limit 子块。"""
+    return _find_child(block_node, "limit") if block_node is not None else None
+
+
+def _get_generate_character(block_node):
+    """获取分配块的 generate_character 子块。"""
+    return _find_child(block_node, "generate_character") if block_node is not None else None
+
+
+def _get_advisor_slot(block_node):
+    """从分配块提取顾问位（slot）。"""
+    char_node = _get_generate_character(block_node)
+    if char_node is None:
+        return ""
+    advisor = get_advisor_node(char_node)
+    if advisor is None:
+        return ""
+    for a in advisor.children:
+        if a.key == "slot":
+            return a.value
+    return ""
+
+
+def _parse_character_assignment(text):
+    """解析单个分配块文本 → (char_name, excluded, slot)；无效返回 None。"""
+    char_name = _char_name_from_text(text)
+    if not char_name:
+        return None
+    root = tree_from_pdx_text(text)
+    block_node = _find_assign_block(root)
+    if block_node is None:
+        return None
+    limit = _get_limit_block(block_node)
+    excluded = extract_excluded_tags(limit) if limit else []
+    return char_name, excluded, _get_advisor_slot(block_node)
+
 def build_assign_block(char_name, excluded_tags, params):
     """构建顾问分配块文本（every_possible_country + generate_character）。
 
@@ -496,46 +573,10 @@ def load_character_assignments(mod_path="", game_path="") -> dict:
             text = block_text(lines, start, end)
             if "generate_character" not in text:
                 continue
-            # 提取角色名（name = X 或 token_base = X，剔除行内注释）
-            char_name = ""
-            for line in text.split("\n"):
-                s = line.strip()
-                if s.startswith("name =") or s.startswith("name="):
-                    char_name = s.split("=", 1)[1].strip()
-                    break
-                if s.startswith("token_base =") or s.startswith("token_base="):
-                    char_name = s.split("=", 1)[1].strip()
-                    break
-            if char_name and "#" in char_name:
-                char_name = char_name.split("#", 1)[0].strip()
-            if not char_name:
+            parsed = _parse_character_assignment(text)
+            if parsed is None:
                 continue
-            # 提取该块的国家排除与 slot
-            root = tree_from_pdx_text(text)
-            block_node = None
-            for child in root.children:
-                if child.node_type == "block" and child.key in (
-                        "every_possible_country", "every_other_country"):
-                    block_node = child
-                    break
-            if block_node is None:
-                continue
-            limit = None
-            for c in block_node.children:
-                if c.key == "limit" and c.node_type == "block":
-                    limit = c
-                    break
-            excluded = extract_excluded_tags(limit) if limit else []
-            slot = ""
-            for c in block_node.children:
-                if c.key == "generate_character" and c.node_type == "block":
-                    advisor = get_advisor_node(c)
-                    if advisor:
-                        for a in advisor.children:
-                            if a.key == "slot":
-                                slot = a.value
-                                break
-                    break
+            char_name, excluded, slot = parsed
             result[char_name] = {"filepath": fp, "excluded": excluded, "slot": slot}
     return result
 
@@ -681,6 +722,38 @@ class CharacterAdvisorDialog(QDialog):
                 cn = ""
         return f"{tag}  {cn}" if cn else tag
 
+    def _parse_current_text(self, text):
+        """解析分配块文本 → (block_node, char_node, advisor, excluded)。"""
+        root = tree_from_pdx_text(text)
+        block_node = _find_assign_block(root)
+        if block_node is None:
+            return None
+        limit = _get_limit_block(block_node)
+        excluded = extract_excluded_tags(limit) if limit else []
+        char_node = _get_generate_character(block_node)
+        advisor = get_advisor_node(char_node) if char_node else None
+        return block_node, char_node, advisor, excluded
+
+    def _apply_advisor_fields(self, advisor):
+        """把 advisor 子块字段写到界面控件。"""
+        if advisor is None:
+            return
+        for a in advisor.children:
+            if a.key == "slot":
+                self.slot_combo.setCurrentText(a.value)
+            elif a.key == "cost":
+                self.cost_edit.setText(a.value)
+            elif a.key == "idea_token":
+                self.idea_token_edit.setText(a.value)
+            elif a.key == "traits" and a.node_type == "block":
+                self._set_traits_label([t.value for t in a.children])
+            elif a.key == "available" and a.node_type == "block":
+                self._set_available_label(a.to_pdx(0))
+            elif a.key == "ai_will_do" and a.node_type == "block":
+                for sub in a.children:
+                    if sub.key == "factor":
+                        self.factor_edit.setText(sub.value)
+
     def _load_current(self):
         """加载当前角色在分配文件中的配置（排除国家与参数）。"""
         if self.advisor_file:
@@ -697,56 +770,22 @@ class CharacterAdvisorDialog(QDialog):
             self.status_label.setText("该角色尚未配置顾问分配，保存后将新增条目。")
             return
         text = block_text(lines, *loc)
-        root = tree_from_pdx_text(text)
-        block_node = None
-        for child in root.children:
-            if child.node_type == "block" and child.key in (
-                    "every_possible_country", "every_other_country"):
-                block_node = child
-                break
-        if block_node is None:
+        parsed = self._parse_current_text(text)
+        if parsed is None:
             return
-        limit = None
-        for c in block_node.children:
-            if c.key == "limit" and c.node_type == "block":
-                limit = c
-                break
-        excluded = extract_excluded_tags(limit) if limit else []
+        _block_node, char_node, advisor, excluded = parsed
         self._apply_exclusions(excluded)
         self.idea_token_edit.setText("")
         self.advisor_name_edit.setText(self.char_name)
         self.advisor_desc_edit.setText("")
-        advisor = None
-        char_node = None
-        for c in block_node.children:
-            if c.key == "generate_character" and c.node_type == "block":
-                char_node = c
-                advisor = get_advisor_node(c)
-                break
         if char_node is not None:
             for c in char_node.children:
                 if c.key == "name":
                     self.advisor_name_edit.setText(c.value)
                 elif c.key == "desc":
                     self.advisor_desc_edit.setText(c.value)
-        if advisor is not None:
-            for a in advisor.children:
-                if a.key == "slot":
-                    self.slot_combo.setCurrentText(a.value)
-                elif a.key == "cost":
-                    self.cost_edit.setText(a.value)
-                elif a.key == "idea_token":
-                    self.idea_token_edit.setText(a.value)
-                elif a.key == "traits" and a.node_type == "block":
-                    self._set_traits_label([t.value for t in a.children])
-                elif a.key == "available" and a.node_type == "block":
-                    self._set_available_label(a.to_pdx(0))
-                elif a.key == "ai_will_do" and a.node_type == "block":
-                    for sub in a.children:
-                        if sub.key == "factor":
-                            self.factor_edit.setText(sub.value)
-        n = len(excluded)
-        self.status_label.setText(f"已配置，当前排除 {n} 个国家。")
+        self._apply_advisor_fields(advisor)
+        self.status_label.setText(f"已配置，当前排除 {len(excluded)} 个国家。")
 
     def _apply_exclusions(self, tags):
         self.country_list.clearSelection()
@@ -878,59 +917,77 @@ class AdvisorAssignDialog(QDialog):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
         splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(self._build_left_panel())
+        splitter.addWidget(self._build_right_panel())
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([240, 520])
+        layout.addWidget(splitter)
 
-        # ── 左侧：块 + 角色列表 ──
+    def _build_left_panel(self):
+        """左侧：角色（generate_character）列表。"""
         left = QVBoxLayout()
         left.setContentsMargins(0, 0, 0, 0)
         left.addWidget(QLabel("角色（generate_character）:"))
         self.char_list = QListWidget()
         self.char_list.currentItemChanged.connect(self._on_char_selected)
         left.addWidget(self.char_list)
-        left_widget = QWidget()
-        left_widget.setLayout(left)
+        widget = QWidget()
+        widget.setLayout(left)
+        return widget
 
-        # ── 右侧：条件与参数 ──
+    def _build_right_panel(self):
+        """右侧：条件与参数。"""
         right = QVBoxLayout()
         right.setContentsMargins(0, 0, 0, 0)
-
         self.summary_label = QLabel("未选择角色")
         self.summary_label.setWordWrap(True)
         right.addWidget(self.summary_label)
+        right.addWidget(self._build_country_group(), 3)
+        right.addWidget(self._build_param_group(), 2)
+        right.addLayout(self._build_action_row())
+        widget = QWidget()
+        widget.setLayout(right)
+        return widget
 
-        # 国家条件
-        cond_group = QWidget()
-        cond_layout = QVBoxLayout(cond_group)
-        cond_layout.setContentsMargins(0, 0, 0, 0)
-        cond_row = QHBoxLayout()
-        cond_row.addWidget(QLabel("排除国家（勾选后这些国家不获得该角色）:"))
-        cond_row.addStretch()
-        sel_all_btn = QPushButton("全选")
-        sel_all_btn.clicked.connect(self._select_all_exclusions)
-        sel_none_btn = QPushButton("清空")
-        sel_none_btn.clicked.connect(self._clear_exclusions)
-        cond_row.addWidget(sel_all_btn)
-        cond_row.addWidget(sel_none_btn)
-        cond_layout.addLayout(cond_row)
+    def _build_country_group(self):
+        """国家条件：排除国家多选列表。"""
+        group = QWidget()
+        layout = QVBoxLayout(group)
+        layout.setContentsMargins(0, 0, 0, 0)
+        row = QHBoxLayout()
+        row.addWidget(QLabel("排除国家（勾选后这些国家不获得该角色）:"))
+        row.addStretch()
+        sel_all = QPushButton("全选")
+        sel_all.clicked.connect(self._select_all_exclusions)
+        sel_none = QPushButton("清空")
+        sel_none.clicked.connect(self._clear_exclusions)
+        row.addWidget(sel_all)
+        row.addWidget(sel_none)
+        layout.addLayout(row)
         self.country_list = QListWidget()
-        self.country_list.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
+        self.country_list.setSelectionMode(
+            QAbstractItemView.SelectionMode.MultiSelection)
         for tag in self._country_tags:
             item = QListWidgetItem(self._country_label(tag))
             item.setData(Qt.ItemDataRole.UserRole, tag)
             self.country_list.addItem(item)
-        cond_layout.addWidget(self.country_list, 1)
-        right.addWidget(cond_group, 3)
+        layout.addWidget(self.country_list, 1)
+        return group
 
-        # 顾问参数
-        param_group = QWidget()
-        param_layout = QVBoxLayout(param_group)
-        param_layout.setContentsMargins(0, 0, 0, 0)
+    def _build_param_group(self):
+        """顾问参数：slot/idea_token/name/desc/traits/available/factor。"""
+        group = QWidget()
+        layout = QVBoxLayout(group)
+        layout.setContentsMargins(0, 0, 0, 0)
+
         slot_row = QHBoxLayout()
         slot_row.addWidget(QLabel("顾问位 slot:"))
         self.slot_combo = QComboBox()
         self.slot_combo.setEditable(False)
         self.slot_combo.addItems(SLOT_CHOICES)
         slot_row.addWidget(self.slot_combo)
-        param_layout.addLayout(slot_row)
+        layout.addLayout(slot_row)
 
         field_row = QHBoxLayout()
         field_row.addWidget(QLabel("idea_token:"))
@@ -940,14 +997,14 @@ class AdvisorAssignDialog(QDialog):
         field_row.addWidget(QLabel("name:"))
         self.advisor_name_edit = QLineEdit()
         field_row.addWidget(self.advisor_name_edit, 1)
-        param_layout.addLayout(field_row)
+        layout.addLayout(field_row)
 
         desc_row = QHBoxLayout()
         desc_row.addWidget(QLabel("desc:"))
         self.advisor_desc_edit = QLineEdit()
         self.advisor_desc_edit.setPlaceholderText("本地化描述键（可空）")
         desc_row.addWidget(self.advisor_desc_edit, 1)
-        param_layout.addLayout(desc_row)
+        layout.addLayout(desc_row)
 
         traits_row = QHBoxLayout()
         traits_row.addWidget(QLabel("特质 traits:"))
@@ -957,7 +1014,7 @@ class AdvisorAssignDialog(QDialog):
         self.traits_pick_btn = QPushButton("选择 traits…")
         self.traits_pick_btn.clicked.connect(self._pick_traits)
         traits_row.addWidget(self.traits_pick_btn)
-        param_layout.addLayout(traits_row)
+        layout.addLayout(traits_row)
 
         avail_row = QHBoxLayout()
         avail_row.addWidget(QLabel("available 条件:"))
@@ -967,7 +1024,7 @@ class AdvisorAssignDialog(QDialog):
         self.available_btn = QPushButton("编辑 available…")
         self.available_btn.clicked.connect(self._edit_available)
         avail_row.addWidget(self.available_btn)
-        param_layout.addLayout(avail_row)
+        layout.addLayout(avail_row)
 
         factor_row = QHBoxLayout()
         factor_row.addWidget(QLabel("ai_will_do factor:"))
@@ -975,28 +1032,20 @@ class AdvisorAssignDialog(QDialog):
         self.factor_edit.setPlaceholderText("如 1")
         factor_row.addWidget(self.factor_edit)
         factor_row.addStretch()
-        param_layout.addLayout(factor_row)
-        right.addWidget(param_group, 2)
+        layout.addLayout(factor_row)
+        return group
 
-        btn_row = QHBoxLayout()
-        btn_row.addStretch()
-        cancel_btn = QPushButton("取消")
-        cancel_btn.clicked.connect(self.close)
-        save_btn = QPushButton("保存（更新树）")
-        save_btn.clicked.connect(self._on_save)
-        btn_row.addWidget(cancel_btn)
-        btn_row.addWidget(save_btn)
-        right.addLayout(btn_row)
-
-        right_widget = QWidget()
-        right_widget.setLayout(right)
-
-        splitter.addWidget(left_widget)
-        splitter.addWidget(right_widget)
-        splitter.setStretchFactor(0, 0)
-        splitter.setStretchFactor(1, 1)
-        splitter.setSizes([240, 520])
-        layout.addWidget(splitter)
+    def _build_action_row(self):
+        """底部操作按钮。"""
+        row = QHBoxLayout()
+        row.addStretch()
+        cancel = QPushButton("取消")
+        cancel.clicked.connect(self.close)
+        save = QPushButton("保存（更新树）")
+        save.clicked.connect(self._on_save)
+        row.addWidget(cancel)
+        row.addWidget(save)
+        return row
 
     # ────────────── 数据加载 ──────────────
 
@@ -1062,21 +1111,8 @@ class AdvisorAssignDialog(QDialog):
                 self.country_list.itemWidget(item) if False else None
                 item.setSelected(True)
 
-    def _load_params(self, char_node):
-        """加载角色的顾问参数。"""
-        advisor = get_advisor_node(char_node)
-        self.slot_combo.setCurrentText("")
-        self._set_traits_label([])
-        self._set_available_label("")
-        self.factor_edit.setText("")
-        self.idea_token_edit.setText("")
-        self.advisor_name_edit.setText("")
-        self.advisor_desc_edit.setText("")
-        for c in char_node.children:
-            if c.key == "name":
-                self.advisor_name_edit.setText(c.value)
-            elif c.key == "desc":
-                self.advisor_desc_edit.setText(c.value)
+    def _apply_advisor_fields(self, advisor):
+        """把 advisor 子块字段写入界面（name/desc 仅在未设置时回填）。"""
         if advisor is None:
             return
         for c in advisor.children:
@@ -1096,6 +1132,23 @@ class AdvisorAssignDialog(QDialog):
                 for sub in c.children:
                     if sub.key == "factor":
                         self.factor_edit.setText(sub.value)
+
+    def _load_params(self, char_node):
+        """加载角色的顾问参数。"""
+        advisor = get_advisor_node(char_node)
+        self.slot_combo.setCurrentText("")
+        self._set_traits_label([])
+        self._set_available_label("")
+        self.factor_edit.setText("")
+        self.idea_token_edit.setText("")
+        self.advisor_name_edit.setText("")
+        self.advisor_desc_edit.setText("")
+        for c in char_node.children:
+            if c.key == "name":
+                self.advisor_name_edit.setText(c.value)
+            elif c.key == "desc":
+                self.advisor_desc_edit.setText(c.value)
+        self._apply_advisor_fields(advisor)
 
     # ────────────── 操作 ──────────────
 
@@ -1148,59 +1201,27 @@ class AdvisorAssignDialog(QDialog):
         if dlg.exec() == QDialog.DialogCode.Accepted:
             self._set_available_label(dlg.result_block_text())
 
-    def _on_save(self):
-        """保存：更新当前块 limit 排除国家与角色参数。"""
-        if self._current_block is None or self._current_char is None:
-            QMessageBox.warning(self, "提示", "未选择角色")
-            return
-
-        # 1) 国家排除条件
-        limit = self._get_limit_node(self._current_block)
-        if limit is None:
-            limit = TreeNode("block", "limit")
-            self._current_block.add_child(limit, 0)
-        rebuild_exclusions(limit, self._selected_exclusions())
-
-        # 2) 顾问参数
-        advisor = get_advisor_node(self._current_char)
-        if advisor is None:
-            advisor = TreeNode("block", "advisor")
-            self._current_char.add_child(advisor)
-
-        # slot
-        self._set_value(advisor, "slot", self.slot_combo.currentText().strip())
-        # 字段化：idea_token / desc / name（name 写入 generate_character 顶层）
-        self._set_value(advisor, "idea_token", self.idea_token_edit.text().strip())
-        self._set_value(advisor, "desc", self.advisor_desc_edit.text().strip())
-        self._set_value(self._current_char, "name", self.advisor_name_edit.text().strip())
-
-        # traits
-        trait_text = "\n".join(self._selected_traits()).strip()
-        old_traits = None
-        for c in advisor.children:
-            if c.key == "traits":
-                old_traits = c
-                break
+    def _save_traits(self, advisor, trait_text):
+        """保存 traits 子块（空则移除）。"""
+        trait_text = trait_text.strip()
+        old = _find_child(advisor, "traits")
         if trait_text:
             traits = TreeNode("block", "traits")
             for line in trait_text.splitlines():
                 line = line.strip()
                 if line:
                     traits.add_child(TreeNode("value", "", line))
-            if old_traits is not None:
-                advisor.children[advisor.children.index(old_traits)] = traits
+            if old is not None:
+                _replace_child(advisor, old, traits)
             else:
                 advisor.add_child(traits)
-        elif old_traits is not None:
-            advisor.children.remove(old_traits)
+        elif old is not None:
+            advisor.children.remove(old)
 
-        # available（PDX 块文本）
-        avail_text = self._available_block().strip()
-        old_avail = None
-        for c in advisor.children:
-            if c.key == "available":
-                old_avail = c
-                break
+    def _save_available(self, advisor, avail_text):
+        """保存 available 子块（空则移除）。"""
+        avail_text = avail_text.strip()
+        old = _find_child(advisor, "available")
         if avail_text:
             from tree_node import parse_pdx_text_to_nodes
             nodes = parse_pdx_text_to_nodes(avail_text)
@@ -1208,29 +1229,51 @@ class AdvisorAssignDialog(QDialog):
                 avail = nodes[0] if len(nodes) == 1 else TreeNode("block", "available")
                 if avail.key != "available":
                     avail.key = "available"
-                if old_avail is not None:
-                    advisor.children[advisor.children.index(old_avail)] = avail
+                if old is not None:
+                    _replace_child(advisor, old, avail)
                 else:
                     advisor.add_child(avail)
-        elif old_avail is not None:
-            advisor.children.remove(old_avail)
+        elif old is not None:
+            advisor.children.remove(old)
 
-        # ai_will_do factor
-        factor_text = self.factor_edit.text().strip()
-        old_awd = None
-        for c in advisor.children:
-            if c.key == "ai_will_do":
-                old_awd = c
-                break
+    def _save_ai_will_do(self, advisor, factor_text):
+        """保存 ai_will_do 子块（空则移除）。"""
+        factor_text = factor_text.strip()
+        old = _find_child(advisor, "ai_will_do")
         if factor_text:
             awd = TreeNode("block", "ai_will_do")
             awd.add_child(TreeNode("value", "factor", factor_text))
-            if old_awd is not None:
-                advisor.children[advisor.children.index(old_awd)] = awd
+            if old is not None:
+                _replace_child(advisor, old, awd)
             else:
                 advisor.add_child(awd)
-        elif old_awd is not None:
-            advisor.children.remove(old_awd)
+        elif old is not None:
+            advisor.children.remove(old)
+
+    def _on_save(self):
+        """保存：更新当前块 limit 排除国家与角色参数。"""
+        if self._current_block is None or self._current_char is None:
+            QMessageBox.warning(self, "提示", "未选择角色")
+            return
+
+        limit = self._get_limit_node(self._current_block)
+        if limit is None:
+            limit = TreeNode("block", "limit")
+            self._current_block.add_child(limit, 0)
+        rebuild_exclusions(limit, self._selected_exclusions())
+
+        advisor = get_advisor_node(self._current_char)
+        if advisor is None:
+            advisor = TreeNode("block", "advisor")
+            self._current_char.add_child(advisor)
+        self._set_value(advisor, "slot", self.slot_combo.currentText().strip())
+        self._set_value(advisor, "idea_token", self.idea_token_edit.text().strip())
+        self._set_value(advisor, "desc", self.advisor_desc_edit.text().strip())
+        self._set_value(self._current_char, "name",
+                        self.advisor_name_edit.text().strip())
+        self._save_traits(advisor, "\n".join(self._selected_traits()))
+        self._save_available(advisor, self._available_block())
+        self._save_ai_will_do(advisor, self.factor_edit.text())
 
         self.summary_label.setText("当前块：" + summarize_assign(
             self._current_block, self._selected_exclusions()))
