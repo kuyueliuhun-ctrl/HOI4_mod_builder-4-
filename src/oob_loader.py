@@ -259,6 +259,63 @@ def parse_units(content):
     return placements
 
 
+def oob_deployments_for_template(mod_path, game_path, template_name):
+    """找 mod+game 全部 OOB 文件中引用指定编制模板的部署（mod 优先去重）。
+
+    Returns:
+        list[dict]: {"file", "name", "location", "division_template"}
+    """
+    from oob_version_refs import iter_oob_files
+    hits = []
+    for rel, fp in iter_oob_files(mod_path, game_path):
+        try:
+            with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
+                content = f.read()
+        except Exception:
+            continue
+        for p in parse_units(content):
+            if p.division_template == template_name:
+                hits.append({"file": "history/units/" + rel,
+                             "name": p.name, "location": p.location,
+                             "division_template": p.division_template})
+    return hits
+
+
+def rename_deployment_template_refs(mod_path, old_name, new_name,
+                                    dry_run=True):
+    """把 mod 内 OOB 文件中引用旧模板名的部署更新为新名。
+
+    文本级精确替换 `division_template = "old"` 与无引号写法。
+    Returns:
+        {"dry_run", "count", "files"}
+    """
+    from oob_version_refs import iter_oob_files
+    from write_utils import atomic_write_text
+    updated, total = [], 0
+    for rel, fp in iter_oob_files(mod_path, None):
+        try:
+            with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
+                content = f.read()
+        except Exception:
+            continue
+        quoted = 'division_template = "%s"' % old_name
+        if quoted not in content \
+                and "division_template = %s" % old_name not in content:
+            continue
+        new = content.replace(quoted, 'division_template = "%s"' % new_name)
+        new = new.replace("division_template = %s" % old_name,
+                          'division_template = "%s"' % new_name)
+        if new == content:
+            continue
+        refs = [p for p in parse_units(content)
+                if p.division_template == old_name]
+        total += len(refs)
+        if not dry_run:
+            atomic_write_text(fp, new)
+        updated.append("history/units/" + rel)
+    return {"dry_run": dry_run, "count": total, "files": updated}
+
+
 # ---------- 兵种目录 ----------
 
 # 营/装备属性字段（基础值估算用；字段缺失时值为 None）

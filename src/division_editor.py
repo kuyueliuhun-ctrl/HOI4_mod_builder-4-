@@ -296,6 +296,8 @@ class DivisionEditor(QDialog):
         self.hoi4_path = hoi4_path
         # 当前编辑中的模板
         self.current = None
+        # 模板加载时的原始名（用于保存时检测改名 → 同步部署引用）
+        self._loaded_name = ""
         # 数据面板字段名 → QLabel（_update_stats 更新）
         self._stat_labels = {}
 
@@ -548,6 +550,7 @@ class DivisionEditor(QDialog):
         if tpl is None:
             return
         self.current = tpl
+        self._loaded_name = tpl.name
         self._rebuild_editor(tpl)
 
     def _rebuild_editor(self, tpl):
@@ -1100,12 +1103,50 @@ class DivisionEditor(QDialog):
 
     # ---------- 保存 ----------
 
+    def _sync_deployment_refs_after_rename(self, old_name, new_name):
+        """编制改名后：提示并同步 OOB 部署里引用旧名的 division_template。"""
+        try:
+            from oob_loader import oob_deployments_for_template, \
+                rename_deployment_template_refs
+        except Exception:
+            return
+        refs = oob_deployments_for_template(
+            self.mod_path, self.hoi4_path, old_name)
+        if not refs:
+            return
+        files = sorted({r["file"] for r in refs})
+        preview = "\n".join(files[:8]) + ("\n…" if len(files) > 8 else "")
+        ret = QMessageBox.question(
+            self, "同步部署引用",
+            "编制已改名为「%s」。\n发现 %d 个部署引用旧名（%d 个文件）：\n%s\n\n"
+            "是否把这些 OOB 的 division_template 一并改为「%s」？" % (
+                new_name, len(refs), len(files), preview, new_name),
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if ret != QMessageBox.Yes:
+            return
+        try:
+            r = rename_deployment_template_refs(
+                self.mod_path, old_name, new_name, dry_run=False)
+        except Exception as e:  # noqa: BLE001
+            QMessageBox.critical(self, "同步失败", str(e))
+            return
+        if r["count"]:
+            QMessageBox.information(
+                self, "已同步",
+                "已更新 %d 个部署引用（%d 个文件）。" % (r["count"], len(r["files"])))
+
     def _save(self):
         try:
             self.oob_file.save()
         except Exception as e:
             QMessageBox.critical(self, "保存失败", str(e))
             return
+        if self.current is not None:
+            old = getattr(self, "_loaded_name", "") or self.current.name
+            new = self.current.name or ""
+            if old and new and old != new:
+                # 改名联动：提示并同步部署引用
+                self._sync_deployment_refs_after_rename(old, new)
         QMessageBox.information(self, "已保存", f"已保存到:\n{self.oob_file.file_path}")
         self.tree_saved.emit()
         self._refresh_combo()

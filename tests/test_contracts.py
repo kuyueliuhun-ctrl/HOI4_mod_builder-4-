@@ -292,6 +292,58 @@ class SubUnitStatsTest(unittest.TestCase):
         self.assertEqual(r2["total_ic"], 0.0)
 
 
+class OobDeploymentRenameTest(unittest.TestCase):
+    """模板改名后部署引用查找与同步。"""
+
+    def _make_mod(self):
+        mod = _mkdtemp("oob_dep_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        d = os.path.join(mod, "history", "units")
+        os.makedirs(d, exist_ok=True)
+        p = os.path.join(d, "ABC.txt")
+        content = (
+            'division_template = {\n'
+            '\tname = "Old Tpl"\n'
+            '\tregiments = {}\n'
+            '}\n'
+            'units = {\n'
+            '\tdivision = { name = "D1" location = 1 '
+            'division_template = "Old Tpl" }\n'
+            '\tdivision = { name = "D2" location = 2 '
+            'division_template = "Other" }\n'
+            '}\n'
+        )
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(content)
+        return mod, p
+
+    def test_oob_deployments_for_template(self):
+        from oob_loader import oob_deployments_for_template
+        mod, _p = self._make_mod()
+        hits = oob_deployments_for_template(mod, "", "Old Tpl")
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["file"], "history/units/ABC.txt")
+        self.assertEqual(hits[0]["name"], "D1")
+        self.assertEqual(oob_deployments_for_template(mod, "", "Nope"), [])
+
+    def test_rename_deployment_template_refs(self):
+        from oob_loader import rename_deployment_template_refs
+        mod, p = self._make_mod()
+        r = rename_deployment_template_refs(mod, "Old Tpl", "New Tpl",
+                                            dry_run=True)
+        self.assertEqual(r["count"], 1)
+        self.assertEqual(r["files"], ["history/units/ABC.txt"])
+        r2 = rename_deployment_template_refs(mod, "Old Tpl", "New Tpl",
+                                             dry_run=False)
+        self.assertEqual(r2["count"], 1)
+        with open(p, encoding="utf-8") as f:
+            out = f.read()
+        self.assertIn('division_template = "New Tpl"', out)
+        self.assertNotIn('division_template = "Old Tpl"', out)
+        self.assertIn('division_template = "Other"', out,
+                      "无关部署不应被改写")
+
+
 class DivisionEditorSmokeTest(unittest.TestCase):
     """DivisionEditor v2 offscreen 冒烟：顶部下拉 / 数据面板 / 地形矩阵 / 重置。"""
 
