@@ -738,6 +738,35 @@ class ApiHandler(BaseHTTPRequestHandler):
         except Exception:
             return {}
 
+    _ROUTE_TABLE = (
+        ("GET", "/api/status", "_handle_status"),
+        ("GET", "/api/types", "_handle_types"),
+        ("GET", "/api/help", "_handle_help"),
+        ("GET", "/api/entities", "_handle_entities_list"),
+        ("POST", "/api/entities", "_handle_entities_create"),
+        ("DELETE", "/api/entities", "_handle_entities_delete_invalid"),
+        ("GET", "/api/entities/*", "_handle_entity_get"),
+        ("PUT", "/api/entities/*", "_handle_entity_update"),
+        ("DELETE", "/api/entities/*", "_handle_entity_delete"),
+        ("POST", "/api/project", "_handle_project_create"),
+        ("POST", "/api/localisation", "_handle_localisation_write"),
+        ("POST", "/api/tech_icon", "_handle_tech_icon"),
+        ("POST", "/api/validate", "_handle_validate"),
+        ("GET", "/api/templates", "_handle_templates"),
+        ("GET", "/api/files", "_handle_files_list"),
+        ("POST", "/api/files", "_handle_files_write_or_read"),
+        ("GET", "/api/icon_manifest", "_handle_icon_manifest"),
+        ("GET", "/api/overlay_report", "_handle_overlay_report"),
+        ("POST", "/api/tools/format_pdx", "_handle_format_pdx"),
+        ("GET", "/api/tools/vp_loc", "_handle_vp_loc"),
+        ("POST", "/api/tools/error_log", "_handle_error_log"),
+        ("POST", "/api/tools/register_icon_batch", "_handle_register_icon_batch"),
+        ("GET", "/api/mcp/overview", "_handle_mcp_overview"),
+        ("GET", "/api/mcp/schema", "_handle_mcp_schema"),
+        ("POST", "/api/mcp/invoke_tool", "_handle_mcp_invoke_tool"),
+        ("ANY", "/api/mcp/*", "_handle_mcp_dynamic"),
+    )
+
     def _route(self):
         if not self._check_auth():
             self._send(401, {"ok": False, "error": "未授权的请求（需要 Authorization: Bearer <token>）"})
@@ -747,150 +776,184 @@ class ApiHandler(BaseHTTPRequestHandler):
         qs = urllib.parse.parse_qs(parsed.query)
         q = {k: (v[0] if v else "") for k, v in qs.items()}
         try:
-            if path == "/api/status" and self.command == "GET":
-                self._send(200, self.core.status())
-            elif path == "/api/types" and self.command == "GET":
-                self._send(200, self.core.types())
-            elif path == "/api/help" and self.command == "GET":
-                self._send(200, self.core.help())
-            elif path == "/api/entities" and self.command == "GET":
-                type_key = q.get("type", "")
-                if not type_key:
-                    self._send(400, {"ok": False, "error": "缺少 type 参数"})
-                    return
-                self._send(200, self.core.list_entities(
-                    type_key, q.get("country", ""), q.get("kw", "")))
-            elif path == "/api/entities" and self.command == "POST":
-                self._send(200, self.core.create_entity(self._read_json()))
-            elif path == "/api/entities" and self.command == "DELETE":
-                self._send(400, {"ok": False, "error": "DELETE 需要 /api/entities/<type>/<id>"})
-            elif path.startswith("/api/entities/") and self.command == "GET":
-                parts = path[len("/api/entities/"):].split("/", 1)
-                if len(parts) == 2:
-                    self._send(200, self.core.get_entity(parts[0], urllib.parse.unquote(parts[1])))
-                else:
-                    self._send(400, {"ok": False, "error": "路径需为 /api/entities/<type>/<id>"})
-            elif path.startswith("/api/entities/") and self.command == "PUT":
-                parts = path[len("/api/entities/"):].split("/", 1)
-                if len(parts) == 2:
-                    self._send(200, self.core.update_entity(
-                        parts[0], urllib.parse.unquote(parts[1]), self._read_json()))
-                else:
-                    self._send(400, {"ok": False, "error": "路径需为 /api/entities/<type>/<id>"})
-            elif path.startswith("/api/entities/") and self.command == "DELETE":
-                parts = path[len("/api/entities/"):].split("/", 1)
-                if len(parts) == 2:
-                    self._send(200, self.core.delete_entity(
-                        parts[0], urllib.parse.unquote(parts[1])))
-                else:
-                    self._send(400, {"ok": False, "error": "路径需为 /api/entities/<type>/<id>"})
-            elif path == "/api/project" and self.command == "POST":
-                self._send(200, self.core.create_focus_project(self._read_json()))
-            elif path == "/api/localisation" and self.command == "POST":
-                self._send(200, self.core.write_localisation(self._read_json()))
-            elif path == "/api/tech_icon" and self.command == "POST":
-                self._send(200, self.core.upload_tech_icon(self._read_json()))
-            elif path == "/api/validate" and self.command == "POST":
-                self._send(200, self.core.validate())
-            elif path == "/api/templates" and self.command == "GET":
-                self._send(200, self.core.templates(q.get("type", ""), q.get("usage", "")))
-            elif path == "/api/files" and self.command == "GET":
-                type_key = q.get("type", "")
-                if not type_key:
-                    self._send(400, {"ok": False, "error": "缺少 type 参数"})
-                    return
-                self._send(200, self.core.list_files(type_key))
-            elif path == "/api/files" and self.command == "POST":
-                body = self._read_json()
-                if "path" in body and "content" in body:
-                    self._send(200, self.core.write_file(body))
-                else:
-                    # 读文件：{path}
-                    self._send(200, self.core.get_file(body.get("path", "")))
-            elif path == "/api/icon_manifest" and self.command == "GET":
-                self._send(200, self.core.get_icon_manifest(
-                    q.get("query", ""), q.get("source", ""),
-                    int(q.get("limit", "200") or 0)))
-            elif path == "/api/overlay_report" and self.command == "GET":
-                self._send(200, self.core.get_overlay_report(
-                    summary_only=q.get("summary_only", "") == "1"))
-            elif path == "/api/tools/format_pdx" and self.command == "POST":
-                self._send(200, self.core.format_pdx(self._read_json()))
-            elif path == "/api/tools/vp_loc" and self.command == "GET":
-                self._send(200, self.core.vp_loc_dry_run())
-            elif path == "/api/tools/error_log" and self.command == "POST":
-                self._send(200, self.core.analyze_error_log(self._read_json()))
-            elif path == "/api/tools/register_icon_batch" and self.command == "POST":
-                self._send(200, self.core.register_icon_batch(self._read_json()))
-            elif path == "/api/mcp/overview" and self.command == "GET":
-                from mcp_tools import build_catalog
-                cats = {}
-                for meta in build_catalog(self.core):
-                    cats.setdefault(meta["category"], []).append(meta["name"])
-                self._send(200, {
-                    "total": sum(len(v) for v in cats.values()),
-                    "categories": {k: sorted(v) for k, v in sorted(cats.items())},
-                    "note": "未直接暴露的工具请用 invoke_tool 调用；用 /api/mcp/schema?name= 查参数。",
-                })
-            elif path == "/api/mcp/schema" and self.command == "GET":
-                from mcp_tools import build_catalog
-                name = q.get("name", "")
-                meta = next((m for m in build_catalog(self.core)
-                             if m["name"] == name), None)
-                if meta is None:
-                    self._send(404, {"ok": False, "error": "未知工具: %s" % name})
-                else:
-                    self._send(200, meta)
-            elif path == "/api/mcp/invoke_tool" and self.command == "POST":
-                from mcp_tools import build_tools
-                body = self._read_json()
-                name = body.get("name", "")
-                args = body.get("args") or {}
-                t = next((x for x in build_tools(self.core)
-                          if x["name"] == name), None)
-                if t is None:
-                    self._send(404, {"ok": False, "error": "未知工具: %s" % name})
-                    return
-                result = t["_handler"](args)
-                try:
-                    self.core.log_tool_call(name, args, ok=True)
-                except Exception:
-                    pass
-                self._send(200, result if isinstance(result, dict)
-                           else {"ok": True, "result": result})
-            elif path.startswith("/api/mcp/") and self.command in ("GET", "POST"):
-                tool_name = urllib.parse.unquote(path[len("/api/mcp/"):])
-                method = getattr(self.core, tool_name, None)
-                if method is None:
-                    self._send(404, {"ok": False, "error": f"未知 MCP 工具: {tool_name}"})
-                    return
-                if self.command == "POST":
-                    body = self._read_json()
-                else:
-                    body = q
-                try:
-                    result = method(body)
-                    try:
-                        self.core.log_tool_call(tool_name, body, ok=True)
-                    except Exception:
-                        pass
-                    self._send(200, result if isinstance(result, dict) else {"ok": True, "result": result})
-                except TypeError:
-                    # 兼容无参方法
-                    result = method()
-                    try:
-                        self.core.log_tool_call(tool_name, {}, ok=True)
-                    except Exception:
-                        pass
-                    self._send(200, result if isinstance(result, dict) else {"ok": True, "result": result})
-            else:
-                self._send(404, {"ok": False, "error": f"未知端点: {self.command} {self.path}"})
+            self._dispatch(path, self.command, q)
         except ValueError as e:
-            # 参数/类型错误 → 400
             self._send(400, {"ok": False, "error": str(e)})
         except Exception as e:
             traceback.print_exc()
             self._send(500, {"ok": False, "error": str(e)})
+
+    def _dispatch(self, path, method, q):
+        for route_method, route_path, handler_name in self._ROUTE_TABLE:
+            if route_method != "ANY" and route_method != method:
+                continue
+            if route_path.endswith("*"):
+                if not path.startswith(route_path[:-1]):
+                    continue
+            elif path != route_path:
+                continue
+            getattr(self, handler_name)(path, q)
+            return
+        self._send(404, {"ok": False, "error": f"未知端点: {method} {self.path}"})
+
+    # ---- 路由处理器（每个分支独立成方法，降低 _route 复杂度） ----
+
+    def _handle_status(self, path, q):
+        self._send(200, self.core.status())
+
+    def _handle_types(self, path, q):
+        self._send(200, self.core.types())
+
+    def _handle_help(self, path, q):
+        self._send(200, self.core.help())
+
+    def _handle_entities_list(self, path, q):
+        type_key = q.get("type", "")
+        if not type_key:
+            self._send(400, {"ok": False, "error": "缺少 type 参数"})
+            return
+        self._send(200, self.core.list_entities(
+            type_key, q.get("country", ""), q.get("kw", "")))
+
+    def _handle_entities_create(self, path, q):
+        self._send(200, self.core.create_entity(self._read_json()))
+
+    def _handle_entities_delete_invalid(self, path, q):
+        self._send(400, {"ok": False, "error": "DELETE 需要 /api/entities/<type>/<id>"})
+
+    def _handle_entity_get(self, path, q):
+        parts = path[len("/api/entities/"):].split("/", 1)
+        if len(parts) == 2:
+            self._send(200, self.core.get_entity(
+                parts[0], urllib.parse.unquote(parts[1])))
+        else:
+            self._send(400, {"ok": False, "error": "路径需为 /api/entities/<type>/<id>"})
+
+    def _handle_entity_update(self, path, q):
+        parts = path[len("/api/entities/"):].split("/", 1)
+        if len(parts) == 2:
+            self._send(200, self.core.update_entity(
+                parts[0], urllib.parse.unquote(parts[1]), self._read_json()))
+        else:
+            self._send(400, {"ok": False, "error": "路径需为 /api/entities/<type>/<id>"})
+
+    def _handle_entity_delete(self, path, q):
+        parts = path[len("/api/entities/"):].split("/", 1)
+        if len(parts) == 2:
+            self._send(200, self.core.delete_entity(
+                parts[0], urllib.parse.unquote(parts[1])))
+        else:
+            self._send(400, {"ok": False, "error": "路径需为 /api/entities/<type>/<id>"})
+
+    def _handle_project_create(self, path, q):
+        self._send(200, self.core.create_focus_project(self._read_json()))
+
+    def _handle_localisation_write(self, path, q):
+        self._send(200, self.core.write_localisation(self._read_json()))
+
+    def _handle_tech_icon(self, path, q):
+        self._send(200, self.core.upload_tech_icon(self._read_json()))
+
+    def _handle_validate(self, path, q):
+        self._send(200, self.core.validate())
+
+    def _handle_templates(self, path, q):
+        self._send(200, self.core.templates(
+            q.get("type", ""), q.get("usage", "")))
+
+    def _handle_files_list(self, path, q):
+        type_key = q.get("type", "")
+        if not type_key:
+            self._send(400, {"ok": False, "error": "缺少 type 参数"})
+            return
+        self._send(200, self.core.list_files(type_key))
+
+    def _handle_files_write_or_read(self, path, q):
+        body = self._read_json()
+        if "path" in body and "content" in body:
+            self._send(200, self.core.write_file(body))
+        else:
+            self._send(200, self.core.get_file(body.get("path", "")))
+
+    def _handle_icon_manifest(self, path, q):
+        self._send(200, self.core.get_icon_manifest(
+            q.get("query", ""), q.get("source", ""),
+            int(q.get("limit", "200") or 0)))
+
+    def _handle_overlay_report(self, path, q):
+        self._send(200, self.core.get_overlay_report(
+            summary_only=q.get("summary_only", "") == "1"))
+
+    def _handle_format_pdx(self, path, q):
+        self._send(200, self.core.format_pdx(self._read_json()))
+
+    def _handle_vp_loc(self, path, q):
+        self._send(200, self.core.vp_loc_dry_run())
+
+    def _handle_error_log(self, path, q):
+        self._send(200, self.core.analyze_error_log(self._read_json()))
+
+    def _handle_register_icon_batch(self, path, q):
+        self._send(200, self.core.register_icon_batch(self._read_json()))
+
+    def _handle_mcp_overview(self, path, q):
+        from mcp_tools import build_catalog
+        cats = {}
+        for meta in build_catalog(self.core):
+            cats.setdefault(meta["category"], []).append(meta["name"])
+        self._send(200, {
+            "total": sum(len(v) for v in cats.values()),
+            "categories": {k: sorted(v) for k, v in sorted(cats.items())},
+            "note": "未直接暴露的工具请用 invoke_tool 调用；用 /api/mcp/schema?name= 查参数。",
+        })
+
+    def _handle_mcp_schema(self, path, q):
+        from mcp_tools import build_catalog
+        name = q.get("name", "")
+        meta = next((m for m in build_catalog(self.core)
+                     if m["name"] == name), None)
+        if meta is None:
+            self._send(404, {"ok": False, "error": "未知工具: %s" % name})
+        else:
+            self._send(200, meta)
+
+    def _handle_mcp_invoke_tool(self, path, q):
+        from mcp_tools import build_tools
+        body = self._read_json()
+        name = body.get("name", "")
+        args = body.get("args") or {}
+        t = next((x for x in build_tools(self.core)
+                  if x["name"] == name), None)
+        if t is None:
+            self._send(404, {"ok": False, "error": "未知工具: %s" % name})
+            return
+        result = t["_handler"](args)
+        try:
+            self.core.log_tool_call(name, args, ok=True)
+        except Exception:
+            pass
+        self._send(200, result if isinstance(result, dict)
+                   else {"ok": True, "result": result})
+
+    def _handle_mcp_dynamic(self, path, q):
+        tool_name = urllib.parse.unquote(path[len("/api/mcp/"):])
+        method = getattr(self.core, tool_name, None)
+        if method is None:
+            self._send(404, {"ok": False, "error": f"未知 MCP 工具: {tool_name}"})
+            return
+        body = self._read_json() if self.command == "POST" else q
+        log_body = body
+        try:
+            result = method(body)
+        except TypeError:
+            result = method()
+            log_body = {}
+        try:
+            self.core.log_tool_call(tool_name, log_body, ok=True)
+        except Exception:
+            pass
+        self._send(200, result if isinstance(result, dict)
+                   else {"ok": True, "result": result})
 
     def do_GET(self):
         self._route()

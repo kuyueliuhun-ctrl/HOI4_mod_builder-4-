@@ -193,7 +193,7 @@ hearts_of_iron_builder/
 | SF 移植 | `overlay_rules.py`（300）、`overlay_report_dialog.py`、`icon_manifest.py`（204）、`unit_counter_library.py`（188） | 覆盖规则链+增量报告；图标库 manifest；单位标牌库提取（448 个） | ✅ |
 | 内容生成器 | `content_generator_dialog.py`、`*_gen.py`、`mod_creator.py` | country/ideas/ideology/character/general/focus/事件生成器；新建 mod 工程骨架 | ✅ |
 | 撤销 | `undo_mgr.py`（81）、`write_utils.py`（114） | 文件写入撤销（画布 Ctrl+Z / 工具菜单）；原子写核心 | ✅ |
-| HTTP API | `api_server.py`（929）+ `api_core_ext/`（9 个域 Mixin） | `ApiCore` 唯一操作核心；仅绑定 127.0.0.1 + Bearer token；`/api/mcp/<tool>` 同源桥 | ✅ |
+| HTTP API | `api_server.py`（1054）+ `api_core_ext/`（9 个域 Mixin） | `ApiCore` 唯一操作核心；仅绑定 127.0.0.1 + Bearer token；`/api/mcp/<tool>` 同源桥 | ✅ |
 | MCP | `mcp_server.py`（190）、`mcp_tools.py`（651） | stdio 传输；178 个工具注册表（159 + 9 + 5 + 1 + 2 + 2，唯一权威来源）；A+B 分类暴露；优先官方 mcp 库，回退内置零依赖实现 | ✅ |
 | MIO 编辑器 | `mio_loader.py`（333）、`mio_editor_dialog.py`（473）、`mio_trait_tree.py`、`mio_policy_editor_dialog.py` | 特质树画布 + 特质增删改 + 图标选择 + 方针编辑器（552 MIO/22 方针） | ✅ |
 | 学说编辑器 | `doctrine_loader.py`（298）、`doctrine_editor_dialog.py`（491） | 主要学说→4 次要学说面板（陆军精通度+满级奖励徽章）→子学说编辑 | ✅ |
@@ -915,3 +915,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.57 | 08-26 | README 面向用户版 | 重写 README 为用户视角；开发者内容收敛到底部入口 | README.md |
 | 6.58 | 08-26 | 工作台右键强制树编辑 | force_tree_file_selected 信号 + _open_generic_tree_editor 跳过专用路由 | docs/历史迭代日志.md |
 | 6.59 | 08-26 | 设计器 load_* 系列重构 | 新增 equipment_loader.py 通用加载层；ship/tank/plane 9 个 load_* 改为薄封装；真实数据冒烟通过 | docs/历史迭代日志.md |
+| 6.60 | 08-26 | API 路由表化重构 | ApiHandler._route 巨型 if-elif 改为 _ROUTE_TABLE + _dispatch + 26 个 handler；HTTP 冒烟通过 | docs/历史迭代日志.md |
