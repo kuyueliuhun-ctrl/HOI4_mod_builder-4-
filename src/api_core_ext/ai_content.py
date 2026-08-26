@@ -178,24 +178,107 @@ class AiContentMixin:
 
     # ---------- 核心动作 ----------
 
+    def _ai_list(self, kind):
+        """list 动作：返回该类型全部记录。"""
+        payload = self._ai_load(kind)
+        if kind == "navy":
+            return {"ok": True, "sections": {
+                "goals": payload.get("goals", {}),
+                "fleets": payload.get("fleets", {}),
+                "taskforces": payload.get("taskforces", {}),
+            }}
+        out = []
+        for key, rec in payload.items():
+            item = {"id": key}
+            item.update(rec)
+            out.append(item)
+        return {"ok": True, "count": len(out), "items": out}
+
+    def _ai_create(self, kind, item_id, section, data):
+        """create 动作：新建记录并写回 mod。"""
+        import ai_loader
+        fp, copied = self._ai_target_file(kind, section or None)
+        content = self._ai_read(fp) if os.path.isfile(fp) else ""
+        if kind == "navy":
+            if section not in _NAVY_SECTIONS:
+                raise ValueError("navy 需要 section=goal/fleet/taskforce")
+            fn = getattr(ai_loader, _NAVY_SECTIONS[section][1])
+            if section == "goal":
+                new_content = fn(
+                    content, item_id,
+                    data.get("objective_type", ""),
+                    data.get("min_priority", "0"),
+                    data.get("max_priority", "0"))
+            else:
+                new_content = fn(content, item_id)
+        else:
+            fn = getattr(ai_loader, _CRUD_FUNCS[kind][0])
+            if kind == "plan":
+                new_content = fn(content, item_id,
+                                 data.get("name", ""), data.get("desc", ""))
+            elif kind == "strategy":
+                new_content = fn(content, item_id, data.get("entries"))
+            elif kind == "ai_template":
+                new_content = fn(content, item_id, data.get("role", ""))
+            elif kind == "equipment":
+                new_content = fn(content, item_id, data.get("category", "air"))
+            elif kind == "area":
+                new_content = fn(content, item_id, data.get("strategic_regions"))
+            elif kind == "focus":
+                new_content = fn(content, item_id, data.get("research"))
+            elif kind == "theater":
+                new_content = fn(content, item_id, data.get("name", ""),
+                                 data.get("regions"))
+            else:
+                new_content = fn(content, item_id)
+        self._ai_atomic_write(fp, new_content)
+        self._ai_clear()
+        self._notify_change(fp)
+        return {"ok": True, "kind": kind, "action": "create", "id": item_id,
+                "file": os.path.relpath(fp, self.mod_path).replace("\\", "/"),
+                "copied": bool(copied)}
+
+    def _ai_mutate(self, kind, action, item_id, section, data, content):
+        """update/delete/rename/duplicate：返回 (新内容, 新 id)。"""
+        import ai_loader
+        if action == "update":
+            new_content = self._ai_update_content(
+                kind, content, item_id, data, section or None)
+            return new_content, item_id
+        if action == "delete":
+            if kind == "navy":
+                fn_name = (_NAVY_SECTIONS[section][2]
+                           if section in _NAVY_SECTIONS else "delete_ai_navy_goal")
+                fn = getattr(ai_loader, fn_name)
+            else:
+                fn = getattr(ai_loader, _CRUD_FUNCS[kind][1])
+            return fn(content, item_id), item_id
+        new_id = str(data.get("new") or data.get("new_id") or "").strip()
+        if not new_id:
+            raise ValueError("缺少 new/new_id")
+        if action == "rename":
+            if kind == "navy":
+                fn_name = (_NAVY_SECTIONS[section][3]
+                           if section in _NAVY_SECTIONS else "rename_ai_navy_goal")
+                fn = getattr(ai_loader, fn_name)
+            else:
+                fn = getattr(ai_loader, _CRUD_FUNCS[kind][2])
+            return fn(content, item_id, new_id), new_id
+        if action == "duplicate":
+            if kind == "navy":
+                fn_name = (_NAVY_SECTIONS[section][4]
+                           if section in _NAVY_SECTIONS else "duplicate_ai_navy_goal")
+                fn = getattr(ai_loader, fn_name)
+            else:
+                fn = getattr(ai_loader, _CRUD_FUNCS[kind][3])
+            return fn(content, item_id, new_id), new_id
+        raise ValueError("未知动作: %s" % action)
+
     def _ai_action(self, kind, action, data=None):
         data = data or {}
         if action == "list":
-            payload = self._ai_load(kind)
-            if kind == "navy":
-                return {"ok": True, "sections": {
-                    "goals": payload.get("goals", {}),
-                    "fleets": payload.get("fleets", {}),
-                    "taskforces": payload.get("taskforces", {}),
-                }}
-            out = []
-            for key, rec in payload.items():
-                item = {"id": key}
-                item.update(rec)
-                out.append(item)
-            return {"ok": True, "count": len(out), "items": out}
+            return self._ai_list(kind)
 
-        import ai_loader
         item_id = str(data.get("id") or data.get("plan_id") or
                       data.get("group_id") or data.get("role_id") or
                       data.get("block_id") or data.get("area_id") or
@@ -206,53 +289,8 @@ class AiContentMixin:
             raise ValueError("缺少 id")
 
         if action == "create":
-            fp, copied = self._ai_target_file(kind, section or None)
-            content = self._ai_read(fp) if os.path.isfile(fp) else ""
-            if kind == "navy":
-                if section not in _NAVY_SECTIONS:
-                    raise ValueError("navy 需要 section=goal/fleet/taskforce")
-                fn_name = _NAVY_SECTIONS[section][1]
-                fn = getattr(ai_loader, fn_name)
-                if section == "goal":
-                    new_content = fn(content, item_id,
-                                     data.get("objective_type", ""),
-                                     data.get("min_priority", "0"),
-                                     data.get("max_priority", "0"))
-                elif section == "fleet":
-                    new_content = fn(content, item_id)
-                else:
-                    new_content = fn(content, item_id)
-            else:
-                fn_name = _CRUD_FUNCS[kind][0]
-                fn = getattr(ai_loader, fn_name)
-                if kind == "plan":
-                    new_content = fn(content, item_id, data.get("name", ""),
-                                     data.get("desc", ""))
-                elif kind == "strategy":
-                    new_content = fn(content, item_id, data.get("entries"))
-                elif kind == "ai_template":
-                    new_content = fn(content, item_id, data.get("role", ""))
-                elif kind == "equipment":
-                    new_content = fn(content, item_id,
-                                     data.get("category", "air"))
-                elif kind == "area":
-                    new_content = fn(content, item_id,
-                                     data.get("strategic_regions"))
-                elif kind == "focus":
-                    new_content = fn(content, item_id, data.get("research"))
-                elif kind == "theater":
-                    new_content = fn(content, item_id, data.get("name", ""),
-                                     data.get("regions"))
-                else:
-                    new_content = fn(content, item_id)
-            self._ai_atomic_write(fp, new_content)
-            self._ai_clear()
-            self._notify_change(fp)
-            return {"ok": True, "kind": kind, "action": action, "id": item_id,
-                    "file": os.path.relpath(fp, self.mod_path).replace("\\", "/"),
-                    "copied": bool(copied)}
+            return self._ai_create(kind, item_id, section, data)
 
-        # update/delete/rename/duplicate 需要定位现有记录
         rec = self._ai_find_record(kind, item_id, section or None)
         if rec is None:
             raise ValueError("未找到 AI %s: %s" % (kind, item_id))
@@ -261,43 +299,8 @@ class AiContentMixin:
             raise ValueError("记录缺少文件路径")
         content = self._ai_read(fp) if os.path.isfile(fp) else ""
 
-        if action == "update":
-            new_content = self._ai_update_content(
-                kind, content, item_id, data, section or None)
-            if new_content == content:
-                # 无实际变更也返回成功
-                pass
-        elif action == "delete":
-            if kind == "navy":
-                fn_name = _NAVY_SECTIONS[section][2] if section in _NAVY_SECTIONS else "delete_ai_navy_goal"
-                fn = getattr(ai_loader, fn_name)
-            else:
-                fn = getattr(ai_loader, _CRUD_FUNCS[kind][1])
-            new_content = fn(content, item_id)
-        elif action == "rename":
-            new_id = str(data.get("new") or data.get("new_id") or "").strip()
-            if not new_id:
-                raise ValueError("缺少 new/new_id")
-            if kind == "navy":
-                fn_name = _NAVY_SECTIONS[section][3] if section in _NAVY_SECTIONS else "rename_ai_navy_goal"
-                fn = getattr(ai_loader, fn_name)
-            else:
-                fn = getattr(ai_loader, _CRUD_FUNCS[kind][2])
-            new_content = fn(content, item_id, new_id)
-            item_id = new_id
-        elif action == "duplicate":
-            new_id = str(data.get("new") or data.get("new_id") or "").strip()
-            if not new_id:
-                raise ValueError("缺少 new/new_id")
-            if kind == "navy":
-                fn_name = _NAVY_SECTIONS[section][4] if section in _NAVY_SECTIONS else "duplicate_ai_navy_goal"
-                fn = getattr(ai_loader, fn_name)
-            else:
-                fn = getattr(ai_loader, _CRUD_FUNCS[kind][3])
-            new_content = fn(content, item_id, new_id)
-            item_id = new_id
-        else:
-            raise ValueError("未知动作: %s" % action)
+        new_content, new_id = self._ai_mutate(
+            kind, action, item_id, section, data, content)
 
         fp2, _ = self._ai_ensure_mod_file(fp)
         if not fp2:
@@ -305,7 +308,7 @@ class AiContentMixin:
         self._ai_atomic_write(fp2, new_content)
         self._ai_clear()
         self._notify_change(fp2)
-        return {"ok": True, "kind": kind, "action": action, "id": item_id,
+        return {"ok": True, "kind": kind, "action": action, "id": new_id,
                 "file": os.path.relpath(fp2, self.mod_path).replace("\\", "/")}
 
     def set_ai_plan_focus_order(self, data=None):
