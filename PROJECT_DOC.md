@@ -232,7 +232,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 
 | 批次 | 内容 | 状态 |
 | --- | --- | --- |
-| P1 需调研 | 大洲划分 / 批量填鸭(AOR) / 电台生成 / H4MPS 审查 / 核心圈层 / IRIS / 大众脸 | ⬜ 未开始 |
+| P1 需调研 | 大洲划分 / 批量填鸭(AOR) / 电台生成 / H4MPS 审查 / 核心圈层 / IRIS / 大众脸 | 🔄 进行中（大洲/核心圈层/电台/CWTools/批量填鸭已落地，IRIS/大众脸待办） |
 | P2 需复刻/实现 | 自生成 GUI 决议包、~~民族精神/意识形态专用 UI~~ ✅、编制小项、~~兵牌图标接标牌库~~ ✅、RHoiScribe MCP 插件 | ⬜ 未开始 |
 | P2.5 已知限制 | 数值估算、未定义 airframe 容错、version_name 联动、装备 IC 花费（已登记） | ⬜ 长期 |
 | P3 转模板/文档 | RHoiScribe 补全、特殊案例/教程提炼 | ⬜ 未开始 |

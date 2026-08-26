@@ -149,7 +149,7 @@
 | 本地化生成（IRIS） | 批量生成本地化 | `translation_editor.py` / `localization_mgr.py` / `validation.py` | **已覆盖（重叠）** | 现有“一键补写本地化/缺失检测”已覆盖批量生成；待验证其特有功能后再决定是否增强 |
 | MOD文件夹生成 | 创建 mod 目录结构 | `mod_creator_dialog.py` / `project_wizard.py` | 已覆盖 | 不重复 |
 | 文件夹比较器 | mod/原版差异 | `overlay_rules.py` / `overlay_report_dialog.py` | 已覆盖 | 可补命令行版 |
-| 批量填鸭工具（AOR） | 表格批量生成代码 | `template_scheduler.py` / 词条库 | 需调研 | 先分析 xls 结构 |
+| 批量填鸭工具（AOR） | 表格批量生成代码 | `template_scheduler.py` / 词条库 | **已调研（2026-08-26）** | 已分析 xls 结构（normal/shine/将领）；实现列表驱动模板批量生成器 |
 | HoI4ModdingPythonScripts | 多个 Python 小工具 | `tools/` | 需复刻 | 逐一审查移植 |
 | 电台生成 python 脚本 | 电台文件生成 | 无 | 暂缓 | 需调研 |
 | 电台系列工具 | OGG 转换/文件生成 | 无 | 暂缓 | OGG 依赖外部编码器，文件部分可脚本化 |
