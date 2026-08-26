@@ -188,3 +188,34 @@ class ProjectMixin:
         m = matches[0]
         content = sched.get_template_content(m["filepath"])
         return {"ok": True, "template": m, "content": content}
+
+    def check_oob_version_names(self, data=None):
+        """OOB 文件 version_name 引用与设计库一致性检查（后端数据层，未注册 MCP）。
+
+        Args:
+            data: {"path": OOB 相对路径}
+        Returns:
+            {"ok", "path", "count", "resolved", "unresolved", "refs"}
+        """
+        data = data or {}
+        path = (data.get("path") or "").strip()
+        if not path:
+            raise ValueError("需要 path（OOB 相对路径）")
+        fp = self._safe_join(path)
+        if not fp or not os.path.isfile(fp):
+            raise ValueError("文件不存在: " + path)
+        from oob_version_refs import check_version_name_links
+        from plane_design import load_plane_variants
+        from ship_design import load_ship_variants
+        from tank_design import load_tank_variants
+        with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
+            content = f.read()
+        r = check_version_name_links(
+            content,
+            load_plane_variants(self.mod_path, self.game_path),
+            load_tank_variants(self.mod_path, self.game_path),
+            load_ship_variants(self.mod_path, self.game_path))
+        return {"ok": True, "path": path, "count": r["count"],
+                "resolved": len(r["resolved"]),
+                "unresolved": len(r["unresolved"]),
+                "refs": r["refs"]}
