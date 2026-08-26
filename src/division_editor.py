@@ -888,19 +888,31 @@ class DivisionEditor(QDialog):
             if mv is None:
                 mv = terrain.get(key)
             card.setText(f"{cn}\n移 {_fmt_pct(mv, 0)}\n攻 {_fmt_pct(atk, 0)}\n防 {_fmt_pct(dfn, 0)}")
-        # 装备花费：按数量降序，最多 8 行
+        # 装备花费：按数量降序，最多 8 行；附每装备 IC 与总 IC
         eq = st.get("equipment") or {}
+        ic_res = {}
+        try:
+            from oob_loader import division_ic_cost
+            ic_res = division_ic_cost(tpl, self.sub_units, self._equip_stats())
+        except Exception:
+            ic_res = {}
+        costs = ic_res.get("equipment") or {}
+        total_ic = float(ic_res.get("total_ic") or 0)
         lines = []
         if eq:
             rows = sorted(eq.items(), key=lambda kv: kv[1], reverse=True)
             for k, cnt in rows[:8]:
-                lines.append(f"{equip_cn_name(k)}  {_fmt_num(cnt, 0)}")
+                ic = (costs.get(k) or {}).get("ic")
+                ic_txt = (" · IC %.0f" % ic) if ic else ""
+                lines.append(f"{equip_cn_name(k)}  {_fmt_num(cnt, 0)}{ic_txt}")
             if len(rows) > 8:
                 lines.append(f"…等 {len(rows)} 种装备")
         self._equip_text.setText("\n".join(lines) if lines else "（无装备需求）")
         n_total = int(sum(eq.values()))
-        self.equip_summary.setText(
-            f"装备需求: {len(eq)} 种 · 合计 {n_total} 件")
+        summary = f"装备需求: {len(eq)} 种 · 合计 {n_total} 件"
+        if total_ic:
+            summary += f" · 总IC {_fmt_num(total_ic, 0)}"
+        self.equip_summary.setText(summary)
 
     def _build_equip_box(self, host_layout):
         """装备花费分组框（多行文本，_update_stats 刷新）。"""

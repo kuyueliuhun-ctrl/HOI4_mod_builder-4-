@@ -249,6 +249,48 @@ class SubUnitStatsTest(unittest.TestCase):
         # 缓存：再查同一路径直接命中
         self.assertIs(load_equipment_stats(mod, ""), eq)
 
+    def test_load_equipment_stats_captures_build_cost_ic(self):
+        """装备块应采集 build_cost_ic / convert_cost_ic（P2.5 IC 估算）。"""
+        from oob_loader import load_equipment_stats
+        mod = _mkdtemp("dsh_ic_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        os.makedirs(os.path.join(mod, "common", "units", "equipment"),
+                    exist_ok=True)
+        with open(os.path.join(mod, "common", "units", "equipment",
+                               "infantry.txt"), "w", encoding="utf-8") as f:
+            f.write('equipments = {\n'
+                    '\tinfantry_equipment_0 = {\n'
+                    '\t\tsoft_attack = 6\n'
+                    '\t\tbuild_cost_ic = 4\n'
+                    '\t\tconvert_cost_ic = 1\n'
+                    '\t}\n'
+                    '}\n')
+        eq = load_equipment_stats(mod, "")
+        self.assertEqual(eq["infantry_equipment_0"]["build_cost_ic"], 4.0)
+        self.assertEqual(eq["infantry_equipment_0"]["convert_cost_ic"], 1.0)
+
+    def test_division_ic_cost_math(self):
+        """division_ic_cost：need 数量 × 装备 build_cost_ic 求和。"""
+        from oob_loader import division_ic_cost, DivisionTemplate
+        sub = {
+            "infantry": {"need": {"infantry_equipment": 100.0}},
+            "engineer": {"need": {"support_equipment": 50.0}},
+        }
+        eq = {"infantry_equipment_0": {"build_cost_ic": 4.0},
+              "support_equipment_0": {"build_cost_ic": 2.0}}
+        tpl = DivisionTemplate("T", regiments=[("infantry", 0, 0)],
+                               support=[("engineer", 0, 0)])
+        r = division_ic_cost(tpl, sub, eq)
+        self.assertEqual(r["total_ic"], 100 * 4.0 + 50 * 2.0)
+        self.assertEqual(r["equipment"]["infantry_equipment"],
+                         {"count": 100.0, "ic": 400.0})
+        self.assertEqual(r["equipment"]["support_equipment"],
+                         {"count": 50.0, "ic": 100.0})
+        # 未知装备定义 → IC 计 0 不崩溃
+        r2 = division_ic_cost(tpl, {"infantry": {"need": {"weird_eq": 10}}},
+                              {})
+        self.assertEqual(r2["total_ic"], 0.0)
+
 
 class DivisionEditorSmokeTest(unittest.TestCase):
     """DivisionEditor v2 offscreen 冒烟：顶部下拉 / 数据面板 / 地形矩阵 / 重置。"""

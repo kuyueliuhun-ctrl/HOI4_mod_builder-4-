@@ -1029,6 +1029,7 @@ from oob_stats import (  # noqa: E402,F401,F403
     _collect_equip_blocks,
     _find_equip,
     _main_need,
+    division_ic_cost,
     division_stats,
     load_equipment_stats,
 )

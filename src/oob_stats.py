@@ -22,6 +22,8 @@ _STAT_FIELDS = (
 _EQUIP_STAT_FIELDS = (
     "soft_attack", "hard_attack", "air_attack", "defense", "breakthrough",
     "armor", "piercing", "reliability",
+    # 装备 IC 花费（P2.5：装备 IC 估算）
+    "build_cost_ic", "convert_cost_ic",
 )
 # 地形适应性徽章使用的地形键（与游戏 terrain 块一致）
 TERRAIN_KEYS = ("desert", "forest", "hills", "jungle", "marsh",
@@ -313,6 +315,40 @@ def division_stats(tpl, sub_units=None, equip_stats=None):
     stats["items"] = n_items
     stats["reliability_sum"] = stats["reliability"]
     return stats
+
+
+def division_ic_cost(tpl, sub_units=None, equip_stats=None):
+    """按装备 build_cost_ic 汇总师编制 IC 花费（基础值估算，未含科技/将领修正）。
+
+    每个营/支援连的 `need`（装备需求）逐项乘该装备定义（前缀匹配 _0/_N 变体）
+    的 `build_cost_ic` 求和。未找到装备定义时该装备 IC 计 0。
+
+    Returns:
+        {"equipment": {装备: {"count": n, "ic": ic}}, "total_ic": X,
+         "total_items": N}
+    """
+    sub_units = sub_units or {}
+    equip_stats = equip_stats or {}
+    items = [(typ, False) for typ, _x, _y in tpl.regiments]
+    items += [(typ, True) for typ, _x, _y in tpl.support]
+    acc = {}
+    total_ic = 0.0
+    total_items = 0
+    for typ, _sup in items:
+        info = sub_units.get(typ) or {}
+        for eq, cnt in (info.get("need") or {}).items():
+            cnt = float(cnt or 0)
+            if cnt <= 0:
+                continue
+            equip = _find_equip(equip_stats, eq) or {}
+            ic = float(equip.get("build_cost_ic") or 0)
+            entry = acc.setdefault(eq, {"count": 0.0, "ic": 0.0})
+            entry["count"] += cnt
+            entry["ic"] += cnt * ic
+            total_ic += cnt * ic
+            total_items += cnt
+    return {"equipment": acc, "total_ic": total_ic,
+            "total_items": total_items}
 
 
 
