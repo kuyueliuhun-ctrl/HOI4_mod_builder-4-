@@ -13,15 +13,13 @@
 未含科技/将领/MIO 修正）。
 """
 
-import os
 import re
 
-from tree_node import parse_pdx_text_to_nodes
-
 from oob_loader import _block_ranges, _node_field_value, _num
-from designer_slots import (
-    parse_module_slots, parse_module_count_limits,
-    parse_default_modules, parse_upgrades_decl,
+from equipment_loader import (
+    _iter_blocks, _node_block_children, _field_re, _block_map,
+    _tag_of, parse_equipment_variants,
+    load_equipment_defs, load_equipment_modules, load_equipment_variants,
 )
 
 
@@ -111,37 +109,10 @@ _MODULES_CACHE = {}
 _VARIANTS_CACHE = {}
 
 
-def _iter_blocks(nodes):
-    """递归遍历节点树中的所有块（parse 只返回顶层，容器块需递归）。"""
-    for n in nodes:
-        if n.node_type != "block":
-            continue
-        yield n
-        for sub in _iter_blocks(n.children):
-            yield sub
-
-
-def _parse_slot_block(node):
-    """module_slots 子块 → {槽位: {required, allowed: [类别]}}。"""
-    out = {}
-    for c in node.children:
-        if c.node_type != "block":
-            continue
-        required = _node_field_value(c, "required")
-        allowed = []
-        cat = None
-        for cc in c.children:
-            if cc.node_type == "block" and cc.key == "allowed_module_categories":
-                cat = cc
-        if cat is not None:
-            for cc in cat.children:
-                if cc.node_type == "value":
-                    allowed.append(cc.key)
-        out[c.key] = {
-            "required": str(required or "").strip().lower() == "yes",
-            "allowed": allowed,
-        }
-    return out
+def _parse_ship_extra(node, info):
+    ndf = _num(_node_field_value(node, "naval_dominance_factor"))
+    if ndf is not None:
+        info["naval_dominance_factor"] = ndf
 
 
 def load_ship_hulls(mod_path="", hoi4_path=""):
@@ -155,127 +126,13 @@ def load_ship_hulls(mod_path="", hoi4_path=""):
         变体的 module_slots=inherit 已解析为 archetype 的槽位表；
         stats 仅 archetype 有（变体继承 archetype）。
     """
-    key = (mod_path or "", hoi4_path or "")
-    if key in _HULLS_CACHE:
-        return _HULLS_CACHE[key]
-    result = {}
-    archetypes = {}
-    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
-    for base in (hoi4_path, mod_path):
-        if not base:
-            continue
-        d = os.path.join(base, "common", "units", "equipment")
-        if not os.path.isdir(d):
-            continue
-        try:
-            names = sorted(os.listdir(d))
-        except Exception:
-            continue
-        for fn in names:
-            if not (fn.lower().startswith("ship_hull")
-                    and fn.lower().endswith(".txt")):
-                continue
-            try:
-                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
-                          errors="ignore") as f:
-                    content = f.read()
-            except Exception:
-                continue
-            for node in _iter_blocks(parse_pdx_text_to_nodes(content)):
-                # 文件内所有船体块（含 light_cruiser_1 等非 ship_hull_ 前缀键）；
-                # 用特征过滤掉 can_be_produced/if/limit 等嵌套容器块
-                if _node_field_value(node, "abbreviation") is None \
-                        and _node_field_value(node, "is_archetype") is None \
-                        and _node_block_children(node, "module_slots") is None \
-                        and _node_field_value(node, "archetype") is None \
-                        and _node_field_value(node, "module_slots") is None:
-                    continue
-                info = {
-                    "abbreviation": _node_field_value(node, "abbreviation") or "",
-                    "year": _num(_node_field_value(node, "year")),
-                    "parent": _node_field_value(node, "parent") or "",
-                    "archetype": _node_field_value(node, "archetype") or "",
-                    "is_archetype": False,
-                    "archetype_key": "",
-                    "module_slots": {},
-                    "module_slots_list": [],
-                    "module_count_limits": [],
-                    "upgrades_decl": [],
-                    "default_modules": {},
-                    "stats": {},
-                    "naval_dominance_factor": None,
-                }
-                is_arch = _node_field_value(node, "is_archetype")
-                if is_arch is not None and str(is_arch).strip().lower() == "yes":
-                    info["is_archetype"] = True
-                    info["archetype_key"] = node.key
-                slots = _node_block_children(node, "module_slots")
-                if slots is not None:
-                    info["module_slots_list"] = parse_module_slots(slots)
-                    info["module_slots"] = {
-                        s["slot"]: {"required": s["required"], "allowed": s["allowed"]}
-                        for s in info["module_slots_list"]
-                    }
-                else:
-                    info["module_slots"] = {"_inherit": True}
-                    info["module_slots_list"] = []
-                info["module_count_limits"] = parse_module_count_limits(node)
-                info["upgrades_decl"] = parse_upgrades_decl(node)
-                defaults = _node_block_children(node, "default_modules")
-                if defaults is not None:
-                    info["default_modules"] = parse_default_modules(node)
-                    if not info["default_modules"]:
-                        for c in defaults.children:
-                            if c.node_type == "value":
-                                info["default_modules"][c.key] = c.value
-                for f in _HULL_STAT_FIELDS:
-                    v = _num(_node_field_value(node, f))
-                    if v is not None:
-                        info["stats"][f] = v
-                ndf = _num(_node_field_value(node, "naval_dominance_factor"))
-                if ndf is not None:
-                    info["naval_dominance_factor"] = ndf
-                if info["is_archetype"]:
-                    archetypes[node.key] = info
-                result[node.key] = info
-    # 变体继承：module_slots=inherit → archetype 槽位表；stats 从 archetype 补
-    for hk, info in result.items():
-        arch_key = info.get("archetype") or info.get("parent") or ""
-        arch = archetypes.get(arch_key)
-        if arch is None and not info.get("is_archetype"):
-            # 变体自身的 archetype 字段可能未写；按前缀推断
-            for ak, ai in archetypes.items():
-                if hk.startswith(ak):
-                    arch = ai
-                    arch_key = ak
-                    break
-        if arch is not None:
-            if info.get("module_slots") == {"_inherit": True}:
-                info["module_slots"] = dict(arch.get("module_slots") or {})
-                info["module_slots_list"] = list(
-                    arch.get("module_slots_list") or [])
-                if not info.get("module_count_limits"):
-                    info["module_count_limits"] = list(
-                        arch.get("module_count_limits") or [])
-                if not info.get("upgrades_decl"):
-                    info["upgrades_decl"] = list(
-                        arch.get("upgrades_decl") or [])
-            if not info.get("is_archetype"):
-                info["archetype_key"] = arch_key or info.get("archetype_key")
-                for f, v in (arch.get("stats") or {}).items():
-                    info["stats"].setdefault(f, v)
-                if not info.get("default_modules"):
-                    info["default_modules"] = dict(arch.get("default_modules") or {})
-    _HULLS_CACHE[key] = result
-    return result
-
-
-def _node_block_children(node, key):
-    """块节点的直接子块（缺失返回 None）。"""
-    for c in node.children:
-        if c.node_type == "block" and c.key == key:
-            return c
-    return None
+    return load_equipment_defs(
+        mod_path, hoi4_path, _HULLS_CACHE, _HULL_STAT_FIELDS,
+        file_filter=lambda fn: fn.lower().startswith("ship_hull")
+        and fn.lower().endswith(".txt"),
+        extra_init={"naval_dominance_factor": None},
+        extra_parse=_parse_ship_extra,
+    )
 
 
 def load_ship_modules(mod_path="", hoi4_path=""):
@@ -285,64 +142,7 @@ def load_ship_modules(mod_path="", hoi4_path=""):
         dict: module_key -> {abbreviation, category,
               add_stats: {字段: 值}, multiply_stats: {字段: 值}}
     """
-    key = (mod_path or "", hoi4_path or "")
-    if key in _MODULES_CACHE:
-        return _MODULES_CACHE[key]
-    result = {}
-    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
-    for base in (hoi4_path, mod_path):
-        if not base:
-            continue
-        d = os.path.join(base, "common", "units", "equipment", "modules")
-        if not os.path.isdir(d):
-            continue
-        try:
-            names = sorted(os.listdir(d))
-        except Exception:
-            continue
-        for fn in names:
-            if not (fn.lower().endswith(".txt")
-                    and "ship" in fn.lower()):
-                continue
-            try:
-                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
-                          errors="ignore") as f:
-                    content = f.read()
-            except Exception:
-                continue
-            for node in _iter_blocks(parse_pdx_text_to_nodes(content)):
-                # 只收带 abbreviation/category 的模块块
-                # （排除 equipments/add_stats/multiply_stats 等容器块）
-                if _node_field_value(node, "abbreviation") is None \
-                        and _node_field_value(node, "category") is None:
-                    continue
-                add_stats = {}
-                mult_stats = {}
-                add = _node_block_children(node, "add_stats")
-                if add is not None:
-                    for c in add.children:
-                        if c.node_type == "value":
-                            v = _num(c.value)
-                            if v is not None:
-                                add_stats[c.key] = v
-                mult = _node_block_children(node, "multiply_stats")
-                if mult is not None:
-                    for c in mult.children:
-                        if c.node_type == "value":
-                            v = _num(c.value)
-                            if v is not None:
-                                mult_stats[c.key] = v
-                result[node.key] = {
-                    "abbreviation": _node_field_value(node, "abbreviation") or "",
-                    "category": _node_field_value(node, "category") or "",
-                    "add_stats": add_stats,
-                    "multiply_stats": mult_stats,
-                }
-    _MODULES_CACHE[key] = result
-    return result
-
-
-_TAG_RE = re.compile(r'^\s*([A-Z][A-Z0-9]{1,4})\s*=\s*\{', re.M)
+    return load_equipment_modules(mod_path, hoi4_path, _MODULES_CACHE, "ship")
 
 
 def load_ship_variants(mod_path="", hoi4_path=""):
@@ -353,145 +153,13 @@ def load_ship_variants(mod_path="", hoi4_path=""):
         仅收录 type 在船体键集合中（含 light_cruiser_1 等非 ship_hull_ 前缀）
         或以 ship_hull 开头的设计；mod 覆盖游戏。
     """
-    key = (mod_path or "", hoi4_path or "")
-    if key in _VARIANTS_CACHE:
-        return _VARIANTS_CACHE[key]
-    self_hull_keys = set(load_ship_hulls(mod_path, hoi4_path).keys())
-    result = {}
-    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
-    for base in (hoi4_path, mod_path):
-        if not base:
-            continue
-        d = os.path.join(base, "history", "countries")
-        if not os.path.isdir(d):
-            continue
-        try:
-            names = sorted(os.listdir(d))
-        except Exception:
-            continue
-        for fn in names:
-            if not fn.lower().endswith(".txt"):
-                continue
-            try:
-                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
-                          errors="ignore") as f:
-                    content = f.read()
-            except Exception:
-                continue
-            tag = _tag_of(fn, content)
-            if not tag:
-                continue
-            variants = parse_equipment_variants(content, self_hull_keys,
-                                               block_name="modules")
-            if variants:
-                result.setdefault(tag, {}).update(variants)
-    _VARIANTS_CACHE[key] = result
-    return result
+    hull_keys = set(load_ship_hulls(mod_path, hoi4_path).keys())
+    return load_equipment_variants(
+        mod_path, hoi4_path, _VARIANTS_CACHE, hull_keys,
+        lambda t: t in hull_keys or t.startswith("ship_hull"),
+        tag_of=_tag_of,
+    )
 
-
-def _tag_of(fn, content):
-    """国家 TAG：文件名前缀（"JAP - Japan.txt" → JAP、"AAA.txt" → AAA）优先，
-    异常文件名回退内容里第一个 `TAG = {` 顶层块键。"""
-    parts = (fn or "").split()
-    first = parts[0].strip() if parts else ""
-    if first.lower().endswith(".txt"):
-        first = first[:-4]
-    if re.fullmatch(r"[A-Z][A-Z0-9]{1,4}", first):
-        return first
-    for m in _TAG_RE.finditer(content):
-        return m.group(1)
-    return ""
-
-
-def _field_re(seg, key):
-    """块文本内取值：name = "..." 或 type = 裸标识符。"""
-    m = re.search(r'\b' + re.escape(key) + r'\s*=\s*"([^"]*)"', seg)
-    if m:
-        return m.group(1)
-    m = re.search(r'\b' + re.escape(key) + r'\s*=\s*([\w\.\:\-]+)', seg)
-    return m.group(1) if m else ""
-
-
-def _block_map(seg, block_name):
-    """块文本内解析 `block_name = { slot = value ... }` → dict。
-
-    用 _block_ranges 定位子块，再按行提取 `key = value`。
-    兼容单行内联（行尾带闭合 `}`）与多行格式；截取到块自身的闭合
-    `}`，避免把块后同级的 scalar 字段（如 obsolete/icon）误收进来。
-    """
-    out = {}
-    for k, _d, s, e in _block_ranges(seg):
-        if k != block_name:
-            continue
-        start = seg.find("{", s, e)
-        if start < 0:
-            break
-        body = seg[start + 1:e]
-        depth = 0
-        cut = len(body)
-        for i, ch in enumerate(body):
-            if ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth < 0:
-                    cut = i
-                    break
-        for line in body[:cut].splitlines():
-            m = re.match(r'\s*([\w\.\-]+)\s*=\s*([\w\.\-]+)\s*\}?\s*$', line)
-            if m:
-                out[m.group(1)] = m.group(2)
-        break
-    return out
-
-
-def parse_equipment_variants(content, type_filter=None, block_name="upgrades"):
-    """通用解析 create_equipment_variant 块（字符级，避免 parse 截断）。
-
-    Args:
-        content: 文件原文
-        type_filter: 可调用 type -> bool；None 表示全部接收
-        block_name: 模块块名（舰艇 upgrades / 飞机 modules）
-
-    Returns:
-        dict: {设计名: {"type": ..., "modules": {槽位: 模块}}}
-        模块字段名统一为 "modules"（写回时按 block_name 处理）。
-    """
-    out = {}
-    for key, _depth, start, end in _block_ranges(content):
-        if key != "create_equipment_variant":
-            continue
-        seg = content[start:end]
-        name = _field_re(seg, "name")
-        typ = _field_re(seg, "type")
-        if not name or not typ:
-            continue
-        if type_filter is not None:
-            if isinstance(type_filter, (set, list, tuple)):
-                if typ not in type_filter and not typ.startswith("ship_hull"):
-                    continue
-            elif not type_filter(typ):
-                continue
-        modules = _block_map(seg, block_name)
-        if block_name == "upgrades":
-            upgrades = dict(modules)
-        else:
-            upgrades = _block_map(seg, "upgrades")
-        parent_raw = _field_re(seg, "parent_version")
-        try:
-            parent_version = int(parent_raw)
-        except (TypeError, ValueError):
-            parent_version = parent_raw or 0
-        out[name] = {
-            "type": typ,
-            "modules": modules,
-            "upgrades": upgrades,
-            "design_team": _field_re(seg, "design_team") or "",
-            "parent_version": parent_version,
-            "obsolete": _field_re(seg, "obsolete") == "yes",
-            "icon": _field_re(seg, "icon") or "",
-        }
-    return out
 
 
 # ---------- 属性汇总（基础值估算） ----------

@@ -13,22 +13,16 @@
 未含科技/MIO 修正）。国家文件用字符级 _block_ranges 解析。
 """
 
-import os
-import re
-
-from tree_node import parse_pdx_text_to_nodes
-from oob_loader import _block_ranges
+from equipment_loader import (
+    _tag_of, load_equipment_defs, load_equipment_modules,
+    load_equipment_variants,
+)
 from ship_design import (
-    _iter_blocks, _num, _node_field_value, _node_block_children,
-    parse_equipment_variants, apply_variant_advanced,
+    _node_field_value, parse_equipment_variants, apply_variant_advanced,
 )
 from plane_design import (
     _block_items_text, find_variant_block, apply_variant_modules,
     insert_variant, remove_variant, rename_variant,
-)
-from designer_slots import (
-    parse_module_slots, parse_module_count_limits,
-    parse_default_modules, parse_upgrades_decl,
 )
 
 # 参与解析的 chassis 文件
@@ -128,122 +122,27 @@ _TANK_MODULES_CACHE = {}
 _TANK_VARIANTS_CACHE = {}
 
 
+def _parse_tank_extra(node, info):
+    info["derived_variant_name"] = (
+        _node_field_value(node, "derived_variant_name") or "")
+
+
+def _inherit_tank_extra(info, arch, arch_key):
+    if not info.get("derived_variant_name"):
+        info["derived_variant_name"] = arch.get("derived_variant_name") or ""
+
+
 def load_tank_chassis(mod_path="", hoi4_path=""):
     """扫描 chassis 文件，返回 {chassis_key: 信息}。"""
-    key = (mod_path or "", hoi4_path or "")
-    if key in _TANKS_CACHE:
-        return _TANKS_CACHE[key]
-    result = {}
-    archetypes = {}
-    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
-    for base in (hoi4_path, mod_path):
-        if not base:
-            continue
-        d = os.path.join(base, "common", "units", "equipment")
-        if not os.path.isdir(d):
-            continue
-        try:
-            names = sorted(os.listdir(d))
-        except Exception:
-            continue
-        for fn in names:
-            if not (fn.lower().endswith(".txt")
-                    and (any(fn.lower() == tf for tf in _TANK_FILES)
-                         or "tank" in fn.lower() or "chassis" in fn.lower())):
-                continue
-            try:
-                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
-                          errors="ignore") as f:
-                    content = f.read()
-            except Exception:
-                continue
-            for node in _iter_blocks(parse_pdx_text_to_nodes(content)):
-                if _node_field_value(node, "abbreviation") is None \
-                        and _node_field_value(node, "is_archetype") is None \
-                        and _node_block_children(node, "module_slots") is None \
-                        and _node_field_value(node, "archetype") is None \
-                        and _node_field_value(node, "module_slots") is None:
-                    continue
-                info = {
-                    "abbreviation": _node_field_value(node, "abbreviation") or "",
-                    "year": _num(_node_field_value(node, "year")),
-                    "parent": _node_field_value(node, "parent") or "",
-                    "archetype": _node_field_value(node, "archetype") or "",
-                    "is_archetype": False,
-                    "archetype_key": "",
-                    "module_slots": {},
-                    "module_slots_list": [],
-                    "module_count_limits": [],
-                    "upgrades_decl": [],
-                    "default_modules": {},
-                    "stats": {},
-                    "derived_variant_name":
-                        _node_field_value(node, "derived_variant_name") or "",
-                }
-                is_arch = _node_field_value(node, "is_archetype")
-                if is_arch is not None \
-                        and str(is_arch).strip().lower() == "yes":
-                    info["is_archetype"] = True
-                    info["archetype_key"] = node.key
-                slots = _node_block_children(node, "module_slots")
-                if slots is not None:
-                    info["module_slots_list"] = parse_module_slots(slots)
-                    info["module_slots"] = {
-                        s["slot"]: {"required": s["required"], "allowed": s["allowed"]}
-                        for s in info["module_slots_list"]
-                    }
-                else:
-                    info["module_slots"] = {"_inherit": True}
-                    info["module_slots_list"] = []
-                info["module_count_limits"] = parse_module_count_limits(node)
-                info["upgrades_decl"] = parse_upgrades_decl(node)
-                defaults = _node_block_children(node, "default_modules")
-                if defaults is not None:
-                    info["default_modules"] = parse_default_modules(node)
-                    if not info["default_modules"]:
-                        for c in defaults.children:
-                            if c.node_type == "value":
-                                info["default_modules"][c.key] = c.value
-                for f in _TANK_STAT_FIELDS:
-                    v = _num(_node_field_value(node, f))
-                    if v is not None:
-                        info["stats"][f] = v
-                if info["is_archetype"]:
-                    archetypes[node.key] = info
-                result[node.key] = info
-    # 变体继承
-    for ck, info in result.items():
-        arch_key = info.get("archetype") or info.get("parent") or ""
-        arch = archetypes.get(arch_key)
-        if arch is None and not info.get("is_archetype"):
-            for ak2, ai in archetypes.items():
-                if ck.startswith(ak2):
-                    arch = ai
-                    arch_key = ak2
-                    break
-        if arch is not None:
-            if info.get("module_slots") == {"_inherit": True}:
-                info["module_slots"] = dict(arch.get("module_slots") or {})
-                info["module_slots_list"] = list(
-                    arch.get("module_slots_list") or [])
-                if not info.get("module_count_limits"):
-                    info["module_count_limits"] = list(
-                        arch.get("module_count_limits") or [])
-                if not info.get("upgrades_decl"):
-                    info["upgrades_decl"] = list(
-                        arch.get("upgrades_decl") or [])
-            if not info.get("is_archetype"):
-                info["archetype_key"] = arch_key or info.get("archetype_key")
-                for f, v in (arch.get("stats") or {}).items():
-                    info["stats"].setdefault(f, v)
-                if not info.get("default_modules"):
-                    info["default_modules"] = \
-                        dict(arch.get("default_modules") or {})
-                if not info.get("derived_variant_name"):
-                    info["derived_variant_name"] = \
-                        arch.get("derived_variant_name") or ""
-    _TANKS_CACHE[key] = result
-    return result
+    return load_equipment_defs(
+        mod_path, hoi4_path, _TANKS_CACHE, _TANK_STAT_FIELDS,
+        file_filter=lambda fn: fn.lower().endswith(".txt")
+        and (any(fn.lower() == tf for tf in _TANK_FILES)
+             or "tank" in fn.lower() or "chassis" in fn.lower()),
+        extra_init={"derived_variant_name": ""},
+        extra_parse=_parse_tank_extra,
+        extra_inherit=_inherit_tank_extra,
+    )
 
 
 def tank_derived_names(chassis):
@@ -261,59 +160,8 @@ def tank_derived_map(chassis):
 
 def load_tank_modules(mod_path="", hoi4_path=""):
     """扫描 00_tank_modules.txt 的坦克模块。"""
-    key = (mod_path or "", hoi4_path or "")
-    if key in _TANK_MODULES_CACHE:
-        return _TANK_MODULES_CACHE[key]
-    result = {}
-    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
-    for base in (hoi4_path, mod_path):
-        if not base:
-            continue
-        d = os.path.join(base, "common", "units", "equipment", "modules")
-        if not os.path.isdir(d):
-            continue
-        try:
-            names = sorted(os.listdir(d))
-        except Exception:
-            continue
-        for fn in names:
-            if not (fn.lower().endswith(".txt")
-                    and "tank" in fn.lower()):
-                continue
-            try:
-                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
-                          errors="ignore") as f:
-                    content = f.read()
-            except Exception:
-                continue
-            for node in _iter_blocks(parse_pdx_text_to_nodes(content)):
-                if _node_field_value(node, "abbreviation") is None \
-                        and _node_field_value(node, "category") is None:
-                    continue
-                add_stats = {}
-                mult_stats = {}
-                add = _node_block_children(node, "add_stats")
-                if add is not None:
-                    for c in add.children:
-                        if c.node_type == "value":
-                            v = _num(c.value)
-                            if v is not None:
-                                add_stats[c.key] = v
-                mult = _node_block_children(node, "multiply_stats")
-                if mult is not None:
-                    for c in mult.children:
-                        if c.node_type == "value":
-                            v = _num(c.value)
-                            if v is not None:
-                                mult_stats[c.key] = v
-                result[node.key] = {
-                    "abbreviation": _node_field_value(node, "abbreviation") or "",
-                    "category": _node_field_value(node, "category") or "",
-                    "add_stats": add_stats,
-                    "multiply_stats": mult_stats,
-                }
-    _TANK_MODULES_CACHE[key] = result
-    return result
+    return load_equipment_modules(
+        mod_path, hoi4_path, _TANK_MODULES_CACHE, "tank")
 
 
 def load_tank_variants(mod_path="", hoi4_path=""):
@@ -321,44 +169,13 @@ def load_tank_variants(mod_path="", hoi4_path=""):
 
     type 过滤：chassis 键集合 ∪ 派生装备名 ∪ 含 "chassis"。
     """
-    key = (mod_path or "", hoi4_path or "")
-    if key in _TANK_VARIANTS_CACHE:
-        return _TANK_VARIANTS_CACHE[key]
     chassis = load_tank_chassis(mod_path, hoi4_path)
     known = set(chassis.keys()) | tank_derived_names(chassis)
-    result = {}
-    # 覆盖顺序：先游戏后 mod → mod 覆盖游戏
-    for base in (hoi4_path, mod_path):
-        if not base:
-            continue
-        d = os.path.join(base, "history", "countries")
-        if not os.path.isdir(d):
-            continue
-        try:
-            names = sorted(os.listdir(d))
-        except Exception:
-            continue
-        for fn in names:
-            if not fn.lower().endswith(".txt"):
-                continue
-            try:
-                with open(os.path.join(d, fn), "r", encoding="utf-8-sig",
-                          errors="ignore") as f:
-                    content = f.read()
-            except Exception:
-                continue
-            from ship_design import _tag_of
-            tag = _tag_of(fn, content)
-            if not tag:
-                continue
-            variants = parse_equipment_variants(
-                content,
-                lambda t: t in known or "chassis" in t,
-                block_name="modules")
-            if variants:
-                result.setdefault(tag, {}).update(variants)
-    _TANK_VARIANTS_CACHE[key] = result
-    return result
+    return load_equipment_variants(
+        mod_path, hoi4_path, _TANK_VARIANTS_CACHE, known,
+        lambda t: t in known or "chassis" in t,
+        tag_of=_tag_of,
+    )
 
 
 # ---------- 属性汇总（基础值估算） ----------

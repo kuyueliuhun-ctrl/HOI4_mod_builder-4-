@@ -177,10 +177,10 @@ hearts_of_iron_builder/
 | 师编制 v2 | `division_editor.py`（1091）、`oob_loader.py`（1027）、`oob_stats.py`（313）、`oob_format.py`、`sub_unit_editor_dialog.py`（425）、`names_group_dialog.py` | 仿游戏内 Division Designer：顶部模板下拉 + 数据面板 + 地形矩阵；技术数据“营字段优先→主装备回退”；军种识别 `detect_oob_kinds` 自动拉起对应设计器 | ✅ |
 | OOB 入口/地编 | `initial_oob_editor.py`（246）、`oob_map_editor.py`（640） | 打开 OOB 直接进师编制设计器；地图放置复用 MapCanvas（get_map_data/get_state_data 单例缓存） | ✅ |
 | 兵牌图标接入 | `unit_counter_library.py`（含 `find_counter_entry` 兵种→标牌解析，97% 覆盖）、`unit_counter_icons.py` | OOB 地图兵牌与师编制槽位在 GFX 解析失败时回退单位标牌库（448 标牌），消除黑底占位；按兵种缓存 | ✅ |
-| 舰艇设计器 | `ship_design.py`（817）+ `ship_design_dialog.py`（486） | hull/modules/variants + upgrades 写回；槽位网格；属性估算（基础+addΣ×multiply 累积）；原版自动落 mod | ✅ |
-| 飞机设计器 | `plane_design.py`（533）+ `plane_design_dialog.py`（473） | airframe/modules/variants + modules 写回；同款跨国家同步 | ✅ |
-| 坦克设计器 | `tank_design.py`（415）+ `tank_design_dialog.py`（441） | chassis/modules/variants，复用 plane 的 modules 写回 | ✅ |
-| 设计器公共 | `designer_base.py`（691）、`designer_common.py`、`designer_slots.py`、`design_template.py` | 三设计器公共基类/控件/槽位数据；模板独立存 `design_templates/`，原子写 | ✅ |
+| 舰艇设计器 | `ship_design.py`（488）+ `ship_design_dialog.py`（486） | hull/modules/variants + upgrades 写回；槽位网格；属性估算（基础+addΣ×multiply 累积）；原版自动落 mod | ✅ |
+| 飞机设计器 | `plane_design.py`（361）+ `plane_design_dialog.py`（473） | airframe/modules/variants + modules 写回；同款跨国家同步 | ✅ |
+| 坦克设计器 | `tank_design.py`（235）+ `tank_design_dialog.py`（441） | chassis/modules/variants，复用 plane 的 modules 写回 | ✅ |
+| 设计器公共 | `designer_base.py`（691）、`designer_common.py`、`designer_slots.py`、`design_template.py`、`equipment_loader.py`（350） | 三设计器公共基类/控件/槽位数据；装备 load_* 通用加载层；模板独立存 `design_templates/`，原子写 | ✅ |
 | AI 内容编辑器 | `ai_loader.py`（1085）+ `ai_loader_crud.py`（1130）+ `ai_ui_common.py`（695）+ `ai_*_editor_dialog.py` | 8 类 AI 内容完全专用 UI（固定 300px 侧边栏）；实体级 CRUD（insert/delete/rename/duplicate）；未知字段保留 | ✅ |
 | 本地化体系 | `translation_editor.py`、`translation_loader.py`、`gui_translator.py`（708）、`localisation_editor_data.py`、`localisation_editor_dialog.py`、`localization_mgr.py` | 多源翻译（QIUQI 等 10 个词条 json）、批量补写、快速右键本地化；只写 mod 不改游戏原版 | ✅ |
 | 词条库 | `term_registry.py`（213）、`qiqi_term_import.py` | translations/ 词条注册表；同键冲突 QIUQI 最后加载胜出 | ✅ |
@@ -473,6 +473,7 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 - 2026-08-25（本轮）P2 民族精神/意识形态专用 UI：意识形态表单编辑器 + 民族精神分类分组编辑器（见附录 H 6.29）；
 - 2026-08-25（本轮）P2 地图数据层色阶：VP/资源/补给区/铁路/河流五类数据覆盖层（见附录 H 6.30）；
 - 2026-08-25（本轮）P2 世界地图整图导出：地图编辑「导出整图」按图层合成全图 PNG（见附录 H 6.31）。
+- 2026-08-26（本轮）设计器 load_* 系列重构：新增 `equipment_loader.py` 通用装备加载层，船/坦/机 9 个 `load_*` 改为薄封装，真实数据冒烟通过（见附录 H 6.59）。
 
 ---
 
@@ -908,3 +909,9 @@ python tools/check_file_budget.py        # 行数预算
 | 6.51 | 08-26 | P1：电台 OGG（S档） | radio_station.py：music.txt 电台模板 + ffmpeg 转码/.ogg 拷贝 + add_ogg_track | docs/P1_外部工具可行性_调研.md |
 | 6.52 | 08-26 | P1：CWTools 审查适配 | cwtools_integration.py：CLI 探测 + 子进程校验 + 报告归一化 + 未安装引导 | docs/P1_外部工具可行性_调研.md |
 | 6.53 | 08-26 | P1：高危并入导出检查 + Piper TTS | export_health 加 high_risk 检查；tts_radio.py Piper 语音→ogg | docs/P1_外部工具可行性_调研.md |
+| 6.54 | 08-26 | P1：批量填鸭（AOR）调研落地 | 澄清 AOR=QIUQI 批量填鸭 xls；batch_fill.py 列表驱动生成器 + CLI | docs/P1_外部工具可行性_调研.md §5 |
+| 6.55 | 08-26 | 历史遗留 6.17 全部闭环 | 兵牌标牌/Scenario Forge 三方向/编制编辑器三项均已实现 | 历史日志附录 6.17 |
+| 6.56 | 08-26 | MCP 可发现性修补 | create_mod 必填 approved；AI CRUD 必填 id；生成器 examples；quickstart 资源/prompt；工具数 178 | docs/MCP与接口规格.md §6I |
+| 6.57 | 08-26 | README 面向用户版 | 重写 README 为用户视角；开发者内容收敛到底部入口 | README.md |
+| 6.58 | 08-26 | 工作台右键强制树编辑 | force_tree_file_selected 信号 + _open_generic_tree_editor 跳过专用路由 | docs/历史迭代日志.md |
+| 6.59 | 08-26 | 设计器 load_* 系列重构 | 新增 equipment_loader.py 通用加载层；ship/tank/plane 9 个 load_* 改为薄封装；真实数据冒烟通过 | docs/历史迭代日志.md |
