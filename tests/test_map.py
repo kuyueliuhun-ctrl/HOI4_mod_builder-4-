@@ -1872,6 +1872,25 @@ class OobFileModeOpenTest(unittest.TestCase):
             MyWindow.load_txt_pdx_to_memory(fake, path)
         m.assert_called_once()
 
+    def test_force_tree_editor_bypasses_oob_designer(self):
+        """右键「打开（树形编辑器）」应跳过专用路由，强制走通用树形编辑器。"""
+        from unittest.mock import patch, MagicMock
+        from main_window import MyWindow
+        mod = _mkdtemp("dsh_force_tree_")
+        self.addCleanup(shutil.rmtree, mod, ignore_errors=True)
+        oob_dir = os.path.join(mod, "history", "units")
+        os.makedirs(oob_dir, exist_ok=True)
+        path = os.path.join(oob_dir, "test_oob.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write('division_template = {\n\tname = "X"\n}\n')
+        fake = MagicMock()
+        fake.settings = {"mod_path": mod, "HOI4_path": ""}
+        with patch("generic_tree_editor.GenericTreeEditor") as ge, \
+                patch("initial_oob_editor.open_oob_designer") as m:
+            MyWindow._open_generic_tree_editor(fake, path)
+        m.assert_not_called()
+        ge.assert_called_once()
+
 
 class OobKindDetectTest(unittest.TestCase):
     """OOB 军种识别：陆军/海军/空军；打开文件自动拉起对应设计面板。"""

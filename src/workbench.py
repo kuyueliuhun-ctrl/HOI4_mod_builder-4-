@@ -39,7 +39,8 @@ class WorkbenchDock(QDockWidget):
 
     信号：
         focus_file_selected(str): 选择国策树文件（主窗口加载设计视图）
-        generic_file_selected(str, object): 选择其他文件（主窗口打开树编辑器，携带实体id可选）
+        generic_file_selected(str, object): 选择其他文件（主窗口按常规路由分发，携带实体id可选）
+        force_tree_file_selected(str, object): 强制用通用树形编辑器打开（右键「打开（树形编辑器）」）
         entity_gallery_requested(str, str): 图标型文件（主窗口在右侧国策组件中展示实体图标）
         entity_gallery_nofile_requested(str, list): 无文件模式实体（主窗口在右侧展示跨文件实体画廊）
         nofile_mode_changed(bool): 无文件模式切换（主窗口同步工具栏动作并持久化）
@@ -47,6 +48,7 @@ class WorkbenchDock(QDockWidget):
 
     focus_file_selected = pyqtSignal(str)
     generic_file_selected = pyqtSignal(str, object)
+    force_tree_file_selected = pyqtSignal(str, object)
     entity_gallery_requested = pyqtSignal(str, str)
     entity_gallery_nofile_requested = pyqtSignal(str, list)
     nofile_mode_changed = pyqtSignal(bool)
@@ -743,7 +745,7 @@ class WorkbenchDock(QDockWidget):
                     lambda: self.entity_gallery_requested.emit(self._current_type, fp))
                 open_action = menu.addAction("✎ 打开（树形编辑器）")
                 open_action.triggered.connect(
-                    lambda: self.generic_file_selected.emit(fp, None))
+                    lambda: self.force_tree_file_selected.emit(fp, None))
             explorer_action = menu.addAction("📂 在资源管理器中显示")
             explorer_action.triggered.connect(lambda: self._show_in_explorer(fp))
             menu.addSeparator()
@@ -780,7 +782,7 @@ class WorkbenchDock(QDockWidget):
                             self._current_type, list(self._filtered_entities())))
                 open_action = menu.addAction("✎ 打开（树形编辑器）")
                 open_action.triggered.connect(
-                    lambda: self.generic_file_selected.emit(fp, entity_id))
+                    lambda: self.force_tree_file_selected.emit(fp, entity_id))
             explorer_action = menu.addAction("📂 在资源管理器中显示")
             explorer_action.triggered.connect(lambda: self._show_in_explorer(fp))
             menu.addSeparator()

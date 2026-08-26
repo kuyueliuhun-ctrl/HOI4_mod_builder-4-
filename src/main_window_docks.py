@@ -374,6 +374,8 @@ class MainWindowDocksMixin:
             self.workbench_dock = WorkbenchDock(self.settings.get("mod_path", ""), parent=self)
             self.workbench_dock.focus_file_selected.connect(self._on_workbench_focus_file)
             self.workbench_dock.generic_file_selected.connect(self._on_workbench_generic_file)
+            self.workbench_dock.force_tree_file_selected.connect(
+                self._on_workbench_force_tree_file)
             self.workbench_dock.entity_gallery_requested.connect(self._on_workbench_entity_gallery)
             self.workbench_dock.entity_gallery_nofile_requested.connect(
                 self._on_workbench_nofile_gallery)
@@ -479,6 +481,11 @@ class MainWindowDocksMixin:
         self._open_tree_editor(file_path, entity_id)
 
 
+    def _on_workbench_force_tree_file(self, file_path, entity_id=None):
+        """工作台右键「打开（树形编辑器）」：强制用通用树形编辑器打开，跳过专用路由。"""
+        self._open_generic_tree_editor(file_path, entity_id)
+
+
     def _open_tree_editor(self, file_path, entity_id=None):
         """打开指定文件到合适的编辑器：
 
@@ -506,12 +513,18 @@ class MainWindowDocksMixin:
                 QMessageBox.critical(self, "错误", "专用编辑器打开失败: %s" % e)
                 return
         # 其余文本文件 → 通用 PDX 树形编辑器（可选定位实体）
+        self._open_generic_tree_editor(file_path, entity_id)
+
+    def _open_generic_tree_editor(self, file_path, entity_id=None):
+        """用通用 PDX 树形编辑器打开文件（跳过专用编辑器路由）。
+
+        供右键「打开（树形编辑器）」强制使用，也作为普通分发无专用路由时的兜底。
+        """
         try:
             with open(file_path, 'r', encoding='utf-8-sig') as f:
                 content = f.read()
             raw_data = parse_pdx_script(content)
-            from tree_node import TreeNode, tree_from_pdx_text
-            from focus_base_builder import FocusTreeEditor
+            from tree_node import tree_from_pdx_text
             from generic_tree_editor import GenericTreeEditor
             from gui_translator import get_translator
             from localization_mgr import get_localization_manager
@@ -523,12 +536,10 @@ class MainWindowDocksMixin:
             hoi4 = self.settings.get("HOI4_path", "")
             mod = self.settings.get("mod_path", "")
 
-            # 判断根类型以选择编辑器
-            editor_cls = GenericTreeEditor
             title = "内容编辑"
             if raw_data and any(k in raw_data for k in ("focus_tree", "shared_focus", "joint_focus")):
                 title = "国策树编辑"
-            editor = editor_cls(
+            editor = GenericTreeEditor(
                 root_node=root,
                 file_path=file_path,
                 file_lines=file_lines,
