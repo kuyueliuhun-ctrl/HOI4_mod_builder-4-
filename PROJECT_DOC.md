@@ -905,3 +905,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.48 | 08-26 | Scenario Forge 后端 + P1 调研 | build_snapshot 台账 / high_risk_ids 高危清单；大洲/核心圈层/外部工具调研落盘 | docs/P1_*_调研.md |
 | 6.49 | 08-26 | P1：大洲划分（方案A） | continents.py（省→洲/州多数表决/叠加）；修复 _province_meta 列错位；地图编辑「大洲」数据层 | docs/P1_大洲划分与核心圈层_调研.md |
 | 6.50 | 08-26 | P1：核心圈层（方案B） | StateData 解析 add_core_of + cores_by_tag；core_rings.py 州邻接 BFS；map_overlay_factory 拆分数据层；地图编辑「核心圈层」 | docs/P1_大洲划分与核心圈层_调研.md |
+| 6.51 | 08-26 | P1：电台 OGG（S档） | radio_station.py：music.txt 电台模板 + ffmpeg 转码/.ogg 拷贝 + add_ogg_track | docs/P1_外部工具可行性_调研.md |
