@@ -68,7 +68,7 @@ hearts_of_iron_builder/
 ├── src/                # 全部 Python 源码（235 个模块，约 6.4 万行）
 ├── tests/              # 契约/回归测试（86 个文件，510 个用例）
 ├── tools/              # CLI 工具与契约门禁（21 个脚本）
-├── docs/               # 深度参考文档（12 个 md）
+├── docs/               # 深度参考文档（15 个 md）
 ├── templates/          # 模板库（67 个系统模板类别 + 顶层 2 类，共 1105 个 txt）
 ├── translations/       # 词条库（QIUQI/自定义/效果/修正等 10 个 json + README）
 ├── design_templates/   # 设计器模板（独立目录，普通模板搜索器搜不到）
@@ -280,7 +280,12 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 - **Agent 偏好 + 工具审计（2026-08-25）**：`list/set/delete_agent_preference` + `query/export_tool_logs`（.runtime JSON/JSONL，MCP/HTTP 自动埋点）；见 `docs/MCP与接口规格.md §6D`。工具总数 174。
   - **GUI/GFX 程序化生成（2026-08-25）**：`generate_gui_gfx_asset`（dry_run+approved）；见 §6E。
   - **调试启动（2026-08-25）**：`validate_hoi4_debug_run`（显式 approved 才拉起 hoi4.exe -debug_mode）+ `launch_hoi4_debug_with_rchadow`（未内置引导）；见 §6F。
-  - **CWT-lite 类型规则校验（2026-08-25）**：`validate_hoi4_file/project`（内置常见类型 catalog，轻量替代 cwtools）；见 §6G。
+  - **CWT-lite 类型规则校验（2026-08-25/26）**：`validate_hoi4_file/project`（内置 **33 类**
+    catalog + 真实结构遍历 + var_* 变量宽容 + 超大文件跳过守卫；轻量替代 cwtools）；
+    `validate_hoi4_project` 扫描全部 33 类型目录；见 `docs/MCP与接口规格.md §6G`。
+  - **MCP 全量工具真实数据冒烟（2026-08-26）**：`tools/smoke_mcp_tools.py` 对真实 mod 跑
+    178 工具默认冒烟 ok=40 error=0；`tests/test_mcp_smoke_real.py` guarded 回归；
+    修复 `UnitCounterLibrary.search` keyword/category 兼容；见 §6H。
 - **方法约定**：dict 进 dict 出；数据层 lazy import；写方法清缓存 + `_notify_change(path)`；
   错误抛 `ValueError` → HTTP 400 / MCP 错误文本。
 
@@ -387,7 +392,7 @@ def open_decisions_editor(file_path="", mod_path="", hoi4_path="", entity_id=Non
 | 单位标牌库 | **448** 个标牌（`unit_counter_library/icon` + `manifest.json`） |
 | MCP 工具 | **178** 个（基础 17 + 域扩展 142 + B3 补 9 + agent 5 + gfx 1 + debug 2 + cwt 2，`src/mcp_tools.py` 唯一权威） |
 | HTTP API | `ApiCore` + `api_core_ext/` **9** 个域 Mixin |
-| 文档 `docs/` | **12** 个 `.md` |
+| 文档 `docs/` | **15** 个 `.md` |
 | 架构分层 | 四层分离已落地，`check_layer_deps.py` 门禁通过 |
 
 ### 3.2 验证状态（2026-08-25 实测）
@@ -672,6 +677,7 @@ python tools/check_file_budget.py        # 行数预算
 | `docs/学说识图.md` | 游戏内学说 UI 识图结论（大类→流派→分支→节点、经验值花费） |
 | `docs/QIUQI-LIBRARY映射与复刻矩阵.md` | QIUQI 词条库/功能复刻状态表（3100+ 词条来源与映射） |
 | `docs/RHoiScribe知识映射与补全.md` | RHoiScribe 外部工具的知识 A~M 补全映射与本项目吸收记录 |
+| `docs/已知问题与修复.md` | P0 问题核验与修复跟踪（覆盖顺序 / PDX 解析 / 接口安全 / 撤销 / OOB 保存） |
 
 > 更新约定：以后所有「改了什么 / 做到哪 / 踩了什么坑」按**开发流程**同步三处——
 > ① 每轮迭代**必须**追加 `docs/历史迭代日志.md`（附录 E.3，强制）；
@@ -887,3 +893,5 @@ python tools/check_file_budget.py        # 行数预算
 | 6.36 | 08-25 | B3 批二③：GUI/GFX 程序化生成 | `procedural_assets.py` + `generate_gui_gfx_asset`（PNG+.gfx+.gui，dry_run+approved）；工具 173→174 |
 | 6.37 | 08-25 | B3 批二④：调试启动 | `DebugMixin`：`validate_hoi4_debug_run`（approved 门禁拉起）+ Rchadow 引导；工具 174→176 |
 | 6.38 | 08-25 | B3 批二⑤：CWT-lite 类型规则校验 | `cwt_lite_rules.py` + `validate_hoi4_file/project`；工具 176→178 |
+| 6.39 | 08-26 | P0 五连修复 | mod 覆盖游戏、PDX 解析加固、path_safety 越界防护、撤销字节无损、OOB 保存修复 | `docs/已知问题与修复.md` |
+| 6.40 | 08-26 | B3 批三：CWT 33 类型 + MCP 全量冒烟 | CWT 24→33 类型/真实结构/var_*/33 目录项目扫描；MCP 178 工具默认冒烟 ok=40 error=0、search keyword/category 修复 | docs/MCP与接口规格.md §6G/§6H |
