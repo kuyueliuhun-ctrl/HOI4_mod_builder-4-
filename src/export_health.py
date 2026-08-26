@@ -497,6 +497,20 @@ def check_tech_icons(mod_path, issues, sprites=None, hoi4_path=None):
             "画布右键科技节点可上传图标"))
 
 
+def check_high_risk_ids(mod_path, issues, hoi4_path=None):
+    """高危 id 检查：mod 与 vanilla 同名覆盖 / 保留字用作 id → warning。"""
+    try:
+        from high_risk_ids import high_risk_ids
+        for r in high_risk_ids(mod_path, hoi4_path or ""):
+            issues.append(HealthIssue(
+                "warning", "high_risk", r["mod_file"],
+                "%s：%s — %s" % (r["type"], r["id"], r["reason"]),
+                r.get("vanilla_file") or r["reason"]))
+    except Exception:
+        # 高危扫描失败不阻断整体报告
+        return
+
+
 # ---------------------------------------------------------------- 入口
 
 def run_export_health_check(mod_path, hoi4_path=None, max_issues=500):
@@ -535,6 +549,9 @@ def run_export_health_check(mod_path, hoi4_path=None, max_issues=500):
     steps.append(("tech_icons",
                   lambda: check_tech_icons(mod_path, report.issues, sprites,
                                            hoi4_path)))
+    steps.append(("high_risk",
+                  lambda: check_high_risk_ids(mod_path, report.issues,
+                                              hoi4_path)))
     for _name, fn in steps:
         try:
             fn()

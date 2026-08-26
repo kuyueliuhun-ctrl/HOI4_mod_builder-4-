@@ -907,3 +907,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.50 | 08-26 | P1：核心圈层（方案B） | StateData 解析 add_core_of + cores_by_tag；core_rings.py 州邻接 BFS；map_overlay_factory 拆分数据层；地图编辑「核心圈层」 | docs/P1_大洲划分与核心圈层_调研.md |
 | 6.51 | 08-26 | P1：电台 OGG（S档） | radio_station.py：music.txt 电台模板 + ffmpeg 转码/.ogg 拷贝 + add_ogg_track | docs/P1_外部工具可行性_调研.md |
 | 6.52 | 08-26 | P1：CWTools 审查适配 | cwtools_integration.py：CLI 探测 + 子进程校验 + 报告归一化 + 未安装引导 | docs/P1_外部工具可行性_调研.md |
+| 6.53 | 08-26 | P1：高危并入导出检查 + Piper TTS | export_health 加 high_risk 检查；tts_radio.py Piper 语音→ogg | docs/P1_外部工具可行性_调研.md |

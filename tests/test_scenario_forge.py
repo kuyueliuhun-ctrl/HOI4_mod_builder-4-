@@ -105,6 +105,16 @@ class HighRiskIdsTest(unittest.TestCase):
         self.assertIn("root", by_id)
         self.assertNotIn("normal_id", by_id)
 
+    def test_export_health_includes_high_risk(self):
+        from export_health import run_export_health_check
+        mod, game = self._make()
+        report = run_export_health_check(mod, game)
+        high = [i for i in report.issues
+                if i.category == "high_risk" and i.severity == "warning"]
+        ids = {i.message.split("：", 1)[1].split(" — ")[0] for i in high}
+        self.assertIn("collision_id", ids)
+        self.assertIn("root", ids)
+
 
 if __name__ == "__main__":
     unittest.main()
