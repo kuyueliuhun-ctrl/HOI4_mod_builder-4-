@@ -43,4 +43,7 @@ def build_tool_actions(menu):
     a["ship_designer"] = menu.addAction("🚢 舰艇设计…")
     a["plane_designer"] = menu.addAction("✈ 飞机设计…")
     a["tank_designer"] = menu.addAction("🛡 坦克设计…")
+    a["mio_editor"] = menu.addAction("🏭 MIO 编辑器…")
+    a["mio_policy_editor"] = menu.addAction("🎯 MIO 方针编辑器…")
+    a["mio_ai_weights"] = menu.addAction("⚖️ MIO AI 权重…")
     return a

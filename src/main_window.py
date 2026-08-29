@@ -187,6 +187,12 @@ class MyWindow(MainWindowDocksMixin, QMainWindow):
         self.act_plane_designer.triggered.connect(self.on_plane_designer)
         self.act_tank_designer = _tool_actions["tank_designer"]
         self.act_tank_designer.triggered.connect(self.on_tank_designer)
+        self.act_mio_editor = _tool_actions["mio_editor"]
+        self.act_mio_editor.triggered.connect(self.on_mio_editor)
+        self.act_mio_policy_editor = _tool_actions["mio_policy_editor"]
+        self.act_mio_policy_editor.triggered.connect(self.on_mio_policy_editor)
+        self.act_mio_ai_weights = _tool_actions["mio_ai_weights"]
+        self.act_mio_ai_weights.triggered.connect(self.on_mio_ai_weights)
         from PyQt6.QtWidgets import QToolBar
         self.toolbar = QToolBar("反馈", self)
         self.toolbar.setObjectName("toolbar_feedback")
@@ -530,6 +536,33 @@ class MyWindow(MainWindowDocksMixin, QMainWindow):
         from tank_design_dialog import TankDesignDialog
         dlg = TankDesignDialog(mod_path, hoi4_path, parent=self)
         dlg.show()
+
+    def on_mio_editor(self):
+        """工具菜单：MIO 编辑器（军工组织，特质树画布 + 组织属性）。"""
+        mod_path, hoi4_path = self._require_mod("MIO 编辑器")
+        if not mod_path:
+            return
+        from mio_editor_dialog import open_mio_editor
+        open_mio_editor("", mod_path=mod_path, hoi4_path=hoi4_path,
+                        parent=self)
+
+    def on_mio_policy_editor(self):
+        """工具菜单：MIO 方针编辑器。"""
+        mod_path, hoi4_path = self._require_mod("MIO 方针编辑器")
+        if not mod_path:
+            return
+        from mio_policy_editor_dialog import open_mio_policy_editor
+        open_mio_policy_editor("", mod_path=mod_path, hoi4_path=hoi4_path,
+                               parent=self)
+
+    def on_mio_ai_weights(self):
+        """工具菜单：MIO AI 权重编辑器。"""
+        mod_path, hoi4_path = self._require_mod("MIO AI 权重")
+        if not mod_path:
+            return
+        from ai_mio_weights_editor_dialog import open_mio_ai_weights_editor
+        open_mio_ai_weights_editor("", mod_path=mod_path,
+                                   hoi4_path=hoi4_path, parent=self)
 
     def on_region_editor(self):
         """工具菜单：区域编辑（框选划分战略区域/补给区域/州）。"""

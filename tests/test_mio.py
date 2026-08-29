@@ -129,6 +129,17 @@ class MioLoaderTest(unittest.TestCase):
         self.assertIn("icon = GFX_new_policy", content)
         self.assertIn("maximum_speed = 0.1", content)
 
+    def test_app_routes_mio_editors(self):
+        from app_routes import find_route
+        orgs, org_route = find_route(
+            r"D:\mod\common\military_industrial_organization\organizations\00_mio.txt")
+        self.assertIsNotNone(org_route)
+        self.assertEqual(org_route[2], "MIO 编辑器")
+        pols, pol_route = find_route(
+            r"D:\mod\common\military_industrial_organization\policies\_mio.txt")
+        self.assertIsNotNone(pol_route)
+        self.assertEqual(pol_route[2], "MIO 方针")
+
 
 class MioEditorDialogTest(unittest.TestCase):
     @classmethod
@@ -175,6 +186,15 @@ class MioEditorDialogTest(unittest.TestCase):
         self.assertGreaterEqual(dlg.sidebar.list.count(), 1)
         self.assertEqual(dlg.icon_edit.text(), "GFX_mio_policy_test")
         dlg.close()
+
+    def test_menu_factory_has_mio_actions(self):
+        from PyQt6.QtWidgets import QMenu
+        from menu_factory import build_tool_actions
+        menu = QMenu()
+        actions = build_tool_actions(menu)
+        self.assertIn("mio_editor", actions)
+        self.assertIn("mio_policy_editor", actions)
+        self.assertIn("mio_ai_weights", actions)
 
 
 if __name__ == "__main__":

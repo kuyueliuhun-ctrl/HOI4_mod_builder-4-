@@ -633,6 +633,9 @@ class WorkbenchDock(QDockWidget):
         elif self._current_type in AI_TYPES:
             # AI 内容：直接交给主窗口分发（专用编辑器或树形编辑器）
             self.generic_file_selected.emit(fp, None)
+        elif self._current_type == "mio":
+            # MIO：直接交给主窗口路由（organizations→MIO 编辑器；policies→方针编辑器）
+            self.generic_file_selected.emit(fp, None)
         else:
             # 力量平衡（common/bop）→ 直接弹专用编辑器
             if self._current_type == "bop":
@@ -693,6 +696,11 @@ class WorkbenchDock(QDockWidget):
             if fp:
                 self.generic_file_selected.emit(fp, meta.get("key") if isinstance(meta, dict) else None)
             return
+        # MIO（无文件模式也支持）：直接交给主窗口路由
+        if self._current_type == "mio" or "/common/military_industrial_organization/" in norm_fp:
+            if fp:
+                self.generic_file_selected.emit(fp, meta.get("key") if isinstance(meta, dict) else None)
+            return
         # 力量平衡（common/bop）→ 直接弹专用编辑器（无文件模式也支持）
         if self._current_type == "bop":
             if fp:
@@ -739,6 +747,15 @@ class WorkbenchDock(QDockWidget):
                 edit_action = menu.addAction("✏ 编辑科技词条…")
                 edit_action.triggered.connect(
                     lambda: self.generic_file_selected.emit(fp, None))
+            elif self._current_type == "mio":
+                mio_action = menu.addAction("🏭 打开（MIO 编辑器）")
+                mio_action.triggered.connect(lambda: self.generic_file_selected.emit(fp, None))
+                gallery_action = menu.addAction("🖼 在右侧展示实体")
+                gallery_action.triggered.connect(
+                    lambda: self.entity_gallery_requested.emit(self._current_type, fp))
+                open_action = menu.addAction("✎ 打开（树形编辑器）")
+                open_action.triggered.connect(
+                    lambda: self.force_tree_file_selected.emit(fp, None))
             else:
                 gallery_action = menu.addAction("🖼 在右侧展示实体")
                 gallery_action.triggered.connect(
@@ -775,6 +792,9 @@ class WorkbenchDock(QDockWidget):
                 open_action.triggered.connect(
                     lambda: self.focus_file_selected.emit(fp))
             else:
+                if self._current_type == "mio" or "/common/military_industrial_organization/" in (fp or "").replace("\\", "/"):
+                    mio_action = menu.addAction("🏭 打开（MIO 编辑器）")
+                    mio_action.triggered.connect(lambda: self.generic_file_selected.emit(fp, entity_id))
                 if self._current_type in ICON_RULES:
                     gallery_action = menu.addAction("🖼 在右侧展示实体图标")
                     gallery_action.triggered.connect(
