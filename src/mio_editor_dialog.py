@@ -57,6 +57,9 @@ class MioEditorDialog(QDialog):
         self.mios = {}
         self._current_id = None
         self._trait_token = None
+        self._orig_parents_text = ""
+        self._trait_parent_blocks = {}
+        self._trait_extra_blocks = []
         self._loc = self._make_loc()
         self._gfx_map = self._make_gfx_map()
 
@@ -271,6 +274,7 @@ class MioEditorDialog(QDialog):
 
     def _refresh_mio_icon(self, mio):
         icon = (mio or {}).get("icon", "")
+        self.mio_icon_label.setToolTip(icon)
         try:
             from icon_resolver import resolve_pixmap
             pm = resolve_pixmap(icon, gfx_map=self._gfx_map,
@@ -293,6 +297,9 @@ class MioEditorDialog(QDialog):
         self.equip_edit.setPlainText("")
         self.prod_edit.setPlainText("")
         self.trait_label.setText("—（点击左侧树节点选择）")
+        self._orig_parents_text = ""
+        self._trait_parent_blocks = {}
+        self._trait_extra_blocks = []
 
     def _on_trait_selected(self, token):
         mio = self._current_mio()
@@ -311,6 +318,9 @@ class MioEditorDialog(QDialog):
                 self.parents_edit.setText(" ".join(t.get("parents") or []))
                 self.equip_edit.setPlainText(t.get("equipment_bonus", ""))
                 self.prod_edit.setPlainText(t.get("production_bonus", ""))
+                self._orig_parents_text = " ".join(t.get("parents") or [])
+                self._trait_parent_blocks = dict(t.get("parent_blocks") or {})
+                self._trait_extra_blocks = list(t.get("extra_blocks") or [])
                 break
 
     def _form_trait(self, token):
@@ -322,7 +332,15 @@ class MioEditorDialog(QDialog):
             y = int(self.y_edit.text() or "0")
         except ValueError:
             y = 0
-        parents = [p for p in self.parents_edit.text().split() if p]
+        current_parents = [p for p in self.parents_edit.text().split() if p]
+        current_parents_text = " ".join(current_parents)
+        extra_blocks = list(self._trait_extra_blocks or [])
+        parents = current_parents
+        if current_parents_text == (self._orig_parents_text or ""):
+            # 父列表未修改：保留原始 any_parent/all_parents 块，避免类型被改写
+            for blocks in (self._trait_parent_blocks or {}).values():
+                extra_blocks.extend(blocks)
+            parents = []
         return trait_to_pdx(
             token,
             self.name_edit.text().strip() or token,
@@ -332,6 +350,7 @@ class MioEditorDialog(QDialog):
             parents,
             self.equip_edit.toPlainText().strip(),
             self.prod_edit.toPlainText().strip(),
+            extra_blocks=extra_blocks,
         )
 
     # ---------- 写文件 ----------
@@ -370,12 +389,21 @@ class MioEditorDialog(QDialog):
         mio = self._current_mio()
         if not mio or not self._trait_token:
             return
-        token = self._trait_token
-        new_pdx = self._form_trait(token)
+        old_token = self._trait_token
+        new_token = self.token_edit.text().strip() or old_token
+        existing = {t.get("token") for t in mio.get("traits", []) or []}
+        if new_token != old_token and new_token in existing:
+            QMessageBox.warning(self, "保存失败", "特质 token 已存在：%s" % new_token)
+            return
+        new_pdx = self._form_trait(new_token)
         def transform(content):
-            return replace_trait_block(content, mio["id"], token, new_pdx)
+            if new_token != old_token:
+                content = rename_trait(content, mio["id"], old_token, new_token)
+            return replace_trait_block(content, mio["id"], new_token, new_pdx)
         if self._write_rel(mio.get("rel", ""), transform):
-            QMessageBox.information(self, "已保存", "已保存特质 %s" % token)
+            self._reload(self._current_id)
+            self._on_trait_selected(new_token)
+            QMessageBox.information(self, "已保存", "已保存特质 %s" % new_token)
 
     def _on_add_trait(self):
         mio = self._current_mio()
@@ -385,6 +413,9 @@ class MioEditorDialog(QDialog):
         if not ok or not token.strip():
             return
         token = token.strip()
+        if token in {t.get("token") for t in mio.get("traits", []) or []}:
+            QMessageBox.warning(self, "新增失败", "特质 token 已存在：%s" % token)
+            return
         after = self._trait_token or None
         def transform(content):
             return insert_trait(content, mio["id"], token, after_token=after)
@@ -401,6 +432,9 @@ class MioEditorDialog(QDialog):
         if not ok or not new_token.strip():
             return
         new_token = new_token.strip()
+        if new_token in {t.get("token") for t in mio.get("traits", []) or []}:
+            QMessageBox.warning(self, "复制失败", "特质 token 已存在：%s" % new_token)
+            return
         def transform(content):
             return duplicate_trait(content, mio["id"], self._trait_token, new_token)
         if self._write_rel(mio.get("rel", ""), transform):
@@ -439,7 +473,9 @@ class MioEditorDialog(QDialog):
         if not mio:
             return
         self._pick_icon(mio.get("icon", ""), "GFX_", self.mio_icon_label)
-        self.mio_icon_label.setToolTip(self.mio_icon_label.text())
+        if self.mio_icon_label.text():
+            mio["icon"] = self.mio_icon_label.text()
+        self.mio_icon_label.setToolTip(mio.get("icon", ""))
         self._refresh_mio_icon(mio)
 
     def _pick_trait_icon(self):

@@ -193,7 +193,7 @@ class MioPolicyEditorDialog(QDialog):
         def transform(content):
             return replace_policy_block(content, p["id"], new_block)
         if self._write_rel(p.get("rel", ""), transform):
-            p["icon"] = self.icon_edit.text().strip()
+            self._reload(p["id"])
             QMessageBox.information(self, "已保存", "已保存方针 %s" % p["id"])
 
     def _on_add(self):
@@ -201,6 +201,9 @@ class MioPolicyEditorDialog(QDialog):
         if not ok or not policy_id.strip():
             return
         policy_id = policy_id.strip()
+        if policy_id in self.policies:
+            QMessageBox.warning(self, "新增失败", "方针 id 已存在：%s" % policy_id)
+            return
         after = self._current_id or None
         def transform(content):
             return insert_policy(content, policy_id, after_id=after)
@@ -215,6 +218,9 @@ class MioPolicyEditorDialog(QDialog):
         if not ok or not new_id.strip():
             return
         new_id = new_id.strip()
+        if new_id in self.policies:
+            QMessageBox.warning(self, "复制失败", "方针 id 已存在：%s" % new_id)
+            return
         def transform(content):
             return duplicate_policy(content, self._current_id, new_id)
         if self._write_rel(self._current_rel(), transform):

@@ -41,7 +41,8 @@ from ai_loader_crud import _find_block_bounds
 def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt"):
     out = []
     seen = set()
-    for base in (mod_path, hoi4_path):
+    # 游戏先、mod 后：后续 load_* 的 dict 赋值让 mod 覆盖游戏，实现 mod 优先。
+    for base in (hoi4_path, mod_path):
         if not base or not os.path.isdir(base):
             continue
         d = os.path.join(base, rel_dir)
@@ -68,8 +69,21 @@ def _read(fp):
 
 
 def _rel(fp, hoi4_path, mod_path):
-    base = hoi4_path or mod_path or os.path.dirname(fp)
-    return os.path.relpath(fp, base).replace("\\", "/")
+    """返回 fp 相对 mod/游戏根的路径；文件属于哪个根就用哪个根。
+
+    旧实现固定以 hoi4_path 为基准，当文件实际在 mod 内时会产出
+    ../../../mods/... 的错误 rel，导致 ensure_file_in_mod 定位失败。
+    """
+    for base in (mod_path, hoi4_path):
+        if not base:
+            continue
+        try:
+            rel = os.path.relpath(fp, base)
+        except ValueError:
+            continue
+        if rel == "." or not rel.startswith(".."):
+            return rel.replace("\\", "/")
+    return os.path.basename(fp)
 
 
 # ---------- 解析 ----------
@@ -90,10 +104,37 @@ def _parse_position(block_text):
 def _parse_trait(block_text):
     """解析一个 trait = { ... } 块。"""
     f = _fields(block_text)
-    x, y = _parse_position(block_text)
+    x, y = 0, 0
+    pos_text = ""
+    equipment_bonus = ""
+    production_bonus = ""
     parents = []
-    for key in ("any_parent", "all_parents"):
-        parents.extend(_values_in_block(block_text, key))
+    parent_blocks = {}
+    extra_blocks = []
+    for ck, cs, _ce in _child_blocks(block_text):
+        bs, be = _find_block_bounds(block_text, cs)
+        cbt = block_text[bs:be].strip()
+        if ck in ("any_parent", "all_parents"):
+            parents.extend(_values_in_block(block_text, ck))
+            parent_blocks.setdefault(ck, []).append(cbt)
+        elif ck == "position":
+            pos_text = cbt
+        elif ck == "equipment_bonus":
+            equipment_bonus = cbt
+        elif ck == "production_bonus":
+            production_bonus = cbt
+        elif cbt:
+            extra_blocks.append(cbt)
+    if pos_text:
+        pf = _fields(pos_text)
+        try:
+            x = int(pf.get("x", 0))
+        except (TypeError, ValueError):
+            x = 0
+        try:
+            y = int(pf.get("y", 0))
+        except (TypeError, ValueError):
+            y = 0
     return {
         "token": f.get("token", ""),
         "name": f.get("name", ""),
@@ -102,8 +143,10 @@ def _parse_trait(block_text):
         "y": y,
         "relative_position_id": f.get("relative_position_id", ""),
         "parents": parents,
-        "equipment_bonus": _child_block_text(block_text, "equipment_bonus") or "",
-        "production_bonus": _child_block_text(block_text, "production_bonus") or "",
+        "parent_blocks": parent_blocks,
+        "extra_blocks": extra_blocks,
+        "equipment_bonus": equipment_bonus,
+        "production_bonus": production_bonus,
         "raw": block_text,
     }
 
@@ -278,8 +321,14 @@ def replace_trait_block(content, mio_id, token, new_block_text):
 
 
 def trait_to_pdx(token, name, icon, x, y, relative_position_id="",
-                 parents=None, equipment_bonus="", production_bonus=""):
-    """把 trait 表单序列化为 PDX 块文本。"""
+                 parents=None, equipment_bonus="", production_bonus="",
+                 extra_blocks=None):
+    """把 trait 表单序列化为 PDX 块文本。
+
+    extra_blocks 用于保留编辑器未直接展示的 trait 子块（如
+    limit_to_equipment_type / mutually_exclusive / visible / available /
+    organization_modifier / ai_will_do 等），避免整块重写时数据丢失。
+    """
     lines = ["trait = {",
              "\t\ttoken = %s" % token,
              "\t\tname = %s" % name]
@@ -298,6 +347,15 @@ def trait_to_pdx(token, name, icon, x, y, relative_position_id="",
                 lines.append(raw)
             else:
                 lines.append("%s = {\n%s\n\t\t}" % (bonus, raw))
+    for raw in (extra_blocks or []):
+        raw = (raw or "").strip()
+        if not raw:
+            continue
+        raw_lines = raw.splitlines()
+        if raw_lines:
+            lines.append("\t\t" + raw_lines[0].strip())
+        for line in raw_lines[1:]:
+            lines.append(line.rstrip() if line.strip() else "")
     lines.append("\t}")
     return "\n".join(lines)
 

@@ -140,6 +140,82 @@ class MioLoaderTest(unittest.TestCase):
         self.assertIsNotNone(pol_route)
         self.assertEqual(pol_route[2], "MIO 方针")
 
+    def test_mio_rel_mod_file(self):
+        from mio_loader import _rel
+        game = _mkdtemp("dsh_miogame_")
+        self.addCleanup(shutil.rmtree, game, ignore_errors=True)
+        mod_fp = os.path.join(
+            self.mod, "common", "military_industrial_organization",
+            "organizations", "00_test.txt")
+        rel = _rel(mod_fp, game, self.mod)
+        self.assertEqual(
+            rel, "common/military_industrial_organization/organizations/00_test.txt")
+
+    def test_mio_scan_mod_priority(self):
+        from mio_loader import load_mios
+        game = _mkdtemp("dsh_miogame_")
+        self.addCleanup(shutil.rmtree, game, ignore_errors=True)
+        gp = os.path.join(
+            game, "common", "military_industrial_organization",
+            "organizations", "00_test.txt")
+        os.makedirs(os.path.dirname(gp), exist_ok=True)
+        with open(gp, "w", encoding="utf-8") as f:
+            f.write("generic_tank_organization = {\n\ticon = GFX_game\n}\n")
+        mios = load_mios(self.mod, game)
+        self.assertEqual(
+            mios["generic_tank_organization"]["icon"],
+            "GFX_idea_generic_tank_manufacturer_1")
+
+    def test_trait_to_pdx_extra_blocks(self):
+        from mio_loader import trait_to_pdx
+        out = trait_to_pdx(
+            "t", "t", "", 0, 0,
+            extra_blocks=[
+                "mutually_exclusive = { other_trait }",
+                "limit_to_equipment_type = { armor }",
+            ])
+        self.assertIn("mutually_exclusive = { other_trait }", out)
+        self.assertIn("limit_to_equipment_type = { armor }", out)
+
+    def test_parse_trait_preserves_parent_and_extra(self):
+        from mio_loader import _parse_trait
+        raw = (
+            "trait = {\n"
+            "\t\ttoken = t\n"
+            "\t\tname = t\n"
+            "\t\tall_parents = { a b }\n"
+            "\t\tlimit_to_equipment_type = { armor }\n"
+            "\t\tmutually_exclusive = { x }\n"
+            "\t}\n"
+        )
+        t = _parse_trait(raw)
+        self.assertEqual(t["parents"], ["a", "b"])
+        self.assertIn("all_parents", t["parent_blocks"])
+        self.assertTrue(any("limit_to_equipment_type" in b for b in t["extra_blocks"]))
+
+    def test_trait_roundtrip_preserves_bonus_and_extra(self):
+        from mio_loader import _parse_trait, trait_to_pdx
+        raw = (
+            "trait = {\n"
+            "\t\ttoken = t\n"
+            "\t\tname = t\n"
+            "\t\tproduction_bonus = {\n"
+            "\t\t\tx = 1\n"
+            "\t\t}\n"
+            "\t\tmutually_exclusive = { other }\n"
+            "\t}\n"
+        )
+        t = _parse_trait(raw)
+        out = trait_to_pdx(
+            t["token"], t["name"], t["icon"], t["x"], t["y"],
+            t.get("relative_position_id", ""), t.get("parents", []),
+            t.get("equipment_bonus", ""), t.get("production_bonus", ""),
+            extra_blocks=list(t.get("extra_blocks", [])))
+        parsed = _parse_trait(out)
+        self.assertTrue(parsed["extra_blocks"])
+        self.assertIn("x = 1", parsed["production_bonus"])
+        self.assertIn("mutually_exclusive", parsed["extra_blocks"][0])
+
 
 class MioEditorDialogTest(unittest.TestCase):
     @classmethod
