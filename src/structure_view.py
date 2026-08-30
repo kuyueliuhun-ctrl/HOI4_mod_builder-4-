@@ -1,44 +1,35 @@
 """结构体展示组件（StructureView）——PDX 块的列表式结构浏览与双击编辑。
 
-设计目标（样品）：
-- 块展示为列表：每个块是一行，块内条目作为子行，用树形缩进表达嵌套层级；
-- 键 / 值 / 块 均可双击修改：
-  * 双击"键"列 → 就地行内编辑（改名）；
-  * 双击"值"列（值条目） → 就地行内编辑（改值）；
-  * 双击"值"列（块条目，即 `{ … }` 摘要） → 弹出块编辑对话框（整块文本编辑，
-    接受后重新解析并原位替换子树，块名改动同样生效）；
+交互约定（按用户拍板）：
+- 块展示为列表：每个块是一行，块内条目作为子行，用树形缩进表达嵌套；
+- 组件默认全部展开（载入/重建后 expandAll）；
+- 双击块字段（键列）→ 就地修改块名；
+- 双击块行值列（`{ … }` 摘要）→ 展开/收起该块；
+- 双击值条目键列/值列 → 就地改名/改值；
+- 不展示原始文本结构（无整块文本编辑器）；
 - 本地化展示：接入 LocalizationManager 翻译器，把"像本地化键"的值/裸 token
-  的中文翻译显示在第三列，悬停 tooltip 给出所查键名。
+  的中文翻译显示在第三列，悬停 tooltip 给出所查键名，双击复制翻译。
 
 数据底座是 tree_node.TreeNode（全保真：顺序、重复键、比较语句、原始行），
 所有编辑直接写回 TreeNode，`to_pdx_text()` 可随时导出序列化文本。
-
-注意：就地编辑键/值会清除该节点的 raw_lines（否则原始行会覆盖编辑结果）；
-块对话框编辑会整树重建子节点（新节点自然无 raw_lines）。
+注意：就地编辑键/值会清除该节点的 raw_lines（否则原始行会覆盖编辑结果）。
 """
 
 from __future__ import annotations
 
+import os
 import re
+import sys
 
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QBrush, QColor, QFont
+from PyQt6.QtGui import QBrush, QColor
 from PyQt6.QtWidgets import (
     QAbstractItemView,
-    QDialog,
-    QDialogButtonBox,
-    QHBoxLayout,
+    QApplication,
     QHeaderView,
-    QMessageBox,
-    QPlainTextEdit,
     QTreeWidget,
     QTreeWidgetItem,
-    QVBoxLayout,
-    QWidget,
 )
-
-import os
-import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -71,57 +62,8 @@ def is_loc_candidate(token):
     return len(t) <= 120
 
 
-class BlockEditDialog(QDialog):
-    """整块文本编辑对话框：以序列化文本呈现块，接受时重新解析校验。"""
-
-    def __init__(self, parent=None, node=None):
-        super().__init__(parent)
-        node = node or TreeNode("block", "block")
-        self.setWindowTitle("编辑块：%s" % (node.key or "（未命名）"))
-        self.resize(560, 460)
-        lay = QVBoxLayout(self)
-        self.editor = QPlainTextEdit()
-        font = QFont("Consolas", 10)
-        font.setStyleHint(QFont.StyleHint.Monospace)
-        self.editor.setFont(font)
-        self.editor.setTabStopDistance(32)
-        self.editor.setPlainText(self._block_text(node))
-        lay.addWidget(self.editor)
-        btns = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
-        btns.accepted.connect(self._on_ok)
-        btns.rejected.connect(self.reject)
-        lay.addWidget(btns)
-
-    @staticmethod
-    def _block_text(node):
-        """把块节点序列化为可编辑文本（key = { ... }，无缩进便于编辑）。"""
-        return node.to_pdx(indent=0)
-
-    def _on_ok(self):
-        text = self.editor.toPlainText()
-        try:
-            nodes = parse_pdx_text_to_nodes(text)
-        except Exception as exc:  # 解析失败不放行
-            QMessageBox.warning(self, "解析失败", "块文本无法解析：%s" % exc)
-            return
-        if len(nodes) != 1 or nodes[0].node_type != "block":
-            QMessageBox.warning(
-                self, "格式错误", "编辑内容必须恰好是一个块（形如 key = { ... }）。")
-            return
-        self.accept()
-
-    @staticmethod
-    def get_text(parent, node):
-        """模态打开对话框；接受时返回编辑后的文本，取消返回 None。"""
-        dlg = BlockEditDialog(parent, node)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            return dlg.editor.toPlainText()
-        return None
-
-
 class StructureView(QTreeWidget):
-    """PDX 结构体列表树：缩进表达嵌套，双击编辑键/值/块，第三列展示本地化。"""
+    """PDX 结构体列表树：默认展开，双击块字段改名/双击块行展开收起，第三列本地化。"""
 
     structureChanged = pyqtSignal()  # 任何成功写回后触发
 
@@ -142,6 +84,7 @@ class StructureView(QTreeWidget):
 
     def _build_ui(self):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setExpandsOnDoubleClick(False)  # 展开收起由块行值列双击手动接管
         self.setAlternatingRowColors(True)
         self.setUniformRowHeights(True)
         self.setHeaderHidden(False)
@@ -178,41 +121,18 @@ class StructureView(QTreeWidget):
         return "\n".join(c.to_pdx(indent=0) for c in self._root.children)
 
     def rebuild(self):
-        """从 TreeNode 全量重建视图（尽量保留展开状态）。"""
-        expanded = self._expanded_paths()
+        """从 TreeNode 全量重建视图；默认全部展开。"""
         self._loading = True
         try:
             self.clear()
-            for i, node in enumerate(self._root.children):
+            for node in self._root.children:
                 item = self._make_item(node)
                 self.addTopLevelItem(item)
                 self._fill_children(item, node)
                 self._decorate(item, node)
-                if self._path_key(node, i) in expanded:
-                    item.setExpanded(True)
+            self.expandAll()
         finally:
             self._loading = False
-
-    def _expanded_paths(self):
-        out = set()
-        for i in range(self.topLevelItemCount()):
-            self._collect_expanded(self.topLevelItem(i), (self._row_key(self.topLevelItem(i), i),), out)
-        return out
-
-    def _collect_expanded(self, item, prefix, out):
-        if item.childCount() and item.isExpanded():
-            out.add(prefix)
-        for j in range(item.childCount()):
-            child = item.child(j)
-            self._collect_expanded(child, prefix + (self._row_key(child, j),), out)
-
-    @staticmethod
-    def _row_key(item, row):
-        node = item.data(0, Qt.ItemDataRole.UserRole)
-        return (getattr(node, "node_type", "?"), getattr(node, "key", "") or "·", row)
-
-    def _path_key(self, node, row):
-        return (node.node_type, node.key or "·", row)
 
     # ---------- 渲染 ----------
 
@@ -263,10 +183,11 @@ class StructureView(QTreeWidget):
         item.setForeground(self.COL_LOC, secondary)
         # tooltip
         if is_block:
-            item.setToolTip(self.COL_VALUE, "双击编辑整块（含块名与全部子条目）")
+            item.setToolTip(self.COL_KEY, "块字段：%s\n双击修改块名" % (node.key or "（未命名）"))
+            item.setToolTip(self.COL_VALUE, "双击展开/收起")
         elif is_stmt:
             item.setToolTip(self.COL_VALUE, "比较语句：双击值列可整句编辑")
-        if node.key:
+        if node.key and not is_block:
             item.setToolTip(self.COL_KEY, "键：%s\n双击改名" % node.key)
         self._apply_loc(item, node)
 
@@ -328,13 +249,12 @@ class StructureView(QTreeWidget):
             self.editItem(item, col)
         elif col == self.COL_VALUE:
             if node.node_type == "block":
-                self.edit_block(item)
+                item.setExpanded(not item.isExpanded())  # 块行：展开/收起
             else:
                 self.editItem(item, col)
         elif col == self.COL_LOC:
             trans = item.text(self.COL_LOC)
             if trans:
-                from PyQt6.QtWidgets import QApplication
                 QApplication.clipboard().setText(trans)
 
     def _on_item_changed(self, item, col):
@@ -365,6 +285,8 @@ class StructureView(QTreeWidget):
                 return False
             node.key = text
             node.raw_lines = []
+            if node.parent is not None and node.parent.raw_lines:
+                node.parent.raw_lines = []
             return True
         if col == self.COL_VALUE and node.node_type != "block":
             is_stmt = (not node.key) and bool(node.raw_lines)
@@ -382,47 +304,3 @@ class StructureView(QTreeWidget):
                 node.parent.raw_lines = []  # 结构已变，父块原始行作废
             return True
         return False
-
-    # ---------- 块编辑 ----------
-
-    def edit_block(self, item):
-        """弹出块编辑对话框，接受后原位替换子树。"""
-        node = item.data(0, Qt.ItemDataRole.UserRole)
-        if node is None or node.node_type != "block":
-            return False
-        text = BlockEditDialog.get_text(self, node)
-        if text is None:
-            return False
-        try:
-            return self.apply_block_text(item, text)
-        except Exception as exc:
-            QMessageBox.warning(self, "块编辑失败", str(exc))
-            return False
-
-    def apply_block_text(self, item, text):
-        """把整块文本解析后原位写回节点（可换块名、增删改子条目）。测试可直接调用。"""
-        node = item.data(0, Qt.ItemDataRole.UserRole)
-        if node is None or node.node_type != "block":
-            raise ValueError("目标不是块节点")
-        nodes = parse_pdx_text_to_nodes(text)
-        if len(nodes) != 1 or nodes[0].node_type != "block":
-            raise ValueError("编辑内容必须恰好是一个块（形如 key = { ... }）。")
-        new = nodes[0]
-        node.key = new.key
-        node.children = []
-        for child in new.children:
-            node.add_child(child)
-        node.raw_lines = []
-        if node.parent is not None and node.parent.raw_lines:
-            node.parent.raw_lines = []
-        # 原位重建该行子树
-        self._loading = True
-        try:
-            item.takeChildren()
-            self._fill_children(item, node)
-            self._decorate(item, node)
-            item.setExpanded(True)
-        finally:
-            self._loading = False
-        self.structureChanged.emit()
-        return True

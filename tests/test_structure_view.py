@@ -2,9 +2,9 @@
 """结构体展示组件（StructureView）测试。
 
 覆盖：
-- 块=列表行、缩进嵌套渲染（行数/层级/块摘要）；
+- 块=列表行、缩进嵌套渲染（行数/层级/块摘要），默认全部展开；
 - 双击语义对应的写回：键改名、值改值（含比较语句节点）、raw_lines 失效；
-- 整块编辑 apply_block_text：换块名 + 子条目原位替换 + 序列化生效；
+- 块交互：双击块字段（键列）改名写回、双击块行值列展开/收起、键列双击不收起；
 - 本地化列：候选判定启发式 + 翻译器接入展示；
 - 真实数据冒烟：游戏 MIO 组织文件 载入→序列化→重解析 层级一致。
 """
@@ -18,7 +18,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from PyQt6.QtCore import Qt  # noqa: E402
-from PyQt6.QtWidgets import QApplication  # noqa: E402
+from PyQt6.QtWidgets import QAbstractItemView, QApplication  # noqa: E402
 
 from structure_view import StructureView, is_loc_candidate  # noqa: E402
 from tree_node import parse_pdx_text_to_nodes  # noqa: E402
@@ -169,28 +169,45 @@ class StructureViewEditTest(unittest.TestCase):
         self.assertEqual(node.raw_lines, [new_stmt])
         self.assertIn(new_stmt, self.view.to_pdx_text())
 
-    def test_block_edit_rename_and_children(self):
+    def test_block_key_rename_writeback(self):
+        """双击块字段改名：块名写回，子条目原样保留。"""
         org = self._org_item()
         equip = org.child(2)
-        new_text = "equipment_new = {\n\t\ttype = other_type\n\t\textra = yes\n\t}"
-        self.assertTrue(self.view.apply_block_text(equip, new_text))
         node = equip.data(0, Qt.ItemDataRole.UserRole)
+        self.assertTrue(self.view._commit_edit(equip, node, StructureView.COL_KEY,
+                                               "equipment_new"))
         self.assertEqual(node.key, "equipment_new")
-        self.assertEqual([c.key for c in node.children], ["type", "extra"])
-        # 视图行同步：摘要数量与子行刷新
-        self.assertEqual(equip.text(1), "{ … } · 2 项")
-        self.assertEqual(equip.childCount(), 2)
-        self.assertEqual(equip.child(1).text(0), "extra")
         out = self.view.to_pdx_text()
         self.assertIn("equipment_new = {", out)
-        self.assertIn("extra = yes", out)
+        self.assertIn("type = char_1_type", out)   # 子条目保留
         self.assertNotIn("\tequipment = {", out)
 
-    def test_block_edit_invalid_text_rejected(self):
+    def test_blocks_expanded_by_default(self):
+        """组件默认展开：载入后所有块行均为展开态。"""
+        org = self._org_item()
+        self.assertTrue(org.isExpanded())
+        self.assertTrue(org.child(2).isExpanded())              # equipment 块
+        self.assertTrue(org.child(3).isExpanded())              # trait 块
+        self.assertTrue(org.child(3).child(2).isExpanded())     # position 嵌套块
+
+    def test_block_value_double_click_toggles_expansion(self):
+        """双击块行值列：展开 ↔ 收起。"""
         org = self._org_item()
         equip = org.child(2)
-        with self.assertRaises(ValueError):
-            self.view.apply_block_text(equip, "not a block = just value")
+        self.assertTrue(equip.isExpanded())  # 默认展开
+        self.view._on_double_clicked(equip, StructureView.COL_VALUE)
+        self.assertFalse(equip.isExpanded())
+        self.view._on_double_clicked(equip, StructureView.COL_VALUE)
+        self.assertTrue(equip.isExpanded())
+
+    def test_block_key_double_click_keeps_expanded(self):
+        """双击块字段（键列）走行内改名，不触发收起。"""
+        org = self._org_item()
+        equip = org.child(2)
+        self.view._on_double_clicked(equip, StructureView.COL_KEY)
+        self.assertTrue(equip.isExpanded())
+        self.assertEqual(self.view.state(),
+                         QAbstractItemView.State.EditingState)  # 编辑器已打开
 
     def test_structure_changed_signal(self):
         org = self._org_item()

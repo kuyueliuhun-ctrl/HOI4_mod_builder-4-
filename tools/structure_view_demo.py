@@ -7,8 +7,8 @@
     python tools/structure_view_demo.py --shot out.png  # 离屏截图后退出（自检用）
 
 演示功能：
-- 块=列表行，子条目缩进嵌套；
-- 双击"键"列改名、双击"值"列改值、双击块行"{ … }"打开整块编辑对话框；
+- 块=列表行，子条目缩进嵌套，载入后默认全部展开；
+- 双击键列改名、双击值列改值、双击块行"{ … }"展开/收起、双击块字段改块名；
 - 第三列接入 LocalizationManager 展示中文翻译（双击翻译可复制）；
 - "导出序列化"按钮把当前（可能已编辑的）结构写回文本，验证编辑真实生效。
 """
@@ -22,18 +22,26 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-GAME = "/mnt/e/SteamLibrary/steamapps/common/Hearts of Iron IV"
-MOD = "/mnt/e/mods/3350890356"
 DEFAULT_REL = os.path.join(
     "common", "military_industrial_organization", "organizations",
     "00_generic_organization.txt")
 
 
-def pick_default_file():
-    cand = os.path.join(GAME, DEFAULT_REL)
+def _default_roots():
+    """按运行环境返回 (游戏根, mod根) 候选：Windows 用 E:/，WSL 用 /mnt/e/。"""
+    if os.name == "nt":
+        return ("E:/SteamLibrary/steamapps/common/Hearts of Iron IV",
+                "E:/mods/3350890356")
+    return ("/mnt/e/SteamLibrary/steamapps/common/Hearts of Iron IV",
+            "/mnt/e/mods/3350890356")
+
+
+def pick_default_file(game_root):
+    cand = os.path.join(game_root, DEFAULT_REL)
     if os.path.isfile(cand):
         return cand
-    org_dir = os.path.join(GAME, "common", "military_industrial_organization", "organizations")
+    org_dir = os.path.join(game_root, "common", "military_industrial_organization",
+                           "organizations")
     if os.path.isdir(org_dir):
         for name in sorted(os.listdir(org_dir)):
             if name.endswith(".txt"):
@@ -54,8 +62,8 @@ def build_window(file_path, game, mod):
     dlg.resize(1080, 760)
     lay = QVBoxLayout(dlg)
 
-    hint = QLabel("双击键列改名 · 双击值列改值 · 双击块行 { … } 整块编辑 · "
-                  "第三列为翻译器本地化（双击复制）")
+    hint = QLabel("双击键列改名 · 双击值列改值 · 双击块行 { … } 展开/收起 · "
+                  "双击块字段改块名 · 第三列为翻译器本地化（双击复制）")
     hint.setStyleSheet("color: %s; font-size: 12px;" % theme.COLORS["text_secondary"])
     lay.addWidget(hint)
 
@@ -83,11 +91,11 @@ def build_window(file_path, game, mod):
     b_loc.clicked.connect(view.refresh_localization)
 
     def export_text():
+        from write_utils import atomic_write_text
         out_dir = os.path.join(ROOT, ".runtime")
         os.makedirs(out_dir, exist_ok=True)
         out_path = os.path.join(out_dir, "structure_demo_out.txt")
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(view.to_pdx_text() + "\n")
+        atomic_write_text(out_path, view.to_pdx_text() + "\n")
         QMessageBox.information(dlg, "已导出", "序列化文本已写入：\n%s" % out_path)
 
     b_out = QPushButton("导出序列化")
@@ -104,19 +112,20 @@ def build_window(file_path, game, mod):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--file", default="")
-    ap.add_argument("--game", default=GAME)
-    ap.add_argument("--mod", default=MOD)
+    ap.add_argument("--game", default="")
+    ap.add_argument("--mod", default="")
     ap.add_argument("--shot", default="", help="离屏截图输出 png 后退出")
     args = ap.parse_args()
 
-    file_path = args.file or pick_default_file()
+    game, mod = args.game or _default_roots()[0], args.mod or _default_roots()[1]
+    file_path = args.file or pick_default_file(game)
 
     from PyQt6.QtWidgets import QApplication
     app = QApplication(sys.argv)
     import theme
     theme.apply_theme(app)
 
-    dlg, view = build_window(file_path, args.game, args.mod)
+    dlg, view = build_window(file_path, game, mod)
 
     if args.shot:
         os.makedirs(os.path.dirname(os.path.abspath(args.shot)), exist_ok=True)
