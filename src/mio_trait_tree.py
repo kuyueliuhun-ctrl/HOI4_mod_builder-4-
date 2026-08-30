@@ -5,7 +5,8 @@
 点击节点发出 trait_selected(token)。
 
 配色与编辑器全局主题一致（theme.py）；
-特质名单行省略（tooltip 看全名），无特质时画布给出占位提示。
+特质名多行自动换行展示（字号自适应收缩，tooltip 看全名+token），
+互斥特质以红色虚线连接（同游戏互斥标识），无特质时画布给出占位提示。
 """
 
 from __future__ import annotations
@@ -17,7 +18,6 @@ from PyQt6.QtWidgets import (
     QGraphicsLineItem,
     QGraphicsRectItem,
     QGraphicsScene,
-    QGraphicsSimpleTextItem,
     QGraphicsTextItem,
     QGraphicsView,
 )
@@ -182,6 +182,30 @@ class MioTraitTreeView(QGraphicsView):
                 line.setZValue(-1)
                 self._scene.addItem(line)
 
+        # 互斥连线（红色，同游戏互斥标识；无向，两端各画一次去重）
+        me_drawn = set()
+        me_pen = QPen(QColor(C["danger"]), 1.6, Qt.PenStyle.DashLine)
+        for t in traits:
+            token = t.get("token", "")
+            if not token or token not in positions:
+                continue
+            for other in t.get("mutually_exclusive") or []:
+                pair = tuple(sorted((token, other)))
+                if other not in positions or pair in me_drawn:
+                    continue
+                me_drawn.add(pair)
+                ax, ay = positions[token]
+                bx, by = positions[other]
+                line = QGraphicsLineItem(
+                    ax * CELL_W + 10 + NODE_W // 2,
+                    ay * CELL_H + 10 + NODE_H // 2,
+                    bx * CELL_W + 10 + NODE_W // 2,
+                    by * CELL_H + 10 + NODE_H // 2)
+                line.setPen(me_pen)
+                line.setZValue(-1)
+                line.setToolTip("互斥：%s ↔ %s" % (token, other))
+                self._scene.addItem(line)
+
         # 节点
         for t in traits:
             token = t.get("token", "")
@@ -199,25 +223,43 @@ class MioTraitTreeView(QGraphicsView):
             # 图标
             icon = t.get("icon", "")
             pm = self._icon_pixmap(icon)
+            has_icon = False
             if not pm.isNull():
                 pm = pm.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio,
                                Qt.TransformationMode.SmoothTransformation)
                 icon_item = self._scene.addPixmap(pm)
                 icon_item.setPos(px + 6, py + (NODE_H - 40) // 2)
                 icon_item.setZValue(2)
-            # 名称（单行省略，tooltip 看全名，杜绝溢出节点）
+                has_icon = True
+            # 名称（多行自动换行 + 字号收缩 + 兜底截断，不溢出节点；
+            # 无图标时占用整卡宽度。完整名称始终保留在 tooltip）
             label = self._name(token)
+            tx = px + (50 if has_icon else 8)
+            width = NODE_W - (58 if has_icon else 16)
             f = QFont()
-            f.setPointSize(9)
-            fm = self.fontMetrics()
-            shown = fm.elidedText(label, Qt.TextElideMode.ElideRight,
-                                  NODE_W - 58)
-            txt = QGraphicsSimpleTextItem(shown)
-            txt.setFont(f)
-            txt.setBrush(QColor(C["text_primary"]))
+            txt = QGraphicsTextItem(label)
+            txt.setDefaultTextColor(QColor(C["text_primary"]))
             txt.setToolTip("%s\n%s" % (label, token))
-            txt.setPos(px + 50, py + (NODE_H - 16) // 2)
             txt.setZValue(2)
+            doc = txt.document()
+            doc.setDocumentMargin(0)
+
+            def _layout(text, size):
+                f.setPointSize(size)
+                doc.setDefaultFont(f)
+                doc.setPlainText(text)
+                doc.setTextWidth(width)
+
+            shown = label
+            for size in (9, 8, 7, 6):
+                _layout(shown, size)
+                if doc.size().height() <= NODE_H - 10:
+                    break
+            while doc.size().height() > NODE_H - 10 and len(shown) > 8:
+                shown = shown[:-5].rstrip("_") + "…"
+                _layout(shown, 6)
+            th = doc.size().height()
+            txt.setPos(tx, py + max(2, (NODE_H - th) / 2))
             self._scene.addItem(txt)
 
         # 初始特质标记（★ 画在节点右上角，避免与图标重叠）

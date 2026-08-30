@@ -148,5 +148,24 @@ class WidgetsFallback(unittest.TestCase):
         self.assertEqual(btn.property("class"), "primary")
 
 
+class GfxRecursiveScan(unittest.TestCase):
+    """scan_gfx_folder recursive：子目录 .gfx 也能进 gfx_map。"""
+
+    def test_recursive_vs_flat(self):
+        from gui_translator import scan_gfx_folder
+        base = _mkdtemp("gfx_scan_")
+        d = os.path.join(base, "interface", "mio")
+        os.makedirs(d)
+        with open(os.path.join(d, "a.gfx"), "w", encoding="utf-8") as f:
+            f.write('spriteTypes = { spriteType = { name = "GFX_test_x" '
+                    'texturefile = "gfx/a.dds" } }')
+        flat = {}
+        scan_gfx_folder(base, flat)
+        self.assertNotIn("GFX_test_x", flat)
+        rec = {}
+        scan_gfx_folder(base, rec, recursive=True)
+        self.assertIn("GFX_test_x", rec)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -357,6 +357,29 @@ class MioTraitLayoutParse(unittest.TestCase):
         self.assertEqual(len(mios["base_org"]["traits"]), 1)
 
 
+    def test_mutually_exclusive_parsed(self):
+        from mio_loader import parse_mio_organizations
+        content = (
+            "org = {\n"
+            "\ttrait = {\n"
+            "\t\ttoken = t_a\n"
+            "\t\tname = t_a\n"
+            "\t\tposition = { x=0 y=0 }\n"
+            "\t\tmutually_exclusive = { t_b t_c }\n"
+            "\t}\n"
+            "\ttrait = {\n"
+            "\t\ttoken = t_b\n"
+            "\t\tname = t_b\n"
+            "\t\tposition = { x=1 y=0 }\n"
+            "\t}\n"
+            "}\n")
+        org = parse_mio_organizations(content)["org"]
+        by = {t["token"]: t for t in org["traits"]}
+        self.assertEqual(by["t_a"]["mutually_exclusive"], ["t_b", "t_c"])
+        # 原始块保留在 extra_blocks（写回不丢）
+        self.assertTrue(any("mutually_exclusive" in b
+                            for b in by["t_a"]["extra_blocks"]))
+
     def test_file_variables_in_position(self):
         from mio_loader import parse_mio_organizations
         content = (
@@ -374,6 +397,42 @@ class MioTraitLayoutParse(unittest.TestCase):
         self.assertEqual((t["x"], t["y"]), (9, 3))
 
 
+class MioBonusLocalization(unittest.TestCase):
+    """加成属性本地化：loc 链 + 内置词典兜底 + 系数百分比格式化。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def test_stat_label_mapping(self):
+        from mio_editor_dialog import MioEditorDialog
+        dlg = MioEditorDialog("", "")
+        self.assertEqual(dlg._stat_label("soft_attack"), "软攻击")
+        self.assertEqual(dlg._stat_label("build_cost_ic"), "生产花费")
+        self.assertEqual(dlg._stat_label("totally_unknown_key"),
+                         "totally_unknown_key")
+
+    def test_format_bonus_percent(self):
+        from mio_editor_dialog import MioEditorDialog
+        dlg = MioEditorDialog("", "")
+        lines = dlg._format_bonus("{\n\tbuild_cost_ic = -0.05\n}")
+        self.assertTrue(any("生产花费 = -5%" in ln for ln in lines))
+        lines2 = dlg._format_bonus("{\n\tproduction_capacity_factor = 0.1\n}")
+        self.assertTrue(any("= +10%" in ln for ln in lines2))
+
+    def test_format_bonus_strips_wrapper_and_templates(self):
+        from mio_editor_dialog import MioEditorDialog
+        dlg = MioEditorDialog("", "")
+        raw = "equipment_bonus = {\n\t\t\tarmor_value = -0.05\n\t\t\tdefense =-0.05\n\t\t\tbuild_cost_ic = -0.03\n\t\t}\n\t}\n\n\t"
+        text = "\n".join(dlg._format_bonus(raw))
+        self.assertNotIn("equipment_bonus", text)   # 外层键不出现
+        self.assertIn("装甲厚度 = -0.05", text)      # 模板串候选被跳过
+        self.assertIn("防御 = -0.05", text)
+        self.assertIn("生产花费 = -3%", text)
+
+
 class MioTraitTreeDrawing(unittest.TestCase):
     """特质树绘图回归：文本不溢出节点 / 空特质占位提示。"""
 
@@ -383,8 +442,8 @@ class MioTraitTreeDrawing(unittest.TestCase):
         from PyQt6.QtWidgets import QApplication
         cls.app = QApplication.instance() or QApplication([])
 
-    def test_elided_text_stays_inside_node(self):
-        from PyQt6.QtWidgets import QGraphicsSimpleTextItem
+    def test_multiline_text_stays_inside_node(self):
+        from PyQt6.QtWidgets import QGraphicsTextItem
         from mio_trait_tree import MioTraitTreeView
         tree = MioTraitTreeView()
         long_token = "tfr_mio_trait_extremely_long_token_name_for_overflow"
@@ -397,13 +456,54 @@ class MioTraitTreeDrawing(unittest.TestCase):
                 if i.__class__.__name__ == "_TraitNode"][0]
         nrb = node.sceneBoundingRect()
         texts = [i for i in tree._scene.items()
-                 if isinstance(i, QGraphicsSimpleTextItem)]
+                 if isinstance(i, QGraphicsTextItem)
+                 and i.toPlainText() != "★"]
         self.assertTrue(texts)
         for it in texts:
             self.assertLessEqual(
                 it.sceneBoundingRect().right(), nrb.right() + 1)
             self.assertLessEqual(
                 it.sceneBoundingRect().bottom(), nrb.bottom() + 1)
+        # 完整名称保留在 tooltip（截断只发生在显示层）
+        self.assertIn(long_token, texts[0].toolTip())
+
+    def test_long_name_renders_multiline(self):
+        from PyQt6.QtWidgets import QGraphicsTextItem
+        from mio_trait_tree import MioTraitTreeView
+        tree = MioTraitTreeView()
+        name = "tfr_mio_trait_extremely_long_token_name_for_overflow"
+        tree.set_mio({
+            "id": "x", "initial_trait": {},
+            "traits": [{"token": name, "name": name,
+                        "icon": "", "x": 0, "y": 0}],
+        })
+        texts = [i for i in tree._scene.items()
+                 if isinstance(i, QGraphicsTextItem)]
+        self.assertEqual(len(texts), 1)
+        txt = texts[0]
+        # 文档高度明显超过单行（多行换行展示）或已做显示层截断
+        shown = txt.toPlainText()
+        self.assertGreater(txt.document().size().height(), 20)
+        self.assertTrue(shown == name or shown.endswith("…"))
+
+    def test_mutually_exclusive_line_drawn(self):
+        from PyQt6.QtWidgets import QGraphicsLineItem
+        from mio_trait_tree import MioTraitTreeView
+        from theme import COLORS as C
+        tree = MioTraitTreeView()
+        tree.set_mio({
+            "id": "x", "initial_trait": {},
+            "traits": [
+                {"token": "a", "name": "a", "icon": "", "x": 0, "y": 0,
+                 "mutually_exclusive": ["b"]},
+                {"token": "b", "name": "b", "icon": "", "x": 1, "y": 0,
+                 "mutually_exclusive": []},
+            ],
+        })
+        lines = [i for i in tree._scene.items()
+                 if isinstance(i, QGraphicsLineItem)]
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(lines[0].pen().color().name(), C["danger"].lower())
 
     def test_empty_traits_placeholder(self):
         from mio_trait_tree import MioTraitTreeView

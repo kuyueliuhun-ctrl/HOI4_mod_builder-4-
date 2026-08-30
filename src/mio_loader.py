@@ -124,18 +124,20 @@ def _resolve_int(value, variables=None):
 
 
 def _parent_tokens_from_block(cbt):
-    """从 any_parent/all_parents 子块提取父特质 token（去重、去键名）。
+    """从 any_parent/all_parents/mutually_exclusive 子块提取特质 token（去重、去键名）。
 
     兼容两种游戏语法：
     - 包裹式：any_parent = { traits = { a b } num_parents_needed = 1 }
-    - 裸值式：any_parent = { a b }
+    - 裸值式：mutually_exclusive = { a b }
     """
     text = cbt or ""
     m = re.search(r"traits\s*=\s*\{([^}]*)\}", text)
     if m:
         text = m.group(1)
     else:
-        text = re.sub(r"#.*", "", text)
+        # 剥掉开头键名（`key = {` 之前的部分），取花括号内文本
+        start = text.find("{")
+        text = text[start + 1:] if start >= 0 else re.sub(r"#.*", "", text)
     toks = re.findall(r"[A-Za-z0-9_][\w\.\-]*", text)
     if not m:
         toks = [t for t in toks if t not in _PARENT_KEY_STOP]
@@ -155,6 +157,7 @@ def _parse_trait(block_text, variables=None):
     production_bonus = ""
     parents = []
     parent_blocks = {}
+    mut_ex = []
     extra_blocks = []
     for ck, cs, _ce in _child_blocks(block_text):
         bs, be = _find_block_bounds(block_text, cs)
@@ -164,6 +167,13 @@ def _parse_trait(block_text, variables=None):
                 if tok not in parents:
                     parents.append(tok)
             parent_blocks.setdefault(ck, []).append(cbt)
+        elif ck == "mutually_exclusive":
+            # 裸值式：mutually_exclusive = { other_token }
+            # 复用父 token 提取器（兼容 traits = {} 包裹与裸值）
+            for tok in _parent_tokens_from_block(cbt):
+                if tok not in mut_ex:
+                    mut_ex.append(tok)
+            extra_blocks.append(cbt)
         elif ck == "position":
             pos_text = cbt
         elif ck == "equipment_bonus":
@@ -190,6 +200,7 @@ def _parse_trait(block_text, variables=None):
         "relative_position_id": f.get("relative_position_id", ""),
         "parents": parents,
         "parent_blocks": parent_blocks,
+        "mutually_exclusive": mut_ex,
         "extra_blocks": extra_blocks,
         "equipment_bonus": equipment_bonus,
         "production_bonus": production_bonus,
@@ -259,7 +270,8 @@ def _merge_included_trait(base, local):
         for k in ("x", "y", "relative_position_id"):
             local.pop(k, None)
     for k, v in local.items():
-        if k in ("extra_blocks", "parent_blocks", "raw", "has_position"):
+        if k in ("extra_blocks", "parent_blocks", "raw", "has_position",
+                 "mutually_exclusive"):
             continue
         if v in ("", None, [], {}):
             continue
@@ -267,6 +279,9 @@ def _merge_included_trait(base, local):
     base_extra = list(base.get("extra_blocks") or [])
     out["extra_blocks"] = base_extra + [
         b for b in (local.get("extra_blocks") or []) if b not in base_extra]
+    base_me = list(base.get("mutually_exclusive") or [])
+    out["mutually_exclusive"] = base_me + [
+        t for t in (local.get("mutually_exclusive") or []) if t not in base_me]
     pb = dict(base.get("parent_blocks") or {})
     for kk, vv in (local.get("parent_blocks") or {}).items():
         pb.setdefault(kk, [])

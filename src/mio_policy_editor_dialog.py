@@ -116,8 +116,11 @@ class MioPolicyEditorDialog(QDialog):
         try:
             from gui_translator import get_translator, scan_gfx_folder
             gfx = dict(get_translator().gfx_map)
+            # 递归扫描 interface 子目录（MIO 方针图标在子目录里定义）
+            if self.hoi4_path:
+                scan_gfx_folder(self.hoi4_path, gfx, recursive=True)
             if self.mod_path:
-                scan_gfx_folder(self.mod_path, gfx)
+                scan_gfx_folder(self.mod_path, gfx, recursive=True)
         except Exception:
             pass
         return gfx

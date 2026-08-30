@@ -17,7 +17,7 @@ import re
 import json
 
 
-def scan_gfx_folder(base_path, gfx_map):
+def scan_gfx_folder(base_path, gfx_map, recursive=False):
     """扫描 base_path/interface/*.gfx 文件，建立精灵名称到纹理路径的映射。
 
     用于同时从游戏目录和 mod 目录加载图标定义。
@@ -26,6 +26,8 @@ def scan_gfx_folder(base_path, gfx_map):
     Args:
         base_path: 游戏根目录或 mod 根目录
         gfx_map: 写入目标字典（精灵名 -> 纹理路径）
+        recursive: 是否递归扫描 interface 子目录
+            （如 military_industrial_organization/ 下的 MIO 图标定义）
     """
     interface_dir = os.path.join(base_path, "interface")
     if not os.path.isdir(interface_dir):
@@ -35,10 +37,20 @@ def scan_gfx_folder(base_path, gfx_map):
     name_pattern = re.compile(r'name\s*=\s*"([^"]+)"')
     tex_pattern = re.compile(r'texturefile\s*=\s*"([^"]+)"', re.IGNORECASE)
 
-    for filename in os.listdir(interface_dir):
-        if not filename.lower().endswith(".gfx"):
-            continue
-        filepath = os.path.join(interface_dir, filename)
+    if recursive:
+        candidates = []
+        for dirpath, _dirs, files in os.walk(interface_dir):
+            for filename in files:
+                if filename.lower().endswith(".gfx"):
+                    candidates.append(os.path.join(dirpath, filename))
+    else:
+        candidates = [
+            os.path.join(interface_dir, filename)
+            for filename in os.listdir(interface_dir)
+            if filename.lower().endswith(".gfx")
+        ]
+
+    for filepath in sorted(candidates):
         try:
             with open(filepath, "r", encoding="utf-8-sig") as f:
                 content = f.read()

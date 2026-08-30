@@ -112,28 +112,89 @@ class MioEditorDialog(QDialog):
     # ---------- 依赖 ----------
 
     def _make_loc(self):
-        cache = {"sig": None, "mgr": None}
+        self._loc_cache = {"sig": None, "mgr": None}
 
         def name_of(key):
             try:
                 from localization_mgr import LocalizationManager
                 sig = (self.hoi4_path or "", self.mod_path or "")
-                if cache["sig"] != sig:
+                if self._loc_cache["sig"] != sig:
                     mgr = LocalizationManager()
                     mgr.reload(sig[0], sig[1])
-                    cache["sig"], cache["mgr"] = sig, mgr
-                return cache["mgr"].get_name(key) or key
+                    self._loc_cache["sig"], self._loc_cache["mgr"] = sig, mgr
+                return self._loc_cache["mgr"].get_name(key) or key
             except Exception:
                 return key
         return name_of
+
+    def _loc_raw(self, key):
+        """本地化查询：命中返回文本，未命中返回空串。"""
+        try:
+            from localization_mgr import LocalizationManager
+            sig = (self.hoi4_path or "", self.mod_path or "")
+            if self._loc_cache["sig"] != sig:
+                mgr = LocalizationManager()
+                mgr.reload(sig[0], sig[1])
+                self._loc_cache["sig"], self._loc_cache["mgr"] = sig, mgr
+            return self._loc_cache["mgr"].get_name(key) or ""
+        except Exception:
+            return ""
+
+    def _stat_label(self, key):
+        """属性键本地化：loc 链优先，回退内置中文词典，最后原样键名。
+
+        loc 结果需清洗：去掉 £图标 / $模板$ 片段与尾部冒号；
+        清洗后为空的候选（纯模板串）跳过。
+        """
+        upper = key.upper()
+        for cand in ("STAT_COMMON_" + upper, "STAT_" + upper, key):
+            text = self._loc_raw(cand)
+            if text:
+                text = re.sub(r"£\S+|\$[^$]*\$", "", text).strip()
+                if text:
+                    return text.rstrip("：:").strip()
+        return _STAT_ZH.get(key, key)
+
+    @staticmethod
+    def _bonus_inner(raw):
+        """取加成块最外层花括号内部文本（剥外层键/花括号与尾随杂物）。"""
+        start = raw.find("{")
+        if start < 0:
+            return raw
+        depth = 0
+        for i in range(start, len(raw)):
+            if raw[i] == "{":
+                depth += 1
+            elif raw[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    return raw[start + 1:i]
+        return raw[start + 1:]
+
+    def _format_bonus(self, raw):
+        """把原始加成块渲染为本地化行（属性名 = 值；系数类显示百分比）。"""
+        lines = []
+        for key, val in _extract_kv(self._bonus_inner(raw or "")):
+            shown_val = val
+            try:
+                num = float(val)
+                if key.endswith("_factor") or key == "build_cost_ic":
+                    shown_val = "%+d%%" % round(num * 100)
+            except ValueError:
+                pass
+            lines.append("%s = %s" % (self._stat_label(key), shown_val))
+        return lines
 
     def _make_gfx_map(self):
         gfx = {}
         try:
             from gui_translator import get_translator, scan_gfx_folder
             gfx = dict(get_translator().gfx_map)
+            # 递归扫描 interface 子目录（MIO 特质/方针图标都在子目录里定义）
+            if self.hoi4_path:
+                scan_gfx_folder(self.hoi4_path, gfx, recursive=True)
             if self.mod_path:
-                scan_gfx_folder(self.mod_path, gfx)
+                scan_gfx_folder(self.mod_path, gfx, recursive=True)
         except Exception:
             pass
         return gfx
@@ -296,8 +357,7 @@ class MioEditorDialog(QDialog):
             if not raw:
                 continue
             lines.append("· %s：" % label)
-            for k, v in _extract_kv(raw):
-                lines.append("    %s = %s" % (k, v))
+            lines.extend("    %s" % ln for ln in self._format_bonus(raw))
         self.info_label.setText("\n".join(lines) or "（无 initial_trait 加成）")
 
     def _refresh_mio_icon(self, mio):
@@ -532,6 +592,68 @@ def _extract_kv(raw):
         if m:
             out.append((m.group(1), m.group(2)))
     return out
+
+
+# HOI4 装备/生产属性内置中文名（游戏 loc 缺失时的兜底；
+# 命中 loc 的 STAT_COMMON_/STAT_ 键优先）
+_STAT_ZH = {
+    "build_cost_ic": "生产花费",
+    "soft_attack": "软攻击",
+    "hard_attack": "硬攻击",
+    "ap_attack": "穿甲攻击",
+    "armor_value": "装甲厚度",
+    "defense": "防御",
+    "breakthrough": "突破",
+    "hardness": "相对厚度",
+    "reliability": "可靠性",
+    "maximum_speed": "最大速度",
+    "fuel_consumption": "燃油使用",
+    "fuel_consumption_factor": "燃油使用",
+    "air_agility": "机动",
+    "air_attack": "空对空攻击",
+    "air_defence": "空中防御",
+    "air_bombing": "战略轰炸",
+    "air_ground_attack": "对地攻击",
+    "air_range": "航程",
+    "air_superiority": "制空能力",
+    "anti_air_attack": "对空攻击",
+    "anti_air": "对空攻击",
+    "carrier_size": "搭载量",
+    "naval_speed": "海军速度",
+    "naval_range": "海军航程",
+    "naval_hit_chance": "海军命中率",
+    "naval_heavy_gun_hit_chance_factor": "重炮命中率",
+    "naval_light_gun_hit_chance_factor": "轻炮命中率",
+    "naval_torpedo_hit_chance_factor": "鱼雷命中率",
+    "naval_torpedo_damage_reduction_factor": "鱼雷伤害减免",
+    "naval_torpedo_enemy_critical_chance_factor": "敌方鱼雷暴击几率",
+    "naval_strike_attack": "海军打击攻击",
+    "naval_strike_targetting": "海军打击瞄准",
+    "naval_weather_penalty_factor": "海军天气惩罚",
+    "patrol_coordination": "巡逻协同",
+    "mines_planting": "布雷能力",
+    "mines_sweeping": "扫雷能力",
+    "sub_attack": "潜艇攻击",
+    "sub_detection": "潜艇探测",
+    "sub_visibility": "潜艇可见度",
+    "surface_detection": "水面探测",
+    "surface_visibility": "水面可见度",
+    "torpedo_attack": "鱼雷攻击",
+    "hg_attack": "重炮攻击",
+    "hg_armor_piercing": "重炮穿甲",
+    "lg_attack": "轻炮攻击",
+    "lg_armor_piercing": "轻炮穿甲",
+    "production_capacity_factor": "生产容量",
+    "production_conversion_speed_factor": "改装速度",
+    "production_cost_factor": "生产花费",
+    "production_efficiency_cap_factor": "生产效率上限",
+    "production_efficiency_gain_factor": "生产效率增长",
+    "production_resource_need_factor": "资源需求",
+    "production_resource_penalty_factor": "资源惩罚",
+    "conversion_cost_ic": "改装花费",
+    "conversion_speed": "改装速度",
+    "xp_cost": "经验消耗",
+}
 
 
 def open_mio_editor(file_path="", mod_path="", hoi4_path="",
