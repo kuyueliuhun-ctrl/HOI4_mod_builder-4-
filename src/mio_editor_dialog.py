@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 
 from PyQt6.QtCore import Qt
@@ -35,11 +36,17 @@ from PyQt6.QtWidgets import (
 
 from ai_ui_common import EntityListSidebar
 from mio_loader import (
+    delete_mio,
     delete_trait,
+    duplicate_mio,
     duplicate_trait,
+    initial_trait_to_pdx,
+    insert_mio,
     insert_trait,
     load_mios,
+    rename_mio,
     rename_trait,
+    replace_initial_trait,
     replace_mio_fields,
     replace_trait_block,
     trait_to_pdx,
@@ -53,6 +60,102 @@ from mio_ui_theme import (
 from state_build_ops import ensure_file_in_mod
 from theme import COLORS as C
 from write_utils import atomic_write_text
+
+
+def _strip_block_wrapper(raw, name):
+    """剥掉 `name = { ... }` 外层，返回花括号内部文本。"""
+    raw = (raw or "").strip()
+    if raw.startswith(name):
+        start = raw.find("{")
+        if start >= 0:
+            depth = 0
+            for i in range(start, len(raw)):
+                if raw[i] == "{":
+                    depth += 1
+                elif raw[i] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        return raw[start + 1:i]
+            return raw[start + 1:]
+    return raw
+
+
+class InitialTraitDialog(QDialog):
+    """初始特质（初始加成）编辑对话框。
+
+    覆盖三种数据形态：equipment_bonus / production_bonus 子块、
+    BBA 直接属性键（direct_stats）、以及只读保留块
+    （visible / available / organization_modifier / ai_will_do 等）。
+    """
+
+    def __init__(self, init, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("编辑初始加成")
+        self.resize(560, 560)
+        init = init or {}
+        self._extra_blocks = list(init.get("extra_blocks") or [])
+
+        lay = QVBoxLayout(self)
+        lay.addWidget(QLabel("名称（本地化键）"))
+        self.name_edit = QLineEdit(init.get("name", ""))
+        lay.addWidget(self.name_edit)
+
+        lay.addWidget(QLabel("装备加成（equipment_bonus 内部）"))
+        self.equip_edit = QPlainTextEdit(
+            _strip_block_wrapper(init.get("equipment_bonus", ""),
+                                 "equipment_bonus").strip())
+        self.equip_edit.setFixedHeight(110)
+        lay.addWidget(self.equip_edit)
+
+        lay.addWidget(QLabel("生产加成（production_bonus 内部）"))
+        self.prod_edit = QPlainTextEdit(
+            _strip_block_wrapper(init.get("production_bonus", ""),
+                                 "production_bonus").strip())
+        self.prod_edit.setFixedHeight(110)
+        lay.addWidget(self.prod_edit)
+
+        lay.addWidget(QLabel("直接属性加成（每行一条：键 = 数值）"))
+        self.direct_edit = QPlainTextEdit("\n".join(
+            "%s = %s" % (k, v)
+            for k, v in (init.get("direct_stats") or [])))
+        self.direct_edit.setFixedHeight(110)
+        lay.addWidget(self.direct_edit)
+
+        kept = [b.splitlines()[0].strip() if b.splitlines() else b
+                for b in self._extra_blocks]
+        info = QLabel("保留块（写回原样保留）：%s" % (", ".join(kept) or "无"))
+        info.setWordWrap(True)
+        info.setStyleSheet("color:%s;" % C["text_secondary"])
+        lay.addWidget(info)
+
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        ok = QPushButton("💾 保存")
+        ok.clicked.connect(self.accept)
+        cancel = QPushButton("取消")
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(ok)
+        btns.addWidget(cancel)
+        lay.addLayout(btns)
+
+    @staticmethod
+    def _parse_direct(text):
+        out = []
+        for line in (text or "").splitlines():
+            m = re.match(r"^\s*([\w\.\-]+)\s*=\s*([^\s#]+)", line)
+            if m:
+                out.append((m.group(1), m.group(2)))
+        return out
+
+    def build_block(self):
+        """组装 initial_trait 块文本。"""
+        return initial_trait_to_pdx(
+            name=self.name_edit.text().strip(),
+            equipment_bonus=self.equip_edit.toPlainText().strip(),
+            production_bonus=self.prod_edit.toPlainText().strip(),
+            direct_stats=self._parse_direct(self.direct_edit.toPlainText()),
+            extra_blocks=self._extra_blocks,
+        )
 
 
 class MioEditorDialog(QDialog):
@@ -82,6 +185,10 @@ class MioEditorDialog(QDialog):
         self.sidebar = EntityListSidebar("MIO 组织", self)
         self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_mio_changed)
+        self.sidebar.createRequested.connect(self._on_create_mio)
+        self.sidebar.duplicateRequested.connect(self._on_dup_mio)
+        self.sidebar.renameRequested.connect(self._on_rename_mio)
+        self.sidebar.deleteRequested.connect(self._on_delete_mio)
         root.addWidget(self.sidebar)
 
         right = QVBoxLayout()
@@ -208,10 +315,13 @@ class MioEditorDialog(QDialog):
         self.mio_icon_label = self.banner.icon_label
         self.mio_icon_btn = QPushButton("选择 MIO 图标")
         self.mio_icon_btn.clicked.connect(self._pick_mio_icon)
+        self.name_loc_btn = QPushButton("本地化名称…")
+        self.name_loc_btn.clicked.connect(self._edit_mio_name)
         self.save_btn = QPushButton("💾 保存")
         self.save_btn.clicked.connect(self._on_save_mio)
         row = self.banner.layout()
         row.addWidget(self.mio_icon_btn)
+        row.addWidget(self.name_loc_btn)
         row.addWidget(self.save_btn)
         return self.banner
 
@@ -228,6 +338,9 @@ class MioEditorDialog(QDialog):
         self.info_label.setStyleSheet(
             "color:%s; background:transparent;" % C["text_secondary"])
         host.addWidget(self.info_label, 1)
+        self.init_edit_btn = QPushButton("✎ 编辑初始加成")
+        self.init_edit_btn.clicked.connect(self._edit_initial_trait)
+        host.addWidget(self.init_edit_btn)
         panel = QWidget()
         panel.setProperty("class", "card")
         panel.setFixedWidth(300)
@@ -282,6 +395,10 @@ class MioEditorDialog(QDialog):
         self.prod_edit.setPlaceholderText("production_bonus 原始块（含外层）")
         self.prod_edit.setFixedHeight(80)
         form.addWidget(self._field_row("生产加成", self.prod_edit))
+        self.direct_edit = QPlainTextEdit()
+        self.direct_edit.setPlaceholderText("直接属性（BBA，每行：键 = 值）")
+        self.direct_edit.setFixedHeight(70)
+        form.addWidget(self._field_row("直接属性", self.direct_edit))
 
         btns = QHBoxLayout()
         for label, fn in (("💾 存特质", self._on_save_trait),
@@ -318,7 +435,7 @@ class MioEditorDialog(QDialog):
 
     def _reload(self, select_id=None):
         self.mios = load_mios(self.mod_path, self.hoi4_path)
-        labels = [(mid, m.get("name", mid)) for mid, m in self.mios.items()]
+        labels = [(mid, self._loc_name(mid)) for mid, m in self.mios.items()]
         self.sidebar.set_entities(labels)
         if select_id:
             self.sidebar.set_current(select_id)
@@ -326,13 +443,24 @@ class MioEditorDialog(QDialog):
             self.sidebar.set_current(
                 self.sidebar.list.item(0).data(Qt.ItemDataRole.UserRole))
 
+    def _loc_name(self, key):
+        """组织/方针显示名：本地化命中用译文，否则原 id。"""
+        try:
+            return self._loc_raw(key) or key
+        except Exception:
+            return key
+
     def _current_mio(self):
         return self.mios.get(self._current_id)
 
     def _on_mio_changed(self, mio_id):
         self._current_id = mio_id
         mio = self.mios.get(mio_id)
-        self.title_label.setText(mio_id or "—")
+        loc_name = self._loc_name(mio_id) if mio_id else ""
+        if loc_name and loc_name != mio_id:
+            self.title_label.setText("%s（%s）" % (loc_name, mio_id))
+        else:
+            self.title_label.setText(mio_id or "—")
         self._trait_token = None
         self._clear_trait_form()
         if not mio:
@@ -358,7 +486,158 @@ class MioEditorDialog(QDialog):
                 continue
             lines.append("· %s：" % label)
             lines.extend("    %s" % ln for ln in self._format_bonus(raw))
+        direct = init.get("direct_stats") or []
+        if direct:
+            lines.append("· 直接属性加成：")
+            for k, v in direct:
+                try:
+                    shown = v
+                    num = float(v)
+                    if k.endswith("_factor") or k == "build_cost_ic":
+                        shown = "%+d%%" % round(num * 100)
+                except ValueError:
+                    shown = v
+                lines.append("    %s = %s" % (self._stat_label(k), shown))
         self.info_label.setText("\n".join(lines) or "（无 initial_trait 加成）")
+
+    def _edit_initial_trait(self):
+        mio = self._current_mio()
+        if not mio:
+            return
+        dlg = InitialTraitDialog(mio.get("initial_trait") or {}, parent=self)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+        block = dlg.build_block()
+
+        def transform(content):
+            return replace_initial_trait(content, mio["id"], block)
+        if self._write_rel(mio.get("rel", ""), transform):
+            mio["initial_trait"] = None  # 触发重载
+            self._reload(self._current_id)
+            QMessageBox.information(self, "已保存", "已保存初始加成")
+
+    # ---------- 组织实体 CRUD ----------
+
+    def _target_rel(self):
+        mio = self._current_mio()
+        if mio and mio.get("rel"):
+            return mio["rel"]
+        for m in self.mios.values():
+            if m.get("rel"):
+                return m["rel"]
+        return ""
+
+    def _on_create_mio(self):
+        mio_id, ok = QInputDialog.getText(self, "新建 MIO 组织", "新组织 id：")
+        if not ok or not mio_id.strip():
+            return
+        mio_id = mio_id.strip()
+        if mio_id in self.mios:
+            QMessageBox.warning(self, "新建失败", "组织 id 已存在：%s" % mio_id)
+            return
+        template = ("%s = {\n\ticon = GFX_idea_generic_tank_manufacturer_1\n"
+                    "\tequipment_type = { infantry_equipment }\n}" % mio_id)
+        after = self._current_id or None
+        rel = self._target_rel()
+        if rel:
+            def transform(content):
+                return insert_mio(content, mio_id, template, after_id=after)
+            if not self._write_rel(rel, transform):
+                return
+        else:
+            if not self.mod_path:
+                QMessageBox.warning(self, "新建失败", "未打开 mod")
+                return
+            d = os.path.join(self.mod_path, "common",
+                             "military_industrial_organization",
+                             "organizations")
+            os.makedirs(d, exist_ok=True)
+            try:
+                atomic_write_text(os.path.join(d, "zzz_custom.txt"),
+                                  template + "\n")
+            except Exception as e:
+                QMessageBox.warning(self, "新建失败", "写入失败：%s" % e)
+                return
+        self._reload(mio_id)
+
+    def _on_dup_mio(self):
+        if not self._current_id:
+            return
+        new_id, ok = QInputDialog.getText(
+            self, "复制组织", "新组织 id：", text=self._current_id + "_copy")
+        if not ok or not new_id.strip():
+            return
+        new_id = new_id.strip()
+        if new_id in self.mios:
+            QMessageBox.warning(self, "复制失败", "组织 id 已存在：%s" % new_id)
+            return
+
+        def transform(content):
+            return duplicate_mio(content, self._current_id, new_id)
+        if self._write_rel(self._target_rel(), transform):
+            self._reload(new_id)
+
+    def _on_rename_mio(self):
+        if not self._current_id:
+            return
+        new_id, ok = QInputDialog.getText(
+            self, "重命名组织", "新组织 id：", text=self._current_id)
+        if not ok or not new_id.strip() or new_id.strip() == self._current_id:
+            return
+        new_id = new_id.strip()
+        if new_id in self.mios:
+            QMessageBox.warning(self, "重命名失败", "组织 id 已存在：%s" % new_id)
+            return
+
+        def transform(content):
+            return rename_mio(content, self._current_id, new_id)
+        if self._write_rel(self._target_rel(), transform):
+            self._reload(new_id)
+
+    def _on_delete_mio(self):
+        if not self._current_id:
+            return
+        ret = QMessageBox.question(
+            self, "删除组织", "确定删除组织 %s ？\n（将删除其在文件中的定义块）"
+            % self._current_id,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if ret != QMessageBox.StandardButton.Yes:
+            return
+
+        def transform(content):
+            return delete_mio(content, self._current_id)
+        if self._write_rel(self._target_rel(), transform):
+            self._reload()
+
+    # ---------- 名称本地化 ----------
+
+    def _edit_mio_name(self):
+        mio = self._current_mio()
+        if not mio:
+            return
+        if not self.mod_path:
+            QMessageBox.warning(self, "无法保存", "未打开 mod，无法写入本地化")
+            return
+        from translation_editor import TranslationEditor
+        mod_loc = os.path.join(self.mod_path, "localisation", "simp_chinese")
+        game_loc = os.path.join(self.hoi4_path, "localisation", "simp_chinese")
+        os.makedirs(mod_loc, exist_ok=True)
+        ed = TranslationEditor(game_loc, mod_loc, "mio_mod_l_simp_chinese.yml")
+        ed.reload()
+        cur = ed.get_effective(mio["id"]) or self._loc_raw(mio["id"]) or ""
+        text, ok = QInputDialog.getText(self, "本地化名称",
+                                        "中文名称（%s）：" % mio["id"], text=cur)
+        if not ok:
+            return
+        text = text.strip()
+        if not text or text == cur:
+            return
+        if not ed.save_name(mio["id"], text):
+            QMessageBox.warning(self, "保存失败", "写入本地化文件失败")
+            return
+        self._loc_cache["sig"] = None  # 强制重载本地化缓存
+        self._reload(self._current_id)
+        QMessageBox.information(self, "已保存", "已保存本地化名称：%s" % text)
 
     def _refresh_mio_icon(self, mio):
         icon = (mio or {}).get("icon", "")
@@ -384,6 +663,7 @@ class MioEditorDialog(QDialog):
             w.setText("")
         self.equip_edit.setPlainText("")
         self.prod_edit.setPlainText("")
+        self.direct_edit.setPlainText("")
         self.trait_label.setText("—（点击左侧树节点选择）")
         self._orig_parents_text = ""
         self._trait_parent_blocks = {}
@@ -406,6 +686,9 @@ class MioEditorDialog(QDialog):
                 self.parents_edit.setText(" ".join(t.get("parents") or []))
                 self.equip_edit.setPlainText(t.get("equipment_bonus", ""))
                 self.prod_edit.setPlainText(t.get("production_bonus", ""))
+                self.direct_edit.setPlainText("\n".join(
+                    "%s = %s" % (k, v)
+                    for k, v in (t.get("direct_stats") or [])))
                 self._orig_parents_text = " ".join(t.get("parents") or [])
                 self._trait_parent_blocks = dict(t.get("parent_blocks") or {})
                 self._trait_extra_blocks = list(t.get("extra_blocks") or [])
@@ -439,6 +722,8 @@ class MioEditorDialog(QDialog):
             self.equip_edit.toPlainText().strip(),
             self.prod_edit.toPlainText().strip(),
             extra_blocks=extra_blocks,
+            direct_stats=InitialTraitDialog._parse_direct(
+                self.direct_edit.toPlainText()),
         )
 
     # ---------- 写文件 ----------

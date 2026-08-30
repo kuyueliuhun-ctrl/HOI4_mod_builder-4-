@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
 )
+import os
 
 from ai_ui_common import EntityListSidebar
 from mio_loader import (
@@ -61,6 +62,9 @@ class MioPolicyEditorDialog(QDialog):
         right = QVBoxLayout()
         self.banner = BannerWidget(self.mod_path, self.hoi4_path)
         self.title_label = self.banner.title_label
+        self.name_loc_btn = QPushButton("本地化名称…")
+        self.name_loc_btn.clicked.connect(self._edit_policy_name)
+        self.banner.layout().addWidget(self.name_loc_btn)
         right.addWidget(self.banner)
 
         icon_row = QHBoxLayout()
@@ -81,6 +85,10 @@ class MioPolicyEditorDialog(QDialog):
         self.available_edit.setPlaceholderText("available 原始块（含外层）")
         right.addWidget(QLabel("available"))
         right.addWidget(self.available_edit, 1)
+        self.visible_edit = QPlainTextEdit()
+        self.visible_edit.setPlaceholderText("visible 原始块（含外层）")
+        right.addWidget(QLabel("visible"))
+        right.addWidget(self.visible_edit, 1)
         self.equip_edit = QPlainTextEdit()
         self.equip_edit.setPlaceholderText("equipment_bonus 原始块（含外层）")
         right.addWidget(QLabel("equipment_bonus"))
@@ -129,7 +137,8 @@ class MioPolicyEditorDialog(QDialog):
 
     def _reload(self, select_id=None):
         self.policies = load_mio_policies(self.mod_path, self.hoi4_path)
-        labels = [(pid, p.get("name", pid)) for pid, p in self.policies.items()]
+        labels = [(pid, self._loc_name(pid))
+                  for pid, p in self.policies.items()]
         self.sidebar.set_entities(labels)
         if select_id:
             self.sidebar.set_current(select_id)
@@ -137,9 +146,29 @@ class MioPolicyEditorDialog(QDialog):
             self.sidebar.set_current(
                 self.sidebar.list.item(0).data(Qt.ItemDataRole.UserRole))
 
+    def _loc_name(self, key):
+        """方针显示名：本地化命中用译文，否则原 id。"""
+        try:
+            cache = getattr(self, "_loc_cache", None)
+            if cache is None:
+                cache = self._loc_cache = {"sig": None, "mgr": None}
+            from localization_mgr import LocalizationManager
+            sig = (self.hoi4_path or "", self.mod_path or "")
+            if cache["sig"] != sig:
+                mgr = LocalizationManager()
+                mgr.reload(sig[0], sig[1])
+                cache["sig"], cache["mgr"] = sig, mgr
+            return cache["mgr"].get_name(key) or key
+        except Exception:
+            return key
+
     def _on_policy_changed(self, policy_id):
         self._current_id = policy_id
-        self.title_label.setText(policy_id or "—")
+        loc_name = self._loc_name(policy_id) if policy_id else ""
+        if loc_name and loc_name != policy_id:
+            self.title_label.setText("%s（%s）" % (loc_name, policy_id))
+        else:
+            self.title_label.setText(policy_id or "—")
         p = self.policies.get(policy_id)
         if not p:
             self._clear_form()
@@ -147,14 +176,15 @@ class MioPolicyEditorDialog(QDialog):
         self.icon_edit.setText(p.get("icon", ""))
         self.allowed_edit.setPlainText(p.get("allowed", ""))
         self.available_edit.setPlainText(p.get("available", ""))
+        self.visible_edit.setPlainText(p.get("visible", ""))
         self.equip_edit.setPlainText(p.get("equipment_bonus", ""))
         self.prod_edit.setPlainText(p.get("production_bonus", ""))
         self.org_edit.setPlainText(p.get("organization_modifier", ""))
 
     def _clear_form(self):
         self.icon_edit.setText("")
-        for w in (self.allowed_edit, self.available_edit, self.equip_edit,
-                  self.prod_edit, self.org_edit):
+        for w in (self.allowed_edit, self.available_edit, self.visible_edit,
+                  self.equip_edit, self.prod_edit, self.org_edit):
             w.setPlainText("")
 
     def _form_block(self, policy_id):
@@ -166,7 +196,37 @@ class MioPolicyEditorDialog(QDialog):
             self.equip_edit.toPlainText(),
             self.prod_edit.toPlainText(),
             self.org_edit.toPlainText(),
+            visible=self.visible_edit.toPlainText(),
         )
+
+    def _edit_policy_name(self):
+        if not self._current_id:
+            return
+        if not self.mod_path:
+            QMessageBox.warning(self, "无法保存", "未打开 mod，无法写入本地化")
+            return
+        from translation_editor import TranslationEditor
+        mod_loc = os.path.join(self.mod_path, "localisation", "simp_chinese")
+        game_loc = os.path.join(self.hoi4_path, "localisation", "simp_chinese")
+        os.makedirs(mod_loc, exist_ok=True)
+        ed = TranslationEditor(game_loc, mod_loc, "mio_mod_l_simp_chinese.yml")
+        ed.reload()
+        cur = ed.get_effective(self._current_id) or \
+            self._loc_name(self._current_id)
+        text, ok = QInputDialog.getText(
+            self, "本地化名称", "中文名称（%s）：" % self._current_id, text=cur)
+        if not ok:
+            return
+        text = text.strip()
+        if not text or text == cur:
+            return
+        if not ed.save_name(self._current_id, text):
+            QMessageBox.warning(self, "保存失败", "写入本地化文件失败")
+            return
+        if getattr(self, "_loc_cache", None):
+            self._loc_cache["sig"] = None
+        self._reload(self._current_id)
+        QMessageBox.information(self, "已保存", "已保存本地化名称：%s" % text)
 
     # ---------- 写文件 ----------
 

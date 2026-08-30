@@ -397,6 +397,134 @@ class MioTraitLayoutParse(unittest.TestCase):
         self.assertEqual((t["x"], t["y"]), (9, 3))
 
 
+class MioInitialTraitAndCrud(unittest.TestCase):
+    """初始加成编辑 / 组织实体 CRUD / direct_stats 与 override 合并。"""
+
+    ORG = """org_a = {
+	icon = GFX_idea_test
+	available = {
+		has_dlc = "Gotterdammerung"
+	}
+	initial_trait = {
+		name = init_trait_1
+		equipment_bonus = {
+			reliability = 0.05
+		}
+		reliability = 0.02
+		special_trait_background = yes
+	}
+	trait = {
+		token = t_1
+		name = t_1
+		position = { x=0 y=0 }
+		reliability = 0.03
+	}
+}
+"""
+
+    def _parse(self, content=None):
+        from mio_loader import parse_mio_organizations
+        return parse_mio_organizations(content or self.ORG)
+
+    def test_initial_trait_full_parse(self):
+        org = self._parse()["org_a"]
+        init = org["initial_trait"]
+        self.assertEqual(init["name"], "init_trait_1")
+        self.assertIn("reliability", init["equipment_bonus"])
+        ds = dict(init["direct_stats"])
+        self.assertEqual(ds.get("reliability"), "0.02")
+        self.assertEqual(ds.get("special_trait_background"), "yes")
+        self.assertIn("has_dlc", org["available"])
+
+    def test_direct_stats_survive_trait_edit(self):
+        from mio_loader import trait_to_pdx, parse_mio_organizations
+        org = self._parse()["org_a"]
+        t = org["traits"][0]
+        new_block = trait_to_pdx(
+            t["token"], t["name"], t.get("icon", ""), t["x"], t["y"],
+            t.get("relative_position_id", ""), t.get("parents") or [],
+            t.get("equipment_bonus", ""), t.get("production_bonus", ""),
+            extra_blocks=t.get("extra_blocks") or [],
+            direct_stats=t.get("direct_stats") or [])
+        reparsed = parse_mio_organizations("org_a = {\n%s\n}" % new_block)
+        t2 = reparsed["org_a"]["traits"][0]
+        self.assertEqual(dict(t2["direct_stats"]).get("reliability"), "0.03")
+
+    def test_replace_initial_trait(self):
+        from mio_loader import (parse_mio_organizations,
+                                replace_initial_trait, initial_trait_to_pdx)
+        content = self.ORG
+        block = initial_trait_to_pdx(
+            name="init_new",
+            equipment_bonus="soft_attack = 0.1",
+            direct_stats=[("build_cost_ic", "-0.1")])
+        new_content = replace_initial_trait(content, "org_a", block)
+        org = parse_mio_organizations(new_content)["org_a"]
+        self.assertEqual(org["initial_trait"]["name"], "init_new")
+        self.assertIn("soft_attack", org["initial_trait"]["equipment_bonus"])
+        self.assertEqual(dict(org["initial_trait"]["direct_stats"])
+                         .get("build_cost_ic"), "-0.1")
+        self.assertIn("init_trait_1", content)  # 原文不变
+        self.assertNotIn("init_trait_1", new_content)
+
+    def test_replace_initial_trait_inserts_when_missing(self):
+        from mio_loader import (parse_mio_organizations,
+                                replace_initial_trait)
+        content = "org_b = {\n\ticon = GFX_x\n}\n"
+        block = "initial_trait = {\n\t\tname = init_b\n\t}"
+        new_content = replace_initial_trait(content, "org_b", block)
+        org = parse_mio_organizations(new_content)["org_b"]
+        self.assertEqual(org["initial_trait"]["name"], "init_b")
+        self.assertIn("icon = GFX_x", new_content)  # 原有字段保留
+
+    def test_override_trait_merges(self):
+        from mio_loader import parse_mio_organizations
+        content = self.ORG + """
+org_c = {
+	trait = {
+		token = t_1
+		position = { x=5 y=5 }
+	}
+	override_trait = {
+		token = t_1
+		name = t_1_renamed
+	}
+}
+"""
+        org = parse_mio_organizations(content)["org_c"]
+        t = [x for x in org["traits"] if x["token"] == "t_1"][0]
+        self.assertEqual(t["name"], "t_1_renamed")
+        self.assertEqual((t["x"], t["y"]), (5, 5))
+
+    def test_mio_crud_roundtrip(self):
+        from mio_loader import (parse_mio_organizations, insert_mio,
+                                duplicate_mio, rename_mio, delete_mio)
+        content = self.ORG
+        c2 = insert_mio(content, "org_new",
+                        template_text="org_new = {\n\ticon = GFX_n\n}",
+                        after_id="org_a")
+        self.assertIn("org_new", parse_mio_organizations(c2))
+        c3 = duplicate_mio(c2, "org_new", "org_new2")
+        self.assertIn("org_new2", parse_mio_organizations(c3))
+        c4 = rename_mio(c3, "org_new2", "org_ren")
+        parsed = parse_mio_organizations(c4)
+        self.assertIn("org_ren", parsed)
+        self.assertNotIn("org_new2", parsed)
+        c5 = delete_mio(c4, "org_ren")
+        self.assertNotIn("org_ren", parse_mio_organizations(c5))
+
+    def test_policy_visible_field(self):
+        from mio_loader import parse_mio_policies, policy_to_pdx
+        content = ("pol = {\n\ticon = GFX_p\n\tallowed = {}\n"
+                   "\tvisible = {\n\t\thas_dlc = \"Arms Against Tyranny\"\n"
+                   "\t}\n}\n")
+        pol = parse_mio_policies(content)["pol"]
+        self.assertIn("Arms Against Tyranny", pol["visible"])
+        block = policy_to_pdx("pol", icon="GFX_p", visible="has_dlc = yes")
+        reparsed = parse_mio_policies(block)["pol"]
+        self.assertIn("has_dlc = yes", reparsed["visible"])
+
+
 class MioBonusLocalization(unittest.TestCase):
     """加成属性本地化：loc 链 + 内置词典兜底 + 系数百分比格式化。"""
 
@@ -431,6 +559,87 @@ class MioBonusLocalization(unittest.TestCase):
         self.assertIn("装甲厚度 = -0.05", text)      # 模板串候选被跳过
         self.assertIn("防御 = -0.05", text)
         self.assertIn("生产花费 = -3%", text)
+
+
+class MioEditorCrudUi(unittest.TestCase):
+    """编辑器 UI：初始加成对话框、组织新建/删除、名称本地化写回。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _mk_mod(self):
+        root = _mkdtemp("mio_crud_mod_")
+        d = os.path.join(root, "common", "military_industrial_organization",
+                         "organizations")
+        os.makedirs(d)
+        with open(os.path.join(d, "test.txt"), "w", encoding="utf-8") as f:
+            f.write(MioInitialTraitAndCrud.ORG)
+        return root
+
+    def test_initial_trait_dialog_block(self):
+        from mio_editor_dialog import InitialTraitDialog
+        from mio_loader import parse_mio_organizations
+        org = parse_mio_organizations(
+            MioInitialTraitAndCrud.ORG)["org_a"]
+        dlg = InitialTraitDialog(org["initial_trait"])
+        self.assertEqual(dlg.name_edit.text(), "init_trait_1")
+        self.assertIn("reliability = 0.02", dlg.direct_edit.toPlainText())
+        self.assertIn("0.05", dlg.equip_edit.toPlainText())
+        block = dlg.build_block()
+        self.assertIn("initial_trait = {", block)
+        self.assertIn("reliability = 0.02", block)
+        self.assertIn("special_trait_background = yes", block)
+
+    def test_create_and_delete_mio_via_dialog(self):
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QInputDialog, QMessageBox
+        from mio_editor_dialog import MioEditorDialog
+        mod = self._mk_mod()
+        dlg = MioEditorDialog(mod_path=mod, hoi4_path="")
+        self.assertIn("org_a", dlg.mios)
+        with patch.object(QInputDialog, "getText",
+                          return_value=("org_ui_new", True)), \
+             patch.object(QMessageBox, "information", return_value=None), \
+             patch.object(QMessageBox, "warning", return_value=None):
+            dlg._on_create_mio()
+        self.assertIn("org_ui_new", dlg.mios)
+        fp = os.path.join(mod, "common", "military_industrial_organization",
+                          "organizations", "test.txt")
+        with open(fp, encoding="utf-8") as f:
+            self.assertIn("org_ui_new", f.read())
+        dlg.sidebar.set_current("org_ui_new")
+        with patch.object(QMessageBox, "question",
+                          return_value=QMessageBox.StandardButton.Yes), \
+             patch.object(QMessageBox, "warning", return_value=None):
+            dlg._on_delete_mio()
+        self.assertNotIn("org_ui_new", dlg.mios)
+        with open(fp, encoding="utf-8") as f:
+            self.assertNotIn("org_ui_new", f.read())
+
+    def test_edit_mio_name_writes_loc(self):
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QInputDialog, QMessageBox
+        from mio_editor_dialog import MioEditorDialog
+        mod = self._mk_mod()
+        dlg = MioEditorDialog(mod_path=mod, hoi4_path="")
+        dlg.sidebar.set_current("org_a")
+        with patch.object(QInputDialog, "getText",
+                          return_value=("测试坦克厂", True)), \
+             patch.object(QMessageBox, "information", return_value=None), \
+             patch.object(QMessageBox, "warning", return_value=None):
+            dlg._edit_mio_name()
+        loc_fp = os.path.join(mod, "localisation", "simp_chinese",
+                              "mio_mod_l_simp_chinese.yml")
+        self.assertTrue(os.path.isfile(loc_fp))
+        with open(loc_fp, encoding="utf-8-sig") as f:
+            content = f.read()
+        self.assertIn("org_a", content)
+        self.assertIn("测试坦克厂", content)
+        # 重新加载后显示本地化名
+        self.assertEqual(dlg._loc_name("org_a"), "测试坦克厂")
 
 
 class MioTraitTreeDrawing(unittest.TestCase):

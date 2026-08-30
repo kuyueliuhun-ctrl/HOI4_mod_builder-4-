@@ -105,6 +105,11 @@ def _parse_position(block_text):
 _PARENT_KEY_STOP = {"traits", "num_parents_needed",
                      "any_parent", "all_parents"}
 
+# trait 块中由专门字段处理的标量键；其余标量（BBA 直接属性加成、
+# special_trait_background 等）收集进 direct_stats 原样保留
+_TRAIT_FIELD_KEYS = {"token", "name", "icon", "x", "y",
+                     "relative_position_id"}
+
 _FILE_VAR_RE = re.compile(r"^\s*@([\w\.]+)\s*=\s*(-?[\d\.]+)", re.M)
 
 
@@ -202,6 +207,8 @@ def _parse_trait(block_text, variables=None):
         "parent_blocks": parent_blocks,
         "mutually_exclusive": mut_ex,
         "extra_blocks": extra_blocks,
+        "direct_stats": [(k, v) for k, v in f.items()
+                         if k not in _TRAIT_FIELD_KEYS],
         "equipment_bonus": equipment_bonus,
         "production_bonus": production_bonus,
         "raw": block_text,
@@ -221,6 +228,7 @@ def parse_mio_organizations(content):
         traits = []
         initial_trait = None
         headers = []
+        overrides = []
         for ck, cs, ce in _child_blocks(bt):
             cbt = bt[cs:ce]
             if ck in ("trait", "add_trait"):
@@ -228,26 +236,39 @@ def parse_mio_organizations(content):
                 t = _parse_trait(cbt, variables)
                 if t.get("token"):
                     traits.append(t)
+            elif ck == "override_trait":
+                # 覆盖已存在（或 include 来的）同名特质的字段
+                t = _parse_trait(cbt, variables)
+                if t.get("token"):
+                    overrides.append(t)
             elif ck == "initial_trait":
-                tf = _fields(cbt)
-                initial_trait = {
-                    "name": tf.get("name", ""),
-                    "equipment_bonus": _child_block_text(cbt, "equipment_bonus") or "",
-                    "production_bonus": _child_block_text(cbt, "production_bonus") or "",
-                    "raw": cbt,
-                }
+                # initial_trait 本质是特质样块（BBA 后加成可直接写 stat 键）
+                t = _parse_trait(cbt, variables)
+                initial_trait = t
             elif ck == "tree_header_text":
                 hf = _fields(cbt)
                 headers.append({
                     "text": hf.get("text", ""),
                     "x": hf.get("x", ""),
                 })
+        # override_trait 并入同名特质（字段级覆盖，extra 块并集）
+        for ov in overrides:
+            hit = None
+            for i, t in enumerate(traits):
+                if t.get("token") == ov.get("token"):
+                    hit = i
+                    break
+            if hit is not None:
+                traits[hit] = _merge_included_trait(traits[hit], ov)
+            else:
+                traits.append(ov)
         out[key] = {
             "id": key,
             "name": key,
             "icon": f.get("icon", ""),
             "include": f.get("include", ""),
             "allowed": _child_block_text(bt, "allowed") or "",
+            "available": _child_block_text(bt, "available") or "",
             "equipment_type": _values_in_block(bt, "equipment_type"),
             "research_categories": _values_in_block(bt, "research_categories"),
             "tree_headers": headers,
@@ -282,6 +303,10 @@ def _merge_included_trait(base, local):
     base_me = list(base.get("mutually_exclusive") or [])
     out["mutually_exclusive"] = base_me + [
         t for t in (local.get("mutually_exclusive") or []) if t not in base_me]
+    # 直接标量（BBA 属性/旗标）：本地值覆盖同名键，保持底组织顺序
+    ds = dict(base.get("direct_stats") or [])
+    ds.update(dict(local.get("direct_stats") or []))
+    out["direct_stats"] = list(ds.items())
     pb = dict(base.get("parent_blocks") or {})
     for kk, vv in (local.get("parent_blocks") or {}).items():
         pb.setdefault(kk, [])
@@ -366,6 +391,7 @@ def parse_mio_policies(content):
             "icon": f.get("icon", ""),
             "allowed": _child_block_text(bt, "allowed") or "",
             "available": _child_block_text(bt, "available") or "",
+            "visible": _child_block_text(bt, "visible") or "",
             "equipment_bonus": _child_block_text(bt, "equipment_bonus") or "",
             "production_bonus": _child_block_text(bt, "production_bonus") or "",
             "organization_modifier": _child_block_text(bt, "organization_modifier") or "",
@@ -465,12 +491,14 @@ def replace_trait_block(content, mio_id, token, new_block_text):
 
 def trait_to_pdx(token, name, icon, x, y, relative_position_id="",
                  parents=None, equipment_bonus="", production_bonus="",
-                 extra_blocks=None):
+                 extra_blocks=None, direct_stats=None):
     """把 trait 表单序列化为 PDX 块文本。
 
     extra_blocks 用于保留编辑器未直接展示的 trait 子块（如
     limit_to_equipment_type / mutually_exclusive / visible / available /
-    organization_modifier / ai_will_do 等），避免整块重写时数据丢失。
+    organization_modifier / ai_will_do 等），避免整块重写时数据丢失；
+    direct_stats 为直接写在块内的标量（BBA 直接属性加成、
+    special_trait_background 等），同样原样保留。
     """
     lines = ["trait = {",
              "\t\ttoken = %s" % token,
@@ -491,6 +519,8 @@ def trait_to_pdx(token, name, icon, x, y, relative_position_id="",
                 lines.append(raw)
             else:
                 lines.append("%s = {\n%s\n\t\t}" % (bonus, raw))
+    for k, v in (direct_stats or []):
+        lines.append("\t\t%s = %s" % (k, v))
     for raw in (extra_blocks or []):
         raw = (raw or "").strip()
         if not raw:
@@ -515,12 +545,13 @@ def replace_policy_block(content, policy_id, new_block_text):
 
 def policy_to_pdx(policy_id, icon="", allowed="", available="",
                   equipment_bonus="", production_bonus="",
-                  organization_modifier=""):
+                  organization_modifier="", visible=""):
     """把方针表单序列化为 PDX 块文本。"""
     lines = [policy_id + " = {"]
     if icon:
         lines.append("\ticon = %s" % icon)
     for name, raw in (("allowed", allowed), ("available", available),
+                      ("visible", visible),
                       ("equipment_bonus", equipment_bonus),
                       ("production_bonus", production_bonus),
                       ("organization_modifier", organization_modifier)):
@@ -533,3 +564,82 @@ def policy_to_pdx(policy_id, icon="", allowed="", available="",
             lines.append("%s = {\n%s\n\t}" % (name, raw))
     lines.append("}")
     return "\n".join(lines)
+
+
+def initial_trait_to_pdx(name="", equipment_bonus="", production_bonus="",
+                         direct_stats=None, extra_blocks=None):
+    """把初始特质表单序列化为 PDX 块文本。
+
+    direct_stats: [(key, value)] 直接写在块内的属性加成（BBA 新语法）；
+    extra_blocks: 保留的其它子块（visible/available/organization_modifier 等）。
+    """
+    lines = ["initial_trait = {"]
+    if name:
+        lines.append("\t\tname = %s" % name)
+    for bonus, raw in (("equipment_bonus", equipment_bonus),
+                       ("production_bonus", production_bonus)):
+        raw = (raw or "").strip()
+        if not raw:
+            continue
+        if raw.startswith(bonus + " ="):
+            lines.append(raw)
+        else:
+            lines.append("%s = {\n%s\n\t\t}" % (bonus, raw))
+    for k, v in (direct_stats or []):
+        lines.append("\t\t%s = %s" % (k, v))
+    for raw in (extra_blocks or []):
+        raw = (raw or "").strip()
+        if not raw:
+            continue
+        raw_lines = raw.splitlines()
+        if raw_lines:
+            lines.append("\t\t" + raw_lines[0].strip())
+        for line in raw_lines[1:]:
+            lines.append(line.rstrip() if line.strip() else "")
+    lines.append("\t}")
+    return "\n".join(lines)
+
+
+def replace_initial_trait(content, mio_id, block_text):
+    """整体替换组织的 initial_trait 子块；不存在则插入组织块末尾。"""
+    for key, depth, start, _end in _block_ranges(content):
+        if depth != 0 or key != mio_id:
+            continue
+        bt_start, bt_end = _find_block_bounds(content, start)
+        org_text = content[bt_start:bt_end]
+        for ck, cs, _ce in _child_blocks(org_text):
+            if ck != "initial_trait":
+                continue
+            bs, be = _find_block_bounds(org_text, cs)
+            new_org = org_text[:bs] + block_text.strip() + org_text[be:]
+            return content[:bt_start] + new_org + content[bt_end:]
+        # 不存在：插入到组织块闭合 } 之前
+        trimmed = org_text.rstrip()
+        brace_pos = trimmed.rfind("}")
+        if brace_pos < 0:
+            return content
+        head = org_text[:brace_pos].rstrip()
+        tail = org_text[brace_pos:]
+        new_org = head + "\n\t" + block_text.strip() + "\n" + tail
+        return content[:bt_start] + new_org + content[bt_end:]
+    return content
+
+
+def insert_mio(content, mio_id, template_text="", after_id=None):
+    """在文件顶层插入一个新组织块。"""
+    block = template_text.strip() or ("%s = {\n\ticon = "
+        "GFX_idea_generic_tank_manufacturer_1\n\tequipment_type = "
+        "{ infantry_equipment }\n}" % mio_id)
+    return insert_top_block(content, "\n%s\n" % block, after_id=after_id)
+
+
+def delete_mio(content, mio_id):
+    return delete_top_block(content, mio_id)
+
+
+def rename_mio(content, old_id, new_id):
+    return rename_top_block(content, old_id, new_id)
+
+
+def duplicate_mio(content, old_id, new_id):
+    return duplicate_top_block(content, old_id, new_id)
