@@ -22,13 +22,19 @@ import re
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
+    QCheckBox,
     QDialog,
     QHBoxLayout,
+    QHeaderView,
     QInputDialog,
     QLabel,
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QScrollArea,
+    QTableWidget,
+    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -46,7 +52,9 @@ from mio_loader import (
     rename_mio,
     rename_trait,
     replace_initial_trait,
+    replace_mio_equipment_type,
     replace_mio_fields,
+    replace_mio_tree_headers,
     replace_trait_block,
     trait_to_pdx,
 )
@@ -172,6 +180,98 @@ class InitialTraitDialog(QDialog):
             direct_stats=self._parse_direct(self.direct_view.to_pdx_text()),
             extra_blocks=self._extra_blocks,
         )
+
+
+class MioTreeHeadersDialog(QDialog):
+    """MIO 特质树列名称（tree_header_text）编辑对话框。
+
+    每一行 = 一列：x（列序）、text（本地化键）、中文（翻译器预览）。
+    双击即可编辑；支持添加/删除行。
+    """
+
+    def __init__(self, headers, name_of=None, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("列名称编辑（tree_header_text）")
+        self.resize(560, 380)
+        self._name_of = name_of or (lambda k: k)
+        lay = QVBoxLayout(self)
+        hint = QLabel("双击编辑 x / 本地化键；中文列为翻译器预览。")
+        hint.setStyleSheet("color:%s;" % C["text_secondary"])
+        lay.addWidget(hint)
+
+        self.table = QTableWidget(0, 3)
+        self.table.setHorizontalHeaderLabels(["x", "text（本地化键）", "中文"])
+        self.table.setEditTriggers(
+            QAbstractItemView.EditTrigger.DoubleClicked
+            | QAbstractItemView.EditTrigger.EditKeyPressed)
+        self.table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch)
+        self.table.cellChanged.connect(self._on_cell_changed)
+        lay.addWidget(self.table)
+
+        btns = QHBoxLayout()
+        self.add_btn = QPushButton("＋添加列")
+        self.add_btn.clicked.connect(self._add_row)
+        self.del_btn = QPushButton("🗑 删除选中列")
+        self.del_btn.clicked.connect(self._del_row)
+        btns.addWidget(self.add_btn)
+        btns.addWidget(self.del_btn)
+        btns.addStretch(1)
+        ok = QPushButton("💾 保存")
+        ok.clicked.connect(self.accept)
+        cancel = QPushButton("取消")
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(ok)
+        btns.addWidget(cancel)
+        lay.addLayout(btns)
+
+        self._loading = True
+        try:
+            for h in headers or []:
+                self._append_row(h.get("x", ""), h.get("text", ""))
+        finally:
+            self._loading = False
+
+    def _append_row(self, x, text):
+        row = self.table.rowCount()
+        self.table.insertRow(row)
+        self.table.setItem(row, 0, QTableWidgetItem(str(x)))
+        self.table.setItem(row, 1, QTableWidgetItem(str(text)))
+        cn = QTableWidgetItem(self._name_of(text))
+        cn.setFlags(cn.flags() & ~Qt.ItemFlag.ItemIsEditable)
+        self.table.setItem(row, 2, cn)
+
+    def _add_row(self):
+        self._loading = True
+        try:
+            self._append_row("", "")
+        finally:
+            self._loading = False
+
+    def _del_row(self):
+        row = self.table.currentRow()
+        if row < 0:
+            return
+        self.table.removeRow(row)
+
+    def _on_cell_changed(self, row, col):
+        if self._loading or col != 1:
+            return
+        text_item = self.table.item(row, 1)
+        cn_item = self.table.item(row, 2)
+        if text_item is not None and cn_item is not None:
+            cn_item.setText(self._name_of(text_item.text().strip()))
+
+    def headers(self):
+        out = []
+        for row in range(self.table.rowCount()):
+            x_item = self.table.item(row, 0)
+            t_item = self.table.item(row, 1)
+            x = x_item.text().strip() if x_item else ""
+            text = t_item.text().strip() if t_item else ""
+            if text:
+                out.append({"x": x, "text": text})
+        return out
 
 
 class MioEditorDialog(QDialog):
@@ -358,6 +458,26 @@ class MioEditorDialog(QDialog):
         self.init_edit_btn = QPushButton("✎ 编辑初始加成")
         self.init_edit_btn.clicked.connect(self._edit_initial_trait)
         host.addWidget(self.init_edit_btn)
+
+        eq_title = QLabel("装备类型（勾选）")
+        eq_title.setStyleSheet(
+            "color:%s; font-weight:bold; background:transparent;"
+            % C["text_secondary"])
+        host.addWidget(eq_title)
+        self.equip_scroll = QScrollArea()
+        self.equip_scroll.setWidgetResizable(True)
+        self.equip_scroll.setMaximumHeight(130)
+        self.equip_box = QWidget()
+        self.equip_layout = QVBoxLayout(self.equip_box)
+        self.equip_layout.setContentsMargins(2, 2, 2, 2)
+        self.equip_layout.setSpacing(1)
+        self.equip_scroll.setWidget(self.equip_box)
+        host.addWidget(self.equip_scroll)
+        self.equip_checkboxes = {}
+
+        self.headers_btn = QPushButton("🏛 列名称编辑…")
+        self.headers_btn.clicked.connect(self._edit_tree_headers)
+        host.addWidget(self.headers_btn)
         panel = QWidget()
         panel.setProperty("class", "card")
         panel.setFixedWidth(300)
@@ -496,7 +616,31 @@ class MioEditorDialog(QDialog):
         self.illus.set_org(mio_id, mio.get("equipment_type") or [],
                            loc=self._loc)
         self._refresh_info(mio)
+        self._sync_equip_types(mio)
         self._refresh_mio_icon(mio)
+
+    def _sync_equip_types(self, mio):
+        """装备类型 checkbox：候选 = 全库 equipment_type 并集，勾选 = 当前组织。"""
+        all_types = sorted({
+            t for m in self.mios.values()
+            for t in (m.get("equipment_type") or [])})
+        sel = set(mio.get("equipment_type") or [])
+        current = set(self.equip_checkboxes.keys())
+        if current != set(all_types):
+            while self.equip_layout.count():
+                item = self.equip_layout.takeAt(0)
+                w = item.widget()
+                if w is not None:
+                    w.deleteLater()
+            self.equip_checkboxes = {}
+            for t in all_types:
+                cb = QCheckBox(t)
+                cb.setChecked(t in sel)
+                self.equip_checkboxes[t] = cb
+                self.equip_layout.addWidget(cb)
+        else:
+            for t, cb in self.equip_checkboxes.items():
+                cb.setChecked(t in sel)
 
     def _refresh_info(self, mio):
         init = mio.get("initial_trait") or {}
@@ -785,11 +929,31 @@ class MioEditorDialog(QDialog):
         if not mio:
             return
         icon = self.mio_icon_label.toolTip() or mio.get("icon", "")
+        equip_types = [t for t, cb in self.equip_checkboxes.items()
+                       if cb.isChecked()]
         def transform(content):
-            return replace_mio_fields(content, mio["id"], {"icon": icon})
+            content = replace_mio_fields(content, mio["id"], {"icon": icon})
+            return replace_mio_equipment_type(content, mio["id"], equip_types)
         if self._write_rel(mio.get("rel", ""), transform):
             mio["icon"] = icon
+            mio["equipment_type"] = equip_types
             QMessageBox.information(self, "已保存", "已保存 %s" % mio["id"])
+
+    def _edit_tree_headers(self):
+        """列名称（tree_header_text）编辑：对话框 → loader 写回。"""
+        mio = self._current_mio()
+        if not mio:
+            return
+        dlg = MioTreeHeadersDialog(
+            mio.get("tree_headers") or [], name_of=self._loc, parent=self)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+        headers = dlg.headers()
+        def transform(content):
+            return replace_mio_tree_headers(content, mio["id"], headers)
+        if self._write_rel(mio.get("rel", ""), transform):
+            self._reload(self._current_id)
+            QMessageBox.information(self, "已保存", "已保存列名称")
 
     def _on_save_trait(self):
         mio = self._current_mio()

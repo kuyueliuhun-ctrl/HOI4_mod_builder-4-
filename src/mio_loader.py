@@ -419,6 +419,73 @@ def replace_mio_fields(content, mio_id, fields):
     return replace_top_block_fields(content, mio_id, fields)
 
 
+def replace_mio_equipment_type(content, mio_id, tokens):
+    """替换 MIO 组织的装备类型块 equipment_type = { ... }。
+
+    已存在则原位替换；不存在则在组织块开头后插入。
+    """
+    tokens = [str(t).strip() for t in (tokens or []) if str(t).strip()]
+    ranges = list(_block_ranges(content))
+    org_start = org_end = None
+    for key, depth, start, _end in ranges:
+        if depth == 0 and key == mio_id:
+            org_start, org_end = start, _end
+            break
+    if org_start is None:
+        return content
+    new_block = "equipment_type = { %s }" % " ".join(tokens)
+    for key, depth, start, _end in ranges:
+        if depth == 1 and key == "equipment_type" and org_start <= start < org_end:
+            bs, be = _find_block_bounds(content, start)
+            return content[:bs] + new_block + content[be:]
+    brace = content.find("{", org_start)
+    if brace < 0:
+        return content
+    return content[:brace + 1] + "\n\t" + new_block + content[brace + 1:]
+
+
+def replace_mio_tree_headers(content, mio_id, headers):
+    """替换 MIO 组织的全部列名称块 tree_header_text = { ... }。
+
+    headers: [{"x": ..., "text": ...}]；先移除原有全部列块，
+    再在第一个旧列块位置（或组织块开头后）插入新列块。
+    """
+    headers = [h for h in (headers or []) if h.get("text")]
+    ranges = list(_block_ranges(content))
+    org_start = org_end = None
+    for key, depth, start, _end in ranges:
+        if depth == 0 and key == mio_id:
+            org_start, org_end = start, _end
+            break
+    if org_start is None:
+        return content
+    spans = []
+    for key, depth, start, _end in ranges:
+        if depth == 1 and key == "tree_header_text" and org_start <= start < org_end:
+            bs, be = _find_block_bounds(content, start)
+            spans.append((bs, be))
+    new_parts = []
+    for h in headers:
+        x = h.get("x", "")
+        text = h.get("text", "")
+        new_parts.append("tree_header_text = {\n\t\ttext = %s\n\t\tx = %s\n\t}"
+                         % (text, x))
+    block = "\n\t".join(new_parts)
+    if spans:
+        first_bs = min(bs for bs, _ in spans)
+        for bs, be in sorted(spans, reverse=True):
+            content = content[:bs] + content[be:]
+        if block:
+            return content[:first_bs] + block + content[first_bs:]
+        return content
+    brace = content.find("{", org_start)
+    if brace < 0:
+        return content
+    if not block:
+        return content
+    return content[:brace + 1] + "\n\t" + block + content[brace + 1:]
+
+
 def replace_initial_trait(content, mio_id, fields):
     """替换 MIO 的 initial_trait 块内字段（name 等）。"""
     return replace_nested_block_fields(

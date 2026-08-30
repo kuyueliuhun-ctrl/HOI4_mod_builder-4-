@@ -525,6 +525,140 @@ org_c = {
         self.assertIn("has_dlc = yes", reparsed["visible"])
 
 
+class MioOrgMetaEditTest(unittest.TestCase):
+    """装备类型 checkbox 与列名称（tree_header_text）编辑。"""
+
+    ORG = """org_a = {
+	icon = GFX_idea_test
+	equipment_type = { mio_cat_eq_all_light_tank mio_cat_eq_all_medium_tank }
+	tree_header_text = {
+		text = mio_header_tank_construction
+		x = 3
+	}
+	tree_header_text = {
+		text = mio_header_armor
+		x = 9
+	}
+	initial_trait = {
+		name = init_trait_1
+	}
+}
+"""
+
+    def _parse(self, content=None):
+        from mio_loader import parse_mio_organizations
+        return parse_mio_organizations(content or self.ORG)
+
+    # ---------- loader 写函数 ----------
+
+    def test_replace_equipment_type_existing(self):
+        from mio_loader import replace_mio_equipment_type
+        c = replace_mio_equipment_type(
+            self.ORG, "org_a", ["mio_cat_eq_all_medium_tank"])
+        org = self._parse(c)["org_a"]
+        self.assertEqual(org["equipment_type"],
+                         ["mio_cat_eq_all_medium_tank"])
+        self.assertNotIn("mio_cat_eq_all_light_tank", c)
+
+    def test_replace_equipment_type_insert_missing(self):
+        from mio_loader import replace_mio_equipment_type
+        content = "org_a = {\n\ticon = GFX_a\n}\n"
+        c = replace_mio_equipment_type(content, "org_a", ["armor"])
+        org = self._parse(c)["org_a"]
+        self.assertEqual(org["equipment_type"], ["armor"])
+
+    def test_replace_tree_headers(self):
+        from mio_loader import replace_mio_tree_headers
+        c = replace_mio_tree_headers(
+            self.ORG, "org_a",
+            [{"x": "5", "text": "mio_header_new"},
+             {"x": "7", "text": "mio_header_other"}])
+        org = self._parse(c)["org_a"]
+        self.assertEqual(
+            [h["text"] for h in org["tree_headers"]],
+            ["mio_header_new", "mio_header_other"])
+        self.assertNotIn("mio_header_tank_construction", c)
+        self.assertNotIn("mio_header_armor", c)
+
+    def test_replace_tree_headers_clear_all(self):
+        from mio_loader import replace_mio_tree_headers
+        c = replace_mio_tree_headers(self.ORG, "org_a", [])
+        org = self._parse(c)["org_a"]
+        self.assertEqual(org["tree_headers"], [])
+
+    # ---------- UI ----------
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _mk_mod(self):
+        import shutil
+        import tempfile
+        root = tempfile.mkdtemp(prefix="mio_meta_mod_")
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        d = os.path.join(root, "common", "military_industrial_organization",
+                         "organizations")
+        os.makedirs(d)
+        with open(os.path.join(d, "test.txt"), "w", encoding="utf-8") as f:
+            f.write(self.ORG)
+        return root
+
+    def test_dialog_equipment_type_checkboxes_and_save(self):
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QMessageBox
+        from mio_editor_dialog import MioEditorDialog
+        mod = self._mk_mod()
+        with patch.object(QMessageBox, "information"), \
+                patch.object(QMessageBox, "warning"):
+            dlg = MioEditorDialog(mod, "")
+            dlg.show()
+            self.app.processEvents()
+            self.assertEqual(dlg._current_id, "org_a")
+            cbs = {t: cb.isChecked()
+                   for t, cb in dlg.equip_checkboxes.items()}
+            self.assertEqual(cbs, {
+                "mio_cat_eq_all_light_tank": True,
+                "mio_cat_eq_all_medium_tank": True,
+            })
+            # 取消 light_tank
+            dlg.equip_checkboxes["mio_cat_eq_all_light_tank"].setChecked(False)
+            dlg._on_save_mio()
+            with open(os.path.join(
+                    mod, "common", "military_industrial_organization",
+                    "organizations", "test.txt"), encoding="utf-8") as f:
+                saved = f.read()
+            self.assertIn("mio_cat_eq_all_medium_tank", saved)
+            self.assertNotIn("mio_cat_eq_all_light_tank", saved)
+            dlg.deleteLater()
+            self.app.processEvents()
+
+    def test_headers_dialog_rows(self):
+        from mio_editor_dialog import MioTreeHeadersDialog
+        dlg = MioTreeHeadersDialog(
+            [{"x": "3", "text": "mio_header_tank_construction"},
+             {"x": "9", "text": "mio_header_armor"}],
+            name_of=lambda k: {"mio_header_tank_construction": "坦克建造"}.get(k, k))
+        self.assertEqual(dlg.table.rowCount(), 2)
+        self.assertEqual(dlg.table.item(0, 1).text(), "mio_header_tank_construction")
+        self.assertEqual(dlg.table.item(0, 2).text(), "坦克建造")
+        dlg._add_row()
+        dlg.table.setItem(2, 0, __import__(
+            "PyQt6.QtWidgets", fromlist=["QTableWidgetItem"])
+            .QTableWidgetItem("11"))
+        dlg.table.setItem(2, 1, __import__(
+            "PyQt6.QtWidgets", fromlist=["QTableWidgetItem"])
+            .QTableWidgetItem("mio_header_production"))
+        hs = dlg.headers()
+        self.assertEqual(len(hs), 3)
+        self.assertEqual(hs[-1]["x"], "11")
+        self.assertEqual(hs[-1]["text"], "mio_header_production")
+        dlg.deleteLater()
+        self.app.processEvents()
+
+
 class MioBonusLocalization(unittest.TestCase):
     """加成属性本地化：loc 链 + 内置词典兜底 + 系数百分比格式化。"""
 
