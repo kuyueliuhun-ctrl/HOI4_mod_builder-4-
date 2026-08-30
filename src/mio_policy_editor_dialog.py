@@ -29,6 +29,7 @@ from mio_loader import (
     rename_policy,
     replace_policy_block,
 )
+from mio_ui_theme import BannerWidget, build_qss, style_sidebar
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
@@ -43,6 +44,7 @@ class MioPolicyEditorDialog(QDialog):
         self.hoi4_path = hoi4_path or ""
         self.setWindowTitle("MIO 方针编辑器")
         self.resize(980, 700)
+        self.setStyleSheet(build_qss())
 
         self.policies = {}
         self._current_id = None
@@ -55,12 +57,13 @@ class MioPolicyEditorDialog(QDialog):
         self.sidebar = EntityListSidebar("MIO 方针", self)
         self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_policy_changed)
+        style_sidebar(self.sidebar)
         root.addWidget(self.sidebar)
 
         right = QVBoxLayout()
-        self.title_label = QLabel("—")
-        self.title_label.setStyleSheet("font-weight:bold; font-size:16px;")
-        right.addWidget(self.title_label)
+        self.banner = BannerWidget(self.mod_path, self.hoi4_path)
+        self.title_label = self.banner.title_label
+        right.addWidget(self.banner)
 
         icon_row = QHBoxLayout()
         self.icon_edit = QLineEdit()

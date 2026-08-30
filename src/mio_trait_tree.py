@@ -19,6 +19,8 @@ from PyQt6.QtWidgets import (
     QGraphicsView,
 )
 
+from mio_ui_theme import PALETTE
+
 NODE_W = 126
 NODE_H = 60
 CELL_W = 150
@@ -26,17 +28,29 @@ CELL_H = 94
 
 
 class _TraitNode(QGraphicsRectItem):
-    """可点击的特质节点卡片。"""
+    """可点击的特质节点卡片（游戏暗底 + 黄铜描边，选中转亮金）。"""
 
     def __init__(self, x, y, w, h, token, callback):
         super().__init__(x, y, w, h)
         self.token = token
         self._callback = callback
-        self.setPen(QPen(QColor("#4a6fa5"), 2))
-        self.setBrush(QColor("#ffffff"))
+        self._apply_look(False)
         self.setFlags(
             QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
             | QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
+
+    def _apply_look(self, selected):
+        p = PALETTE
+        if selected:
+            self.setPen(QPen(QColor(p["gold"]), 2))
+            self.setBrush(QColor(p["select"]))
+        else:
+            self.setPen(QPen(QColor(p["line"]), 1))
+            self.setBrush(QColor(p["panel2"]))
+
+    def paint(self, painter, option, widget=None):
+        self._apply_look(self.isSelected())
+        super().paint(painter, option, widget)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton and self._callback:
@@ -55,6 +69,10 @@ class MioTraitTreeView(QGraphicsView):
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
         self.setRenderHints(QPainter.RenderHint.Antialiasing)
+        self.setBackgroundBrush(QColor(PALETTE["bg"]))
+        self.setStyleSheet(
+            "QGraphicsView { border: 1px solid %s; background: %s; }"
+            % (PALETTE["line"], PALETTE["bg"]))
         self._name_of = name_of or (lambda k: k)
         self._gfx_map = gfx_map or {}
         self._mod_path = mod_path or ""
@@ -121,7 +139,7 @@ class MioTraitTreeView(QGraphicsView):
             # 名称
             text = self._name(token)
             txt = QGraphicsTextItem(text)
-            txt.setDefaultTextColor(QColor("#162333"))
+            txt.setDefaultTextColor(QColor(PALETTE["text"]))
             f = QFont()
             f.setPointSize(9)
             txt.setFont(f)
@@ -149,7 +167,7 @@ class MioTraitTreeView(QGraphicsView):
                 x2 = px * CELL_W + CELL_W // 2
                 y2 = py * CELL_H + CELL_H
                 line = QGraphicsLineItem(x1, y1, x2, y2)
-                line.setPen(QPen(QColor("#8aa0b8"), 1.5))
+                line.setPen(QPen(QColor(PALETTE["gold_dim"]), 1.4))
                 line.setZValue(-1)
                 self._scene.addItem(line)
 
@@ -161,7 +179,7 @@ class MioTraitTreeView(QGraphicsView):
             star = QGraphicsEllipseItem(
                 ix * CELL_W + 8, iy * CELL_H + 8, 12, 12)
             star.setBrush(QColor("#e67e22"))
-            star.setPen(QPen(QColor("#ffffff"), 1))
+            star.setPen(QPen(QColor(PALETTE["gold"]), 1))
             star.setZValue(3)
             self._scene.addItem(star)
 

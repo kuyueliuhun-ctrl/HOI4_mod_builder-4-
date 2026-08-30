@@ -1,12 +1,18 @@
 """MIO 编辑器（主对话框，UI/信号槽层）。
 
-按游戏内 MIO 界面：
+视觉：复用游戏自带 MIO 主视觉素材重建（见 mio_ui_theme）：
+- 标题栏 = mio_entry_bg 列表横幅底板（左图标位 + 羊皮纸标题 + 动作按钮）
+- 头图 = mio_details_background_<type> 详情页插画（按装备类型选变体）
+- 三栏暗色面板 + 黄铜描边；特质树节点同款暗金配色
+
+布局：
 - 左栏：MIO 组织列表
-- 顶部：MIO 图标选择 + 保存
+- 顶部：横幅（MIO 图标选择 + 保存）
+- 头图：详情插画 + 组织名/装备类型
 - 左侧面板：属性 / 装备加成展示（取自 initial_trait）
 - 中部：特质树画布（点击选特质）
 - 右侧：特质实体 新增/删除/编辑（含图标选择）
-- 底部：方针编辑器入口
+- 底部：方针编辑器入口（方针槽按钮风格）
 """
 
 from __future__ import annotations
@@ -39,6 +45,13 @@ from mio_loader import (
     trait_to_pdx,
 )
 from mio_trait_tree import MioTraitTreeView
+from mio_ui_theme import (
+    BannerWidget,
+    IllustrationHeader,
+    apply_policy_slot_style,
+    build_qss,
+    style_sidebar,
+)
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
@@ -53,6 +66,7 @@ class MioEditorDialog(QDialog):
         self.hoi4_path = hoi4_path or ""
         self.setWindowTitle("MIO 编辑器")
         self.resize(1280, 780)
+        self.setStyleSheet(build_qss())
 
         self.mios = {}
         self._current_id = None
@@ -70,10 +84,13 @@ class MioEditorDialog(QDialog):
         self.sidebar = EntityListSidebar("MIO 组织", self)
         self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_mio_changed)
+        style_sidebar(self.sidebar)
         root.addWidget(self.sidebar)
 
         right = QVBoxLayout()
-        right.addLayout(self._build_top_bar())
+        right.addWidget(self._build_top_bar())
+        self.illus = IllustrationHeader(self.mod_path, self.hoi4_path)
+        right.addWidget(self.illus)
         split = QHBoxLayout()
         split.addWidget(self._build_info_panel())
         self.tree = MioTraitTreeView(
@@ -88,6 +105,7 @@ class MioEditorDialog(QDialog):
         bottom.addStretch(1)
         self.policy_btn = QPushButton("🎯 方针编辑器…")
         self.policy_btn.clicked.connect(self._open_policies)
+        apply_policy_slot_style(self.policy_btn)
         bottom.addWidget(self.policy_btn)
         right.addLayout(bottom)
         root.addLayout(right, 1)
@@ -97,12 +115,17 @@ class MioEditorDialog(QDialog):
     # ---------- 依赖 ----------
 
     def _make_loc(self):
+        cache = {"sig": None, "mgr": None}
+
         def name_of(key):
             try:
                 from localization_mgr import LocalizationManager
-                mgr = LocalizationManager()
-                mgr.reload(self.hoi4_path, self.mod_path)
-                return mgr.get_name(key) or key
+                sig = (self.hoi4_path or "", self.mod_path or "")
+                if cache["sig"] != sig:
+                    mgr = LocalizationManager()
+                    mgr.reload(sig[0], sig[1])
+                    cache["sig"], cache["mgr"] = sig, mgr
+                return cache["mgr"].get_name(key) or key
             except Exception:
                 return key
         return name_of
@@ -121,46 +144,47 @@ class MioEditorDialog(QDialog):
     # ---------- 布局 ----------
 
     def _build_top_bar(self):
-        bar = QHBoxLayout()
-        self.title_label = QLabel("—")
-        self.title_label.setStyleSheet("font-weight:bold; font-size:16px;")
-        bar.addWidget(self.title_label)
-        bar.addStretch(1)
-        self.mio_icon_label = QLabel("🖼")
-        self.mio_icon_label.setFixedSize(48, 48)
-        bar.addWidget(self.mio_icon_label)
+        """游戏条目横幅风格标题栏（mio_entry_bg 底板）。"""
+        self.banner = BannerWidget(self.mod_path, self.hoi4_path)
+        self.title_label = self.banner.title_label
+        self.mio_icon_label = self.banner.icon_label
         self.mio_icon_btn = QPushButton("选择 MIO 图标")
         self.mio_icon_btn.clicked.connect(self._pick_mio_icon)
-        bar.addWidget(self.mio_icon_btn)
         self.save_btn = QPushButton("💾 保存")
         self.save_btn.clicked.connect(self._on_save_mio)
-        bar.addWidget(self.save_btn)
-        return bar
+        row = self.banner.layout()
+        row.addWidget(self.mio_icon_btn)
+        row.addWidget(self.save_btn)
+        return self.banner
 
     def _build_info_panel(self):
         host = QVBoxLayout()
-        host.setContentsMargins(6, 6, 6, 6)
+        host.setContentsMargins(8, 8, 8, 8)
+        host.setSpacing(6)
         title = QLabel("属性与装备加成")
-        title.setStyleSheet("font-weight:bold; color:#1f4f7e;")
+        title.setObjectName("mioPanelTitle")
         host.addWidget(title)
         self.info_label = QLabel("—")
         self.info_label.setWordWrap(True)
         self.info_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.info_label.setStyleSheet("color:#162333;")
+        self.info_label.setStyleSheet("color:#b5a98a; background:transparent;")
         host.addWidget(self.info_label, 1)
         panel = QWidget()
+        panel.setObjectName("mioPanel")
         panel.setFixedWidth(300)
         panel.setLayout(host)
         return panel
 
     def _build_trait_form(self):
         form = QVBoxLayout()
-        form.setContentsMargins(6, 6, 6, 6)
+        form.setContentsMargins(8, 8, 8, 8)
+        form.setSpacing(6)
         title = QLabel("特质编辑")
-        title.setStyleSheet("font-weight:bold; color:#1f4f7e;")
+        title.setObjectName("mioPanelTitle")
         form.addWidget(title)
         self.trait_label = QLabel("—（点击左侧树节点选择）")
-        self.trait_label.setStyleSheet("color:#666;")
+        self.trait_label.setStyleSheet(
+            "color:#b5a98a; background:transparent;")
         form.addWidget(self.trait_label)
 
         self.token_edit = QLineEdit()
@@ -211,6 +235,7 @@ class MioEditorDialog(QDialog):
         form.addLayout(btns)
         form.addStretch(1)
         panel = QWidget()
+        panel.setObjectName("mioPanel")
         panel.setFixedWidth(420)
         panel.setLayout(form)
         return panel
@@ -221,7 +246,8 @@ class MioEditorDialog(QDialog):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(2)
         lab = QLabel(label)
-        lab.setStyleSheet("color:#162333; font-weight:bold;")
+        lab.setStyleSheet(
+            "color:#b5a98a; font-weight:bold; background:transparent;")
         lay.addWidget(lab)
         lay.addWidget(widget)
         container._inner_widget = widget
@@ -251,10 +277,13 @@ class MioEditorDialog(QDialog):
         self._clear_trait_form()
         if not mio:
             self.tree.set_mio(None)
+            self.illus.set_org("", [], None)
             self.info_label.setText("—")
             self.mio_icon_label.setText("🖼")
             return
         self.tree.set_mio(mio)
+        self.illus.set_org(mio_id, mio.get("equipment_type") or [],
+                           loc=self._loc)
         self._refresh_info(mio)
         self._refresh_mio_icon(mio)
 
