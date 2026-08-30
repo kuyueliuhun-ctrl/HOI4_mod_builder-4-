@@ -29,13 +29,13 @@ from mio_loader import (
     rename_policy,
     replace_policy_block,
 )
-from mio_ui_theme import BannerWidget, build_qss, style_sidebar
+from mio_ui_theme import BannerWidget
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
 
 class MioPolicyEditorDialog(QDialog):
-    """MIO 方针编辑器。"""
+    """MIO 方针编辑器（主题与编辑器全局主题一致）。"""
 
     def __init__(self, mod_path="", hoi4_path="", parent=None,
                  initial_id=None):
@@ -44,7 +44,6 @@ class MioPolicyEditorDialog(QDialog):
         self.hoi4_path = hoi4_path or ""
         self.setWindowTitle("MIO 方针编辑器")
         self.resize(980, 700)
-        self.setStyleSheet(build_qss())
 
         self.policies = {}
         self._current_id = None
@@ -57,7 +56,6 @@ class MioPolicyEditorDialog(QDialog):
         self.sidebar = EntityListSidebar("MIO 方针", self)
         self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_policy_changed)
-        style_sidebar(self.sidebar)
         root.addWidget(self.sidebar)
 
         right = QVBoxLayout()

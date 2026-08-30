@@ -3,6 +3,9 @@
 把 MIO 定义中的 trait 列表按 position{x,y} 网格绘制成树，
 并按 relative_position_id / any_parent / all_parents 画连线。
 点击节点发出 trait_selected(token)。
+
+配色与编辑器全局主题一致（theme.py）；
+特质名单行省略（tooltip 看全名），无特质时画布给出占位提示。
 """
 
 from __future__ import annotations
@@ -10,16 +13,16 @@ from __future__ import annotations
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtWidgets import (
-    QGraphicsEllipseItem,
     QGraphicsItem,
     QGraphicsLineItem,
     QGraphicsRectItem,
     QGraphicsScene,
+    QGraphicsSimpleTextItem,
     QGraphicsTextItem,
     QGraphicsView,
 )
 
-from mio_ui_theme import PALETTE
+from theme import COLORS as C
 
 NODE_W = 126
 NODE_H = 60
@@ -28,7 +31,7 @@ CELL_H = 94
 
 
 class _TraitNode(QGraphicsRectItem):
-    """可点击的特质节点卡片（游戏暗底 + 黄铜描边，选中转亮金）。"""
+    """可点击的特质节点卡片（主题白卡 + 主色描边，选中转主色软底）。"""
 
     def __init__(self, x, y, w, h, token, callback):
         super().__init__(x, y, w, h)
@@ -40,13 +43,12 @@ class _TraitNode(QGraphicsRectItem):
             | QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges)
 
     def _apply_look(self, selected):
-        p = PALETTE
         if selected:
-            self.setPen(QPen(QColor(p["gold"]), 2))
-            self.setBrush(QColor(p["select"]))
+            self.setPen(QPen(QColor(C["accent"]), 2))
+            self.setBrush(QColor("#d9e5f2"))  # accent_soft 等效实色
         else:
-            self.setPen(QPen(QColor(p["line"]), 1))
-            self.setBrush(QColor(p["panel2"]))
+            self.setPen(QPen(QColor("#b9c5d1"), 1))
+            self.setBrush(QColor(C["bg_surface"]))
 
     def paint(self, painter, option, widget=None):
         self._apply_look(self.isSelected())
@@ -69,10 +71,10 @@ class MioTraitTreeView(QGraphicsView):
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
         self.setRenderHints(QPainter.RenderHint.Antialiasing)
-        self.setBackgroundBrush(QColor(PALETTE["bg"]))
+        self.setBackgroundBrush(QColor(C["bg_surface_subtle"]))
         self.setStyleSheet(
-            "QGraphicsView { border: 1px solid %s; background: %s; }"
-            % (PALETTE["line"], PALETTE["bg"]))
+            "QGraphicsView { border: 1px solid #d9e0e7; background: %s; }"
+            % C["bg_surface_subtle"])
         self._name_of = name_of or (lambda k: k)
         self._gfx_map = gfx_map or {}
         self._mod_path = mod_path or ""
@@ -108,47 +110,16 @@ class MioTraitTreeView(QGraphicsView):
             return
 
         traits = mio.get("traits", []) or []
+        if not traits:
+            self._draw_placeholder("（该组织未定义特质树）")
+            return
         positions = {}
         for t in traits:
             token = t.get("token", "")
             if token:
                 positions[token] = (t.get("x", 0), t.get("y", 0))
 
-        # 节点
-        for t in traits:
-            token = t.get("token", "")
-            if not token:
-                continue
-            x, y = positions.get(token, (0, 0))
-            px = x * CELL_W + 10
-            py = y * CELL_H + 10
-            node = _TraitNode(px, py, NODE_W, NODE_H, token,
-                              self._on_node_clicked)
-            self._item_to_token[id(node)] = token
-            self._scene.addItem(node)
-
-            # 图标
-            icon = t.get("icon", "")
-            pm = self._icon_pixmap(icon)
-            if not pm.isNull():
-                pm = pm.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio,
-                               Qt.TransformationMode.SmoothTransformation)
-                icon_item = self._scene.addPixmap(pm)
-                icon_item.setPos(px + 6, py + (NODE_H - 40) // 2)
-                icon_item.setZValue(2)
-            # 名称
-            text = self._name(token)
-            txt = QGraphicsTextItem(text)
-            txt.setDefaultTextColor(QColor(PALETTE["text"]))
-            f = QFont()
-            f.setPointSize(9)
-            txt.setFont(f)
-            txt.setPos(px + 50, py + (NODE_H - 20) // 2)
-            txt.setTextWidth(NODE_W - 54)
-            txt.setZValue(2)
-            self._scene.addItem(txt)
-
-        # 连线（子 -> 父）
+        # 连线（子 -> 父，先画线再画节点，节点覆盖线头）
         for t in traits:
             token = t.get("token", "")
             if not token or token not in positions:
@@ -167,23 +138,75 @@ class MioTraitTreeView(QGraphicsView):
                 x2 = px * CELL_W + CELL_W // 2
                 y2 = py * CELL_H + CELL_H
                 line = QGraphicsLineItem(x1, y1, x2, y2)
-                line.setPen(QPen(QColor(PALETTE["gold_dim"]), 1.4))
+                line.setPen(QPen(QColor("#b3bec9"), 1.4))
                 line.setZValue(-1)
                 self._scene.addItem(line)
 
-        # 初始特质标记（五角星）
+        # 节点
+        for t in traits:
+            token = t.get("token", "")
+            if not token:
+                continue
+            x, y = positions.get(token, (0, 0))
+            px = x * CELL_W + 10
+            py = y * CELL_H + 10
+            node = _TraitNode(px, py, NODE_W, NODE_H, token,
+                              self._on_node_clicked)
+            node.setToolTip(token)
+            self._item_to_token[id(node)] = token
+            self._scene.addItem(node)
+
+            # 图标
+            icon = t.get("icon", "")
+            pm = self._icon_pixmap(icon)
+            if not pm.isNull():
+                pm = pm.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio,
+                               Qt.TransformationMode.SmoothTransformation)
+                icon_item = self._scene.addPixmap(pm)
+                icon_item.setPos(px + 6, py + (NODE_H - 40) // 2)
+                icon_item.setZValue(2)
+            # 名称（单行省略，tooltip 看全名，杜绝溢出节点）
+            label = self._name(token)
+            f = QFont()
+            f.setPointSize(9)
+            fm = self.fontMetrics()
+            shown = fm.elidedText(label, Qt.TextElideMode.ElideRight,
+                                  NODE_W - 58)
+            txt = QGraphicsSimpleTextItem(shown)
+            txt.setFont(f)
+            txt.setBrush(QColor(C["text_primary"]))
+            txt.setToolTip("%s\n%s" % (label, token))
+            txt.setPos(px + 50, py + (NODE_H - 16) // 2)
+            txt.setZValue(2)
+            self._scene.addItem(txt)
+
+        # 初始特质标记（★ 画在节点右上角，避免与图标重叠）
         init = mio.get("initial_trait") or {}
         init_name = init.get("name", "")
         if init_name in positions:
             ix, iy = positions[init_name]
-            star = QGraphicsEllipseItem(
-                ix * CELL_W + 8, iy * CELL_H + 8, 12, 12)
-            star.setBrush(QColor("#e67e22"))
-            star.setPen(QPen(QColor(PALETTE["gold"]), 1))
+            star = QGraphicsTextItem("★")
+            f = QFont()
+            f.setPointSize(11)
+            star.setFont(f)
+            star.setDefaultTextColor(QColor(C["map_accent"]))
+            star.setToolTip("初始特质：%s" % self._name(init_name))
+            star.setPos(ix * CELL_W + 10 + NODE_W - 18, iy * CELL_H + 8)
             star.setZValue(3)
             self._scene.addItem(star)
 
         self._scene.setSceneRect(self._scene.itemsBoundingRect().adjusted(-30, -30, 30, 30))
+
+    def _draw_placeholder(self, text):
+        """空画布占位提示（居中、次级文字色）。"""
+        txt = QGraphicsTextItem(text)
+        f = QFont()
+        f.setPointSize(12)
+        txt.setFont(f)
+        txt.setDefaultTextColor(QColor(C["text_tertiary"]))
+        self._scene.addItem(txt)
+        self._scene.setSceneRect(txt.boundingRect().adjusted(-40, -40, 40, 40))
+        self.centerOn(txt)
 
     def _on_node_clicked(self, token):
         self.trait_selected.emit(token)

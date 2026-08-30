@@ -1,9 +1,9 @@
 """MIO 编辑器（主对话框，UI/信号槽层）。
 
-视觉：复用游戏自带 MIO 主视觉素材重建（见 mio_ui_theme）：
-- 标题栏 = mio_entry_bg 列表横幅底板（左图标位 + 羊皮纸标题 + 动作按钮）
+视觉：主题与编辑器全局主题一致（theme.py 全局亮色）；
+复用游戏自带 MIO 主视觉素材做图片组件（见 mio_ui_theme）：
+- 标题栏 = mio_entry_bg 列表横幅底板（左图标位 + 标题 + 动作按钮）
 - 头图 = mio_details_background_<type> 详情页插画（按装备类型选变体）
-- 三栏暗色面板 + 黄铜描边；特质树节点同款暗金配色
 
 布局：
 - 左栏：MIO 组织列表
@@ -12,7 +12,7 @@
 - 左侧面板：属性 / 装备加成展示（取自 initial_trait）
 - 中部：特质树画布（点击选特质）
 - 右侧：特质实体 新增/删除/编辑（含图标选择）
-- 底部：方针编辑器入口（方针槽按钮风格）
+- 底部：方针编辑器入口（主色按钮）
 """
 
 from __future__ import annotations
@@ -48,11 +48,10 @@ from mio_trait_tree import MioTraitTreeView
 from mio_ui_theme import (
     BannerWidget,
     IllustrationHeader,
-    apply_policy_slot_style,
-    build_qss,
-    style_sidebar,
+    style_primary_button,
 )
 from state_build_ops import ensure_file_in_mod
+from theme import COLORS as C
 from write_utils import atomic_write_text
 
 
@@ -66,7 +65,6 @@ class MioEditorDialog(QDialog):
         self.hoi4_path = hoi4_path or ""
         self.setWindowTitle("MIO 编辑器")
         self.resize(1280, 780)
-        self.setStyleSheet(build_qss())
 
         self.mios = {}
         self._current_id = None
@@ -84,7 +82,6 @@ class MioEditorDialog(QDialog):
         self.sidebar = EntityListSidebar("MIO 组织", self)
         self.sidebar.set_paths(self.mod_path, self.hoi4_path)
         self.sidebar.currentChanged.connect(self._on_mio_changed)
-        style_sidebar(self.sidebar)
         root.addWidget(self.sidebar)
 
         right = QVBoxLayout()
@@ -105,7 +102,7 @@ class MioEditorDialog(QDialog):
         bottom.addStretch(1)
         self.policy_btn = QPushButton("🎯 方针编辑器…")
         self.policy_btn.clicked.connect(self._open_policies)
-        apply_policy_slot_style(self.policy_btn)
+        style_primary_button(self.policy_btn)
         bottom.addWidget(self.policy_btn)
         right.addLayout(bottom)
         root.addLayout(right, 1)
@@ -162,15 +159,16 @@ class MioEditorDialog(QDialog):
         host.setContentsMargins(8, 8, 8, 8)
         host.setSpacing(6)
         title = QLabel("属性与装备加成")
-        title.setObjectName("mioPanelTitle")
+        title.setStyleSheet("color:%s; font-weight:bold;" % C["accent"])
         host.addWidget(title)
         self.info_label = QLabel("—")
         self.info_label.setWordWrap(True)
         self.info_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.info_label.setStyleSheet("color:#b5a98a; background:transparent;")
+        self.info_label.setStyleSheet(
+            "color:%s; background:transparent;" % C["text_secondary"])
         host.addWidget(self.info_label, 1)
         panel = QWidget()
-        panel.setObjectName("mioPanel")
+        panel.setProperty("class", "card")
         panel.setFixedWidth(300)
         panel.setLayout(host)
         return panel
@@ -180,11 +178,11 @@ class MioEditorDialog(QDialog):
         form.setContentsMargins(8, 8, 8, 8)
         form.setSpacing(6)
         title = QLabel("特质编辑")
-        title.setObjectName("mioPanelTitle")
+        title.setStyleSheet("color:%s; font-weight:bold;" % C["accent"])
         form.addWidget(title)
         self.trait_label = QLabel("—（点击左侧树节点选择）")
         self.trait_label.setStyleSheet(
-            "color:#b5a98a; background:transparent;")
+            "color:%s; background:transparent;" % C["text_secondary"])
         form.addWidget(self.trait_label)
 
         self.token_edit = QLineEdit()
@@ -235,7 +233,7 @@ class MioEditorDialog(QDialog):
         form.addLayout(btns)
         form.addStretch(1)
         panel = QWidget()
-        panel.setObjectName("mioPanel")
+        panel.setProperty("class", "card")
         panel.setFixedWidth(420)
         panel.setLayout(form)
         return panel
@@ -247,7 +245,8 @@ class MioEditorDialog(QDialog):
         lay.setSpacing(2)
         lab = QLabel(label)
         lab.setStyleSheet(
-            "color:#b5a98a; font-weight:bold; background:transparent;")
+            "color:%s; font-weight:bold; background:transparent;"
+            % C["text_secondary"])
         lay.addWidget(lab)
         lay.addWidget(widget)
         container._inner_widget = widget

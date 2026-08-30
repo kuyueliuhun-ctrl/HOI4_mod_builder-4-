@@ -273,5 +273,50 @@ class MioEditorDialogTest(unittest.TestCase):
         self.assertIn("mio_ai_weights", actions)
 
 
+class MioTraitTreeDrawing(unittest.TestCase):
+    """特质树绘图回归：文本不溢出节点 / 空特质占位提示。"""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from PyQt6.QtWidgets import QApplication
+        cls.app = QApplication.instance() or QApplication([])
+
+    def test_elided_text_stays_inside_node(self):
+        from PyQt6.QtWidgets import QGraphicsSimpleTextItem
+        from mio_trait_tree import MioTraitTreeView
+        tree = MioTraitTreeView()
+        long_token = "tfr_mio_trait_extremely_long_token_name_for_overflow"
+        tree.set_mio({
+            "id": "x", "initial_trait": {},
+            "traits": [{"token": long_token, "name": long_token,
+                        "icon": "", "x": 0, "y": 0}],
+        })
+        node = [i for i in tree._scene.items()
+                if i.__class__.__name__ == "_TraitNode"][0]
+        nrb = node.sceneBoundingRect()
+        texts = [i for i in tree._scene.items()
+                 if isinstance(i, QGraphicsSimpleTextItem)]
+        self.assertTrue(texts)
+        for it in texts:
+            self.assertLessEqual(
+                it.sceneBoundingRect().right(), nrb.right() + 1)
+            self.assertLessEqual(
+                it.sceneBoundingRect().bottom(), nrb.bottom() + 1)
+
+    def test_empty_traits_placeholder(self):
+        from mio_trait_tree import MioTraitTreeView
+        tree = MioTraitTreeView()
+        tree.set_mio({"id": "x", "initial_trait": {}, "traits": []})
+        self.assertTrue(tree._scene.items())  # 有占位提示而非空画布
+
+    def test_theme_colors_match_app(self):
+        from mio_trait_tree import MioTraitTreeView
+        from theme import COLORS as C
+        tree = MioTraitTreeView()
+        self.assertEqual(tree.backgroundBrush().color().name(),
+                         C["bg_surface_subtle"].lower())
+
+
 if __name__ == "__main__":
     unittest.main()

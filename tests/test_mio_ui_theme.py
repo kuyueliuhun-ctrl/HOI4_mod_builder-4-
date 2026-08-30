@@ -78,7 +78,7 @@ class DetailsVariant(unittest.TestCase):
 
 
 class ThemeAssets(unittest.TestCase):
-    """QSS / 调色板 / 缓存加载。"""
+    """调色板 / 主色按钮 / 缓存加载。"""
 
     @classmethod
     def setUpClass(cls):
@@ -86,18 +86,15 @@ class ThemeAssets(unittest.TestCase):
         from PyQt6.QtWidgets import QApplication
         cls.app = QApplication.instance() or QApplication([])
 
-    def test_qss_contains_palette(self):
+    def test_art_overlay_keys(self):
         import mio_ui_theme as t
-        qss = t.build_qss()
-        for color in (t.PALETTE["bg"], t.PALETTE["line"],
-                      t.PALETTE["gold"], t.PALETTE["text"]):
-            self.assertIn(color, qss)
+        for key in ("text", "shadow"):
+            self.assertIn(key, t.ART_OVERLAY)
 
-    def test_palette_keys(self):
+    def test_theme_tokens_used(self):
         import mio_ui_theme as t
-        for key in ("bg", "panel", "panel2", "line", "gold", "gold_dim",
-                    "metal", "text", "text_dim", "select"):
-            self.assertIn(key, t.PALETTE)
+        from theme import COLORS as C
+        self.assertEqual(t.C, C)  # 主题与编辑器全局主题一致
 
     def test_load_art_pixmap_cache(self):
         import mio_ui_theme as t
@@ -143,12 +140,12 @@ class WidgetsFallback(unittest.TestCase):
         pm = h.grab()
         self.assertFalse(pm.isNull())
 
-    def test_style_sidebar(self):
-        from ai_ui_common import EntityListSidebar
-        from mio_ui_theme import style_sidebar
-        sb = EntityListSidebar("MIO", None, enable_crud=False)
-        style_sidebar(sb)
-        self.assertTrue(sb.styleSheet())
+    def test_style_primary_button(self):
+        from PyQt6.QtWidgets import QPushButton
+        from mio_ui_theme import style_primary_button
+        btn = QPushButton("方针")
+        style_primary_button(btn)
+        self.assertEqual(btn.property("class"), "primary")
 
 
 if __name__ == "__main__":
