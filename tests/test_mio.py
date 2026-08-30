@@ -541,6 +541,11 @@ class MioOrgMetaEditTest(unittest.TestCase):
 	}
 	initial_trait = {
 		name = init_trait_1
+		equipment_bonus = {
+			reliability = 0.05
+		}
+		reliability = 0.02
+		special_trait_background = yes
 	}
 }
 """
@@ -623,6 +628,17 @@ class MioOrgMetaEditTest(unittest.TestCase):
                 "mio_cat_eq_all_light_tank": True,
                 "mio_cat_eq_all_medium_tank": True,
             })
+            # checkbox 显示本地化标签（tooltip 保留原始 token）
+            for t, cb in dlg.equip_checkboxes.items():
+                self.assertTrue(cb.text().startswith(t))
+                self.assertEqual(cb.toolTip(), t)
+            # 左侧属性与装备加成使用右侧同款结构列表（内层，无最外层块行）
+            self.assertEqual(dlg.info_eq_view.topLevelItemCount(), 1)
+            self.assertEqual(
+                dlg.info_eq_view.topLevelItem(0).text(0).split("--")[0],
+                "reliability")
+            self.assertEqual(dlg.info_direct_view.to_pdx_text(),
+                             "reliability = 0.02\nspecial_trait_background = yes")
             # 取消 light_tank
             dlg.equip_checkboxes["mio_cat_eq_all_light_tank"].setChecked(False)
             dlg._on_save_mio()

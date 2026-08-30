@@ -449,12 +449,38 @@ class MioEditorDialog(QDialog):
         title = QLabel("属性与装备加成")
         title.setStyleSheet("color:%s; font-weight:bold;" % C["accent"])
         host.addWidget(title)
-        self.info_label = QLabel("—")
-        self.info_label.setWordWrap(True)
-        self.info_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.info_label.setStyleSheet(
-            "color:%s; background:transparent;" % C["text_secondary"])
-        host.addWidget(self.info_label, 1)
+
+        tr = _shared_translator()
+        info_eq_label = QLabel("装备加成")
+        info_eq_label.setStyleSheet(
+            "color:%s; font-weight:bold; background:transparent;"
+            % C["text_secondary"])
+        host.addWidget(info_eq_label)
+        self.info_eq_view = StructureView(translator=tr)
+        self.info_eq_view.set_compact(True)
+        self.info_eq_view.setFixedHeight(110)
+        host.addWidget(self.info_eq_view)
+
+        info_prod_label = QLabel("生产加成")
+        info_prod_label.setStyleSheet(
+            "color:%s; font-weight:bold; background:transparent;"
+            % C["text_secondary"])
+        host.addWidget(info_prod_label)
+        self.info_prod_view = StructureView(translator=tr)
+        self.info_prod_view.set_compact(True)
+        self.info_prod_view.setFixedHeight(90)
+        host.addWidget(self.info_prod_view)
+
+        info_direct_label = QLabel("直接属性加成")
+        info_direct_label.setStyleSheet(
+            "color:%s; font-weight:bold; background:transparent;"
+            % C["text_secondary"])
+        host.addWidget(info_direct_label)
+        self.info_direct_view = StructureView(translator=tr)
+        self.info_direct_view.set_compact(True)
+        self.info_direct_view.setFixedHeight(90)
+        host.addWidget(self.info_direct_view)
+
         self.init_edit_btn = QPushButton("✎ 编辑初始加成")
         self.init_edit_btn.clicked.connect(self._edit_initial_trait)
         host.addWidget(self.init_edit_btn)
@@ -466,13 +492,13 @@ class MioEditorDialog(QDialog):
         host.addWidget(eq_title)
         self.equip_scroll = QScrollArea()
         self.equip_scroll.setWidgetResizable(True)
-        self.equip_scroll.setMaximumHeight(130)
+        self.equip_scroll.setMinimumHeight(220)  # 拉长：装备类型候选更多可见
         self.equip_box = QWidget()
         self.equip_layout = QVBoxLayout(self.equip_box)
         self.equip_layout.setContentsMargins(2, 2, 2, 2)
         self.equip_layout.setSpacing(1)
         self.equip_scroll.setWidget(self.equip_box)
-        host.addWidget(self.equip_scroll)
+        host.addWidget(self.equip_scroll, 1)
         self.equip_checkboxes = {}
 
         self.headers_btn = QPushButton("🏛 列名称编辑…")
@@ -609,7 +635,9 @@ class MioEditorDialog(QDialog):
         if not mio:
             self.tree.set_mio(None)
             self.illus.set_org("", [], None)
-            self.info_label.setText("—")
+            for w in (self.info_eq_view, self.info_prod_view,
+                      self.info_direct_view):
+                w.load_text("")
             self.mio_icon_label.setText("🖼")
             return
         self.tree.set_mio(mio)
@@ -618,6 +646,17 @@ class MioEditorDialog(QDialog):
         self._refresh_info(mio)
         self._sync_equip_types(mio)
         self._refresh_mio_icon(mio)
+
+    def _localized_eq_type(self, token):
+        """装备类型候选的中文显示：翻译器命中则 `token--中文`，否则原样。"""
+        try:
+            tr = _shared_translator()
+            if tr is None:
+                return token
+            cn = tr.translate_key(token) or token
+        except Exception:
+            cn = token
+        return "%s--%s" % (token, cn) if cn and cn != token else token
 
     def _sync_equip_types(self, mio):
         """装备类型 checkbox：候选 = 全库 equipment_type 并集，勾选 = 当前组织。"""
@@ -634,7 +673,8 @@ class MioEditorDialog(QDialog):
                     w.deleteLater()
             self.equip_checkboxes = {}
             for t in all_types:
-                cb = QCheckBox(t)
+                cb = QCheckBox(self._localized_eq_type(t))
+                cb.setToolTip(t)
                 cb.setChecked(t in sel)
                 self.equip_checkboxes[t] = cb
                 self.equip_layout.addWidget(cb)
@@ -643,29 +683,17 @@ class MioEditorDialog(QDialog):
                 cb.setChecked(t in sel)
 
     def _refresh_info(self, mio):
+        """左侧属性与装备加成：用右侧同款结构列表展示（内层、内联中文）。"""
         init = mio.get("initial_trait") or {}
-        lines = []
-        if init.get("name"):
-            lines.append("初始特质：%s" % self._loc(init["name"]))
-        for label, raw in (("装备加成", init.get("equipment_bonus") or ""),
-                           ("生产加成", init.get("production_bonus") or "")):
-            if not raw:
-                continue
-            lines.append("· %s：" % label)
-            lines.extend("    %s" % ln for ln in self._format_bonus(raw))
-        direct = init.get("direct_stats") or []
-        if direct:
-            lines.append("· 直接属性加成：")
-            for k, v in direct:
-                try:
-                    shown = v
-                    num = float(v)
-                    if k.endswith("_factor") or k == "build_cost_ic":
-                        shown = "%+d%%" % round(num * 100)
-                except ValueError:
-                    shown = v
-                lines.append("    %s = %s" % (self._stat_label(k), shown))
-        self.info_label.setText("\n".join(lines) or "（无 initial_trait 加成）")
+        self.info_eq_view.load_text(
+            _strip_block_wrapper(init.get("equipment_bonus", ""),
+                                 "equipment_bonus").strip())
+        self.info_prod_view.load_text(
+            _strip_block_wrapper(init.get("production_bonus", ""),
+                                 "production_bonus").strip())
+        self.info_direct_view.load_text("\n".join(
+            "%s = %s" % (k, v)
+            for k, v in (init.get("direct_stats") or [])))
 
     def _edit_initial_trait(self):
         mio = self._current_mio()
