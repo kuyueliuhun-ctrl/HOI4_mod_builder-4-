@@ -7,8 +7,11 @@
 - 双击块行值列（`{ … }` 摘要）→ 展开/收起该块；
 - 双击值条目键列/值列 → 就地改名/改值；
 - 不展示原始文本结构（无整块文本编辑器）；
-- 本地化展示：接入 LocalizationManager 翻译器，把"像本地化键"的值/裸 token
-  的中文翻译显示在第三列，悬停 tooltip 给出所查键名，双击复制翻译。
+- 本地化与树形编辑器（generic_tree_editor）同款样式：GuiTranslator.translate_node
+  提供 `键--中文` / `值--中文值` 内联翻译，块/键/值全部生效；显示与编辑分离
+  （编辑器里永远是原始英文键值，展示层才带中文后缀）；
+- 右键块行/空白处复刻树形编辑器的添加功能：NodeEditDialog（词条/模板搜索）
+  添加节点，接受后原位插入并展开。
 
 数据底座是 tree_node.TreeNode（全保真：顺序、重复键、比较语句、原始行），
 所有编辑直接写回 TreeNode，`to_pdx_text()` 可随时导出序列化文本。
@@ -18,7 +21,6 @@
 from __future__ import annotations
 
 import os
-import re
 import sys
 
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -27,80 +29,93 @@ from PyQt6.QtWidgets import (
     QAbstractItemView,
     QApplication,
     QHeaderView,
+    QMenu,
     QTreeWidget,
     QTreeWidgetItem,
+    QWidget,
 )
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from theme import COLORS  # noqa: E402
-from tree_node import COMPARE_OPERATORS, TreeNode, parse_pdx_text_to_nodes  # noqa: E402
-
-# 纯数字/日期/坐标类 token：不可能是本地化键
-_NUM_TOKEN_RE = re.compile(r"^[\d\.\-+\s:]+$")
+from tree_node import TreeNode, parse_pdx_text_to_nodes  # noqa: E402
 
 
-def is_loc_candidate(token):
-    """判断一个 token 是否"像本地化键"（值得送去翻译器查一次）。
+class StructureItem(QTreeWidgetItem):
+    """结构条目：DisplayRole 展示层带 `--中文`，EditRole 恒为原始键/值。"""
 
-    规则（启发式）：非空、非纯数字/日期、含 ASCII 字母、无空格、
-    不含比较运算符、不是 @ 变量、不是 yes/no，长度不超过 120。
-    """
-    if not token:
-        return False
-    t = str(token).strip().strip('"')
-    if not t or _NUM_TOKEN_RE.match(t):
-        return False
-    if t.startswith("@") or t.lower() in ("yes", "no"):
-        return False
-    if not re.search(r"[A-Za-z]", t):
-        return False
-    if " " in t:
-        return False
-    if any(op in t for op in COMPARE_OPERATORS):
-        return False
-    return len(t) <= 120
+    def __init__(self, view, node):
+        super().__init__()
+        self.view = view
+        self.node = node
+        self.setFlags(self.flags() | Qt.ItemFlag.ItemIsEditable)
+
+    # ---------- 角色分离 ----------
+
+    def data(self, column, role):
+        node = self.node
+        if node is not None and role == Qt.ItemDataRole.DisplayRole:
+            return self.view.display_text(node, column)
+        if node is not None and role == Qt.ItemDataRole.EditRole:
+            is_stmt = (not node.key) and bool(node.raw_lines)
+            if column == StructureView.COL_KEY:
+                return None if is_stmt else node.key
+            if column == StructureView.COL_VALUE and node.node_type != "block":
+                return node.value
+            return None
+        return super().data(column, role)
+
+    def setData(self, column, role, value):
+        """编辑器提交：走统一写回（不落展示文本，展示层由 DisplayRole 现算）。"""
+        if role == Qt.ItemDataRole.EditRole and self.node is not None:
+            text = "" if value is None else str(value)
+            return self.view._commit_node_edit(self.node, column, text)
+        return super().setData(column, role, value)
 
 
 class StructureView(QTreeWidget):
-    """PDX 结构体列表树：默认展开，双击块字段改名/双击块行展开收起，第三列本地化。"""
+    """PDX 结构体列表树：默认展开，双击块字段改名/双击块行展开收起，
+    键值内联本地化（树形编辑器样式），右键添加节点（词条/模板）。"""
 
-    structureChanged = pyqtSignal()  # 任何成功写回后触发
+    structureChanged = pyqtSignal()  # 任何成功写回/添加后触发
 
-    COL_KEY, COL_VALUE, COL_LOC = 0, 1, 2
+    COL_KEY, COL_VALUE = 0, 1
 
-    def __init__(self, parent=None, localization=None):
+    def __init__(self, parent=None, translator=None):
         super().__init__(parent)
-        self.setColumnCount(3)
-        self.setHeaderLabels(["键", "值", "本地化"])
+        self.setColumnCount(2)
+        self.setHeaderLabels(["键", "值"])
         self._root = TreeNode("block", "(root)")   # 逻辑根：children 为顶层条目
-        self._loc = localization
+        self.translator = translator               # GuiTranslator 或同接口替身
         self._loading = False
         self._build_ui()
         self.itemDoubleClicked.connect(self._on_double_clicked)
-        self.itemChanged.connect(self._on_item_changed)
+        self.customContextMenuRequested.connect(self._show_menu)
 
     # ---------- UI ----------
 
     def _build_ui(self):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)  # 展开收起由块行值列双击手动接管
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setAlternatingRowColors(True)
         self.setUniformRowHeights(True)
         self.setHeaderHidden(False)
         header = self.header()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(True)
-        self.setColumnWidth(self.COL_KEY, 300)
-        self.setColumnWidth(self.COL_VALUE, 280)
-        self.setColumnWidth(self.COL_LOC, 240)
+        self.setColumnWidth(self.COL_KEY, 380)
+        self.setColumnWidth(self.COL_VALUE, 320)
 
     # ---------- 数据装载 ----------
 
-    def set_localization(self, mgr):
-        """接入/更换翻译器（LocalizationManager 或任何带 get_name 的对象）。"""
-        self._loc = mgr
+    def set_translator(self, translator):
+        """接入/更换翻译器（GuiTranslator 或任何带 translate_node 的对象）。"""
+        self.translator = translator
         self.refresh_localization()
+
+    # 兼容旧名
+    set_localization = set_translator
 
     def load_text(self, text):
         """解析 PDX 文本并渲染。"""
@@ -126,7 +141,7 @@ class StructureView(QTreeWidget):
         try:
             self.clear()
             for node in self._root.children:
-                item = self._make_item(node)
+                item = StructureItem(self, node)
                 self.addTopLevelItem(item)
                 self._fill_children(item, node)
                 self._decorate(item, node)
@@ -136,39 +151,53 @@ class StructureView(QTreeWidget):
 
     # ---------- 渲染 ----------
 
-    def _make_item(self, node):
-        item = QTreeWidgetItem()
-        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
-        item.setData(0, Qt.ItemDataRole.UserRole, node)
-        return item
+    def display_text(self, node, column):
+        """展示层文本：树形编辑器样式 `键--中文` / `值--中文值`（翻译不同才加后缀）。"""
+        cn_key, cn_val = self._translate_node(node)
+        if column == self.COL_KEY:
+            if node.node_type == "block":
+                base = node.key or "（未命名块）"
+            elif (not node.key) and node.raw_lines:
+                return "·"  # 比较语句无键名
+            else:
+                base = node.key
+            if cn_key and cn_key != base:
+                return "%s--%s" % (base, cn_key)
+            return base
+        # 值列
+        if node.node_type == "block":
+            return "{ … } · %d 项" % len(node.children)
+        v = node.value or ""
+        if cn_val and cn_val != v:
+            return "%s--%s" % (v, cn_val) if v else cn_val
+        return v
+
+    def _translate_node(self, node):
+        """经翻译器取 (中文键, 中文值)；无翻译器/无翻译时返回原始文本。"""
+        if self.translator is None:
+            return node.key, node.value or ""
+        try:
+            cn_key, cn_val = self.translator.translate_node(
+                node.key, node.value if node.value else None)
+        except Exception:
+            return node.key, node.value or ""
+        cn_key = cn_key or node.key
+        cn_val = cn_val if cn_val is not None else (node.value or "")
+        return cn_key, cn_val
 
     def _fill_children(self, item, node):
         if node.node_type != "block":
             return
         for child in node.children:
-            sub = self._make_item(child)
+            sub = StructureItem(self, child)
             item.addChild(sub)
             self._fill_children(sub, child)
             self._decorate(sub, child)
 
     def _decorate(self, item, node):
-        """写入三列文本与配色/tooltip（不改 TreeNode）。"""
+        """写入配色/tooltip（文本由 DisplayRole 现算，这里不落文本）。"""
         is_block = node.node_type == "block"
-        is_stmt = (not node.key) and bool(node.raw_lines)  # 比较语句节点
-        # 列0：键
-        if is_stmt:
-            key_text = "·"
-        elif is_block:
-            key_text = node.key or "（未命名块）"
-        else:
-            key_text = node.key
-        item.setText(self.COL_KEY, key_text)
-        # 列1：值 / 块摘要
-        if is_block:
-            item.setText(self.COL_VALUE, "{ … } · %d 项" % len(node.children))
-        else:
-            item.setText(self.COL_VALUE, node.value if node.value else "")
-        # 配色
+        is_stmt = (not node.key) and bool(node.raw_lines)
         accent = QBrush(QColor(COLORS["accent"]))
         secondary = QBrush(QColor(COLORS["text_secondary"]))
         if is_block:
@@ -177,69 +206,53 @@ class StructureView(QTreeWidget):
             item.setFont(self.COL_KEY, font)
             item.setForeground(self.COL_KEY, accent)
             item.setForeground(self.COL_VALUE, secondary)
+            cn_key, _ = self._translate_node(node)
+            tip = "块字段：%s" % (node.key or "（未命名）")
+            if cn_key and cn_key != (node.key or ""):
+                tip += "\n中文：%s" % cn_key
+            tip += "\n子条目 %d 项\n双击键列改块名，双击值列展开/收起" % len(node.children)
+            item.setToolTip(self.COL_KEY, tip)
+            item.setToolTip(self.COL_VALUE, "双击展开/收起")
         elif is_stmt:
             item.setForeground(self.COL_KEY, secondary)
             item.setForeground(self.COL_VALUE, accent)
-        item.setForeground(self.COL_LOC, secondary)
-        # tooltip
-        if is_block:
-            item.setToolTip(self.COL_KEY, "块字段：%s\n双击修改块名" % (node.key or "（未命名）"))
-            item.setToolTip(self.COL_VALUE, "双击展开/收起")
-        elif is_stmt:
-            item.setToolTip(self.COL_VALUE, "比较语句：双击值列可整句编辑")
-        if node.key and not is_block:
-            item.setToolTip(self.COL_KEY, "键：%s\n双击改名" % node.key)
-        self._apply_loc(item, node)
-
-    def _apply_loc(self, item, node):
-        """第三列：翻译器查询（值优先，裸 token 用键），写文本与 tooltip。"""
-        if node.node_type == "block":
-            item.setText(self.COL_LOC, "")
-            item.setToolTip(self.COL_LOC, "")
-            return
-        is_stmt = (not node.key) and bool(node.raw_lines)
-        value = node.value if node.value else ""
-        token = value if value else ("" if is_stmt else node.key)
-        if not is_loc_candidate(token):
-            item.setText(self.COL_LOC, "")
-            item.setToolTip(self.COL_LOC, "")
-            return
-        trans = self._lookup(token)
-        item.setText(self.COL_LOC, trans)
-        if trans:
-            item.setToolTip(
-                self.COL_LOC, "本地化键：%s\n翻译：%s\n（双击复制翻译）" % (token, trans))
+            item.setToolTip(self.COL_VALUE,
+                            "比较语句：%s\n双击值列可整句编辑" % (node.value or ""))
         else:
-            item.setToolTip(self.COL_LOC, "本地化键：%s\n（翻译器无此键）" % token)
-
-    def _lookup(self, token):
-        try:
-            return (self._loc.get_name(token) or "").strip() if self._loc else ""
-        except Exception:
-            return ""
+            cn_key, cn_val = self._translate_node(node)
+            tip = "键：%s" % node.key
+            if cn_key and cn_key != node.key:
+                tip += "\n中文：%s" % cn_key
+            tip += "\n值：%s" % (node.value or "")
+            if cn_val and cn_val != (node.value or ""):
+                tip += "\n中文：%s" % cn_val
+            tip += "\n双击键列改名，双击值列改值"
+            item.setToolTip(self.COL_KEY, tip)
+            item.setToolTip(self.COL_VALUE, "双击改值")
 
     def refresh_localization(self):
-        """全量刷新第三列。"""
+        """翻译器变化后全量重绘展示层。"""
         self._loading = True
         try:
             for i in range(self.topLevelItemCount()):
-                self._refresh_item_loc(self.topLevelItem(i))
+                self._refresh_item(self.topLevelItem(i))
         finally:
             self._loading = False
 
-    def _refresh_item_loc(self, item):
-        node = item.data(0, Qt.ItemDataRole.UserRole)
+    def _refresh_item(self, item):
+        node = item.node
         if node is not None:
-            self._apply_loc(item, node)
+            self._decorate(item, node)
+            item.emitDataChanged()
         for j in range(item.childCount()):
-            self._refresh_item_loc(item.child(j))
+            self._refresh_item(item.child(j))
 
     # ---------- 交互 ----------
 
     def _on_double_clicked(self, item, col):
         if self._loading:
             return
-        node = item.data(0, Qt.ItemDataRole.UserRole)
+        node = getattr(item, "node", None)
         if node is None:
             return
         is_stmt = (not node.key) and bool(node.raw_lines)
@@ -252,28 +265,11 @@ class StructureView(QTreeWidget):
                 item.setExpanded(not item.isExpanded())  # 块行：展开/收起
             else:
                 self.editItem(item, col)
-        elif col == self.COL_LOC:
-            trans = item.text(self.COL_LOC)
-            if trans:
-                QApplication.clipboard().setText(trans)
 
-    def _on_item_changed(self, item, col):
-        """行内编辑落盘：写回 TreeNode 并刷新展示。"""
-        if self._loading:
-            return
-        node = item.data(0, Qt.ItemDataRole.UserRole)
-        if node is None:
-            return
-        if self._commit_edit(item, node, col, item.text(col)):
-            self._loading = True
-            try:
-                self._decorate(item, node)
-            finally:
-                self._loading = False
-            self.structureChanged.emit()
+    # ---------- 写回 ----------
 
-    def _commit_edit(self, item, node, col, text):
-        """把行内编辑结果写回节点；成功返回 True。测试可直接调用。"""
+    def _commit_node_edit(self, node, col, text):
+        """行内编辑统一写回；成功返回 True 并触发 structureChanged。"""
         text = (text or "").strip()
         if col == self.COL_KEY:
             if (not node.key) and node.raw_lines:
@@ -285,10 +281,7 @@ class StructureView(QTreeWidget):
                 return False
             node.key = text
             node.raw_lines = []
-            if node.parent is not None and node.parent.raw_lines:
-                node.parent.raw_lines = []
-            return True
-        if col == self.COL_VALUE and node.node_type != "block":
+        elif col == self.COL_VALUE and node.node_type != "block":
             is_stmt = (not node.key) and bool(node.raw_lines)
             if is_stmt:
                 if text == node.value:
@@ -300,7 +293,91 @@ class StructureView(QTreeWidget):
                     return False
                 node.value = text
                 node.raw_lines = []
-            if node.parent is not None and node.parent.raw_lines:
-                node.parent.raw_lines = []  # 结构已变，父块原始行作废
-            return True
-        return False
+        else:
+            return False
+        if node.parent is not None and node.parent.raw_lines:
+            node.parent.raw_lines = []  # 结构已变，父块原始行作废
+        self._resync_row(node)
+        self.structureChanged.emit()
+        return True
+
+    def _resync_row(self, node):
+        """写回后刷新对应行（含父块摘要数量）。"""
+        item = self._find_item(node)
+        if item is not None:
+            item.emitDataChanged()
+        parent = node.parent
+        if parent is not None and parent is not self._root:
+            pitem = self._find_item(parent)
+            if pitem is not None:
+                pitem.emitDataChanged()
+
+    def _find_item(self, node):
+        """在当前视图中按节点身份查找条目。"""
+        def walk(item):
+            if item.node is node:
+                return item
+            for j in range(item.childCount()):
+                got = walk(item.child(j))
+                if got is not None:
+                    return got
+            return None
+        for i in range(self.topLevelItemCount()):
+            got = walk(self.topLevelItem(i))
+            if got is not None:
+                return got
+        return None
+
+    # ---------- 添加（复刻树形编辑器） ----------
+
+    def _show_menu(self, pos):
+        """右键菜单：块行/空白处提供 添加节点（词条/模板）——与树形编辑器一致。"""
+        item = self.itemAt(pos)
+        target = None
+        if item is not None:
+            node = getattr(item, "node", None)
+            if node is None or node.node_type != "block":
+                return  # 值行/语句行不提供添加入口
+            target = item  # 块行 → 添加为该块子条目
+        # item 为 None（空白处）→ 添加为顶层条目
+        menu = QMenu(self)
+        act_add = menu.addAction("🔍 添加节点（词条/模板）...")
+        act_add.triggered.connect(lambda: self._open_add_dialog(target))
+        menu.exec(self.viewport().mapToGlobal(pos))
+
+    def _open_add_dialog(self, parent_item):
+        """添加节点：NodeEditDialog（词条/模板搜索），接受后原位插入。"""
+        from node_edit_dialog import NodeEditDialog
+        dlg = NodeEditDialog(self.translator, parent=self)
+        dlg.setWindowTitle("添加节点")
+
+        def on_add_ok():
+            new_node = dlg.get_node()
+            if new_node is not None:
+                self.add_node(new_node, parent_item)
+            dlg.deleteLater()
+
+        dlg.accepted.connect(on_add_ok)
+        dlg.show()
+
+    def add_node(self, new_node, parent_item=None):
+        """插入节点：parent_item 为 None 时添加为顶层条目，否则作为该块子条目。"""
+        if not isinstance(new_node, TreeNode):
+            return None
+        if parent_item is None:
+            self._root.add_child(new_node)
+            item = StructureItem(self, new_node)
+            self.addTopLevelItem(item)
+        else:
+            parent_node = getattr(parent_item, "node", None)
+            if parent_node is None or parent_node.node_type != "block":
+                return None
+            parent_node.add_child(new_node)
+            item = StructureItem(self, new_node)
+            parent_item.addChild(item)
+            parent_item.setExpanded(True)
+            parent_item.emitDataChanged()  # 摘要数量刷新
+        self._fill_children(item, new_node)
+        self._decorate(item, new_node)
+        self.structureChanged.emit()
+        return item

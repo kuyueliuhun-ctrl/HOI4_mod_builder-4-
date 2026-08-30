@@ -9,7 +9,8 @@
 演示功能：
 - 块=列表行，子条目缩进嵌套，载入后默认全部展开；
 - 双击键列改名、双击值列改值、双击块行"{ … }"展开/收起、双击块字段改块名；
-- 第三列接入 LocalizationManager 展示中文翻译（双击翻译可复制）；
+- 本地化为树形编辑器同款样式：键/值内联 `--中文`（GuiTranslator）；
+- 右键块行/空白处：添加节点（词条/模板搜索，NodeEditDialog）；
 - "导出序列化"按钮把当前（可能已编辑的）结构写回文本，验证编辑真实生效。
 """
 
@@ -53,7 +54,6 @@ def build_window(file_path, game, mod):
     from PyQt6.QtWidgets import (
         QDialog, QHBoxLayout, QLabel, QMessageBox, QPushButton, QVBoxLayout)
 
-    from localization_mgr import LocalizationManager
     from structure_view import StructureView
     import theme
 
@@ -63,16 +63,17 @@ def build_window(file_path, game, mod):
     lay = QVBoxLayout(dlg)
 
     hint = QLabel("双击键列改名 · 双击值列改值 · 双击块行 { … } 展开/收起 · "
-                  "双击块字段改块名 · 第三列为翻译器本地化（双击复制）")
+                  "双击块字段改块名 · 右键块可添加节点 · 本地化内联显示（键/值--中文）")
     hint.setStyleSheet("color: %s; font-size: 12px;" % theme.COLORS["text_secondary"])
     lay.addWidget(hint)
 
     view = StructureView()
 
-    mgr = LocalizationManager()
-    mgr.add_game_path(game)
-    mgr.add_mod_path(mod)
-    view.set_localization(mgr)
+    # 树形编辑器同款翻译器：键/值内联 --中文
+    from gui_translator import GuiTranslator
+    game_loc = os.path.join(game, "localisation", "simp_chinese")
+    translator = GuiTranslator(game_loc, hoi4_path=game, mod_path=mod)
+    view.set_translator(translator)
 
     def load():
         try:

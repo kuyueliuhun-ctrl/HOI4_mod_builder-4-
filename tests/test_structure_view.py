@@ -3,9 +3,11 @@
 
 覆盖：
 - 块=列表行、缩进嵌套渲染（行数/层级/块摘要），默认全部展开；
+- 本地化为树形编辑器同款样式：DisplayRole 内联 `键--中文` / `值--中文值`，
+  EditRole 恒为原始键/值（编辑与展示分离）；
 - 双击语义对应的写回：键改名、值改值（含比较语句节点）、raw_lines 失效；
 - 块交互：双击块字段（键列）改名写回、双击块行值列展开/收起、键列双击不收起；
-- 本地化列：候选判定启发式 + 翻译器接入展示；
+- 添加功能（复刻树形编辑器）：add_node 块内插入/顶层插入、非法父目标拒绝；
 - 真实数据冒烟：游戏 MIO 组织文件 载入→序列化→重解析 层级一致。
 """
 
@@ -20,8 +22,8 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 from PyQt6.QtCore import Qt  # noqa: E402
 from PyQt6.QtWidgets import QAbstractItemView, QApplication  # noqa: E402
 
-from structure_view import StructureView, is_loc_candidate  # noqa: E402
-from tree_node import parse_pdx_text_to_nodes  # noqa: E402
+from structure_view import StructureView  # noqa: E402
+from tree_node import TreeNode, parse_pdx_text_to_nodes  # noqa: E402
 
 GAME = "/mnt/e/SteamLibrary/steamapps/common/Hearts of Iron IV"
 
@@ -47,14 +49,23 @@ GER_generic_mio_organization = {
 """
 
 
-class _FakeLoc:
-    """测试替身：与 LocalizationManager 相同的 get_name 接口。"""
+class _StubTranslator:
+    """测试替身：与 GuiTranslator.translate_node 相同的接口契约。
 
-    def __init__(self, mapping):
-        self._m = mapping
+    键/值无翻译时原样返回（与 GuiTranslator 行为一致）。
+    """
 
-    def get_name(self, key):
-        return self._m.get(key, "")
+    def __init__(self, key_map=None, val_map=None):
+        self.km = key_map or {}
+        self.vm = val_map or {}
+
+    def translate_node(self, key, value=None):
+        cn_key = self.km.get(key, key)
+        if value:
+            cn_val = self.vm.get(value, value)
+        else:
+            cn_val = value or ""
+        return cn_key, cn_val
 
 
 def _items(view):
@@ -85,6 +96,12 @@ class StructureViewRenderTest(unittest.TestCase):
         self.assertEqual(equip.childCount(), 2)
         self.assertEqual(equip.child(0).text(0), "type")
         self.assertEqual(equip.child(0).text(1), "char_1_type")
+
+    def test_two_columns_no_loc_column(self):
+        """本地化改为内联样式后，视图为两列（键/值）。"""
+        self.assertEqual(self.view.columnCount(), 2)
+        self.assertEqual(self.view.headerItem().text(0), "键")
+        self.assertEqual(self.view.headerItem().text(1), "值")
 
     def test_block_rows_marked_and_value_rows_plain(self):
         org = _items(self.view)[0]
@@ -121,6 +138,72 @@ class StructureViewRenderTest(unittest.TestCase):
         self.assertEqual(avail.children[0].value, "num_of_military_factories > 5")
 
 
+class StructureViewInlineLocTest(unittest.TestCase):
+    """树形编辑器同款本地化：DisplayRole 内联 --中文，EditRole 原始文本。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _view(self):
+        tr = _StubTranslator(
+            key_map={"name": "名称", "equipment": "装备", "token": "标识"},
+            val_map={"GER_mio_name": "德国组织名", "my_trait": "我的特质"},
+        )
+        view = StructureView(translator=tr)
+        view.load_text(SAMPLE)
+        return view
+
+    def test_value_row_key_and_value_inline_translation(self):
+        org = _items(self._view())[0]
+        name_row = org.child(0)
+        self.assertEqual(name_row.text(0), "name--名称")
+        self.assertEqual(name_row.text(1), "GER_mio_name--德国组织名")
+        # 无翻译的键值原样
+        icon_row = org.child(1)
+        self.assertEqual(icon_row.text(0), "icon")
+        self.assertEqual(icon_row.text(1),
+                         "gfx/interface/illustrations/mio/mio_tank.png")
+
+    def test_block_key_inline_translation(self):
+        org = _items(self._view())[0]
+        equip = org.child(2)
+        self.assertEqual(equip.text(0), "equipment--装备")  # 块键同样带中文
+        self.assertEqual(equip.text(1), "{ … } · 2 项")     # 块值列是摘要不受影响
+
+    def test_trait_token_value_translation(self):
+        org = _items(self._view())[0]
+        token_row = org.child(3).child(0)
+        self.assertEqual(token_row.text(0), "token--标识")
+        self.assertEqual(token_row.text(1), "my_trait--我的特质")
+
+    def test_statement_and_numbers_untranslated(self):
+        view = self._view()
+        org = _items(view)[0]
+        stmt = org.child(5).child(0)
+        self.assertEqual(stmt.text(1), "num_of_military_factories > 5")
+        cost = org.child(2).child(1)
+        self.assertEqual(cost.text(1), "1.5")
+
+    def test_edit_role_returns_raw_text(self):
+        """编辑器里永远是原始键/值（不带 --中文 后缀）。"""
+        view = self._view()
+        org = _items(view)[0]
+        name_row = org.child(0)
+        self.assertEqual(name_row.data(0, Qt.ItemDataRole.EditRole), "name")
+        self.assertEqual(name_row.data(1, Qt.ItemDataRole.EditRole), "GER_mio_name")
+        equip = org.child(2)
+        self.assertEqual(equip.data(0, Qt.ItemDataRole.EditRole), "equipment")
+
+    def test_translator_hot_swap_refreshes_display(self):
+        view = StructureView()
+        view.load_text(SAMPLE)
+        org = _items(view)[0]
+        self.assertEqual(org.child(0).text(0), "name")
+        view.set_translator(_StubTranslator(key_map={"name": "名称"}))
+        self.assertEqual(org.child(0).text(0), "name--名称")
+
+
 class StructureViewEditTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -133,39 +216,40 @@ class StructureViewEditTest(unittest.TestCase):
     def _org_item(self):
         return _items(self.view)[0]
 
-    def test_inline_key_rename(self):
+    def test_editor_commit_via_setdata(self):
+        """编辑器提交全链路：EditRole setData → 节点写回 → 展示层现算刷新。"""
         org = self._org_item()
         name_row = org.child(0)
-        node = name_row.data(0, Qt.ItemDataRole.UserRole)
-        self.assertTrue(self.view._commit_edit(name_row, node, StructureView.COL_KEY,
-                                               "renamed_key"))
+        node = name_row.node
+        self.assertTrue(name_row.setData(StructureView.COL_KEY,
+                                         Qt.ItemDataRole.EditRole, "renamed_key"))
         self.assertEqual(node.key, "renamed_key")
         self.assertEqual(node.raw_lines, [])
+        self.assertEqual(name_row.text(0), "renamed_key")  # 展示层跟随
         self.assertIn("renamed_key = GER_mio_name", self.view.to_pdx_text())
 
-    def test_inline_key_rename_noop_on_same(self):
+    def test_value_edit_via_setdata(self):
         org = self._org_item()
         name_row = org.child(0)
-        node = name_row.data(0, Qt.ItemDataRole.UserRole)
-        self.assertFalse(self.view._commit_edit(
-            name_row, node, StructureView.COL_KEY, "name"))
-
-    def test_inline_value_edit(self):
-        org = self._org_item()
-        name_row = org.child(0)
-        node = name_row.data(0, Qt.ItemDataRole.UserRole)
-        self.assertTrue(self.view._commit_edit(name_row, node, StructureView.COL_VALUE,
-                                               "new_value_here"))
+        node = name_row.node
+        self.assertTrue(name_row.setData(StructureView.COL_VALUE,
+                                         Qt.ItemDataRole.EditRole, "new_value_here"))
         self.assertEqual(node.value, "new_value_here")
         self.assertIn("name = new_value_here", self.view.to_pdx_text())
 
+    def test_commit_edit_noop_on_same(self):
+        org = self._org_item()
+        node = org.child(0).node
+        self.assertFalse(self.view._commit_node_edit(node, StructureView.COL_KEY,
+                                                     "name"))
+
     def test_statement_edit_updates_raw_lines(self):
         org = self._org_item()
-        stmt = org.child(5).child(0)
-        node = stmt.data(0, Qt.ItemDataRole.UserRole)
+        stmt_item = org.child(5).child(0)
+        node = stmt_item.node
         new_stmt = "num_of_military_factories > 10"
-        self.assertTrue(self.view._commit_edit(stmt, node, StructureView.COL_VALUE,
-                                               new_stmt))
+        self.assertTrue(stmt_item.setData(StructureView.COL_VALUE,
+                                          Qt.ItemDataRole.EditRole, new_stmt))
         self.assertEqual(node.raw_lines, [new_stmt])
         self.assertIn(new_stmt, self.view.to_pdx_text())
 
@@ -173,9 +257,9 @@ class StructureViewEditTest(unittest.TestCase):
         """双击块字段改名：块名写回，子条目原样保留。"""
         org = self._org_item()
         equip = org.child(2)
-        node = equip.data(0, Qt.ItemDataRole.UserRole)
-        self.assertTrue(self.view._commit_edit(equip, node, StructureView.COL_KEY,
-                                               "equipment_new"))
+        node = equip.node
+        self.assertTrue(equip.setData(StructureView.COL_KEY,
+                                      Qt.ItemDataRole.EditRole, "equipment_new"))
         self.assertEqual(node.key, "equipment_new")
         out = self.view.to_pdx_text()
         self.assertIn("equipment_new = {", out)
@@ -209,57 +293,65 @@ class StructureViewEditTest(unittest.TestCase):
         self.assertEqual(self.view.state(),
                          QAbstractItemView.State.EditingState)  # 编辑器已打开
 
-    def test_structure_changed_signal(self):
+    def test_structure_changed_signal_on_commit(self):
         org = self._org_item()
-        name_row = org.child(0)
-        node = name_row.data(0, Qt.ItemDataRole.UserRole)
+        node = org.child(0).node
         fired = []
         self.view.structureChanged.connect(lambda: fired.append(1))
-        self.view._loading = False
-        self.view._on_item_changed(name_row, StructureView.COL_KEY)  # 同文本 → 不触发
-        self.assertEqual(fired, [])
-        name_row.setText(StructureView.COL_KEY, "renamed_key")
-        self.view._on_item_changed(name_row, StructureView.COL_KEY)
+        self.view._commit_node_edit(node, StructureView.COL_VALUE, "GER_mio_name")
+        self.assertEqual(fired, [])  # 同文本不写回不触发
+        self.view._commit_node_edit(node, StructureView.COL_VALUE, "changed_value")
         self.assertEqual(len(fired), 1)
 
 
-class StructureViewLocTest(unittest.TestCase):
+class StructureViewAddTest(unittest.TestCase):
+    """添加功能（复刻树形编辑器 NodeEditDialog 流程）。"""
+
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
 
-    def test_loc_candidate_heuristic(self):
-        self.assertTrue(is_loc_candidate("GER_mio_name"))
-        self.assertTrue(is_loc_candidate("my_trait_loc"))
-        self.assertFalse(is_loc_candidate(""))
-        self.assertFalse(is_loc_candidate("1.5"))
-        self.assertFalse(is_loc_candidate("1939.1.1"))
-        self.assertFalse(is_loc_candidate("@var"))
-        self.assertFalse(is_loc_candidate("yes"))
-        # 纯字母仍像键（如 has_dlc），交给翻译器查，查不到第三列留空
-        self.assertTrue(is_loc_candidate("has_dlc"))
+    def setUp(self):
+        self.view = StructureView()
+        self.view.load_text(SAMPLE)
 
-    def test_loc_column_filled_from_translator(self):
-        view = StructureView(localization=_FakeLoc({
-            "GER_mio_name": "德国军用工业组织",
-            "my_trait_loc": "我的特质",
-        }))
-        view.load_text(SAMPLE)
-        org = _items(view)[0]
-        self.assertEqual(org.child(0).text(2), "德国军用工业组织")
-        self.assertEqual(org.child(3).child(1).text(2), "我的特质")  # trait.name
-        # 数字值无翻译
-        self.assertEqual(org.child(2).child(1).text(2), "")  # cost = 1.5
+    def test_add_node_into_block(self):
+        org = _items(self.view)[0]
+        equip = org.child(2)
+        fired = []
+        self.view.structureChanged.connect(lambda: fired.append(1))
+        item = self.view.add_node(TreeNode("value", "new_field", "yes"), equip)
+        self.assertIsNotNone(item)
+        node = equip.node
+        self.assertEqual([c.key for c in node.children], ["type", "cost", "new_field"])
+        self.assertEqual(equip.childCount(), 3)
+        self.assertEqual(equip.text(1), "{ … } · 3 项")   # 摘要同步
+        self.assertIn("new_field = yes", self.view.to_pdx_text())
+        self.assertEqual(fired, [1])
 
-    def test_refresh_localization_after_swap(self):
-        view = StructureView(localization=None)
-        view.load_text(SAMPLE)
-        org = _items(view)[0]
-        self.assertEqual(org.child(0).text(2), "")
-        view.set_localization(_FakeLoc({"GER_mio_name": "德国组织"}))
-        self.assertEqual(org.child(0).text(2), "德国组织")
-        # tooltip 给出所查键
-        self.assertIn("GER_mio_name", org.child(0).toolTip(2))
+    def test_add_block_node_with_children(self):
+        org = _items(self.view)[0]
+        item = self.view.add_node(
+            TreeNode("block", "extra_block"), org.child(2))
+        self.assertEqual(item.childCount(), 0)
+        self.assertTrue(org.child(2).isExpanded())  # 插入后父块保持展开
+        self.assertIn("extra_block = { }", self.view.to_pdx_text())
+
+    def test_add_top_level_node(self):
+        item = self.view.add_node(TreeNode("value", "top_key", "top_val"), None)
+        self.assertIsNotNone(item)
+        self.assertEqual(self.view.topLevelItemCount(), 2)
+        self.assertIn("top_key = top_val", self.view.to_pdx_text())
+
+    def test_add_rejects_non_block_parent(self):
+        org = _items(self.view)[0]
+        before = self.view.to_pdx_text()
+        self.assertIsNone(self.view.add_node(
+            TreeNode("value", "x", "1"), org.child(0)))  # 值行不是合法父目标
+        self.assertEqual(self.view.to_pdx_text(), before)
+
+    def test_add_rejects_non_node(self):
+        self.assertIsNone(self.view.add_node("not a node", None))
 
 
 class StructureViewRealDataTest(unittest.TestCase):
@@ -268,12 +360,6 @@ class StructureViewRealDataTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
-
-    def _walk_count(self, item):
-        n = 1
-        for j in range(item.childCount()):
-            n += self._walk_count(item.child(j))
-        return n
 
     def test_real_mio_file_roundtrip(self):
         path = os.path.join(GAME, "common", "military_industrial_organization",
