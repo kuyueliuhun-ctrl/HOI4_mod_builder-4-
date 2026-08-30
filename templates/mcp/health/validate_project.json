@@ -1,0 +1,6 @@
+{
+  "name": "validate_project",
+  "tool": "validate_project",
+  "args": {"max_issues": 100},
+  "note": "红黄绿项目校验；红色先修，黄色用 explain_diagnostic 定位。"
+}

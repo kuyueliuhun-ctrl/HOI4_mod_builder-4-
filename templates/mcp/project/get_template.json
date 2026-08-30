@@ -1,0 +1,6 @@
+{
+  "name": "get_template",
+  "tool": "get_template",
+  "args": {"template_name": "添加建筑"},
+  "note": "读取系统模板内容；可用 list_templates 查可用模板名。"
+}

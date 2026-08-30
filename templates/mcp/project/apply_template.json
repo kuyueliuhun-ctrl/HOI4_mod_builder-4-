@@ -1,0 +1,10 @@
+{
+  "name": "apply_template",
+  "tool": "apply_template",
+  "args": {
+    "template_name": "添加建筑",
+    "target_path": "common/national_focus/GER_add_building.txt",
+    "variables": {}
+  },
+  "note": "把模板应用到 mod 内相对路径；target_path 必须是 mod 内相对路径。"
+}

@@ -359,9 +359,11 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
 
 - **resources**（`resources/list` / `resources/read`）：
   - `hoi4://status` 运行状态；`hoi4://tools/overview` 工具分类目录；
-  - `hoi4://terms?keyword=…` 词条库检索；`hoi4://docs/rhoiscribe`、`hoi4://docs/mcp`、`hoi4://docs/quickstart` 项目文档。
+  - `hoi4://terms?keyword=…` 词条库检索；`hoi4://docs/rhoiscribe`、`hoi4://docs/mcp`、`hoi4://docs/quickstart` 项目文档；
+  - `hoi4://docs/user` / `hoi4://docs/developer` / `hoi4://docs/pitfalls` 知识文档；
+  - `hoi4://templates/mcp` 正确调用模板清单。
 - **prompts**（`prompts/list` / `prompts/get`）：`create_focus` / `validate_project` / `fix_error_log` / `edit_script_block`
-  工作流提示，以及 `create_mod_from_scratch`（从零新建 mod 的端到端步骤）。
+  工作流提示，以及 `create_mod_from_scratch`（从零新建 mod 的端到端步骤）、`mcp_workflow`（使用者/开发者工作流）。
 - 实现位置：`src/mcp_server.py::BuiltinMcpServer`；官方 mcp 库路径暂只注册 tools（若后续 mcp 库可用再补
   resources/prompts 动态注册）。
 
@@ -468,9 +470,30 @@ Agent 偏好与工具审计日志）登记为待拍板，见 `docs/RHoiScribe知
 - **新增 `create_mod_from_scratch` prompt**：
   - 返回从零建 mod 的完整步骤，并提示隐藏工具经 `invoke_tool` 调用。
 
+## 6J. MCP 知识体系 / 校验器 / 模板（2026-08-31）
+
+- **角色文档（同结构）**：
+  - `docs/MCP用户指南.md`：使用者视角（分类/正确范式/踩坑/模板/工作流/校验器）；
+  - `docs/MCP开发者指南.md`：开发者视角（注册/schema/handler/踩坑/模板/MCPVAL/工作流）；
+  - 两份文档 TOC 结构一致，便于整合；开发时按身份写入对应文件。
+- **全项目踩坑索引**：`docs/踩坑索引.md`，12 类别；开发前按类别读取。
+- **校验器**：`src/mcp_validator.py`：
+  - metadata：工具名/schema/description/生成器 examples/AI CRUD 必填/dry_run/create_mod approved；
+  - call：缺必填/类型错/越界路径/未批准写操作；
+  - `tools/check_mcp_contracts.py` 已并入 `tools/verify_contracts.py`；
+  - MCP server 内置与官方 FastMCP 调用前自动拦截。
+- **正确调用模板**：`templates/mcp/` 按分类保存 JSON 模板；
+  `tests/test_mcp_templates.py` 保证 schema 校验 + handler 无异常。
+- **工作流**：MCP `prompts/list|get` 新增 `mcp_workflow`（user/developer 两分支）；
+  resources 新增 `hoi4://docs/user`、`hoi4://docs/developer`、`hoi4://docs/pitfalls`、
+  `hoi4://templates/mcp`。
+
 ## 7. 验证
 
 - `tests/test_infra.py`：`McpRegistrationTest`（工具数 ≥178、名称唯一、schema 合法、handler 可调）、`McpDomainSmokeTest`（州/AI/BOP/设计器/区域/生成器/OOB roundtrip 与 dry_run 不落盘）。
 - `tests/test_mcp_smoke_real.py`：真实数据全量 178 工具默认冒烟（guarded，0 error）。
-- `tools/verify_contracts.py`：语法编译、ruff、契约测试（402）、写入纪律、四层依赖、行数预算、UI 缺口探针全部通过。
+- `tests/test_mcp_validator.py`：MCP 校验器 metadata/call/server 拦截 12 例。
+- `tests/test_mcp_templates.py`：`templates/mcp/` 正确调用模板 schema + handler 回归。
+- `tools/check_mcp_contracts.py`：MCP 工具注册表 metadata 校验，已并入 `tools/verify_contracts.py`。
+- `tools/verify_contracts.py`：语法编译、ruff、契约测试、写入纪律、四层依赖、MCP校验器、行数预算、UI 缺口探针全部通过。
 - 工具清单与本文档不同步时，以 `src/mcp_tools.py::build_tools()` 为唯一权威。

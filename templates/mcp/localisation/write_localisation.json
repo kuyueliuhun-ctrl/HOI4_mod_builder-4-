@@ -1,0 +1,12 @@
+{
+  "name": "write_localisation",
+  "tool": "write_localisation",
+  "args": {
+    "tag": "GER",
+    "entries": {
+      "GER_test_focus": "测试国策",
+      "GER_test_focus_desc": "这是测试国策。"
+    }
+  },
+  "note": "写本地化词条；内部自动用 utf-8-sig 写 yml。"
+}

@@ -135,6 +135,9 @@ python -X utf8 src/main.py
 - [`docs/整合计划.md`](./docs/整合计划.md) — 开发计划与待办
 - [`docs/MCP与接口规格.md`](./docs/MCP与接口规格.md) — MCP/HTTP 接口说明
 - [`docs/MCP_quickstart.md`](./docs/MCP_quickstart.md) — AI 助手快速开始
+- [`docs/MCP用户指南.md`](./docs/MCP用户指南.md) — MCP 使用者知识文档
+- [`docs/MCP开发者指南.md`](./docs/MCP开发者指南.md) — MCP 开发者知识文档
+- [`docs/踩坑索引.md`](./docs/踩坑索引.md) — 全项目踩坑索引（开发前必读）
 
 ---
 

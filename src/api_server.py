@@ -919,6 +919,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     def _handle_mcp_invoke_tool(self, path, q):
         from mcp_tools import build_tools
+        from mcp_validator import validate_call
         body = self._read_json()
         name = body.get("name", "")
         args = body.get("args") or {}
@@ -926,6 +927,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                   if x["name"] == name), None)
         if t is None:
             self._send(404, {"ok": False, "error": "未知工具: %s" % name})
+            return
+        issues = [i for i in validate_call(t, args) if i.severity == "error"]
+        if issues:
+            msgs = "；".join(i.message for i in issues[:5])
+            self._send(400, {"ok": False, "error": "MCP 校验拦截: %s" % msgs})
             return
         result = t["_handler"](args)
         try:

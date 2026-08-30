@@ -1,0 +1,6 @@
+{
+  "name": "list_plane_hulls",
+  "tool": "list_plane_hulls",
+  "args": {},
+  "note": "列出飞机船体/机型/底盘候选。"
+}

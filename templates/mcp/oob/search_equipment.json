@@ -1,0 +1,6 @@
+{
+  "name": "search_equipment",
+  "tool": "search_equipment",
+  "args": {"keyword": "infantry", "category": ""},
+  "note": "搜索装备属性；keyword 可换其他装备名。"
+}

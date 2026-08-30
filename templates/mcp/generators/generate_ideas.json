@@ -1,0 +1,9 @@
+{
+  "name": "generate_ideas",
+  "tool": "generate_ideas",
+  "args": {
+    "ideas": [{"id": "GER_test_idea", "name": "测试民族精神"}],
+    "dry_run": true
+  },
+  "note": "生成民族精神；批量生成先 dry_run，确认文件清单后 dry_run=false。"
+}

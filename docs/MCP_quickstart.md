@@ -3,6 +3,8 @@
 > 给空白智能体看的最小可运行工作流。
 > 如果下面的工具不在当前 `tools/list` 中，先用 `list_tools_overview` 查看分类，
 > 再用 `get_tool_schema` 查参数，最后经 `invoke_tool(name, args)` 调用。
+> 完整知识文档（分类/正确范式/踩坑/模板）：`docs/MCP用户指南.md`（使用者）与
+> `docs/MCP开发者指南.md`（开发者）；踩坑索引见 `docs/踩坑索引.md`。
 
 ## 1. 环境确认
 

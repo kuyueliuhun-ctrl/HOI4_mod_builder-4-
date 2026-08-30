@@ -1,0 +1,13 @@
+{
+  "name": "generate_event",
+  "tool": "generate_event",
+  "args": {
+    "event_id": "GER_test_event",
+    "namespace": "GER",
+    "title": "测试事件",
+    "desc": "测试事件描述",
+    "option": "确认",
+    "dry_run": true
+  },
+  "note": "生成事件；dry_run=true 只返回文件预览。"
+}

@@ -6,6 +6,7 @@
        （原子写 / BOM 拒绝 / 撤销快照 / 健康检查检出 / 纪律扫描）
     3. 写入纪律静态扫描：tools/check_write_discipline.py
     4. 四层分离依赖方向检查：tools/check_layer_deps.py
+    4.5 MCP 校验器：tools/check_mcp_contracts.py
 
 用法：
     python tools/verify_contracts.py
@@ -24,7 +25,8 @@ PYTHON = sys.executable
 
 # 不参与编译的目录
 SKIP_DIRS = {".venv", ".venv-linux", ".venv314", ".git", "__pycache__", "dist",
-             "node_modules", "data", "_scenario_forge", "prototypes"}
+             "node_modules", "data", "_scenario_forge", "prototypes",
+             ".runtime", ".idea", ".ruff_cache", ".jspace"}
 
 
 def _skip_dir(name):
@@ -124,6 +126,11 @@ def main():
     results.append(("四层依赖检查",
                     run_step("四层依赖检查",
                              [PYTHON, os.path.join("tools", "check_layer_deps.py")])))
+
+    # 4.5 MCP 校验器（工具注册/schema/description 正确范式）
+    results.append(("MCP校验器",
+                    run_step("MCP校验器",
+                             [PYTHON, os.path.join("tools", "check_mcp_contracts.py")])))
 
     # 5. 行数预算门禁（防存量大文件名单变长）
     results.append(("行数预算",

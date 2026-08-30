@@ -60,6 +60,7 @@ from mcp_tools import (  # noqa: E402
     tool_category,
 )
 from mcp_tools import CORE_TOOLS  # noqa: E402
+from mcp_validator import validate_call  # noqa: E402
 
 
 # ══════════════════════════════════════════════════════════════
@@ -77,6 +78,15 @@ def _schema_str(desc=""):
 
 def _schema_obj_type(desc=""):
     return {"type": "object", "description": desc}
+
+
+def _validated_invoke(tool, args):
+    """调用前执行 MCP 校验器，有 error 直接抛 ValueError。"""
+    issues = [i for i in validate_call(tool, args) if i.severity == "error"]
+    if issues:
+        msgs = "；".join(i.message for i in issues[:5])
+        raise ValueError("MCP 校验拦截: %s" % msgs)
+    return tool["_handler"](args)
 
 
 def _nav_tool(name, description, schema, handler):
@@ -112,7 +122,7 @@ def _build_nav_tools(all_tools):
         t = next((x for x in all_tools if x["name"] == name), None)
         if t is None:
             raise ValueError("未知工具: %s" % name)
-        return t["_handler"](call_args)
+        return _validated_invoke(t, call_args)
 
     handlers = {"list_tools_overview": _overview,
                 "get_tool_schema": _schema,
@@ -248,7 +258,7 @@ class BuiltinMcpServer:
                 })
                 return
             try:
-                result = tool["_handler"](args)
+                result = _validated_invoke(tool, args)
                 self._log_call(name, args, ok=True)
                 self._send({
                     "jsonrpc": "2.0", "id": msg_id,
@@ -305,6 +315,18 @@ class BuiltinMcpServer:
             {"uri": "hoi4://docs/quickstart", "name": "从零建 Mod 快速开始",
              "description": "最小可运行 mod 的端到端示例（create_mod → 内容 → 本地化 → 校验）",
              "mimeType": "text/markdown"},
+            {"uri": "hoi4://docs/user", "name": "MCP 用户指南",
+             "description": "MCP 使用者的知识文档（分类/正确范式/踩坑/模板/工作流）",
+             "mimeType": "text/markdown"},
+            {"uri": "hoi4://docs/developer", "name": "MCP 开发者指南",
+             "description": "MCP 开发者的知识文档（注册/schema/校验器/模板/工作流）",
+             "mimeType": "text/markdown"},
+            {"uri": "hoi4://docs/pitfalls", "name": "全项目踩坑索引",
+             "description": "按类别组织的踩坑索引；开发/使用前先查对应分类",
+             "mimeType": "text/markdown"},
+            {"uri": "hoi4://templates/mcp", "name": "MCP 正确调用模板",
+             "description": "正确且无报错的 MCP 调用模板清单",
+             "mimeType": "application/json"},
         ]
 
     def _read_resource(self, uri):
@@ -329,19 +351,41 @@ class BuiltinMcpServer:
             except Exception as e:
                 return self._json_text({"error": str(e)})
         if uri in ("hoi4://docs/rhoiscribe", "hoi4://docs/mcp",
-                   "hoi4://docs/quickstart"):
-            if "rhoiscribe" in uri:
-                fname = "RHoiScribe知识映射与补全.md"
-            elif "quickstart" in uri:
-                fname = "MCP_quickstart.md"
-            else:
-                fname = "MCP与接口规格.md"
+                   "hoi4://docs/quickstart", "hoi4://docs/user",
+                   "hoi4://docs/developer", "hoi4://docs/pitfalls"):
+            doc_map = {
+                "rhoiscribe": "RHoiScribe知识映射与补全.md",
+                "quickstart": "MCP_quickstart.md",
+                "mcp": "MCP与接口规格.md",
+                "user": "MCP用户指南.md",
+                "developer": "MCP开发者指南.md",
+                "pitfalls": "踩坑索引.md",
+            }
+            key = uri.split("/")[-1]
+            fname = doc_map[key]
             fp = os.path.join(PROJECT_ROOT, "docs", fname)
             try:
                 with open(fp, "r", encoding="utf-8") as f:
                     return f.read()
             except Exception as e:
                 return str(e)
+        if uri == "hoi4://templates/mcp":
+            tpl_dir = os.path.join(PROJECT_ROOT, "templates", "mcp")
+            items = []
+            for dirpath, _dirs, names in os.walk(tpl_dir):
+                for name in sorted(names):
+                    if not name.endswith(".json"):
+                        continue
+                    fp = os.path.join(dirpath, name)
+                    try:
+                        with open(fp, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                        data["file"] = os.path.relpath(fp, PROJECT_ROOT).replace("\\", "/")
+                        items.append(data)
+                    except Exception as e:
+                        items.append({"file": os.path.relpath(fp, PROJECT_ROOT),
+                                      "error": str(e)})
+            return self._json_text({"total": len(items), "templates": items})
         raise ValueError("未知资源: %s" % uri)
 
     def _list_prompts(self):
@@ -365,6 +409,9 @@ class BuiltinMcpServer:
                  {"name": "name", "description": "模组显示名", "required": False},
                  {"name": "folder_name", "description": "文件夹名", "required": False},
                  {"name": "mod_folder_path", "description": "mod 内容根目录", "required": False}]},
+            {"name": "mcp_workflow", "description": "MCP 使用/开发工作流：先读知识文档与踩坑索引，再按模板调用/扩展工具",
+             "arguments": [
+                 {"name": "role", "description": "user 或 developer；默认 user", "required": False}]},
         ]
 
     def _get_prompt(self, name, args):
@@ -402,6 +449,27 @@ class BuiltinMcpServer:
                 "6) 可读取资源 hoi4://docs/quickstart 获取最小可运行示例。"
             ) % (mod_name or "<name>", folder or "<folder>",
                  mod_folder or "<mod_folder_path>")
+        elif name == "mcp_workflow":
+            role = str(args.get("role", "user") or "user")
+            if role == "developer":
+                text = (
+                    "MCP 开发者工作流：\n"
+                    "1) 读 hoi4://docs/developer 和 hoi4://docs/pitfalls 对应分类；\n"
+                    "2) 在 src/mcp_tools.py 注册/修改工具，schema/description 必须符合正确范式；\n"
+                    "3) 在 src/mcp_validator.py 补规则（如新安全要求）；\n"
+                    "4) 把正确调用写入 templates/mcp/<category>/ 并用 tests/test_mcp_templates.py 回归；\n"
+                    "5) 运行 python tools/check_mcp_contracts.py 与 tests/test_mcp_validator.py；\n"
+                    "6) 同步 docs/MCP开发者指南.md、docs/MCP用户指南.md、docs/踩坑索引.md。"
+                )
+            else:
+                text = (
+                    "MCP 使用者工作流：\n"
+                    "1) 读 hoi4://docs/user 和 hoi4://docs/pitfalls 对应分类；\n"
+                    "2) 先 list_tools_overview 看分类，get_tool_schema 查参数；\n"
+                    "3) 从 hoi4://templates/mcp 或 templates/mcp/ 复制正确调用；\n"
+                    "4) 写操作先 dry_run，需要 approved 的确认后再落盘；\n"
+                    "5) 完成后 validate_project 校验。"
+                )
         else:
             raise ValueError("未知提示: %s" % name)
         return {
@@ -433,7 +501,8 @@ def run_with_official_lib(core):
         if t["name"] not in exposed_names:
             continue  # A+B：只注册核心精选 + 白名单分类 + 导航工具
         name, desc, schema = t["name"], t["description"], t["inputSchema"]
-        handler = t["_handler"]
+        def handler(args, _tool=t):
+            return _validated_invoke(_tool, args)
         mcp.add_tool(name, desc, schema, handler)
     mcp.run(transport="stdio")
 

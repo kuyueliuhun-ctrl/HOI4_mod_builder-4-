@@ -538,6 +538,8 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 ## 五、避坑指南
 
 > 每条都是本项目真实踩过的坑；新代码前先扫一遍，避免重复踩。
+> **集中索引**：全项目踩坑按类别汇总在 `docs/踩坑索引.md`（含 MCP 分类），
+> 功能开发前先读对应分类。
 
 ### 5.1 环境 / 工具坑
 
@@ -723,6 +725,7 @@ python tools/check_file_budget.py        # 行数预算
 
 ### E.1 新增 / 改造一个内容类型的标准流程（四件套闭环）
 
+0. **读踩坑索引**：先打开 `docs/踩坑索引.md`，按功能类别（解析/写回、PyQt/UI、MCP 等）阅读对应分类的正确范式；MCP 工具开发额外读 `docs/MCP开发者指南.md`；
 1. **数据层 loader**：解析 + 写回（纯函数优先，遵守写入纪律 §1.5/§1.7，涉及游戏本体先 `ensure_file_in_mod`）；
 2. **对话框**：专用 UI，或通用编辑器薄壳（`SimpleBlockEditorDialog` / `NestedBlockEditorDialog` / `RawBlockEditor` / `generic_tree_editor`，见 §2.2）；
 3. **路由**：`content_types.py` 注册类型（要置顶就加 `SPECIAL_TYPE_KEYS`）→ `app_routes.py` 加路径分发 → workbench/文件树接线；
@@ -751,7 +754,10 @@ python tools/check_file_budget.py        # 行数预算
    - §3.4 执行进度里程碑；
    - 附录 H 历史迭代索引（新增一行）；
 5. 若本轮涉及执行计划项，同步更新 `docs/整合计划.md` 状态表；
-6. 新增节模板与完整清单见 `docs/历史迭代日志.md` 文末「维护流程」。
+6. 新增节模板与完整清单见 `docs/历史迭代日志.md` 文末「维护流程」；
+7. 若本轮涉及 MCP 功能/工具/接口：按 `docs/MCP开发者指南.md` §6 工作流同步
+   工具 schema、校验器、模板、`docs/MCP用户指南.md` / `docs/MCP开发者指南.md` /
+   `docs/踩坑索引.md`。
 
 ## 附录 F · 外部参考
 
@@ -797,6 +803,10 @@ python tools/check_file_budget.py        # 行数预算
 | MCP 178 工具清单/域分布 | `docs/MCP与接口规格.md` §4 |
 | dry_run 工具清单 | `docs/MCP与接口规格.md` §5 |
 | MCP Server 运行与配置 | `docs/MCP与接口规格.md` §6、§7 |
+| MCP 使用者知识（分类/正确范式/踩坑/模板/工作流） | `docs/MCP用户指南.md` |
+| MCP 开发者知识（注册/schema/校验器/模板/工作流） | `docs/MCP开发者指南.md` |
+| 全项目踩坑索引（按类别） | `docs/踩坑索引.md` |
+| MCP 正确调用模板 | `templates/mcp/`（入口 `templates/mcp/README.md`） |
 | 外部多模态模型识图（界面/地图/设计器验收、UI 还原） | `docs/识图提示词.md` 一~八 |
 | 学说界面识图结论 | `docs/学说识图.md` 全文 |
 | QIUQI 词条库/二进制工具复刻矩阵/状态跟踪 | `docs/QIUQI-LIBRARY映射与复刻矩阵.md` 全文 |
@@ -832,6 +842,10 @@ python tools/check_file_budget.py        # 行数预算
 
 **`docs/MCP与接口规格.md`**：1 总览 → 2 架构与文件 → 3 HTTP API 端点 →
 4 MCP 工具清单（178，域0~域10 + B3 补 9 + agent 5 + gfx 1 + debug 2 + cwt 2）→ 5 dry_run 工具清单 → 6 Server 运行 → 6A A+B 分类 → 6B B3 补充 → 7 验证。
+
+**`docs/MCP用户指南.md` / `docs/MCP开发者指南.md`**（同结构）：1 角色与范围 → 2 工具分类速览 → 3 正确范式（按工具类型分类）→ 4 踩坑索引 → 5 模板与回归测试 → 6 工作流程 → 7 校验器与自动化拦截 → 8 关联文档。
+
+**`docs/踩坑索引.md`**：1 环境/工具 → 2 HOI4 文件事实 → 3 解析/写回 → 4 PyQt6/UI → 5 测试 → 6 地图渲染 → 7 settings/数据单例 → 8 MCP 工具注册/schema → 9 MCP 运行/协议 → 10 MCP 调用安全 → 11 性能/冒烟 → 12 历史遗留/收口。
 
 **`docs/科技图标存储规则.md`**：一 结论摘要 → 二 三层结构详解 → 三 图片规格（实测）→
 四 五个 mod 实测证据 → 五 配图标操作清单 → 六 编辑器实现现状。
@@ -922,3 +936,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.64 | 08-26 | oob_stats.division_stats 重构 | 提取 _accumulate_division_item；SubUnitStatsTest 6 例全绿 | docs/历史迭代日志.md |
 | 6.65 | 08-26 | tree_model.data 按 role 拆分 | data 主函数精简；+2 测试 | docs/历史迭代日志.md |
 | 6.66 | 08-26 | cwt_lite_rules 重构 | infer_type 表驱动；_iter_entity_blocks 拆子生成器 | docs/历史迭代日志.md |
+| 6.84 | 08-31 | MCP 知识体系：踩坑索引/用户与开发者文档/校验器/模板/工作流 | 新增 `docs/踩坑索引.md`、`docs/MCP用户指南.md`、`docs/MCP开发者指南.md`；`src/mcp_validator.py` + `tools/check_mcp_contracts.py` 自动化拦截；`templates/mcp/` 正确调用模板 + 回归测试；MCP resources/prompts 接入知识文档与模板；PROJECT_DOC 开发流程强制先读踩坑索引 | docs/MCP开发者指南.md / docs/踩坑索引.md |

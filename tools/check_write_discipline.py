@@ -35,7 +35,8 @@ ALLOWLIST_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # 扫描时跳过的目录/文件
 SKIP_DIRS = {".venv", ".venv-linux", ".venv314", ".git", "__pycache__", "dist",
-             "node_modules", "data", "_scenario_forge", "tests", "prototypes"}
+             "node_modules", "data", "_scenario_forge", "tests", "prototypes",
+             ".runtime", ".idea", ".ruff_cache", ".jspace"}
 
 
 def _skip_dir(name):

@@ -1,0 +1,6 @@
+{
+  "name": "get_status",
+  "tool": "get_status",
+  "args": {},
+  "note": "读取当前 mod/game 路径与内容类型数量；任何 MCP 会话第一步。"
+}

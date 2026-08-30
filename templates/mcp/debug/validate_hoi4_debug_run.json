@@ -1,0 +1,6 @@
+{
+  "name": "validate_hoi4_debug_run",
+  "tool": "validate_hoi4_debug_run",
+  "args": {},
+  "note": "预检调试启动；明确 approved=true 且 launch=true 才拉起游戏。"
+}

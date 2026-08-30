@@ -1,0 +1,6 @@
+{
+  "name": "validate_mod",
+  "tool": "validate_mod",
+  "args": {},
+  "note": "校验 mod 的本地化/引用/重复 id；红色项须修复。"
+}

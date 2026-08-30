@@ -1,0 +1,12 @@
+{
+  "name": "create_mod_dry_run",
+  "tool": "create_mod",
+  "args": {
+    "name": "我的第一个 Mod",
+    "folder_name": "my_first_mod",
+    "version": "1.14.*",
+    "mod_folder_path": "E:/mods/my_first_mod",
+    "dry_run": true
+  },
+  "note": "新建 mod 前必须先 dry_run 预览；确认落盘时再传 dry_run=false 且 approved=true。"
+}

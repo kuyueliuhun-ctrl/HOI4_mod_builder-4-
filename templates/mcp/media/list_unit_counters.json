@@ -1,0 +1,6 @@
+{
+  "name": "list_unit_counters",
+  "tool": "list_unit_counters",
+  "args": {"keyword": "", "category": ""},
+  "note": "查询单位标牌库；keyword/category 均可选。"
+}

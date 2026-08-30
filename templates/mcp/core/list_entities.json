@@ -1,0 +1,6 @@
+{
+  "name": "list_entities",
+  "tool": "list_entities",
+  "args": {"type": "focus", "country": "", "keyword": ""},
+  "note": "列出国策实体；type 可换 event/decision/idea 等。"
+}

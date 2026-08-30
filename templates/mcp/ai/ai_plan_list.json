@@ -1,0 +1,6 @@
+{
+  "name": "ai_plan_list",
+  "tool": "ai_plan_list",
+  "args": {},
+  "note": "列出 AI 战略计划；AI 工具通常先 list 再改。"
+}
