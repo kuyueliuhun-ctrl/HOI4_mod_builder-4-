@@ -19,8 +19,14 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
-from PyQt6.QtCore import Qt  # noqa: E402
-from PyQt6.QtWidgets import QAbstractItemView, QApplication  # noqa: E402
+from PyQt6.QtCore import QModelIndex, QRect, Qt  # noqa: E402
+from PyQt6.QtTest import QTest  # noqa: E402
+from PyQt6.QtWidgets import (  # noqa: E402
+    QAbstractItemView,
+    QApplication,
+    QPlainTextEdit,
+    QStyleOptionViewItem,
+)
 
 from structure_view import StructureView  # noqa: E402
 from tree_node import TreeNode, parse_pdx_text_to_nodes  # noqa: E402
@@ -221,8 +227,8 @@ class StructureViewEditTest(unittest.TestCase):
         org = self._org_item()
         name_row = org.child(0)
         node = name_row.node
-        self.assertTrue(name_row.setData(StructureView.COL_KEY,
-                                         Qt.ItemDataRole.EditRole, "renamed_key"))
+        name_row.setData(StructureView.COL_KEY,
+                         Qt.ItemDataRole.EditRole, "renamed_key")
         self.assertEqual(node.key, "renamed_key")
         self.assertEqual(node.raw_lines, [])
         self.assertEqual(name_row.text(0), "renamed_key")  # 展示层跟随
@@ -232,8 +238,8 @@ class StructureViewEditTest(unittest.TestCase):
         org = self._org_item()
         name_row = org.child(0)
         node = name_row.node
-        self.assertTrue(name_row.setData(StructureView.COL_VALUE,
-                                         Qt.ItemDataRole.EditRole, "new_value_here"))
+        name_row.setData(StructureView.COL_VALUE,
+                         Qt.ItemDataRole.EditRole, "new_value_here")
         self.assertEqual(node.value, "new_value_here")
         self.assertIn("name = new_value_here", self.view.to_pdx_text())
 
@@ -248,8 +254,8 @@ class StructureViewEditTest(unittest.TestCase):
         stmt_item = org.child(5).child(0)
         node = stmt_item.node
         new_stmt = "num_of_military_factories > 10"
-        self.assertTrue(stmt_item.setData(StructureView.COL_VALUE,
-                                          Qt.ItemDataRole.EditRole, new_stmt))
+        stmt_item.setData(StructureView.COL_VALUE,
+                          Qt.ItemDataRole.EditRole, new_stmt)
         self.assertEqual(node.raw_lines, [new_stmt])
         self.assertIn(new_stmt, self.view.to_pdx_text())
 
@@ -258,8 +264,8 @@ class StructureViewEditTest(unittest.TestCase):
         org = self._org_item()
         equip = org.child(2)
         node = equip.node
-        self.assertTrue(equip.setData(StructureView.COL_KEY,
-                                      Qt.ItemDataRole.EditRole, "equipment_new"))
+        equip.setData(StructureView.COL_KEY,
+                      Qt.ItemDataRole.EditRole, "equipment_new")
         self.assertEqual(node.key, "equipment_new")
         out = self.view.to_pdx_text()
         self.assertIn("equipment_new = {", out)
@@ -302,6 +308,60 @@ class StructureViewEditTest(unittest.TestCase):
         self.assertEqual(fired, [])  # 同文本不写回不触发
         self.view._commit_node_edit(node, StructureView.COL_VALUE, "changed_value")
         self.assertEqual(len(fired), 1)
+
+    def _open_editor(self, row, col):
+        """打开行内编辑并返回编辑器（离屏下焦点不可用，从子控件中查找）。"""
+        self.view.editItem(row, col)
+        editors = self.view.viewport().findChildren(QPlainTextEdit)
+        self.assertTrue(editors, "编辑器未创建")
+        return editors[-1]
+
+    def test_real_editor_commit_and_close(self):
+        """真实编辑器全链路：打开→输入→Enter 提交→关闭。
+
+        回归：提交时 dataChanged 重入曾导致退出编辑直接崩溃（现已延迟刷新）。
+        """
+        org = self._org_item()
+        row = org.child(0)
+        node = row.node
+        editor = self._open_editor(row, StructureView.COL_VALUE)
+        editor.setPlainText("edited_value")
+        QTest.keyClick(editor, Qt.Key.Key_Return)  # 经委托 eventFilter 提交
+        self.assertEqual(node.value, "edited_value")
+        self.assertIn("name = edited_value", self.view.to_pdx_text())
+        self.assertNotEqual(self.view.state(),
+                            QAbstractItemView.State.EditingState)  # 编辑器已关闭
+
+    def test_real_editor_escape_reverts(self):
+        """Esc 取消编辑：节点数据不变。"""
+        org = self._org_item()
+        row = org.child(0)
+        node = row.node
+        editor = self._open_editor(row, StructureView.COL_VALUE)
+        editor.setPlainText("junk_text")
+        QTest.keyClick(editor, Qt.Key.Key_Escape)
+        self.assertEqual(node.value, "GER_mio_name")  # 未写入
+        self.assertIn("name = GER_mio_name", self.view.to_pdx_text())
+
+    def test_editor_geometry_taller_than_row(self):
+        """编辑框加高：比单元格行高多出 EXTRA_LINES 行，长内容完整可见。"""
+        delegate = self.view.itemDelegate()
+        editor = delegate.createEditor(self.view, QStyleOptionViewItem(),
+                                       QModelIndex())
+        opt = QStyleOptionViewItem()
+        opt.rect = QRect(10, 100, 200, 22)
+        delegate.updateEditorGeometry(editor, opt, QModelIndex())
+        self.assertGreater(editor.height(), 40)
+        editor.deleteLater()
+
+    def test_editor_wordwrap_enabled(self):
+        """编辑框支持自动换行：长 token 不再横向截断。"""
+        delegate = self.view.itemDelegate()
+        editor = delegate.createEditor(self.view, QStyleOptionViewItem(),
+                                       QModelIndex())
+        self.assertEqual(editor.wordWrapMode(), __import__(
+            "PyQt6.QtGui", fromlist=["QTextOption"]).QTextOption.WrapMode.WrapAnywhere)
+        editor.deleteLater()
 
 
 class StructureViewAddTest(unittest.TestCase):

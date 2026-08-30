@@ -23,13 +23,23 @@ from __future__ import annotations
 import os
 import sys
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QBrush, QColor
+from PyQt6.QtCore import (
+    QEvent,
+    QModelIndex,
+    QRect,
+    Qt,
+    QTimer,
+    pyqtSignal,
+)
+from PyQt6.QtGui import QBrush, QColor, QFontMetrics, QTextCursor, QTextOption
 from PyQt6.QtWidgets import (
+    QAbstractItemDelegate,
     QAbstractItemView,
     QApplication,
     QHeaderView,
     QMenu,
+    QPlainTextEdit,
+    QStyledItemDelegate,
     QTreeWidget,
     QTreeWidgetItem,
     QWidget,
@@ -66,11 +76,78 @@ class StructureItem(QTreeWidgetItem):
         return super().data(column, role)
 
     def setData(self, column, role, value):
-        """编辑器提交：走统一写回（不落展示文本，展示层由 DisplayRole 现算）。"""
+        """编辑器提交：走统一写回（不落展示文本，展示层由 DisplayRole 现算）。
+
+        注意：QTreeWidgetItem.setData 的 C++ 签名返回 void，重写必须返回
+        None——返回 bool 会让 PyQt6 在提交瞬间抛 invalid result 并直接崩溃
+        （"退出编辑即崩"的根因）。
+        defer=True：此时正处于模型 setData 调用栈内，行刷新与信号必须延迟到
+        事件循环，避免 dataChanged 重入。
+        """
         if role == Qt.ItemDataRole.EditRole and self.node is not None:
             text = "" if value is None else str(value)
-            return self.view._commit_node_edit(self.node, column, text)
+            self.view._commit_node_edit(self.node, column, text, defer=True)
+            return None
         return super().setData(column, role, value)
+
+
+class StructureEditDelegate(QStyledItemDelegate):
+    """行内编辑委托：加高的多行编辑框，长键/长值换行完整可见。
+
+    Enter 提交、Shift+Enter 换行、Esc 取消、失焦提交（与树形编辑器一致）。
+    """
+
+    EXTRA_LINES = 3  # 编辑框在行高基础上向下扩展的行数
+
+    def createEditor(self, parent, option, index):
+        editor = QPlainTextEdit(parent)
+        editor.setWordWrapMode(QTextOption.WrapMode.WrapAnywhere)
+        editor.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        editor.installEventFilter(self)
+        return editor
+
+    def updateEditorGeometry(self, editor, option, index):
+        """编辑框在单元格基础上加高 EXTRA_LINES 行（向上扩展，贴住视口顶）。"""
+        rect = QRect(option.rect)
+        fm = QFontMetrics(editor.font())
+        extra = fm.height() * self.EXTRA_LINES
+        top = max(0, rect.top() - extra)
+        height = rect.bottom() - top + 1
+        editor.setGeometry(QRect(rect.left(), top, rect.width(), height))
+
+    def setEditorData(self, editor, index):
+        if isinstance(editor, QPlainTextEdit):
+            editor.setPlainText(index.data(Qt.ItemDataRole.EditRole) or "")
+            editor.moveCursor(QTextCursor.MoveOperation.End)
+            return
+        super().setEditorData(editor, index)
+
+    def setModelData(self, editor, model, index):
+        if isinstance(editor, QPlainTextEdit):
+            model.setData(index, editor.toPlainText(), Qt.ItemDataRole.EditRole)
+            return
+        super().setModelData(editor, model, index)
+
+    def eventFilter(self, obj, event):
+        if isinstance(obj, QPlainTextEdit):
+            if event.type() == QEvent.Type.KeyPress:
+                if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and not (
+                        event.modifiers() & Qt.KeyboardModifier.ShiftModifier):
+                    self.commitData.emit(obj)
+                    self.closeEditor.emit(
+                        obj, QAbstractItemDelegate.EndEditHint.SubmitModelCache)
+                    return True
+                if event.key() == Qt.Key.Key_Escape:
+                    self.closeEditor.emit(
+                        obj, QAbstractItemDelegate.EndEditHint.RevertModelCache)
+                    return True
+            elif event.type() == QEvent.Type.FocusOut:
+                # 失焦提交，确保修改被保存而不是被丢弃（编辑器已销毁则忽略）
+                try:
+                    self.commitData.emit(obj)
+                except RuntimeError:
+                    pass
+        return super().eventFilter(obj, event)
 
 
 class StructureView(QTreeWidget):
@@ -98,6 +175,7 @@ class StructureView(QTreeWidget):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setExpandsOnDoubleClick(False)  # 展开收起由块行值列双击手动接管
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.setItemDelegate(StructureEditDelegate(self))  # 加高多行编辑框
         self.setAlternatingRowColors(True)
         self.setUniformRowHeights(True)
         self.setHeaderHidden(False)
@@ -268,8 +346,12 @@ class StructureView(QTreeWidget):
 
     # ---------- 写回 ----------
 
-    def _commit_node_edit(self, node, col, text):
-        """行内编辑统一写回；成功返回 True 并触发 structureChanged。"""
+    def _commit_node_edit(self, node, col, text, defer=False):
+        """行内编辑统一写回；成功返回 True 并触发 structureChanged。
+
+        defer=True 时（编辑器提交栈内）行刷新与信号延迟到事件循环执行，
+        避免 dataChanged 重入导致崩溃。
+        """
         text = (text or "").strip()
         if col == self.COL_KEY:
             if (not node.key) and node.raw_lines:
@@ -297,30 +379,40 @@ class StructureView(QTreeWidget):
             return False
         if node.parent is not None and node.parent.raw_lines:
             node.parent.raw_lines = []  # 结构已变，父块原始行作废
-        self._resync_row(node)
-        self.structureChanged.emit()
+        if defer:
+            QTimer.singleShot(0, lambda: self._resync_row(node))
+            QTimer.singleShot(0, self.structureChanged.emit)
+        else:
+            self._resync_row(node)
+            self.structureChanged.emit()
         return True
 
     def _resync_row(self, node):
         """写回后刷新对应行（含父块摘要数量）。"""
-        item = self._find_item(node)
-        if item is not None:
-            item.emitDataChanged()
-        parent = node.parent
-        if parent is not None and parent is not self._root:
-            pitem = self._find_item(parent)
-            if pitem is not None:
-                pitem.emitDataChanged()
+        try:
+            item = self._find_item(node)
+            if item is not None:
+                item.emitDataChanged()
+            parent = node.parent
+            if parent is not None and parent is not self._root:
+                pitem = self._find_item(parent)
+                if pitem is not None:
+                    pitem.emitDataChanged()
+        except RuntimeError:
+            pass  # 视图/条目已销毁（窗口关闭等），无需刷新
 
     def _find_item(self, node):
         """在当前视图中按节点身份查找条目。"""
         def walk(item):
-            if item.node is node:
-                return item
-            for j in range(item.childCount()):
-                got = walk(item.child(j))
-                if got is not None:
-                    return got
+            try:
+                if item.node is node:
+                    return item
+                for j in range(item.childCount()):
+                    got = walk(item.child(j))
+                    if got is not None:
+                        return got
+            except RuntimeError:
+                return None  # 条目已被销毁
             return None
         for i in range(self.topLevelItemCount()):
             got = walk(self.topLevelItem(i))
