@@ -23,7 +23,6 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMessageBox,
-    QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -41,7 +40,44 @@ from doctrine_loader import (
     replace_subdoctrine_fields,
 )
 from state_build_ops import ensure_file_in_mod
+from structure_view import StructureView
 from write_utils import atomic_write_text
+
+
+def _shared_translator():
+    try:
+        from gui_translator import get_translator
+        return get_translator()
+    except Exception:
+        return None
+
+
+def _strip_block_wrapper(raw, name):
+    """剥掉 `name = { ... }` 外层，返回花括号内部文本（结构视图只展示内层）。"""
+    raw = (raw or "").strip()
+    if raw.startswith(name):
+        start = raw.find("{")
+        if start >= 0:
+            depth = 0
+            for i in range(start, len(raw)):
+                if raw[i] == "{":
+                    depth += 1
+                elif raw[i] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        return raw[start + 1:i]
+            return raw[start + 1:]
+    return raw
+
+
+def _ensure_wrapped(raw, key):
+    """结构视图输出的是内层文本；缺外层时补 `key = { ... }`。"""
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    if raw.startswith(key + " ="):
+        return raw
+    return "%s = {\n%s\n}" % (key, raw)
 
 
 class _TrackCard(QWidget):
@@ -204,12 +240,14 @@ class DoctrineEditorDialog(QDialog):
         self.sd_icon_btn.clicked.connect(self._pick_subdoctrine_icon)
         row2.addWidget(self.sd_icon_btn)
         form.addLayout(row2)
-        form.addWidget(QLabel("rewards（原始块）"))
-        self.sd_rewards = QPlainTextEdit()
+        form.addWidget(QLabel("rewards（结构编辑）"))
+        self.sd_rewards = StructureView(translator=_shared_translator())
+        self.sd_rewards.set_compact(True)
         self.sd_rewards.setFixedHeight(140)
         form.addWidget(self.sd_rewards)
-        form.addWidget(QLabel("available（原始块）"))
-        self.sd_available = QPlainTextEdit()
+        form.addWidget(QLabel("available（结构编辑）"))
+        self.sd_available = StructureView(translator=_shared_translator())
+        self.sd_available.set_compact(True)
         self.sd_available.setFixedHeight(70)
         form.addWidget(self.sd_available)
 
@@ -320,16 +358,18 @@ class DoctrineEditorDialog(QDialog):
         self.sd_title.setText(s.get("title", ""))
         self.sd_cost.setText(s.get("xp_cost", ""))
         self.sd_icon.setText(s.get("icon", ""))
-        self.sd_rewards.setPlainText(s.get("rewards", ""))
-        self.sd_available.setPlainText(s.get("available", ""))
+        self.sd_rewards.load_text(
+            _strip_block_wrapper(s.get("rewards", ""), "rewards").strip())
+        self.sd_available.load_text(
+            _strip_block_wrapper(s.get("available", ""), "available").strip())
 
     def _clear_sd_form(self):
         self._current_sd = None
         self.sd_title.setText("")
         self.sd_cost.setText("")
         self.sd_icon.setText("")
-        self.sd_rewards.setPlainText("")
-        self.sd_available.setPlainText("")
+        self.sd_rewards.load_text("")
+        self.sd_available.load_text("")
         self.sd_label.setText("—（选择左侧子学说）")
 
     # ---------- 图标 ----------
@@ -410,8 +450,8 @@ class DoctrineEditorDialog(QDialog):
                   "xp_cost": self.sd_cost.text().strip(),
                   "icon": self.sd_icon.text().strip()}
         fields = {k: v for k, v in fields.items() if v}
-        rewards = self.sd_rewards.toPlainText().strip()
-        available = self.sd_available.toPlainText().strip()
+        rewards = _ensure_wrapped(self.sd_rewards.to_pdx_text(), "rewards")
+        available = _ensure_wrapped(self.sd_available.to_pdx_text(), "available")
         def transform(content):
             content = replace_subdoctrine_fields(content, s["id"], fields)
             if rewards:

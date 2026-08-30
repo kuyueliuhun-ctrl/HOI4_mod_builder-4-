@@ -17,13 +17,13 @@ from PyQt6.QtWidgets import (
     QInputDialog,
     QLabel,
     QMessageBox,
-    QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
 )
 
 from ai_loader import _AI_CACHE, load_ideas_grouped
 from ai_ui_common import EntityListSidebar, file_tooltip
+from structure_view import StructureView
 from nested_block_crud import (
     delete_nested_block,
     duplicate_nested_block,
@@ -38,6 +38,14 @@ from write_utils import atomic_write_text
 
 _WRAPPER = "ideas"
 _DEPTH = 2
+
+
+def _shared_translator():
+    try:
+        from gui_translator import get_translator
+        return get_translator()
+    except Exception:
+        return None
 
 
 def _read(fp):
@@ -82,8 +90,9 @@ class IdeasEditorDialog(QDialog):
         hint = QLabel("编辑理念块内部文本（不含外层 key = { }）；保存只替换本块。")
         hint.setWordWrap(True)
         right.addWidget(hint)
-        self.editor = QPlainTextEdit()
-        self.editor.setPlaceholderText("在此编辑理念块内部文本…")
+        self.editor = StructureView(translator=_shared_translator())
+        self.editor.set_compact(True)
+        self.editor.setMinimumHeight(200)
         right.addWidget(self.editor, 1)
         btn_row = QHBoxLayout()
         btn_row.addStretch(1)
@@ -137,11 +146,11 @@ class IdeasEditorDialog(QDialog):
         self._current_id = eid
         if not eid or eid not in self.entities:
             self.id_label.setText("—")
-            self.editor.setPlainText("")
+            self.editor.load_text("")
             return
         ent = self.entities[eid]
         self.id_label.setText("理念：%s（分类 %s）" % (eid, ent.get("parent_id", "")))
-        self.editor.setPlainText(block_inner_text(ent["raw"]).strip("\n"))
+        self.editor.load_text(block_inner_text(ent["raw"]).strip("\n"))
 
     # ---------- CRUD ----------
 
@@ -227,7 +236,7 @@ class IdeasEditorDialog(QDialog):
             return
         ent = self.entities[eid]
         fp = ent["file"]
-        body = self.editor.toPlainText().strip("\n")
+        body = self.editor.to_pdx_text().strip("\n")
         new_block = "%s = {\n%s\n}\n" % (eid, body)
         content = _read(fp)
         content = replace_nested_block_text(

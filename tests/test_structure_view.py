@@ -549,15 +549,14 @@ class StructureViewMioIntegrationTest(unittest.TestCase):
             self.app.processEvents()
             dlg._on_trait_selected("t_1")
             self.app.processEvents()
-            # 装备加成视图载入含外层原始块：单块行 + 2 子条目
+            # 装备加成视图：不显示最外层 equipment_bonus 块行，直接展示内层条目
             equip = dlg.equip_view
-            self.assertEqual(equip.topLevelItemCount(), 1)
-            top = equip.topLevelItem(0)
-            self.assertEqual(top.text(0), "equipment_bonus")
-            self.assertEqual(top.childCount(), 2)
-            armor = top.child(0)
+            self.assertEqual(equip.topLevelItemCount(), 2)
+            armor = equip.topLevelItem(0)
+            build = equip.topLevelItem(1)
             self.assertEqual(armor.text(0).split("--")[0], "armor_value")
-            # 结构改值 → _form_trait 序列化含新值（含外层原样传递）
+            self.assertEqual(build.text(0).split("--")[0], "build_cost_ic")
+            # 结构改值 → _form_trait 序列化含新值（缺外层会自动补 wrapper）
             armor.setData(StructureView.COL_VALUE, Qt.ItemDataRole.EditRole,
                           "0.2")
             form = dlg._form_trait("t_1")
@@ -618,19 +617,20 @@ class StructureViewMioIntegrationTest(unittest.TestCase):
             dlg = MioPolicyEditorDialog(mod, "")
             dlg.show()
             self.app.processEvents()
-            # allowed/available/equipment_bonus 三个块均以结构呈现
-            for view, key, children in ((dlg.allowed_view, "allowed", 1),
-                                        (dlg.available_view, "available", 1),
+            # allowed/available/equipment_bonus 三个块均以结构呈现（内层，无外层块行）
+            for view, key, children in ((dlg.allowed_view, "allowed", 0),
+                                        (dlg.available_view, "available", 0),
                                         (dlg.equip_view, "equipment_bonus", 1)):
-                self.assertEqual(view.topLevelItemCount(), 1)
-                self.assertEqual(view.topLevelItem(0).text(0).split("--")[0], key)
-                self.assertEqual(view.topLevelItem(0).childCount(), children)
-            # 结构改值
-            dlg.available_view.topLevelItem(0).child(0).setData(
-                StructureView.COL_KEY, Qt.ItemDataRole.EditRole, "has_mio_size")
+                self.assertGreaterEqual(view.topLevelItemCount(), children)
+                # 第一层就是内层条目，不再有 allowed/available/equipment_bonus 块行
+                self.assertNotEqual(view.topLevelItem(0).text(0).split("--")[0], key)
+            # 结构改值（available 是顶层比较语句行，整句编辑）
+            dlg.available_view.topLevelItem(0).setData(
+                StructureView.COL_VALUE, Qt.ItemDataRole.EditRole,
+                "has_mio_size > 10")
             block = dlg._form_block("mio_policy_test")
             self.assertIn("available = {", block)
-            self.assertIn("has_mio_size > 5", block)
+            self.assertIn("has_mio_size > 10", block)
             self.assertIn("equipment_bonus = {", block)
             self.assertIn("maximum_speed = 0.05", block)
             # 空字段（organization_modifier 未定义）→ 顶层为空

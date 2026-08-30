@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
 
 from ai_loader import _AI_CACHE, load_ideologies_detail
 from ai_ui_common import EntityListSidebar, file_tooltip
+from structure_view import StructureView
 from nested_block_crud import (
     delete_nested_block,
     duplicate_nested_block,
@@ -41,6 +42,14 @@ from write_utils import atomic_write_text
 _SUB_BLOCKS = ("types", "rules", "modifiers", "faction_modifiers")
 
 _WRAPPER = "ideologies"
+
+
+def _shared_translator():
+    try:
+        from gui_translator import get_translator
+        return get_translator()
+    except Exception:
+        return None
 
 
 def _read(fp):
@@ -95,8 +104,9 @@ class IdeologiesEditorDialog(QDialog):
 
         self._sub_edits = {}
         for k in _SUB_BLOCKS:
-            right.addWidget(QLabel("%s（块内原文，可编辑）" % k))
-            edit = QPlainTextEdit()
+            right.addWidget(QLabel("%s（结构编辑）" % k))
+            edit = StructureView(translator=_shared_translator())
+            edit.set_compact(True)
             edit.setFixedHeight(100)
             right.addWidget(edit)
             self._sub_edits[k] = edit
@@ -152,7 +162,7 @@ class IdeologiesEditorDialog(QDialog):
         for k in _SUB_BLOCKS:
             span = child_block_span(raw, k)
             inner = block_inner_text(raw[span[2]:span[3]]) if span else ""
-            self._sub_edits[k].setPlainText(inner.strip("\n"))
+            self._sub_edits[k].load_text(inner.strip("\n"))
 
     # ---------- CRUD ----------
 
@@ -248,7 +258,7 @@ class IdeologiesEditorDialog(QDialog):
             join_list_block(_split_lines(self.faction_edit)))
         for k in _SUB_BLOCKS:
             new_raw = replace_child_block(
-                new_raw, k, self._sub_edits[k].toPlainText().strip("\n"))
+                new_raw, k, self._sub_edits[k].to_pdx_text().strip("\n"))
         content = _read(fp)
         content = replace_nested_block_text(
             content, eid, new_raw, wrapper_key=_WRAPPER, depth=1)

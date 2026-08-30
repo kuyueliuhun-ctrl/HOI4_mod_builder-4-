@@ -179,11 +179,33 @@ class StructureView(QTreeWidget):
         self.setAlternatingRowColors(True)
         self.setUniformRowHeights(True)
         self.setHeaderHidden(False)
+        self._default_indentation = self.indentation()
         header = self.header()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         header.setStretchLastSection(True)
         self.setColumnWidth(self.COL_KEY, 380)
         self.setColumnWidth(self.COL_VALUE, 320)
+
+    # ---------- 尺寸/间隔调节（供不同嵌入部分按需紧凑） ----------
+
+    def set_compact(self, compact=True):
+        """紧凑模式：减小行内边距、表头间隙与缩进，适合小空间嵌入。
+
+        不同调用方可在构造后各自决定（如 MIO 加成列表、学说 rewards 等）。
+        """
+        self._compact = bool(compact)
+        if self._compact:
+            self.setStyleSheet(
+                "QTreeView::item { padding: 0px 1px; }"
+                "QHeaderView::section { padding: 1px 3px; }")
+            self.setIndentation(10)
+        else:
+            self.setStyleSheet("")
+            self.setIndentation(getattr(self, "_default_indentation", 18))
+
+    def set_header_visible(self, visible):
+        """显隐列表表头（紧凑场景可隐藏）。"""
+        self.setHeaderHidden(not visible)
 
     # ---------- 数据装载 ----------
 

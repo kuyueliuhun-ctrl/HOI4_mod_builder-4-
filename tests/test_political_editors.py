@@ -163,7 +163,7 @@ class IdeasEditorSmokeTest(unittest.TestCase):
         dlg.category_combo.setCurrentText("country")
         dlg.sidebar.set_current("my_spirit")
         dlg._on_current_changed("my_spirit")
-        dlg.editor.setPlainText("\tpicture = other_pic\n\tallowed = { always = yes }")
+        dlg.editor.load_text("\tpicture = other_pic\n\tallowed = { always = yes }")
 
         orig_info = ideas_mod.QMessageBox.information
         ideas_mod.QMessageBox.information = staticmethod(lambda *a, **k: None)

@@ -14,7 +14,6 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QMessageBox,
-    QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
 )
@@ -43,6 +42,24 @@ def _shared_translator():
         return get_translator()
     except Exception:
         return None
+
+
+def _strip_block_wrapper(raw, name):
+    """剥掉 `name = { ... }` 外层，返回花括号内部文本（结构视图只展示内层）。"""
+    raw = (raw or "").strip()
+    if raw.startswith(name):
+        start = raw.find("{")
+        if start >= 0:
+            depth = 0
+            for i in range(start, len(raw)):
+                if raw[i] == "{":
+                    depth += 1
+                elif raw[i] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        return raw[start + 1:i]
+            return raw[start + 1:]
+    return raw
 
 
 class MioPolicyEditorDialog(QDialog):
@@ -89,20 +106,22 @@ class MioPolicyEditorDialog(QDialog):
 
         tr = _shared_translator()
 
-        def _struct_field(label):
-            """结构视图字段：双击改键/值，右键加条目，块行双击收展。"""
+        def _struct_field(label, raw_key):
+            """结构视图字段：紧凑模式，双击改键/值，右键加条目，块行双击收展。"""
             view = StructureView(translator=tr)
+            view.set_compact(True)
             view.setMinimumHeight(110)
             right.addWidget(QLabel("%s（结构编辑）" % label))
             right.addWidget(view, 1)
             return view
 
-        self.allowed_view = _struct_field("allowed")
-        self.available_view = _struct_field("available")
-        self.visible_view = _struct_field("visible")
-        self.equip_view = _struct_field("equipment_bonus")
-        self.prod_view = _struct_field("production_bonus")
-        self.org_view = _struct_field("organization_modifier")
+        self.allowed_view = _struct_field("allowed", "allowed")
+        self.available_view = _struct_field("available", "available")
+        self.visible_view = _struct_field("visible", "visible")
+        self.equip_view = _struct_field("equipment_bonus", "equipment_bonus")
+        self.prod_view = _struct_field("production_bonus", "production_bonus")
+        self.org_view = _struct_field("organization_modifier",
+                                      "organization_modifier")
 
         btns = QHBoxLayout()
         for label, fn in (("💾 保存", self._on_save),
@@ -178,12 +197,21 @@ class MioPolicyEditorDialog(QDialog):
             self._clear_form()
             return
         self.icon_edit.setText(p.get("icon", ""))
-        self.allowed_view.load_text(p.get("allowed", ""))
-        self.available_view.load_text(p.get("available", ""))
-        self.visible_view.load_text(p.get("visible", ""))
-        self.equip_view.load_text(p.get("equipment_bonus", ""))
-        self.prod_view.load_text(p.get("production_bonus", ""))
-        self.org_view.load_text(p.get("organization_modifier", ""))
+        self.allowed_view.load_text(
+            _strip_block_wrapper(p.get("allowed", ""), "allowed").strip())
+        self.available_view.load_text(
+            _strip_block_wrapper(p.get("available", ""), "available").strip())
+        self.visible_view.load_text(
+            _strip_block_wrapper(p.get("visible", ""), "visible").strip())
+        self.equip_view.load_text(
+            _strip_block_wrapper(p.get("equipment_bonus", ""),
+                                 "equipment_bonus").strip())
+        self.prod_view.load_text(
+            _strip_block_wrapper(p.get("production_bonus", ""),
+                                 "production_bonus").strip())
+        self.org_view.load_text(
+            _strip_block_wrapper(p.get("organization_modifier", ""),
+                                 "organization_modifier").strip())
 
     def _clear_form(self):
         self.icon_edit.setText("")
