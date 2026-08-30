@@ -102,6 +102,51 @@ class MioTraitTreeView(QGraphicsView):
             from PyQt6.QtGui import QPixmap
             return QPixmap()
 
+    def _resolve_positions(self, traits):
+        """按游戏规则解析绝对网格坐标。
+
+        position 的 x/y 在带 relative_position_id 时是相对另一特质的偏移：
+        abs(t) = abs(relative_position_id) + (x, y)。递归解析 + 环防护；
+        引用缺失/成环时退化为把 x/y 当绝对坐标。解析后若仍同格叠加，
+        向右顺序找空位（数据本身错误时的兜底）。
+        """
+        raw, rel = {}, {}
+        for t in traits:
+            tok = t.get("token", "")
+            if not tok:
+                continue
+            try:
+                raw[tok] = (int(t.get("x", 0) or 0), int(t.get("y", 0) or 0))
+            except (TypeError, ValueError):
+                raw[tok] = (0, 0)
+            rel[tok] = t.get("relative_position_id", "")
+        resolved = {}
+
+        def resolve(tok, stack):
+            if tok in resolved:
+                return resolved[tok]
+            bx, by = raw.get(tok, (0, 0))
+            base = rel.get(tok, "")
+            if base and base != tok and base in raw and base not in stack:
+                px, py = resolve(base, stack | {tok})
+                pos = (px + bx, py + by)
+            else:
+                pos = (bx, by)
+            resolved[tok] = pos
+            return pos
+
+        for tok in raw:
+            resolve(tok, set())
+        # 同格叠加兜底：按出现顺序向右找空位
+        used = set()
+        for tok in raw:
+            x, y = resolved.get(tok, (0, 0))
+            while (x, y) in used:
+                x += 1
+            resolved[tok] = (x, y)
+            used.add((x, y))
+        return resolved
+
     def _rebuild(self):
         self._scene.clear()
         self._item_to_token = {}
@@ -113,30 +158,25 @@ class MioTraitTreeView(QGraphicsView):
         if not traits:
             self._draw_placeholder("（该组织未定义特质树）")
             return
-        positions = {}
-        for t in traits:
-            token = t.get("token", "")
-            if token:
-                positions[token] = (t.get("x", 0), t.get("y", 0))
+        positions = self._resolve_positions(traits)
 
         # 连线（子 -> 父，先画线再画节点，节点覆盖线头）
+        # 注意：relative_position_id 只用于定位，游戏不为其画线
+        drawn = set()
         for t in traits:
             token = t.get("token", "")
             if not token or token not in positions:
                 continue
-            parents = list(t.get("parents") or [])
-            rel = t.get("relative_position_id", "")
-            if rel and rel not in parents:
-                parents.append(rel)
             cx, cy = positions[token]
-            x1 = cx * CELL_W + CELL_W // 2
+            x1 = cx * CELL_W + 10 + NODE_W // 2
             y1 = cy * CELL_H + 10
-            for p in parents:
-                if p not in positions:
+            for p in t.get("parents") or []:
+                if p not in positions or (p, token) in drawn:
                     continue
+                drawn.add((p, token))
                 px, py = positions[p]
-                x2 = px * CELL_W + CELL_W // 2
-                y2 = py * CELL_H + CELL_H
+                x2 = px * CELL_W + 10 + NODE_W // 2
+                y2 = py * CELL_H + 10 + NODE_H
                 line = QGraphicsLineItem(x1, y1, x2, y2)
                 line.setPen(QPen(QColor("#b3bec9"), 1.4))
                 line.setZValue(-1)

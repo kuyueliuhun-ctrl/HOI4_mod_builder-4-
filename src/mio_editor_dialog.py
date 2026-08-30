@@ -383,7 +383,7 @@ class MioEditorDialog(QDialog):
 
     # ---------- 写文件 ----------
 
-    def _write_rel(self, rel, transform):
+    def _write_rel(self, rel, transform, expect_change=True):
         if not rel:
             return False
         mod_fp, _copied = ensure_file_in_mod(self.mod_path, self.hoi4_path, rel)
@@ -393,6 +393,12 @@ class MioEditorDialog(QDialog):
         with open(mod_fp, "r", encoding="utf-8-sig", errors="ignore") as f:
             content = f.read()
         new_content = transform(content)
+        if expect_change and new_content == content:
+            QMessageBox.warning(
+                self, "保存未生效",
+                "内容未变化：目标块可能继承自 include 组织，"
+                "在本文件中没有可写的定义块。")
+            return False
         try:
             atomic_write_text(mod_fp, new_content)
         except Exception as e:

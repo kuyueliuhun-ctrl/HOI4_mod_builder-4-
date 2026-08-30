@@ -273,6 +273,107 @@ class MioEditorDialogTest(unittest.TestCase):
         self.assertIn("mio_ai_weights", actions)
 
 
+class MioTraitLayoutParse(unittest.TestCase):
+    """特质布局数据层：父 token 提取 + 裸 x/y 坐标兼容。"""
+
+    def test_wrapped_parent_block_tokens(self):
+        from mio_loader import parse_mio_organizations
+        content = (
+            "org = {\n"
+            "\ttrait = {\n"
+            "\t\ttoken = t_child\n"
+            "\t\tname = t_child\n"
+            "\t\tposition = { x=1 y=1 }\n"
+            "\t\tany_parent = { traits = { t_pa t_pb } num_parents_needed = 1 }\n"
+            "\t}\n"
+            "\ttrait = {\n"
+            "\t\ttoken = t_pa\n"
+            "\t\tname = t_pa\n"
+            "\t\tposition = { x=0 y=0 }\n"
+            "\t}\n"
+            "}\n")
+        org = parse_mio_organizations(content)["org"]
+        by = {t["token"]: t for t in org["traits"]}
+        self.assertEqual(by["t_child"]["parents"], ["t_pa", "t_pb"])
+        self.assertNotIn("traits", by["t_child"]["parents"])
+        self.assertNotIn("num_parents_needed", by["t_child"]["parents"])
+
+    def test_plain_xy_keys(self):
+        from mio_loader import parse_mio_organizations
+        content = (
+            "org = {\n"
+            "\ttrait = {\n"
+            "\t\ttoken = t_x\n"
+            "\t\tname = t_x\n"
+            "\t\tx = 3\n"
+            "\t\ty = 2\n"
+            "\t}\n"
+            "}\n")
+        org = parse_mio_organizations(content)["org"]
+        t = org["traits"][0]
+        self.assertEqual((t["x"], t["y"]), (3, 2))
+
+
+    def test_include_merge(self):
+        from mio_loader import parse_mio_organizations, resolve_includes
+        content = (
+            "base_org = {\n"
+            "\tinitial_trait = { name = base_init }\n"
+            "\ttrait = {\n"
+            "\t\ttoken = shared\n"
+            "\t\tname = shared\n"
+            "\t\tposition = { x=2 y=1 }\n"
+            "\t\tequipment_bonus = { reliability = 0.05 }\n"
+            "\t}\n"
+            "}\n"
+            "child_org = {\n"
+            "\tinclude = base_org\n"
+            "\ttrait = {\n"
+            "\t\ttoken = shared\n"
+            "\t\tlimit_to_equipment_type = { screen_ship }\n"
+            "\t}\n"
+            "\ttrait = {\n"
+            "\t\ttoken = local_new\n"
+            "\t\tname = local_new\n"
+            "\t\tposition = { x=3 y=0 }\n"
+            "\t}\n"
+            "}\n")
+        mios = parse_mio_organizations(content)
+        merged = resolve_includes(mios)["child_org"]
+        by = {t["token"]: t for t in merged["traits"]}
+        # 继承特质保留底组织的 position，本地覆盖块字段并入
+        self.assertEqual((by["shared"]["x"], by["shared"]["y"]), (2, 1))
+        # raw 保留本地可写块（保存写回子组织自身文件）
+        self.assertIn("limit_to_equipment_type", by["shared"]["raw"])
+        self.assertNotIn("position", by["shared"]["raw"])
+        self.assertTrue(any("limit_to_equipment_type" in b
+                            for b in by["shared"]["extra_blocks"]))
+        self.assertIn("reliability", by["shared"]["equipment_bonus"])
+        # 本地新增特质保留
+        self.assertEqual((by["local_new"]["x"], by["local_new"]["y"]), (3, 0))
+        # initial_trait 缺失时继承
+        self.assertEqual(merged["initial_trait"]["name"], "base_init")
+        # 底组织自身不受影响
+        self.assertEqual(len(mios["base_org"]["traits"]), 1)
+
+
+    def test_file_variables_in_position(self):
+        from mio_loader import parse_mio_organizations
+        content = (
+            "@ship_1_X = 9\n"
+            "@ship_1_Y = 3\n"
+            "org = {\n"
+            "\ttrait = {\n"
+            "\t\ttoken = t_v\n"
+            "\t\tname = t_v\n"
+            "\t\tposition = { x=@ship_1_X y=@ship_1_Y }\n"
+            "\t}\n"
+            "}\n")
+        org = parse_mio_organizations(content)["org"]
+        t = org["traits"][0]
+        self.assertEqual((t["x"], t["y"]), (9, 3))
+
+
 class MioTraitTreeDrawing(unittest.TestCase):
     """特质树绘图回归：文本不溢出节点 / 空特质占位提示。"""
 
@@ -316,6 +417,105 @@ class MioTraitTreeDrawing(unittest.TestCase):
         tree = MioTraitTreeView()
         self.assertEqual(tree.backgroundBrush().color().name(),
                          C["bg_surface_subtle"].lower())
+
+    # ---------- 相对位置 / 连线还原游戏规则 ----------
+
+    def test_relative_positions_resolved(self):
+        from mio_trait_tree import CELL_H, CELL_W, MioTraitTreeView
+        tree = MioTraitTreeView()
+        tree.set_mio({
+            "id": "x", "initial_trait": {},
+            "traits": [
+                {"token": "base", "name": "base", "icon": "",
+                 "x": 1, "y": 0, "relative_position_id": ""},
+                {"token": "child", "name": "child", "icon": "",
+                 "x": 1, "y": 2, "relative_position_id": "base"},
+            ],
+        })
+        pos = tree._resolve_positions(tree._mio["traits"])
+        self.assertEqual(pos["base"], (1, 0))
+        self.assertEqual(pos["child"], (2, 2))  # (1,0) + (1,2)
+        node = [i for i in tree._scene.items()
+                if i.__class__.__name__ == "_TraitNode"
+                and i.token == "child"][0]
+        self.assertAlmostEqual(node.rect().x(), 2 * CELL_W + 10)
+        self.assertAlmostEqual(node.rect().y(), 2 * CELL_H + 10)
+
+    def test_relative_id_not_drawn_as_line(self):
+        from PyQt6.QtWidgets import QGraphicsLineItem
+        from mio_trait_tree import MioTraitTreeView
+        tree = MioTraitTreeView()
+        tree.set_mio({
+            "id": "x", "initial_trait": {},
+            "traits": [
+                {"token": "base", "name": "base", "icon": "",
+                 "x": 0, "y": 0, "relative_position_id": ""},
+                {"token": "child", "name": "child", "icon": "",
+                 "x": 1, "y": 1, "relative_position_id": "base"},  # 仅定位
+            ],
+        })
+        lines = [i for i in tree._scene.items()
+                 if isinstance(i, QGraphicsLineItem)]
+        self.assertEqual(lines, [])  # 游戏不为 relative_position_id 画线
+
+    def test_parent_line_anchors_touch_nodes(self):
+        from PyQt6.QtWidgets import QGraphicsLineItem
+        from mio_trait_tree import NODE_H, NODE_W, MioTraitTreeView
+        tree = MioTraitTreeView()
+        tree.set_mio({
+            "id": "x", "initial_trait": {},
+            "traits": [
+                {"token": "pa", "name": "pa", "icon": "",
+                 "x": 0, "y": 0, "relative_position_id": "",
+                 "parents": []},
+                {"token": "ch", "name": "ch", "icon": "",
+                 "x": 0, "y": 1, "relative_position_id": "",
+                 "parents": ["pa"]},
+            ],
+        })
+        lines = [i for i in tree._scene.items()
+                 if isinstance(i, QGraphicsLineItem)]
+        self.assertEqual(len(lines), 1)
+        ln = lines[0].line()
+        # 子节点顶边中心 / 父节点底边中心（节点 x = col*CELL_W+10）
+        self.assertAlmostEqual(ln.x1(), 0 + 10 + NODE_W // 2)
+        self.assertAlmostEqual(ln.y1(), 1 * 94 + 10)
+        self.assertAlmostEqual(ln.x2(), 0 + 10 + NODE_W // 2)
+        self.assertAlmostEqual(ln.y2(), 0 * 94 + 10 + NODE_H)
+
+    def test_cycle_guard_no_hang(self):
+        from mio_trait_tree import MioTraitTreeView
+        tree = MioTraitTreeView()
+        tree.set_mio({
+            "id": "x", "initial_trait": {},
+            "traits": [
+                {"token": "a", "name": "a", "icon": "",
+                 "x": 0, "y": 0, "relative_position_id": "b"},
+                {"token": "b", "name": "b", "icon": "",
+                 "x": 1, "y": 1, "relative_position_id": "a"},
+            ],
+        })
+        pos = tree._resolve_positions(tree._mio["traits"])
+        self.assertEqual(len(pos), 2)  # 成环退化，不死循环
+
+    def test_resolved_positions_collision_free(self):
+        from mio_loader import load_mios
+        from mio_trait_tree import MioTraitTreeView
+        tree = MioTraitTreeView()
+        mios = load_mios("/mnt/e/mods/3350890356",
+                         "/mnt/e/SteamLibrary/steamapps/common/"
+                         "Hearts of Iron IV")
+        stacked = 0
+        checked = 0
+        for m in mios.values():
+            if not (m.get("traits") or []):
+                continue
+            checked += 1
+            pos = tree._resolve_positions(m["traits"])
+            cells = list(pos.values())
+            if len(cells) != len(set(cells)):
+                stacked += 1
+        self.assertEqual(stacked, 0)  # 解析后无同格叠加
 
 
 if __name__ == "__main__":

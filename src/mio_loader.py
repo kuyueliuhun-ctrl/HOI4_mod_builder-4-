@@ -11,6 +11,7 @@ nested_block_crud 与 ai_loader_crud 的字符级块操作）。
 from __future__ import annotations
 
 import os
+import re
 
 from oob_loader import _block_ranges
 from ai_loader_crud import (
@@ -101,8 +102,52 @@ def _parse_position(block_text):
         return 0, 0
 
 
-def _parse_trait(block_text):
-    """解析一个 trait = { ... } 块。"""
+_PARENT_KEY_STOP = {"traits", "num_parents_needed",
+                     "any_parent", "all_parents"}
+
+_FILE_VAR_RE = re.compile(r"^\s*@([\w\.]+)\s*=\s*(-?[\d\.]+)", re.M)
+
+
+def _resolve_int(value, variables=None):
+    """把 PDX 数值解析为 int，支持 @文件变量 引用；失败返回 0。
+
+    注：pdx 解析器会把 `@var` 的 @ 剥掉，故变量名按裸名也查一次。
+    """
+    text = str(value).strip().lstrip("@")
+    variables = variables or {}
+    if text in variables:
+        text = str(variables[text]).strip().lstrip("@")
+    try:
+        return int(float(text))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _parent_tokens_from_block(cbt):
+    """从 any_parent/all_parents 子块提取父特质 token（去重、去键名）。
+
+    兼容两种游戏语法：
+    - 包裹式：any_parent = { traits = { a b } num_parents_needed = 1 }
+    - 裸值式：any_parent = { a b }
+    """
+    text = cbt or ""
+    m = re.search(r"traits\s*=\s*\{([^}]*)\}", text)
+    if m:
+        text = m.group(1)
+    else:
+        text = re.sub(r"#.*", "", text)
+    toks = re.findall(r"[A-Za-z0-9_][\w\.\-]*", text)
+    if not m:
+        toks = [t for t in toks if t not in _PARENT_KEY_STOP]
+    out = []
+    for t in toks:
+        if t not in out:
+            out.append(t)
+    return out
+
+
+def _parse_trait(block_text, variables=None):
+    """解析一个 trait = { ... } 块（variables 供 @文件变量 取值）。"""
     f = _fields(block_text)
     x, y = 0, 0
     pos_text = ""
@@ -115,7 +160,9 @@ def _parse_trait(block_text):
         bs, be = _find_block_bounds(block_text, cs)
         cbt = block_text[bs:be].strip()
         if ck in ("any_parent", "all_parents"):
-            parents.extend(_values_in_block(block_text, ck))
+            for tok in _parent_tokens_from_block(cbt):
+                if tok not in parents:
+                    parents.append(tok)
             parent_blocks.setdefault(ck, []).append(cbt)
         elif ck == "position":
             pos_text = cbt
@@ -127,20 +174,19 @@ def _parse_trait(block_text):
             extra_blocks.append(cbt)
     if pos_text:
         pf = _fields(pos_text)
-        try:
-            x = int(pf.get("x", 0))
-        except (TypeError, ValueError):
-            x = 0
-        try:
-            y = int(pf.get("y", 0))
-        except (TypeError, ValueError):
-            y = 0
+        x = _resolve_int(pf.get("x", 0), variables)
+        y = _resolve_int(pf.get("y", 0), variables)
+    else:
+        # 部分模组用裸 x = / y = 键代替 position 块
+        x = _resolve_int(f.get("x", 0), variables)
+        y = _resolve_int(f.get("y", 0), variables)
     return {
         "token": f.get("token", ""),
         "name": f.get("name", ""),
         "icon": f.get("icon", ""),
         "x": x,
         "y": y,
+        "has_position": bool(pos_text) or "x" in f or "y" in f,
         "relative_position_id": f.get("relative_position_id", ""),
         "parents": parents,
         "parent_blocks": parent_blocks,
@@ -152,7 +198,9 @@ def _parse_trait(block_text):
 
 
 def parse_mio_organizations(content):
-    """解析 organizations/*.txt，返回 {mio_id: dict}。"""
+    """解析 organizations/*.txt，返回 {mio_id: dict}（支持 @文件变量）。"""
+    variables = {m.group(1): m.group(2)
+                 for m in _FILE_VAR_RE.finditer(content)}
     out = {}
     for key, depth, start, end in _block_ranges(content):
         if depth != 0:
@@ -164,8 +212,9 @@ def parse_mio_organizations(content):
         headers = []
         for ck, cs, ce in _child_blocks(bt):
             cbt = bt[cs:ce]
-            if ck == "trait":
-                t = _parse_trait(cbt)
+            if ck in ("trait", "add_trait"):
+                # add_trait 同样可携带完整定义（引用共享特质时常只有 token）
+                t = _parse_trait(cbt, variables)
                 if t.get("token"):
                     traits.append(t)
             elif ck == "initial_trait":
@@ -186,6 +235,7 @@ def parse_mio_organizations(content):
             "id": key,
             "name": key,
             "icon": f.get("icon", ""),
+            "include": f.get("include", ""),
             "allowed": _child_block_text(bt, "allowed") or "",
             "equipment_type": _values_in_block(bt, "equipment_type"),
             "research_categories": _values_in_block(bt, "research_categories"),
@@ -197,8 +247,86 @@ def parse_mio_organizations(content):
     return out
 
 
+def _merge_included_trait(base, local):
+    """本地 trait 块覆盖继承块：非空字段覆盖，extra/parent 块并集。
+
+    本地块未写 position/relative_position_id 时（覆盖场景常见），
+    保留底组织的定位字段。
+    """
+    out = dict(base)
+    local = dict(local)
+    if not local.get("has_position"):
+        for k in ("x", "y", "relative_position_id"):
+            local.pop(k, None)
+    for k, v in local.items():
+        if k in ("extra_blocks", "parent_blocks", "raw", "has_position"):
+            continue
+        if v in ("", None, [], {}):
+            continue
+        out[k] = v
+    base_extra = list(base.get("extra_blocks") or [])
+    out["extra_blocks"] = base_extra + [
+        b for b in (local.get("extra_blocks") or []) if b not in base_extra]
+    pb = dict(base.get("parent_blocks") or {})
+    for kk, vv in (local.get("parent_blocks") or {}).items():
+        pb.setdefault(kk, [])
+        for b in vv:
+            if b not in pb[kk]:
+                pb[kk].append(b)
+    out["parent_blocks"] = pb
+    if local.get("raw"):
+        out["raw"] = local["raw"]
+    return out
+
+
+def resolve_includes(mios):
+    """按游戏规则展开 include 继承：被 include 组织的特质树作为底，
+    本地同名 trait 块按字段覆盖；initial_trait 缺失时继承。带环防护。"""
+    resolved = {}
+
+    def _resolve(org_id, stack):
+        if org_id in resolved:
+            return resolved[org_id]
+        org = mios.get(org_id)
+        if not org:
+            return None
+        traits = {}
+        for t in org.get("traits") or []:
+            if t.get("token"):
+                traits[t["token"]] = dict(t)
+        inc = org.get("include", "")
+        if inc and inc != org_id and inc not in stack:
+            base = _resolve(inc, stack | {org_id})
+            if base:
+                merged = {}
+                for t in base.get("traits") or []:
+                    if t.get("token"):
+                        merged[t["token"]] = dict(t)
+                for tok, lt in traits.items():
+                    if tok in merged:
+                        merged[tok] = _merge_included_trait(merged[tok], lt)
+                    else:
+                        merged[tok] = lt
+                traits = merged
+        out = dict(org)
+        out["traits"] = list(traits.values())
+        if not out.get("initial_trait") and inc and inc not in stack:
+            base = resolved.get(inc)
+            if base and base.get("initial_trait"):
+                out["initial_trait"] = dict(base["initial_trait"])
+        resolved[org_id] = out
+        return out
+
+    out = {}
+    for org_id in mios:
+        r = _resolve(org_id, set())
+        if r:
+            out[org_id] = r
+    return out
+
+
 def load_mios(mod_path="", hoi4_path=""):
-    """加载全部 MIO 组织（mod 优先）。"""
+    """加载全部 MIO 组织（mod 优先，include 继承已展开）。"""
     folder = "common/military_industrial_organization/organizations"
     out = {}
     for fp in _scan_files(mod_path, hoi4_path, folder):
@@ -206,7 +334,7 @@ def load_mios(mod_path="", hoi4_path=""):
             m["file"] = fp
             m["rel"] = _rel(fp, hoi4_path, mod_path)
             out[mid] = m
-    return out
+    return resolve_includes(out)
 
 
 def parse_mio_policies(content):
@@ -338,7 +466,8 @@ def trait_to_pdx(token, name, icon, x, y, relative_position_id="",
     if relative_position_id:
         lines.append("\t\trelative_position_id = %s" % relative_position_id)
     if parents:
-        lines.append("\t\tany_parent = { %s }" % " ".join(parents))
+        lines.append("\t\tany_parent = { traits = { %s } }"
+                     % " ".join(parents))
     for bonus, raw in (("equipment_bonus", equipment_bonus),
                        ("production_bonus", production_bonus)):
         raw = (raw or "").strip()
