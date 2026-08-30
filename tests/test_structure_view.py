@@ -438,5 +438,211 @@ class StructureViewRealDataTest(unittest.TestCase):
             self.assertEqual(len(node.children), item.childCount())
 
 
+ORG_MIO = """org_a = {
+	icon = GFX_idea_test
+	available = {
+		has_dlc = "Gotterdammerung"
+	}
+	initial_trait = {
+		name = init_trait_1
+		equipment_bonus = {
+			reliability = 0.05
+		}
+		reliability = 0.02
+		special_trait_background = yes
+	}
+	trait = {
+		token = t_1
+		name = t_1
+		position = { x=0 y=0 }
+		equipment_bonus = {
+			armor_value = 0.1
+			build_cost_ic = -0.03
+		}
+		production_bonus = {
+			production_factor = 0.05
+		}
+	}
+}
+"""
+
+POLICY_MIO = """mio_policy_test = {
+	icon = GFX_mio_policy_test
+	allowed = { always = yes }
+	available = { has_mio_size > 5 }
+	equipment_bonus = {
+		same_as_mio = { maximum_speed = 0.05 }
+	}
+}
+"""
+
+
+def _mk_temp_mod(name):
+    import shutil
+    import tempfile
+    root = tempfile.mkdtemp(prefix=name)
+    return root
+
+
+class StructureViewMioIntegrationTest(unittest.TestCase):
+    """StructureView 嵌入 MIO 编辑器的集成测试（装备加成等结构编辑位）。
+
+    注意：对话框必须 deleteLater + processEvents 确定性销毁，否则前一个
+    用例的对话框被 GC 的时机会撞上后一个用例的事件循环，Qt 段错误。
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = QApplication.instance() or QApplication([])
+
+    def _dispose(self, dlg):
+        """确定性销毁对话框（防 GC 时机与事件循环相撞）。"""
+        try:
+            dlg.deleteLater()
+        except RuntimeError:
+            pass
+        self.app.processEvents()
+        self.app.processEvents()
+
+    def test_initial_dialog_bonus_views_roundtrip_and_edit(self):
+        """初始加成对话框：装备/生产内部块 → 结构视图；改值后 build_block 生效。"""
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QMessageBox
+        from mio_editor_dialog import InitialTraitDialog
+        from mio_loader import parse_mio_organizations
+        org = parse_mio_organizations(ORG_MIO)["org_a"]
+        dlg = InitialTraitDialog(org["initial_trait"])
+        # 装备加成视图：内部条目为顶层行（展示层可能带 --中文 后缀）
+        self.assertEqual(dlg.equip_view.topLevelItemCount(), 1)
+        rel_row = dlg.equip_view.topLevelItem(0)
+        self.assertEqual(rel_row.text(0).split("--")[0], "reliability")
+        # 双击改值（EditRole setData 全链路）
+        rel_row.setData(StructureView.COL_VALUE, Qt.ItemDataRole.EditRole, "0.08")
+        block = dlg.build_block()
+        self.assertIn("reliability = 0.08", block)
+        self.assertIn("initial_trait = {", block)
+        self.assertIn("reliability = 0.02", block)   # direct_stats 保留
+        self.assertIn("special_trait_background = yes", block)
+        # 生产加成视图为空 → build_block 不产生空生产块
+        dlg.prod_view.add_node(TreeNode("value", "production_factor", "0.1"), None)
+        self.assertIn("production_factor = 0.1", dlg.build_block())
+        self._dispose(dlg)
+
+    def test_trait_form_structure_edit_and_save(self):
+        """特质表单：装备/生产加成结构视图；改值→存特质→文件写回。"""
+        import os as _os
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QMessageBox
+        from mio_editor_dialog import MioEditorDialog
+        mod = _mk_temp_mod("sv_mio_org_")
+        self.addCleanup(shutil_rmtree_ignore, mod)
+        d = _os.path.join(mod, "common", "military_industrial_organization",
+                          "organizations")
+        _os.makedirs(d)
+        fp = _os.path.join(d, "test.txt")
+        with open(fp, "w", encoding="utf-8") as f:
+            f.write(ORG_MIO)
+        with patch.object(QMessageBox, "information"), \
+                patch.object(QMessageBox, "warning"):
+            dlg = MioEditorDialog(mod, "")
+            dlg.show()
+            self.app.processEvents()
+            dlg._on_trait_selected("t_1")
+            self.app.processEvents()
+            # 装备加成视图载入含外层原始块：单块行 + 2 子条目
+            equip = dlg.equip_view
+            self.assertEqual(equip.topLevelItemCount(), 1)
+            top = equip.topLevelItem(0)
+            self.assertEqual(top.text(0), "equipment_bonus")
+            self.assertEqual(top.childCount(), 2)
+            armor = top.child(0)
+            self.assertEqual(armor.text(0).split("--")[0], "armor_value")
+            # 结构改值 → _form_trait 序列化含新值（含外层原样传递）
+            armor.setData(StructureView.COL_VALUE, Qt.ItemDataRole.EditRole,
+                          "0.2")
+            form = dlg._form_trait("t_1")
+            self.assertIn("armor_value = 0.2", form)
+            self.assertIn("equipment_bonus = {", form)
+            self.assertIn("production_factor = 0.05", form)  # 生产块原样保留
+            # 存特质 → 文件写回
+            dlg._on_save_trait()
+            with open(fp, "r", encoding="utf-8") as f:
+                saved = f.read()
+            self.assertIn("armor_value = 0.2", saved)
+            self._dispose(dlg)
+
+    def test_trait_form_empty_bonus_add_entry(self):
+        """空装备加成：右键空白添加条目 → _form_trait 自动包 wrapper。"""
+        import os as _os
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QMessageBox
+        from mio_editor_dialog import MioEditorDialog
+        mod = _mk_temp_mod("sv_mio_org2_")
+        self.addCleanup(shutil_rmtree_ignore, mod)
+        d = _os.path.join(mod, "common", "military_industrial_organization",
+                          "organizations")
+        _os.makedirs(d)
+        with open(_os.path.join(d, "test.txt"), "w", encoding="utf-8") as f:
+            f.write(ORG_MIO)
+        with patch.object(QMessageBox, "information"), \
+                patch.object(QMessageBox, "warning"):
+            dlg = MioEditorDialog(mod, "")
+            dlg.show()
+            self.app.processEvents()
+            dlg._on_trait_selected("t_1")
+            self.app.processEvents()
+            # 生产块存在，装备块改空后手动加条目（模拟从零构建）
+            dlg.equip_view.load_text("")
+            dlg.equip_view.add_node(
+                TreeNode("value", "naval_armor_value", "0.15"), None)
+            form = dlg._form_trait("t_1")
+            self.assertIn("equipment_bonus = {", form)
+            self.assertIn("naval_armor_value = 0.15", form)
+            self._dispose(dlg)
+
+    def test_policy_editor_structure_fields(self):
+        """方针编辑器：六个原始块字段全部为结构视图；改值→_form_block 生效。"""
+        import os as _os
+        from unittest.mock import patch
+        from PyQt6.QtWidgets import QMessageBox
+        from mio_policy_editor_dialog import MioPolicyEditorDialog
+        mod = _mk_temp_mod("sv_mio_pol_")
+        self.addCleanup(shutil_rmtree_ignore, mod)
+        pp = _os.path.join(mod, "common", "military_industrial_organization",
+                           "policies", "_test.txt")
+        _os.makedirs(_os.path.dirname(pp))
+        with open(pp, "w", encoding="utf-8") as f:
+            f.write(POLICY_MIO)
+        with patch.object(QMessageBox, "information"), \
+                patch.object(QMessageBox, "warning"):
+            dlg = MioPolicyEditorDialog(mod, "")
+            dlg.show()
+            self.app.processEvents()
+            # allowed/available/equipment_bonus 三个块均以结构呈现
+            for view, key, children in ((dlg.allowed_view, "allowed", 1),
+                                        (dlg.available_view, "available", 1),
+                                        (dlg.equip_view, "equipment_bonus", 1)):
+                self.assertEqual(view.topLevelItemCount(), 1)
+                self.assertEqual(view.topLevelItem(0).text(0).split("--")[0], key)
+                self.assertEqual(view.topLevelItem(0).childCount(), children)
+            # 结构改值
+            dlg.available_view.topLevelItem(0).child(0).setData(
+                StructureView.COL_KEY, Qt.ItemDataRole.EditRole, "has_mio_size")
+            block = dlg._form_block("mio_policy_test")
+            self.assertIn("available = {", block)
+            self.assertIn("has_mio_size > 5", block)
+            self.assertIn("equipment_bonus = {", block)
+            self.assertIn("maximum_speed = 0.05", block)
+            # 空字段（organization_modifier 未定义）→ 顶层为空
+            self.assertEqual(dlg.org_view.topLevelItemCount(), 0)
+            self.assertNotIn("organization_modifier", block)
+            self._dispose(dlg)
+
+
+def shutil_rmtree_ignore(path):
+    import shutil
+    shutil.rmtree(path, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()

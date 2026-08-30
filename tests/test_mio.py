@@ -587,7 +587,7 @@ class MioEditorCrudUi(unittest.TestCase):
         dlg = InitialTraitDialog(org["initial_trait"])
         self.assertEqual(dlg.name_edit.text(), "init_trait_1")
         self.assertIn("reliability = 0.02", dlg.direct_edit.toPlainText())
-        self.assertIn("0.05", dlg.equip_edit.toPlainText())
+        self.assertIn("0.05", dlg.equip_view.to_pdx_text())
         block = dlg.build_block()
         self.assertIn("initial_trait = {", block)
         self.assertIn("reliability = 0.02", block)

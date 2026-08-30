@@ -32,7 +32,17 @@ from mio_loader import (
 )
 from mio_ui_theme import BannerWidget
 from state_build_ops import ensure_file_in_mod
+from structure_view import StructureView
 from write_utils import atomic_write_text
+
+
+def _shared_translator():
+    """返回全局 GuiTranslator 单例（结构视图内联本地化用）；不可用则 None。"""
+    try:
+        from gui_translator import get_translator
+        return get_translator()
+    except Exception:
+        return None
 
 
 class MioPolicyEditorDialog(QDialog):
@@ -77,30 +87,22 @@ class MioPolicyEditorDialog(QDialog):
         icon_row.addWidget(self.icon_btn)
         right.addLayout(icon_row)
 
-        self.allowed_edit = QPlainTextEdit()
-        self.allowed_edit.setPlaceholderText("allowed 原始块（含外层）")
-        right.addWidget(QLabel("allowed"))
-        right.addWidget(self.allowed_edit, 1)
-        self.available_edit = QPlainTextEdit()
-        self.available_edit.setPlaceholderText("available 原始块（含外层）")
-        right.addWidget(QLabel("available"))
-        right.addWidget(self.available_edit, 1)
-        self.visible_edit = QPlainTextEdit()
-        self.visible_edit.setPlaceholderText("visible 原始块（含外层）")
-        right.addWidget(QLabel("visible"))
-        right.addWidget(self.visible_edit, 1)
-        self.equip_edit = QPlainTextEdit()
-        self.equip_edit.setPlaceholderText("equipment_bonus 原始块（含外层）")
-        right.addWidget(QLabel("equipment_bonus"))
-        right.addWidget(self.equip_edit, 1)
-        self.prod_edit = QPlainTextEdit()
-        self.prod_edit.setPlaceholderText("production_bonus 原始块（含外层）")
-        right.addWidget(QLabel("production_bonus"))
-        right.addWidget(self.prod_edit, 1)
-        self.org_edit = QPlainTextEdit()
-        self.org_edit.setPlaceholderText("organization_modifier 原始块（含外层）")
-        right.addWidget(QLabel("organization_modifier"))
-        right.addWidget(self.org_edit, 1)
+        tr = _shared_translator()
+
+        def _struct_field(label):
+            """结构视图字段：双击改键/值，右键加条目，块行双击收展。"""
+            view = StructureView(translator=tr)
+            view.setMinimumHeight(110)
+            right.addWidget(QLabel("%s（结构编辑）" % label))
+            right.addWidget(view, 1)
+            return view
+
+        self.allowed_view = _struct_field("allowed")
+        self.available_view = _struct_field("available")
+        self.visible_view = _struct_field("visible")
+        self.equip_view = _struct_field("equipment_bonus")
+        self.prod_view = _struct_field("production_bonus")
+        self.org_view = _struct_field("organization_modifier")
 
         btns = QHBoxLayout()
         for label, fn in (("💾 保存", self._on_save),
@@ -176,29 +178,29 @@ class MioPolicyEditorDialog(QDialog):
             self._clear_form()
             return
         self.icon_edit.setText(p.get("icon", ""))
-        self.allowed_edit.setPlainText(p.get("allowed", ""))
-        self.available_edit.setPlainText(p.get("available", ""))
-        self.visible_edit.setPlainText(p.get("visible", ""))
-        self.equip_edit.setPlainText(p.get("equipment_bonus", ""))
-        self.prod_edit.setPlainText(p.get("production_bonus", ""))
-        self.org_edit.setPlainText(p.get("organization_modifier", ""))
+        self.allowed_view.load_text(p.get("allowed", ""))
+        self.available_view.load_text(p.get("available", ""))
+        self.visible_view.load_text(p.get("visible", ""))
+        self.equip_view.load_text(p.get("equipment_bonus", ""))
+        self.prod_view.load_text(p.get("production_bonus", ""))
+        self.org_view.load_text(p.get("organization_modifier", ""))
 
     def _clear_form(self):
         self.icon_edit.setText("")
-        for w in (self.allowed_edit, self.available_edit, self.visible_edit,
-                  self.equip_edit, self.prod_edit, self.org_edit):
-            w.setPlainText("")
+        for w in (self.allowed_view, self.available_view, self.visible_view,
+                  self.equip_view, self.prod_view, self.org_view):
+            w.load_text("")
 
     def _form_block(self, policy_id):
         return policy_to_pdx(
             policy_id,
             self.icon_edit.text().strip(),
-            self.allowed_edit.toPlainText(),
-            self.available_edit.toPlainText(),
-            self.equip_edit.toPlainText(),
-            self.prod_edit.toPlainText(),
-            self.org_edit.toPlainText(),
-            visible=self.visible_edit.toPlainText(),
+            self.allowed_view.to_pdx_text().strip(),
+            self.available_view.to_pdx_text().strip(),
+            self.equip_view.to_pdx_text().strip(),
+            self.prod_view.to_pdx_text().strip(),
+            self.org_view.to_pdx_text().strip(),
+            visible=self.visible_view.to_pdx_text().strip(),
         )
 
     def _edit_policy_name(self):

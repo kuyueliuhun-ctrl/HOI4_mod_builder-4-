@@ -58,8 +58,18 @@ from mio_ui_theme import (
     style_primary_button,
 )
 from state_build_ops import ensure_file_in_mod
+from structure_view import StructureView
 from theme import COLORS as C
 from write_utils import atomic_write_text
+
+
+def _shared_translator():
+    """返回全局 GuiTranslator 单例（结构视图内联本地化用）；不可用则 None。"""
+    try:
+        from gui_translator import get_translator
+        return get_translator()
+    except Exception:
+        return None
 
 
 def _strip_block_wrapper(raw, name):
@@ -100,19 +110,22 @@ class InitialTraitDialog(QDialog):
         self.name_edit = QLineEdit(init.get("name", ""))
         lay.addWidget(self.name_edit)
 
-        lay.addWidget(QLabel("装备加成（equipment_bonus 内部）"))
-        self.equip_edit = QPlainTextEdit(
+        tr = _shared_translator()
+        lay.addWidget(QLabel("装备加成（equipment_bonus 内部 · 双击编辑 · 右键添加）"))
+        self.equip_view = StructureView(translator=tr)
+        self.equip_view.load_text(
             _strip_block_wrapper(init.get("equipment_bonus", ""),
                                  "equipment_bonus").strip())
-        self.equip_edit.setFixedHeight(110)
-        lay.addWidget(self.equip_edit)
+        self.equip_view.setFixedHeight(130)
+        lay.addWidget(self.equip_view)
 
-        lay.addWidget(QLabel("生产加成（production_bonus 内部）"))
-        self.prod_edit = QPlainTextEdit(
+        lay.addWidget(QLabel("生产加成（production_bonus 内部 · 双击编辑 · 右键添加）"))
+        self.prod_view = StructureView(translator=tr)
+        self.prod_view.load_text(
             _strip_block_wrapper(init.get("production_bonus", ""),
                                  "production_bonus").strip())
-        self.prod_edit.setFixedHeight(110)
-        lay.addWidget(self.prod_edit)
+        self.prod_view.setFixedHeight(130)
+        lay.addWidget(self.prod_view)
 
         lay.addWidget(QLabel("直接属性加成（每行一条：键 = 数值）"))
         self.direct_edit = QPlainTextEdit("\n".join(
@@ -151,8 +164,8 @@ class InitialTraitDialog(QDialog):
         """组装 initial_trait 块文本。"""
         return initial_trait_to_pdx(
             name=self.name_edit.text().strip(),
-            equipment_bonus=self.equip_edit.toPlainText().strip(),
-            production_bonus=self.prod_edit.toPlainText().strip(),
+            equipment_bonus=self.equip_view.to_pdx_text().strip(),
+            production_bonus=self.prod_view.to_pdx_text().strip(),
             direct_stats=self._parse_direct(self.direct_edit.toPlainText()),
             extra_blocks=self._extra_blocks,
         )
@@ -387,14 +400,14 @@ class MioEditorDialog(QDialog):
         self.parents_edit = QLineEdit()
         self.parents_edit.setPlaceholderText("空格分隔的父特质列表")
         form.addWidget(self._field_row("父列表", self.parents_edit))
-        self.equip_edit = QPlainTextEdit()
-        self.equip_edit.setPlaceholderText("equipment_bonus 原始块（含外层）")
-        self.equip_edit.setFixedHeight(90)
-        form.addWidget(self._field_row("装备加成", self.equip_edit))
-        self.prod_edit = QPlainTextEdit()
-        self.prod_edit.setPlaceholderText("production_bonus 原始块（含外层）")
-        self.prod_edit.setFixedHeight(80)
-        form.addWidget(self._field_row("生产加成", self.prod_edit))
+        self.equip_view = StructureView(translator=_shared_translator())
+        self.equip_view.setFixedHeight(150)
+        form.addWidget(self._field_row(
+            "装备加成（结构编辑：双击改值 · 右键加条目）", self.equip_view))
+        self.prod_view = StructureView(translator=_shared_translator())
+        self.prod_view.setFixedHeight(130)
+        form.addWidget(self._field_row(
+            "生产加成（结构编辑）", self.prod_view))
         self.direct_edit = QPlainTextEdit()
         self.direct_edit.setPlaceholderText("直接属性（BBA，每行：键 = 值）")
         self.direct_edit.setFixedHeight(70)
@@ -664,8 +677,8 @@ class MioEditorDialog(QDialog):
         for w in (self.token_edit, self.name_edit, self.icon_edit,
                   self.x_edit, self.y_edit, self.rel_edit, self.parents_edit):
             w.setText("")
-        self.equip_edit.setPlainText("")
-        self.prod_edit.setPlainText("")
+        self.equip_view.load_text("")
+        self.prod_view.load_text("")
         self.direct_edit.setPlainText("")
         self.trait_label.setText("—（点击左侧树节点选择）")
         self._orig_parents_text = ""
@@ -687,8 +700,8 @@ class MioEditorDialog(QDialog):
                 self.y_edit.setText(str(t.get("y", 0)))
                 self.rel_edit.setText(t.get("relative_position_id", ""))
                 self.parents_edit.setText(" ".join(t.get("parents") or []))
-                self.equip_edit.setPlainText(t.get("equipment_bonus", ""))
-                self.prod_edit.setPlainText(t.get("production_bonus", ""))
+                self.equip_view.load_text(t.get("equipment_bonus", ""))
+                self.prod_view.load_text(t.get("production_bonus", ""))
                 self.direct_edit.setPlainText("\n".join(
                     "%s = %s" % (k, v)
                     for k, v in (t.get("direct_stats") or [])))
@@ -722,8 +735,8 @@ class MioEditorDialog(QDialog):
             x, y,
             self.rel_edit.text().strip(),
             parents,
-            self.equip_edit.toPlainText().strip(),
-            self.prod_edit.toPlainText().strip(),
+            self.equip_view.to_pdx_text().strip(),
+            self.prod_view.to_pdx_text().strip(),
             extra_blocks=extra_blocks,
             direct_stats=InitialTraitDialog._parse_direct(
                 self.direct_edit.toPlainText()),
