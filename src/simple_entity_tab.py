@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from ui_widgets import (
     LocEdit,
     RefPicker,
@@ -131,7 +131,8 @@ class SimpleEntityTab(QWidget):
         for entity in self.entities:
             eid = entity.get("id", entity.get("name", ""))
             name = entity.get("name", eid)
-            labels.append((eid, name))
+            labels.append((eid, name, file_tooltip(entity, getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+                           or name))
         self.sidebar.set_entities(labels)
         if self.sidebar.list.count():
             self.sidebar.set_current(self.sidebar.list.item(0).data(

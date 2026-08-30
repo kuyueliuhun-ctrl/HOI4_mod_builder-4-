@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from content_types import ICON_RULES
 from event_editor_dialog import LocEdit, OtherFieldsTable, StructuredBlockCard
 from localisation_editor_data import (
@@ -315,7 +315,10 @@ class TechEditorDialog(QDialog):
         labels = []
         for tid, t in self.techs.items():
             folder = t.get("folder") or "未分组"
-            labels.append((tid, "%s [%s]" % (tid, folder)))
+            label = "%s [%s]" % (tid, folder)
+            labels.append((tid, label,
+                           file_tooltip(t, self.mod_path, self.hoi4_path)
+                           or label))
         self.sidebar.set_entities(labels)
         self._apply_filter()
 

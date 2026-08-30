@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+import os
+
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QColor
 from PyQt6.QtWidgets import (
@@ -20,6 +22,32 @@ from PyQt6.QtWidgets import (
 
 
 SIDEBAR_WIDTH = 300
+
+
+def file_tooltip(entity, mod_path="", hoi4_path=""):
+    """从实体字典生成「来源文件」悬停提示；无 file/rel 信息返回 None。
+
+    entity: 含 file（绝对路径）/ rel（相对游戏或 mod 根路径）字段的字典。
+    """
+    if not isinstance(entity, dict):
+        return None
+    rel = entity.get("rel") or ""
+    fp = entity.get("file") or ""
+    if not rel and not fp:
+        return None
+    origin = "未知"
+    if fp:
+        norm = os.path.normpath(fp)
+        if mod_path and norm.startswith(os.path.normpath(mod_path)):
+            origin = "mod"
+        elif hoi4_path and norm.startswith(os.path.normpath(hoi4_path)):
+            origin = "游戏"
+        else:
+            origin = "外部"
+    lines = ["文件：%s" % (rel or fp), "来源：%s" % origin]
+    if rel and fp:
+        lines.append("路径：%s" % fp)
+    return "\n".join(lines)
 
 
 class _ElideDelegate(QStyledItemDelegate):
@@ -102,16 +130,27 @@ class EntityListSidebar(QWidget):
 
     # ---------- 数据 ----------
 
-    def set_entities(self, entities, keep_selection=False):
-        """entities: [(entity_id, label), ...]"""
-        self._items = list(entities)
+    def set_entities(self, entities, keep_selection=False, tooltips=None):
+        """entities: [(entity_id, label) 或 (entity_id, label, tooltip), ...]
+
+        tooltips: 可选，按位置覆盖第三元素；条目缺省时回退为 label。
+        """
+        self._items = []
+        for i, ent in enumerate(entities):
+            eid, label = ent[0], ent[1]
+            tip = None
+            if tooltips is not None and i < len(tooltips):
+                tip = tooltips[i]
+            elif len(ent) > 2:
+                tip = ent[2]
+            self._items.append((eid, label, tip if tip else label))
         current = self.current_id()
         self.list.blockSignals(True)
         self.list.clear()
-        for eid, label in self._items:
+        for eid, label, tip in self._items:
             item = QListWidgetItem(label)
             item.setData(Qt.ItemDataRole.UserRole, eid)
-            item.setToolTip(label)
+            item.setToolTip(tip)
             self.list.addItem(item)
         self.list.blockSignals(False)
         if keep_selection and current is not None:
@@ -169,12 +208,12 @@ class EntityListSidebar(QWidget):
         text = (text or "").strip().lower()
         self.list.blockSignals(True)
         self.list.clear()
-        for eid, label in self._items:
+        for eid, label, tip in self._items:
             if text and text not in label.lower():
                 continue
             item = QListWidgetItem(label)
             item.setData(Qt.ItemDataRole.UserRole, eid)
-            item.setToolTip(label)
+            item.setToolTip(tip)
             self.list.addItem(item)
         self.list.blockSignals(False)
         if self.list.count() > 0:

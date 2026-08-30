@@ -21,7 +21,7 @@ from PyQt6.QtWidgets import (
 )
 
 from ai_loader import _AI_CACHE, load_ideologies_detail
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from nested_block_crud import (
     delete_nested_block,
     duplicate_nested_block,
@@ -125,7 +125,8 @@ class IdeologiesEditorDialog(QDialog):
         except Exception:
             self.entities = {}
         self.sidebar.set_entities(
-            [(eid, eid) for eid in sorted(self.entities)])
+            [(eid, eid, file_tooltip(self.entities.get(eid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+              or eid) for eid in sorted(self.entities)])
         if select_id:
             self.sidebar.set_current(select_id)
 

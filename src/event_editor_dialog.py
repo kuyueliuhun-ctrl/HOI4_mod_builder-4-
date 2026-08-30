@@ -22,7 +22,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QWidget, QInputDialog, QHeaderView,
 )
 
-from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog, file_tooltip
 from content_types import ICON_RULES
 from event_data import (
     apply_event_edits, apply_file_other_fields, delete_event,
@@ -579,7 +579,10 @@ class EventEditorDialog(QDialog):
     def _apply_filter(self):
         events = self._visible_events()
         self.sidebar.set_entities([
-            (e["id"], "%s · %s [%s]" % (e["id"], self._event_cn(e), e["type"]))
+            (e["id"],
+             "%s · %s [%s]" % (e["id"], self._event_cn(e), e["type"]),
+             file_tooltip(e, self.mod_path, self.hoi4_path)
+             or "%s · %s [%s]" % (e["id"], self._event_cn(e), e["type"]))
             for e in events
         ])
 

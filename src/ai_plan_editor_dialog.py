@@ -28,7 +28,7 @@ from ai_loader import (
     replace_ai_plan_focus_order,
     upsert_top_block_child,
 )
-from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog, file_tooltip
 from ui_widgets import OrderRowList, WeightCard, WeightTable
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
@@ -203,7 +203,8 @@ class AiPlanEditorDialog(QDialog):
             label = pid
             if plan.get("name"):
                 label += "  (%s)" % plan["name"]
-            items.append((pid, label))
+            items.append((pid, label,
+                          file_tooltip(plan, getattr(self, "mod_path", ""), getattr(self, "hoi4_path", "")) or label))
         self.sidebar.set_entities(items)
         if initial_plan_id:
             self.sidebar.set_current(initial_plan_id)

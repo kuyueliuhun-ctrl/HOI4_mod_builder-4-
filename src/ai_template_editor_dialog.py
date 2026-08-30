@@ -36,7 +36,7 @@ from ai_loader import (
     replace_top_block_field,
     upsert_top_block_child,
 )
-from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog, file_tooltip
 from division_editor import DivisionEditor
 from oob_loader import OobFile, load_sub_units
 from state_build_ops import ensure_file_in_mod
@@ -238,7 +238,8 @@ class AiTemplateEditorDialog(QDialog):
 
     # ---------- 填充 ----------
     def _populate_roles(self, initial_role_id=None):
-        items = [(rid, rid) for rid in sorted(self.roles)]
+        items = [(rid, rid, file_tooltip(self.roles.get(rid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+                  or rid) for rid in sorted(self.roles)]
         self.sidebar.set_entities(items)
         if initial_role_id:
             self.sidebar.set_current(initial_role_id)

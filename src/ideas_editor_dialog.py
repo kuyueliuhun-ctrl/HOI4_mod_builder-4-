@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
 )
 
 from ai_loader import _AI_CACHE, load_ideas_grouped
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from nested_block_crud import (
     delete_nested_block,
     duplicate_nested_block,
@@ -126,7 +126,9 @@ class IdeasEditorDialog(QDialog):
             (eid for eid, ent in self.entities.items()
              if ent.get("parent_id") == cat),
             key=str.lower)
-        self.sidebar.set_entities([(eid, eid) for eid in items])
+        self.sidebar.set_entities(
+            [(eid, eid, file_tooltip(self.entities.get(eid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+              or eid) for eid in items])
 
     def _on_category_changed(self, _text):
         self._refresh_list()

@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
 )
 import os
 
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from mio_loader import (
     delete_policy,
     duplicate_policy,
@@ -137,7 +137,9 @@ class MioPolicyEditorDialog(QDialog):
 
     def _reload(self, select_id=None):
         self.policies = load_mio_policies(self.mod_path, self.hoi4_path)
-        labels = [(pid, self._loc_name(pid))
+        labels = [(pid, self._loc_name(pid),
+                   file_tooltip(p, self.mod_path, self.hoi4_path)
+                   or self._loc_name(pid))
                   for pid, p in self.policies.items()]
         self.sidebar.set_entities(labels)
         if select_id:

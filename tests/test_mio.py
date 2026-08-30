@@ -619,6 +619,26 @@ class MioEditorCrudUi(unittest.TestCase):
         with open(fp, encoding="utf-8") as f:
             self.assertNotIn("org_ui_new", f.read())
 
+    def test_sidebar_and_tree_show_file(self):
+        from PyQt6.QtCore import Qt
+        from mio_editor_dialog import MioEditorDialog
+        from mio_trait_tree import MioTraitTreeView
+        mod = self._mk_mod()
+        dlg = MioEditorDialog(mod_path=mod, hoi4_path="")
+        lw = dlg.sidebar.list
+        tips = [lw.item(i).toolTip() for i in range(lw.count())]
+        self.assertTrue(tips)
+        self.assertIn("文件：common/military_industrial_organization/"
+                      "organizations/test.txt", tips[0])
+        self.assertIn("来源：mod", tips[0])
+        # 特质树节点 tooltip 同样带文件
+        tree = MioTraitTreeView(mod_path=mod, hoi4_path="")
+        tree.set_mio(dict(dlg.mios["org_a"]))
+        node_tips = [i.toolTip() for i in tree._scene.items()
+                     if i.__class__.__name__ == "_TraitNode"]
+        self.assertTrue(node_tips)
+        self.assertIn("test.txt", node_tips[0])
+
     def test_edit_mio_name_writes_loc(self):
         from unittest.mock import patch
         from PyQt6.QtWidgets import QInputDialog, QMessageBox

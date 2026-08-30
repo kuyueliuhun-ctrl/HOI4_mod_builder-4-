@@ -37,7 +37,7 @@ from ai_loader import (
     replace_top_block_field,
     upsert_top_block_child,
 )
-from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog, file_tooltip
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
@@ -269,7 +269,8 @@ class AiEquipmentEditorDialog(QDialog):
 
     # ---------- 填充 ----------
     def _populate_groups(self, initial_group_id=None):
-        items = [(gid, gid) for gid in sorted(self.groups)]
+        items = [(gid, gid, file_tooltip(self.groups.get(gid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+                  or gid) for gid in sorted(self.groups)]
         self.sidebar.set_entities(items)
         if initial_group_id:
             self.sidebar.set_current(initial_group_id)

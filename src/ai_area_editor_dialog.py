@@ -26,7 +26,7 @@ from ai_loader import (
     replace_ai_area_block,
     replace_ai_area_regions,
 )
-from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog, file_tooltip
 from ui_widgets import source_badge
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
@@ -109,7 +109,8 @@ class AiAreaEditorDialog(QDialog):
         root.addLayout(right, 1)
 
     def _populate(self, initial_area_id=None):
-        items = [(aid, aid) for aid in sorted(self.areas)]
+        items = [(aid, aid, file_tooltip(self.areas.get(aid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+                  or aid) for aid in sorted(self.areas)]
         self.sidebar.set_entities(items)
         if initial_area_id:
             self.sidebar.set_current(initial_area_id)

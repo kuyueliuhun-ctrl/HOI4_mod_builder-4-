@@ -24,7 +24,7 @@ from ai_loader import (
     rename_ai_focus,
     replace_top_block_child,
 )
-from ai_ui_common import EntityListSidebar, KeyValueTableEditor, ScriptBlockEditorDialog
+from ai_ui_common import EntityListSidebar, KeyValueTableEditor, ScriptBlockEditorDialog, file_tooltip
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
@@ -86,7 +86,8 @@ class AiFocusEditorDialog(QDialog):
         root.addLayout(right, 1)
 
     def _populate(self, initial_block_id=None):
-        items = [(bid, bid) for bid in sorted(self.focuses)]
+        items = [(bid, bid, file_tooltip(self.focuses.get(bid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+                  or bid) for bid in sorted(self.focuses)]
         self.sidebar.set_entities(items)
         if initial_block_id:
             self.sidebar.set_current(initial_block_id)

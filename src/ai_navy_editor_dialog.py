@@ -33,7 +33,7 @@ from ai_loader import (
     rename_ai_navy_taskforce,
     replace_top_block_fields,
 )
-from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog
+from ai_ui_common import EntityListSidebar, ScriptBlockEditorDialog, file_tooltip
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
@@ -148,7 +148,8 @@ class AiNavyEditorDialog(QDialog):
     def _reload_tables(self):
         for kind in ("goals", "fleets", "taskforces"):
             ents = self._entities_of(kind)
-            items = [(eid, eid) for eid in sorted(ents)]
+            items = [(eid, eid, file_tooltip(ents.get(eid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+                      or eid) for eid in sorted(ents)]
             getattr(self, "%s_sidebar" % kind).set_entities(items)
             table = self._tables[kind]
             table.setRowCount(0)

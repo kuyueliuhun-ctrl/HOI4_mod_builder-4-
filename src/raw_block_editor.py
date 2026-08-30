@@ -31,7 +31,7 @@ from ai_loader import (
     rename_top_block,
 )
 from ai_loader_crud import replace_block_body
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
 
@@ -88,7 +88,9 @@ class RawBlockEditorDialog(QDialog):
             self.entities = dict(self.loader(self.mod_path, self.hoi4_path))
         except Exception:
             self.entities = {}
-        labels = [(eid, e.get("name", eid)) for eid, e in self.entities.items()]
+        labels = [(eid, e.get("name", eid),
+                   file_tooltip(e, getattr(self, "mod_path", ""), getattr(self, "hoi4_path", "")) or e.get("name", eid))
+                  for eid, e in self.entities.items()]
         self.sidebar.set_entities(labels)
         if select_id:
             self.sidebar.set_current(select_id)

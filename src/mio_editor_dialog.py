@@ -34,7 +34,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from mio_loader import (
     delete_mio,
     delete_trait,
@@ -435,7 +435,10 @@ class MioEditorDialog(QDialog):
 
     def _reload(self, select_id=None):
         self.mios = load_mios(self.mod_path, self.hoi4_path)
-        labels = [(mid, self._loc_name(mid)) for mid, m in self.mios.items()]
+        labels = [(mid, self._loc_name(mid),
+                   file_tooltip(m, self.mod_path, self.hoi4_path)
+                   or self._loc_name(mid))
+                  for mid, m in self.mios.items()]
         self.sidebar.set_entities(labels)
         if select_id:
             self.sidebar.set_current(select_id)

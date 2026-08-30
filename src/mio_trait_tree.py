@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
 )
 
 from theme import COLORS as C
+from ai_ui_common import file_tooltip
 
 NODE_W = 126
 NODE_H = 60
@@ -159,6 +160,7 @@ class MioTraitTreeView(QGraphicsView):
             self._draw_placeholder("（该组织未定义特质树）")
             return
         positions = self._resolve_positions(traits)
+        file_tip = file_tooltip(mio, self._mod_path, self._hoi4_path) or ""
 
         # 连线（子 -> 父，先画线再画节点，节点覆盖线头）
         # 注意：relative_position_id 只用于定位，游戏不为其画线
@@ -216,7 +218,7 @@ class MioTraitTreeView(QGraphicsView):
             py = y * CELL_H + 10
             node = _TraitNode(px, py, NODE_W, NODE_H, token,
                               self._on_node_clicked)
-            node.setToolTip(token)
+            node.setToolTip(token + ("\n" + file_tip if file_tip else ""))
             self._item_to_token[id(node)] = token
             self._scene.addItem(node)
 
@@ -234,12 +236,15 @@ class MioTraitTreeView(QGraphicsView):
             # 名称（多行自动换行 + 字号收缩 + 兜底截断，不溢出节点；
             # 无图标时占用整卡宽度。完整名称始终保留在 tooltip）
             label = self._name(token)
+            tip_parts = [label, token]
+            if file_tip:
+                tip_parts.append(file_tip)
             tx = px + (50 if has_icon else 8)
             width = NODE_W - (58 if has_icon else 16)
             f = QFont()
             txt = QGraphicsTextItem(label)
             txt.setDefaultTextColor(QColor(C["text_primary"]))
-            txt.setToolTip("%s\n%s" % (label, token))
+            txt.setToolTip("\n".join(tip_parts))
             txt.setZValue(2)
             doc = txt.document()
             doc.setDocumentMargin(0)

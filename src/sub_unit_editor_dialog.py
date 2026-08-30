@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QWidget, QComboBox,
 )
 
-from ai_ui_common import EntityListSidebar, KeyValueTableEditor
+from ai_ui_common import EntityListSidebar, KeyValueTableEditor, file_tooltip
 from localization_mgr import get_localization_manager
 from oob_loader import (
     TERRAIN_KEYS, _STAT_FIELDS, load_sub_units, save_sub_unit,
@@ -298,7 +298,9 @@ class SubUnitEditorDialog(QDialog):
         labels = []
         for uid in sorted(self.units):
             cn = loc.get_name(uid) or ""
-            labels.append((uid, cn if cn and cn != uid else uid))
+            labels.append((uid, cn if cn and cn != uid else uid,
+                           file_tooltip(self.units.get(uid), getattr(self, "mod_path", ""), getattr(self, "hoi4_path", ""))
+                           or uid))
         self.sidebar.set_entities(labels, keep_selection=True)
 
     def _on_select(self, unit_id):

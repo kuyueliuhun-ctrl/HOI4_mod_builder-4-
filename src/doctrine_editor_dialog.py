@@ -29,7 +29,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from doctrine_loader import (
     delete_subdoctrine,
     duplicate_subdoctrine,
@@ -234,7 +234,9 @@ class DoctrineEditorDialog(QDialog):
         self.grand = load_grand_doctrines(self.mod_path, self.hoi4_path)
         self.tracks = load_doctrine_tracks(self.mod_path, self.hoi4_path)
         self.subdocs = load_subdoctrines(self.mod_path, self.hoi4_path)
-        labels = [(gid, g.get("name", gid)) for gid, g in self.grand.items()]
+        labels = [(gid, g.get("name", gid),
+                   file_tooltip(g, self.mod_path, self.hoi4_path)
+                   or g.get("name", gid)) for gid, g in self.grand.items()]
         self.sidebar.set_entities(labels)
         if select_id:
             self.sidebar.set_current(select_id)

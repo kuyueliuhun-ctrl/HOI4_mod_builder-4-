@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
-from ai_ui_common import EntityListSidebar
+from ai_ui_common import EntityListSidebar, file_tooltip
 from oob_loader import load_names_groups, save_names_group
 from state_build_ops import ensure_file_in_mod
 from write_utils import atomic_write_text
@@ -213,7 +213,9 @@ class NamesGroupDialog(QDialog):
                   errors="ignore") as f:
             content = f.read()
         self.groups = load_names_groups(content)
-        self.sidebar.set_entities([(gid, gid) for gid in sorted(self.groups)])
+        self.sidebar.set_entities([(gid, gid,
+                                    getattr(self, "file_path", "") or gid)
+                                   for gid in sorted(self.groups)])
         self.file_label.setText(self.file_path)
 
     def _on_select(self, group_id):
