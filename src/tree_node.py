@@ -600,7 +600,7 @@ def _tokenize(text):
     - 等号 =
     - 双引号字符串 "..."
     - 比较运算符 >= <= == != > <
-    - 标识符（字母、数字、点、连字符）
+    - 标识符（字母、数字、点、连字符、斜杠——斜杠用于 gfx 路径等值）
 
     参数:
         text: 原始 PDX 文本字符串
@@ -609,7 +609,7 @@ def _tokenize(text):
     """
     text = _strip_comments(text)
     tokens = []
-    for m in re.finditer(r'\{|\}|>=|<=|==|!=|=|>|<|"[^"]*"|[\w\.\-]+', text):
+    for m in re.finditer(r'\{|\}|>=|<=|==|!=|=|>|<|"[^"]*"|[\w\.\-/]+', text):
         line_no = text[:m.start()].count('\n') + 1
         tokens.append((m.group(0), line_no))
     return tokens
