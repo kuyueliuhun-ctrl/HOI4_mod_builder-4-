@@ -51,7 +51,7 @@ class ScriptedEffectsEditorDialogTest(unittest.TestCase):
         dlg.show()
         self.app.processEvents()
         self.assertGreaterEqual(dlg.sidebar.list.count(), 1)
-        self.assertIn(dlg.editor.toPlainText(), dlg.editor.toPlainText())
+        self.assertIn(dlg.editor.to_pdx_text(), dlg.editor.to_pdx_text())
         dlg.close()
 
     def test_save_body(self):
@@ -62,7 +62,7 @@ class ScriptedEffectsEditorDialogTest(unittest.TestCase):
         dlg = ScriptedEffectsEditorDialog(mod, "")
         dlg.show()
         self.app.processEvents()
-        dlg.editor.setPlainText("\tadd_stability = 0.1\n\tadd_political_power = 5\n")
+        dlg.editor.load_text("\tadd_stability = 0.1\n\tadd_political_power = 5\n")
         with mock.patch.object(QMessageBox, "information",
                                return_value=QMessageBox.StandardButton.Ok):
             dlg._on_save()

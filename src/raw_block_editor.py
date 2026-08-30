@@ -1,12 +1,12 @@
-"""脚本库原始块编辑器（B2-P17，共享编辑器）。
+"""脚本库结构编辑器（B2-P17，共享编辑器）。
 
-对 scripted_effects / scripted_triggers / script_enums 提供统一编辑：
+对 scripted_effects / scripted_triggers / script_enums / defines / names
+提供统一编辑：
 - 左栏 = 函数/枚举名侧栏（搜索 + 新建/复制/改名/删除）
-- 右栏 = 原始 PDX 脚本体编辑（QPlainTextEdit，保留注释/缩进）
+- 右栏 = 结构视图（StructureView）：块内部文本按列表/缩进展示，
+  双击改键值、右键添加条目、内联本地化
 - 保存 = 只替换被编辑块的内部文本，其余文件内容原样保留，
   原版文件自动复制到 mod + 原子写。
-
-三个工作台类型共用本编辑器，仅 loader 与标题不同。
 """
 
 from __future__ import annotations
@@ -18,7 +18,6 @@ from PyQt6.QtWidgets import (
     QInputDialog,
     QLabel,
     QMessageBox,
-    QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
 )
@@ -33,7 +32,16 @@ from ai_loader import (
 from ai_loader_crud import replace_block_body
 from ai_ui_common import EntityListSidebar, file_tooltip
 from state_build_ops import ensure_file_in_mod
+from structure_view import StructureView
 from write_utils import atomic_write_text
+
+
+def _shared_translator():
+    try:
+        from gui_translator import get_translator
+        return get_translator()
+    except Exception:
+        return None
 
 
 class RawBlockEditorDialog(QDialog):
@@ -64,8 +72,9 @@ class RawBlockEditorDialog(QDialog):
         self.id_label = QLabel("—")
         self.id_label.setStyleSheet("font-weight:bold; font-size:15px;")
         right.addWidget(self.id_label)
-        self.editor = QPlainTextEdit()
-        self.editor.setPlaceholderText("在此编辑脚本块内部文本（不含外层 key = { }）…")
+        self.editor = StructureView(translator=_shared_translator())
+        self.editor.set_compact(True)
+        self.editor.setMinimumHeight(220)
         right.addWidget(self.editor, 1)
         btn_row = QHBoxLayout()
         btn_row.addStretch(1)
@@ -99,7 +108,7 @@ class RawBlockEditorDialog(QDialog):
         self._current_id = entity_id
         self.id_label.setText(entity_id or "—")
         ent = self.entities.get(entity_id)
-        self.editor.setPlainText(ent.get("body", "") if ent else "")
+        self.editor.load_text(ent.get("body", "") if ent else "")
 
     def _current_entity(self):
         return self.entities.get(self._current_id)
@@ -158,10 +167,11 @@ class RawBlockEditorDialog(QDialog):
         if not mod_fp:
             QMessageBox.warning(self, "保存失败", "无法定位文件")
             return
-        content = replace_block_body(content, ent["id"], self.editor.toPlainText())
+        body = self.editor.to_pdx_text().strip("\n")
+        content = replace_block_body(content, ent["id"], body)
         if not self._write_mod_file(mod_fp, content):
             return
-        ent["body"] = self.editor.toPlainText().strip("\n")
+        ent["body"] = body
         msg = "已保存 %s" % ent["id"]
         if copied:
             msg += "\n原版文件已自动复制到 mod"

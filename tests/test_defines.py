@@ -63,7 +63,7 @@ class DefinesEditorDialogTest(unittest.TestCase):
         dlg = DefinesEditorDialog(mod, "")
         dlg.show()
         self.app.processEvents()
-        dlg.editor.setPlainText("\tnew_value = 1\n")
+        dlg.editor.load_text("\tnew_value = 1\n")
         with mock.patch.object(QMessageBox, "information",
                                return_value=QMessageBox.StandardButton.Ok):
             dlg._on_save()
