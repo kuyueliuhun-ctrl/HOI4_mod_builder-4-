@@ -44,28 +44,47 @@ qq群：720723415
 | 项目 | 要求 |
 | --- | --- |
 | 操作系统 | Windows 10/11（推荐）或 Linux/WSL |
-| Python | 3.14 或更高 |
+| Python | 3.10+（推荐 3.14） |
 | 游戏 | 已安装《钢铁雄心 4》（用于读取原版数据） |
 
-如果你有现成的 Python 3.14 环境，也可以直接用源码运行；没有的话，请先安装 Python 3.14。
+如果你有现成的 Python 3.10+ 环境，也可以直接用源码运行；没有的话，请先安装 Python
+（推荐 3.14）。
 
 ---
 
 ## 安装与启动
 
-### Windows
+项目自带跨平台启动器 `launcher.py`：它会自动定位项目根、创建/复用虚拟环境、
+安装依赖并启动编辑器。不再依赖任何写死的 Python/venv 绝对路径，也兼容
+路径含空格、中文或目录移动的情况。
+
+### 一键启动（推荐）
 
 ```bat
-setup.bat        :: 第一次使用：自动创建 Python 环境并安装依赖
-启动.bat          :: 以后每次启动编辑器
+:: Windows
+启动.bat
 ```
-
-### Linux / WSL
 
 ```bash
-bash setup.sh      # 第一次使用：自动创建环境并安装依赖
-bash 启动.sh        # 以后每次启动编辑器
+# Linux / WSL
+bash 启动.sh
 ```
+
+首次运行会自动创建环境并安装依赖；之后每次直接启动即可。
+
+### 首次安装 / 重装依赖（可选）
+
+```bat
+:: Windows
+setup.bat
+```
+
+```bash
+# Linux / WSL
+bash setup.sh
+```
+
+等价于 `launcher.py --setup --verify`：准备环境后跑一次全量契约验证。
 
 ### 手动安装（可选）
 
@@ -80,14 +99,16 @@ source .venv/bin/activate
 pip install -r requirements-wsl.txt
 ```
 
-然后运行：
+然后仍建议通过启动器运行（它会自动把工作目录固定在项目根）：
 
 ```bash
 # Windows
-.venv\Scripts\python.exe src/main.py
+python launcher.py
 # Linux/WSL
-python -X utf8 src/main.py
+python3 launcher.py
 ```
+
+高级用法与路径规则见 `docs/启动器.md`。
 
 ---
 
@@ -117,7 +138,8 @@ python -X utf8 src/main.py
 ## 常见问题
 
 - **打不开程序？**
-  确认 Python 3.14 已安装，并先运行过 `setup.bat` / `setup.sh`。
+  确认已安装 Python 3.10+（推荐 3.14），然后直接运行 `启动.bat` / `bash 启动.sh`；
+  首次运行会自动创建虚拟环境并安装依赖。
 - **看不到原版内容？**
   检查设置里的游戏路径是否正确；程序需要读取游戏文件作为基础数据。
 - **改了原版文件？**
@@ -138,6 +160,7 @@ python -X utf8 src/main.py
 - [`docs/MCP用户指南.md`](./docs/MCP用户指南.md) — MCP 使用者知识文档
 - [`docs/MCP开发者指南.md`](./docs/MCP开发者指南.md) — MCP 开发者知识文档
 - [`docs/踩坑索引.md`](./docs/踩坑索引.md) — 全项目踩坑索引（开发前必读）
+- [`docs/启动器.md`](./docs/启动器.md) — 启动器路径规则与高级用法
 
 ---
 

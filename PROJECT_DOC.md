@@ -47,7 +47,7 @@
 | 图像 | Pillow（DDS/PNG/BMP）+ numpy（地图矩阵运算） |
 | 外部依赖 | PyQt6、Pillow、numpy、mcp（可选，未装则回退内置零依赖 MCP 实现） |
 | 依赖清单 | 根目录 `requirements.txt`（Windows）/ `requirements-wsl.txt`（Linux/CI） |
-| 入口 | `src/main.py`；`启动.bat` / `启动.sh` 均指向它 |
+| 入口 | `launcher.py` 跨平台启动器统一入口；`启动.bat` / `启动.sh` / `setup.*` 均为薄壳，最终启动 `src/main.py` |
 | 界面模式 | `settings.json` 的 `ui_mode`：`workbench`（默认，功能最全）/ `classic`（经典文件树） |
 
 **两个 Python 环境（都必须兼容）**：
@@ -55,7 +55,7 @@
 | 环境 | 路径 | 版本 | 用途 |
 | --- | --- | --- | --- |
 | Windows | `.venv\Scripts\python.exe` | 3.14.5 | 用户启动器；旧 3.8.10 备份 `.venv_py38_backup` 已于 2025-08-25 清理 |
-| WSL/Linux | `/root/hoi4_builder_venv/bin/python` | 3.14.4 | 开发/测试 |
+| WSL/Linux | 本机现有 `/root/hoi4_builder_venv/bin/python`；其他机器由 `launcher.py` 自动创建 `.venv-linux` | 3.14.4 | 开发/测试 |
 | CI | GitHub Actions `verify.yml` | 3.14 | `push`/`PR` 自动跑 `verify_contracts.py` |
 
 > Python 3.14 升级已完成（2026-08-23），3.8 语法限制解除：新代码可直接用
@@ -636,10 +636,18 @@ ed7b6ed B2/B3: 新增派系(factions)/国策内嵌窗口/装备定义(equipment)
 ## 附录 A · 常用命令速查
 
 ```bash
-# 启动（Windows）
+# 启动（Windows / Linux / WSL）：统一走跨平台启动器，自动解析根目录与环境
 启动.bat
-# 直接跑（Linux/WSL）
-QT_QPA_PLATFORM=offscreen python src/main.py   # 仅冒烟/无窗口
+bash 启动.sh
+
+# 启动器只检查环境（不创建/不安装/不启动）
+python launcher.py --check
+
+# 启动器准备环境并跑全量验证
+python launcher.py --verify
+
+# 直接跑（仅冒烟/无窗口，需自己保证在项目根目录）
+QT_QPA_PLATFORM=offscreen python src/main.py
 
 # 全量验证（双版本各一遍，退出码 0 才通过）
 .venv\Scripts\python.exe tools/verify_contracts.py            # Windows
@@ -806,6 +814,7 @@ python tools/check_file_budget.py        # 行数预算
 | MCP 使用者知识（分类/正确范式/踩坑/模板/工作流） | `docs/MCP用户指南.md` |
 | MCP 开发者知识（注册/schema/校验器/模板/工作流） | `docs/MCP开发者指南.md` |
 | 全项目踩坑索引（按类别） | `docs/踩坑索引.md` |
+| 启动器用法 / 路径规则 / 跨平台环境自动恢复 | `docs/启动器.md` |
 | MCP 正确调用模板 | `templates/mcp/`（入口 `templates/mcp/README.md`） |
 | 外部多模态模型识图（界面/地图/设计器验收、UI 还原） | `docs/识图提示词.md` 一~八 |
 | 学说界面识图结论 | `docs/学说识图.md` 全文 |
@@ -846,6 +855,8 @@ python tools/check_file_budget.py        # 行数预算
 **`docs/MCP用户指南.md` / `docs/MCP开发者指南.md`**（同结构）：1 角色与范围 → 2 工具分类速览 → 3 正确范式（按工具类型分类）→ 4 踩坑索引 → 5 模板与回归测试 → 6 工作流程 → 7 校验器与自动化拦截 → 8 关联文档。
 
 **`docs/踩坑索引.md`**：1 环境/工具 → 2 HOI4 文件事实 → 3 解析/写回 → 4 PyQt6/UI → 5 测试 → 6 地图渲染 → 7 settings/数据单例 → 8 MCP 工具注册/schema → 9 MCP 运行/协议 → 10 MCP 调用安全 → 11 性能/冒烟 → 12 历史遗留/收口。
+
+**`docs/启动器.md`**：1 为什么需要启动器 → 2 使用方法（日常启动/安装/高级）→ 3 路径规则 → 4 常见问题。
 
 **`docs/科技图标存储规则.md`**：一 结论摘要 → 二 三层结构详解 → 三 图片规格（实测）→
 四 五个 mod 实测证据 → 五 配图标操作清单 → 六 编辑器实现现状。
@@ -937,3 +948,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.65 | 08-26 | tree_model.data 按 role 拆分 | data 主函数精简；+2 测试 | docs/历史迭代日志.md |
 | 6.66 | 08-26 | cwt_lite_rules 重构 | infer_type 表驱动；_iter_entity_blocks 拆子生成器 | docs/历史迭代日志.md |
 | 6.84 | 08-31 | MCP 知识体系：踩坑索引/用户与开发者文档/校验器/模板/工作流 | 新增 `docs/踩坑索引.md`、`docs/MCP用户指南.md`、`docs/MCP开发者指南.md`；`src/mcp_validator.py` + `tools/check_mcp_contracts.py` 自动化拦截；`templates/mcp/` 正确调用模板 + 回归测试；MCP resources/prompts 接入知识文档与模板；PROJECT_DOC 开发流程强制先读踩坑索引 | docs/MCP开发者指南.md / docs/踩坑索引.md |
+| 6.85 | 08-31 | 跨平台启动器 | 新增 `launcher.py`（自动解析项目根/虚拟环境/Python、自动创建并安装依赖、固定工作目录、自动补充 PyQt6 Qt 插件路径）；`启动.bat`/`启动.sh`/`setup.bat`/`setup.sh` 全部改薄壳统一走启动器；支持 `--setup`/`--verify`/`--check`/`--venv`/`HOI4_VENV`；Windows `.venv`/`.venv-win` 与 WSL `.venv`/`.venv-linux` 自动隔离；tests +21 | docs/启动器.md |

@@ -1,19 +1,29 @@
 #!/usr/bin/env bash
-# HOI4 Mod 编辑器 — WSL/Linux 启动脚本
-# 用法：bash 启动.sh   （或 chmod +x 启动.sh 后直接 ./启动.sh）
-# 环境：/root/hoi4_builder_venv（Linux venv，Python 3.14 + PyQt6/Pillow/numpy/mcp）
-set -e
-cd "$(dirname "$0")"
+# HOI4 Mod Editor launcher (Linux/WSL)
+# This is a thin wrapper. All path/env logic lives in launcher.py.
+set -euo pipefail
 
-VENV="/root/hoi4_builder_venv"
-if [ ! -x "$VENV/bin/python" ]; then
-  echo "[错误] 未找到 Linux 虚拟环境: $VENV"
-  echo "      请先用 venv 重新创建并安装依赖，例如："
-  echo "        python3 -m venv $VENV"
-  echo "        $VENV/bin/pip install PyQt6 numpy Pillow mcp"
-  exit 1
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT_SOURCE" ]; do
+  SCRIPT_DIR="$(cd -P "$(dirname -- "$SCRIPT_SOURCE")" && pwd)"
+  SCRIPT_SOURCE="$(readlink -- "$SCRIPT_SOURCE")"
+  case "$SCRIPT_SOURCE" in
+    /*) ;;
+    *) SCRIPT_SOURCE="$SCRIPT_DIR/$SCRIPT_SOURCE" ;;
+  esac
+done
+SCRIPT_DIR="$(cd -P "$(dirname -- "$SCRIPT_SOURCE")" && pwd)"
+cd "$SCRIPT_DIR"
+
+if command -v python3 >/dev/null 2>&1 && \
+   python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1; then
+  exec python3 -X utf8 "$SCRIPT_DIR/launcher.py" "$@"
 fi
 
-# 关闭 GUI 时可用 QT_QPA_PLATFORM=offscreen 无头运行：
-#   QT_QPA_PLATFORM=offscreen bash 启动.sh
-exec "$VENV/bin/python" -X utf8 src/main.py
+if command -v python >/dev/null 2>&1 && \
+   python -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1; then
+  exec python -X utf8 "$SCRIPT_DIR/launcher.py" "$@"
+fi
+
+echo "[ERROR] Python 3.10+ not found. Please install Python first." >&2
+exit 1

@@ -1,21 +1,40 @@
 @echo off
-chcp 65001 >nul
-cd /d "%~dp0"
+rem HOI4 Mod Editor first-time setup (Windows)
+rem Thin wrapper: all path/env logic lives in launcher.py.
+setlocal
+set "ROOT=%~dp0"
+pushd "%ROOT%"
 
-echo [1/3] 创建虚拟环境 .venv（Python 3.14）
-py -3.14 -m venv .venv || goto :error
+where py >nul 2>nul
+if errorlevel 1 goto :try_python
+py -3 -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)" >nul 2>nul
+if errorlevel 1 goto :try_python
+py -3 -X utf8 "launcher.py" --setup --verify %*
+set "RC=%errorlevel%"
+popd
+exit /b %RC%
 
-echo [2/3] 安装依赖
-".venv\Scripts\pip" install -r requirements.txt || goto :error
+:try_python
+where python >nul 2>nul
+if errorlevel 1 goto :try_python3
+python -X utf8 -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)" >nul 2>nul
+if errorlevel 1 goto :try_python3
+python -X utf8 "launcher.py" --setup --verify %*
+set "RC=%errorlevel%"
+popd
+exit /b %RC%
 
-echo [3/3] 运行契约验证
-".venv\Scripts\python.exe" -X utf8 tools\verify_contracts.py || goto :error
+:try_python3
+where python3 >nul 2>nul
+if errorlevel 1 goto :fail
+python3 -X utf8 -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 1)" >nul 2>nul
+if errorlevel 1 goto :fail
+python3 -X utf8 "launcher.py" --setup --verify %*
+set "RC=%errorlevel%"
+popd
+exit /b %RC%
 
-echo.
-echo 环境搭建完成：可以使用 启动.bat 启动。
-exit /b 0
-
-:error
-echo.
-echo 环境搭建失败，请检查上方错误信息。
+:fail
+echo [ERROR] Python 3.10+ not found. Please install Python first.
+popd
 exit /b 1
