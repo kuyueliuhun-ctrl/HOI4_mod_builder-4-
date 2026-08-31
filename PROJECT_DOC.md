@@ -646,6 +646,9 @@ python launcher.py --check
 # 启动器准备环境并跑全量验证
 python launcher.py --verify
 
+# 生成 Windows 便携版（自带 Python/Qt，最终用户无需安装）
+python tools/build_portable.py --zip
+
 # 直接跑（仅冒烟/无窗口，需自己保证在项目根目录）
 QT_QPA_PLATFORM=offscreen python src/main.py
 
@@ -815,6 +818,7 @@ python tools/check_file_budget.py        # 行数预算
 | MCP 开发者知识（注册/schema/校验器/模板/工作流） | `docs/MCP开发者指南.md` |
 | 全项目踩坑索引（按类别） | `docs/踩坑索引.md` |
 | 启动器用法 / 路径规则 / 跨平台环境自动恢复 | `docs/启动器.md` |
+| 生成免安装 Python/Qt 的 Windows 便携版 | `docs/便携版打包.md` / `tools/build_portable.py` |
 | MCP 正确调用模板 | `templates/mcp/`（入口 `templates/mcp/README.md`） |
 | 外部多模态模型识图（界面/地图/设计器验收、UI 还原） | `docs/识图提示词.md` 一~八 |
 | 学说界面识图结论 | `docs/学说识图.md` 全文 |
@@ -857,6 +861,8 @@ python tools/check_file_budget.py        # 行数预算
 **`docs/踩坑索引.md`**：1 环境/工具 → 2 HOI4 文件事实 → 3 解析/写回 → 4 PyQt6/UI → 5 测试 → 6 地图渲染 → 7 settings/数据单例 → 8 MCP 工具注册/schema → 9 MCP 运行/协议 → 10 MCP 调用安全 → 11 性能/冒烟 → 12 历史遗留/收口。
 
 **`docs/启动器.md`**：1 为什么需要启动器 → 2 使用方法（日常启动/安装/高级）→ 3 路径规则 → 4 常见问题。
+
+**`docs/便携版打包.md`**：1 何时用 → 2 当前支持范围 → 3 Windows 打包 → 4 最终用户使用 → 5 原理 → 6 注意事项。
 
 **`docs/科技图标存储规则.md`**：一 结论摘要 → 二 三层结构详解 → 三 图片规格（实测）→
 四 五个 mod 实测证据 → 五 配图标操作清单 → 六 编辑器实现现状。
@@ -949,3 +955,4 @@ python tools/check_file_budget.py        # 行数预算
 | 6.66 | 08-26 | cwt_lite_rules 重构 | infer_type 表驱动；_iter_entity_blocks 拆子生成器 | docs/历史迭代日志.md |
 | 6.84 | 08-31 | MCP 知识体系：踩坑索引/用户与开发者文档/校验器/模板/工作流 | 新增 `docs/踩坑索引.md`、`docs/MCP用户指南.md`、`docs/MCP开发者指南.md`；`src/mcp_validator.py` + `tools/check_mcp_contracts.py` 自动化拦截；`templates/mcp/` 正确调用模板 + 回归测试；MCP resources/prompts 接入知识文档与模板；PROJECT_DOC 开发流程强制先读踩坑索引 | docs/MCP开发者指南.md / docs/踩坑索引.md |
 | 6.85 | 08-31 | 跨平台启动器 | 新增 `launcher.py`（自动解析项目根/虚拟环境/Python、自动创建并安装依赖、固定工作目录、自动补充 PyQt6 Qt 插件路径）；`启动.bat`/`启动.sh`/`setup.bat`/`setup.sh` 全部改薄壳统一走启动器；支持 `--setup`/`--verify`/`--check`/`--venv`/`HOI4_VENV`；Windows `.venv`/`.venv-win` 与 WSL `.venv`/`.venv-linux` 自动隔离；tests +21 | docs/启动器.md |
+| 6.86 | 08-31 | 便携版打包 | 新增 `tools/build_portable.py` 生成 Windows 便携版（自带 Python+依赖，无需预装 Python/Qt）；`launcher.py` 支持便携模式优先使用 `portable/python/...`；`docs/便携版打包.md`；tests +4 | docs/便携版打包.md |

@@ -39,6 +39,9 @@
     },
     "src/main_window_docks.py": {
       "reason": "承继 main_window 的程序配置 settings.json 写入（F5 拆分，非 mod 内容）"
+    },
+    "tools/build_portable.py": {
+      "reason": "便携版打包脚本写 dist 输出目录（非 mod 内容，开发/发布工具）"
     }
   },
   "lines": {

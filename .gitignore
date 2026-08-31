@@ -34,3 +34,6 @@ prototypes/
 已分析.md
 ui_gap_after.md
 docs/UI树形缺口检测报告.md
+
+# 便携版打包产物（不要在仓库中提交整套 Python）
+/portable/

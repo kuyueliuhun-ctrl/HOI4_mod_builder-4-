@@ -153,6 +153,49 @@ class QtEnvTest(unittest.TestCase):
         self.assertEqual(launcher.qt_env(root / ".venv", win=True), {})
 
 
+class PortablePythonTest(unittest.TestCase):
+    def test_find_portable_python_windows_nested(self):
+        root = _mkdtemp("launcher_portable_win_")
+        exe = root / "portable" / "python" / "python.exe"
+        exe.parent.mkdir(parents=True)
+        exe.write_text("", encoding="utf-8")
+        with mock.patch.object(launcher, "PROJECT_ROOT", root):
+            self.assertEqual(launcher.find_portable_python(win=True), exe)
+
+    def test_find_portable_python_windows_flat(self):
+        root = _mkdtemp("launcher_portable_win_flat_")
+        exe = root / "portable" / "python.exe"
+        exe.parent.mkdir(parents=True)
+        exe.write_text("", encoding="utf-8")
+        with mock.patch.object(launcher, "PROJECT_ROOT", root):
+            self.assertEqual(launcher.find_portable_python(win=True), exe)
+
+    def test_find_portable_python_posix(self):
+        root = _mkdtemp("launcher_portable_posix_")
+        exe = root / "portable" / "python" / "bin" / "python"
+        exe.parent.mkdir(parents=True)
+        exe.write_text("", encoding="utf-8")
+        with mock.patch.object(launcher, "PROJECT_ROOT", root):
+            self.assertEqual(launcher.find_portable_python(win=False), exe)
+
+    def test_find_portable_python_none(self):
+        root = _mkdtemp("launcher_portable_none_")
+        with mock.patch.object(launcher, "PROJECT_ROOT", root):
+            self.assertIsNone(launcher.find_portable_python(win=True))
+            self.assertIsNone(launcher.find_portable_python(win=False))
+
+    def test_build_app_command_exe_uses_portable_python(self):
+        exe = Path("D:/portable app/python/python.exe")
+        cmd = launcher.build_app_command_exe(exe, ["--x"])
+        self.assertEqual(cmd[0], str(exe))
+        self.assertEqual(cmd[3], str(launcher.PROJECT_ROOT / "src" / "main.py"))
+        self.assertEqual(cmd[4:], ["--x"])
+
+    def test_deps_ok_exe_missing(self):
+        root = _mkdtemp("launcher_deps_missing_")
+        self.assertFalse(launcher.deps_ok_exe(root / "no-python.exe"))
+
+
 class CommandBuildTest(unittest.TestCase):
     def test_build_app_command_uses_absolute_venv_python_and_project_entry(self):
         venv_dir = Path("/some path/项目/.venv")

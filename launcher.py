@@ -11,6 +11,8 @@
 - Windows 用 `.venv`（若 `.venv` 被 Linux 环境占用则自动改用 `.venv-win`）；
   WSL/Linux 若发现 `.venv` 是 Windows 环境则自动改用 `.venv-linux`，
   避免两个平台互相破坏；
+- 支持便携模式：项目内存在 `portable/python/...` 时直接使用随包 Python，
+  最终用户无需预装 Python；
 - 没有可用虚拟环境时自动用本机 Python 创建并安装依赖；
 - 工作目录固定为项目根，确保 settings.json / templates 等相对路径稳定；
 - 支持 `--setup`（只准备环境）、`--verify`（跑全量契约）、`--check`（只检查不创建）、
@@ -114,6 +116,26 @@ def requirements_file(win: bool | None = None) -> Path:
     return REQUIREMENTS_WIN if win else REQUIREMENTS_POSIX
 
 
+def find_portable_python(win: bool | None = None) -> Path | None:
+    """查找项目内随包携带的便携 Python（便携版解压即用，不依赖系统 Python）。"""
+    if win is None:
+        win = is_windows()
+    if win:
+        candidates = (
+            PROJECT_ROOT / "portable" / "python" / "python.exe",
+            PROJECT_ROOT / "portable" / "python.exe",
+        )
+    else:
+        candidates = (
+            PROJECT_ROOT / "portable" / "python" / "bin" / "python",
+            PROJECT_ROOT / "portable" / "bin" / "python",
+        )
+    for cand in candidates:
+        if cand.is_file():
+            return cand
+    return None
+
+
 def _find_pyqt6_qt_dir(venv_dir: Path, win: bool | None = None) -> Path | None:
     """定位 venv 内 PyQt6 的 Qt6 目录，供显式设置插件/DLL 路径。"""
     if win is None:
@@ -148,6 +170,37 @@ def qt_env(venv_dir: Path, win: bool | None = None) -> dict:
     return env
 
 
+def qt_env_for_python(python_exe: Path) -> dict:
+    """通过实际 Python 探测 PyQt6 的 Qt6 目录，返回 Qt 路径环境变量。
+
+    适用于便携 Python、虚拟环境等任意布局；PyQt6 未安装时返回空 dict。
+    """
+    env: dict = {}
+    code = (
+        "import PyQt6, os, sys; "
+        "print(os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6'), flush=True)"
+    )
+    try:
+        proc = subprocess.run([str(python_exe), "-c", code],
+                              capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return env
+    if proc.returncode != 0:
+        return env
+    qt_dir = Path(proc.stdout.strip())
+    if not qt_dir.is_dir():
+        return env
+    win = is_windows()
+    dll_dir = qt_dir / ("bin" if win else "lib")
+    if dll_dir.is_dir():
+        env["PATH"] = str(dll_dir) + os.pathsep + env.get("PATH", "")
+    platforms = qt_dir / "plugins" / "platforms"
+    if platforms.is_dir():
+        env["QT_QPA_PLATFORM_PLUGIN_PATH"] = str(platforms)
+    return env
+
+
 def _probe_python(candidate) -> tuple[int, int] | None:
     """探测候选 Python 的版本号；失败返回 None。"""
     argv = list(candidate) if isinstance(candidate, (list, tuple)) else [str(candidate)]
@@ -168,8 +221,11 @@ def _probe_python(candidate) -> tuple[int, int] | None:
 
 
 def _candidate_python_commands() -> list:
-    """生成候选 Python 命令。优先使用当前解释器，其次 PATH 中的常见名称。"""
+    """生成候选 Python 命令。优先便携 Python，其次当前解释器，最后 PATH。"""
     candidates: list = []
+    portable = find_portable_python()
+    if portable:
+        candidates.append(portable)
     if sys.executable:
         candidates.append(Path(sys.executable))
     if is_windows():
@@ -223,13 +279,12 @@ def create_venv(venv_dir: Path, base_python: list, win: bool | None = None) -> b
     return venv_usable(venv_dir, win)
 
 
-def deps_ok(venv_dir: Path, win: bool | None = None) -> bool:
-    """检查虚拟环境内核心依赖是否可导入。"""
-    py = venv_python(venv_dir, win)
-    if not py.is_file():
+def deps_ok_exe(python_exe: Path) -> bool:
+    """检查指定 Python 内核心依赖是否可导入。"""
+    if not python_exe.is_file():
         return False
     try:
-        proc = subprocess.run([str(py), "-c", DEPS_CHECK_CODE],
+        proc = subprocess.run([str(python_exe), "-c", DEPS_CHECK_CODE],
                               capture_output=True, text=True,
                               encoding="utf-8", errors="replace", timeout=120)
     except (OSError, subprocess.SubprocessError):
@@ -237,17 +292,26 @@ def deps_ok(venv_dir: Path, win: bool | None = None) -> bool:
     return proc.returncode == 0
 
 
-def install_requirements(venv_dir: Path, win: bool | None = None) -> bool:
-    """用虚拟环境 pip 安装当前平台依赖。"""
-    py = venv_python(venv_dir, win)
+def deps_ok(venv_dir: Path, win: bool | None = None) -> bool:
+    """检查虚拟环境内核心依赖是否可导入。"""
+    return deps_ok_exe(venv_python(venv_dir, win))
+
+
+def install_requirements_exe(python_exe: Path, win: bool | None = None) -> bool:
+    """用指定 Python 的 pip 安装当前平台依赖。"""
     req = requirements_file(win)
     log("安装依赖：%s（首次可能较慢）" % req.name)
-    rc = run_command([py, "-m", "pip", "install", "--disable-pip-version-check",
-                      "-r", str(req)])
+    rc = run_command([python_exe, "-m", "pip", "install",
+                      "--disable-pip-version-check", "-r", str(req)])
     if rc != 0:
         err("依赖安装失败。")
         return False
     return True
+
+
+def install_requirements(venv_dir: Path, win: bool | None = None) -> bool:
+    """用虚拟环境 pip 安装当前平台依赖。"""
+    return install_requirements_exe(venv_python(venv_dir, win), win)
 
 
 def prepare_env(venv_dir: Path, win: bool | None = None) -> bool:
@@ -263,25 +327,34 @@ def prepare_env(venv_dir: Path, win: bool | None = None) -> bool:
     return True
 
 
+def build_app_command_exe(python_exe: Path, app_args: list[str]) -> list[str]:
+    """构造主程序启动命令（绝对路径 + 固定项目根）。"""
+    return [str(python_exe), "-X", "utf8", str(APP_ENTRY), *app_args]
+
+
+def build_verify_command_exe(python_exe: Path) -> list[str]:
+    """构造全量契约验证命令。"""
+    return [str(python_exe), "-X", "utf8", str(VERIFY_ENTRY)]
+
+
 def build_app_command(venv_dir: Path, app_args: list[str],
                       win: bool | None = None) -> list[str]:
-    """构造主程序启动命令（绝对路径 + 固定项目根）。"""
-    py = venv_python(venv_dir, win)
-    return [str(py), "-X", "utf8", str(APP_ENTRY), *app_args]
+    """构造虚拟环境主程序启动命令。"""
+    return build_app_command_exe(venv_python(venv_dir, win), app_args)
 
 
 def build_verify_command(venv_dir: Path, win: bool | None = None) -> list[str]:
-    """构造全量契约验证命令。"""
-    py = venv_python(venv_dir, win)
-    return [str(py), "-X", "utf8", str(VERIFY_ENTRY)]
+    """构造虚拟环境全量契约验证命令。"""
+    return build_verify_command_exe(venv_python(venv_dir, win))
 
 
-def run_app(venv_dir: Path, app_args: list[str], win: bool | None = None) -> int:
-    """以项目根为工作目录启动主程序，透传额外参数。"""
+def run_app_exe(python_exe: Path, app_args: list[str],
+                win: bool | None = None) -> int:
+    """用指定 Python 以项目根为工作目录启动主程序，透传额外参数。"""
     log("启动编辑器：%s" % APP_ENTRY)
-    cmd = build_app_command(venv_dir, app_args, win)
+    cmd = build_app_command_exe(python_exe, app_args)
     env = dict(os.environ)
-    env.update(qt_env(venv_dir, win))
+    env.update(qt_env_for_python(python_exe))
     env.setdefault("PYTHONUTF8", "1")
     env.setdefault("PYTHONIOENCODING", "utf-8")
     try:
@@ -292,12 +365,12 @@ def run_app(venv_dir: Path, app_args: list[str], win: bool | None = None) -> int
     return proc.returncode
 
 
-def run_verify(venv_dir: Path, win: bool | None = None) -> int:
-    """用项目虚拟环境运行全量契约验证。"""
+def run_verify_exe(python_exe: Path, win: bool | None = None) -> int:
+    """用指定 Python 运行全量契约验证。"""
     log("运行全量契约验证：%s" % VERIFY_ENTRY)
-    cmd = build_verify_command(venv_dir, win)
+    cmd = build_verify_command_exe(python_exe)
     env = dict(os.environ)
-    env.update(qt_env(venv_dir, win))
+    env.update(qt_env_for_python(python_exe))
     env.setdefault("PYTHONUTF8", "1")
     env.setdefault("PYTHONIOENCODING", "utf-8")
     env.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -309,22 +382,47 @@ def run_verify(venv_dir: Path, win: bool | None = None) -> int:
     return proc.returncode
 
 
+def run_app(venv_dir: Path, app_args: list[str], win: bool | None = None) -> int:
+    """以项目根为工作目录启动主程序，透传额外参数。"""
+    return run_app_exe(venv_python(venv_dir, win), app_args, win)
+
+
+def run_verify(venv_dir: Path, win: bool | None = None) -> int:
+    """用项目虚拟环境运行全量契约验证。"""
+    return run_verify_exe(venv_python(venv_dir, win), win)
+
+
 def do_check(venv_dir: Path, win: bool | None = None) -> int:
     """只检查环境，不创建、不安装、不启动。"""
     ok = True
     print("[启动器] 项目根：%s" % PROJECT_ROOT)
     print("[启动器] 平台：%s" % ("Windows" if win else "Linux/POSIX"))
-    print("[启动器] 虚拟环境：%s" % venv_dir)
-    if venv_usable(venv_dir, win):
-        print("[启动器] 虚拟环境：可用")
-        if deps_ok(venv_dir, win):
+    portable = find_portable_python(win)
+    if portable:
+        print("[启动器] 便携 Python：%s" % portable)
+        ver = _probe_python([portable])
+        if ver and ver >= MIN_PY:
+            print("[启动器] 便携 Python 版本：%d.%d" % ver)
+        else:
+            print("[启动器] 便携 Python 不可用或版本过低（需 %s+）" % MIN_PY_TEXT)
+            ok = False
+        if deps_ok_exe(portable):
             print("[启动器] 核心依赖：PyQt6/numpy/Pillow/mcp 可导入")
         else:
             print("[启动器] 核心依赖：缺失（运行启动器会自动安装）")
             ok = False
     else:
-        print("[启动器] 虚拟环境：尚未创建（运行启动器会自动创建）")
-        ok = False
+        print("[启动器] 虚拟环境：%s" % venv_dir)
+        if venv_usable(venv_dir, win):
+            print("[启动器] 虚拟环境：可用")
+            if deps_ok(venv_dir, win):
+                print("[启动器] 核心依赖：PyQt6/numpy/Pillow/mcp 可导入")
+            else:
+                print("[启动器] 核心依赖：缺失（运行启动器会自动安装）")
+                ok = False
+        else:
+            print("[启动器] 虚拟环境：尚未创建（运行启动器会自动创建）")
+            ok = False
     base_python, ver = find_base_python()
     if base_python:
         print("[启动器] 基础 Python：%s（%d.%d）" % (" ".join(base_python), *ver))
@@ -353,6 +451,28 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _run_portable(python_exe: Path, args: argparse.Namespace,
+                   app_args: list[str], win: bool) -> int:
+    """便携模式：直接用随包 Python，不创建 venv。"""
+    ver = _probe_python([python_exe])
+    if ver is None or ver < MIN_PY:
+        err("便携 Python 不可用或版本过低（需 %s+）：%s" % (MIN_PY_TEXT, python_exe))
+        return 1
+    log("便携 Python：%s（%d.%d）" % (python_exe, *ver))
+    if not deps_ok_exe(python_exe):
+        if not install_requirements_exe(python_exe, win):
+            return 1
+        if not deps_ok_exe(python_exe):
+            err("依赖安装后仍无法导入 PyQt6/numpy/Pillow/mcp。")
+            return 1
+    if args.verify:
+        return run_verify_exe(python_exe, win)
+    if args.setup:
+        log("便携环境已就绪，未启动编辑器。")
+        return 0
+    return run_app_exe(python_exe, app_args, win)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args, app_args = parser.parse_known_args(argv)
@@ -361,6 +481,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.check:
         return do_check(venv_dir, win)
+
+    portable = find_portable_python(win)
+    if portable:
+        return _run_portable(portable, args, app_args, win)
 
     base_python, base_ver = find_base_python()
     if base_python is None:
