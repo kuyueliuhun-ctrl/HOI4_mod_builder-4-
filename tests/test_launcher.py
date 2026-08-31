@@ -170,6 +170,22 @@ class PortablePythonTest(unittest.TestCase):
         with mock.patch.object(launcher, "PROJECT_ROOT", root):
             self.assertEqual(launcher.find_portable_python(win=True), exe)
 
+    def test_find_portable_python_win_platform_dir(self):
+        root = _mkdtemp("launcher_portable_win_plat_")
+        exe = root / "portable" / "win" / "python" / "python.exe"
+        exe.parent.mkdir(parents=True)
+        exe.write_text("", encoding="utf-8")
+        with mock.patch.object(launcher, "PROJECT_ROOT", root):
+            self.assertEqual(launcher.find_portable_python(win=True), exe)
+
+    def test_find_portable_python_linux_platform_dir(self):
+        root = _mkdtemp("launcher_portable_linux_plat_")
+        exe = root / "portable" / "linux" / "python" / "bin" / "python"
+        exe.parent.mkdir(parents=True)
+        exe.write_text("", encoding="utf-8")
+        with mock.patch.object(launcher, "PROJECT_ROOT", root):
+            self.assertEqual(launcher.find_portable_python(win=False), exe)
+
     def test_find_portable_python_posix(self):
         root = _mkdtemp("launcher_portable_posix_")
         exe = root / "portable" / "python" / "bin" / "python"

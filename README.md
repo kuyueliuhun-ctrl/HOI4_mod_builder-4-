@@ -77,8 +77,9 @@ bash 启动.sh
 如果你不想安装 Python，可以使用发布页提供的 **便携版**：
 解压后双击 `启动.bat` 即可运行，包内已自带 Python 和全部依赖。
 
-开发者可用 `python tools\build_portable.py` 自己生成 Windows 便携版，
-说明见 `docs/便携版打包.md`。
+开发者可用 `python tools\build_portable.py --runtime-only` 在当前项目生成
+`portable\win` / `portable\linux` 便携运行时，替换本地 `.venv`；
+也可用 `--zip` 生成完整发布包。说明见 `docs/便携版打包.md`。
 
 ### 首次安装 / 重装依赖（可选）
 

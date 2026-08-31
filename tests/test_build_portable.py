@@ -1,7 +1,8 @@
 """便携版打包脚本纯逻辑测试。
 
-不实际复制 Python，只验证：
-- 便携目录布局；
+不实际复制/下载 Python，只验证：
+- 平台目录布局；
+- 便携解释器路径；
 - 生成的启动器内容；
 - 项目文件复制规则；
 - README 内容。
@@ -29,15 +30,42 @@ def _mkdtemp(prefix: str) -> Path:
 
 
 class PortableBuildTest(unittest.TestCase):
-    def test_portable_python_rel_layout(self):
-        self.assertEqual(build_portable.PORTABLE_PYTHON_REL,
-                         Path("portable") / "python")
+    def test_runtime_dir_in_project_win(self):
+        with mock.patch.object(build_portable, "PORTABLE_ROOT",
+                               Path("/proj/portable")):
+            self.assertEqual(build_portable.portable_runtime_dir("win"),
+                             Path("/proj/portable/win"))
+
+    def test_runtime_dir_in_project_linux(self):
+        with mock.patch.object(build_portable, "PORTABLE_ROOT",
+                               Path("/proj/portable")):
+            self.assertEqual(build_portable.portable_runtime_dir("linux"),
+                             Path("/proj/portable/linux"))
+
+    def test_runtime_dir_in_bundle(self):
+        bundle = Path("/out/HOI4编辑器-便携版")
+        self.assertEqual(build_portable.portable_runtime_dir("win", bundle),
+                         bundle / "portable" / "python")
+
+    def test_python_exe_win_and_linux(self):
+        runtime = Path("/rt")
+        self.assertEqual(build_portable.python_exe_for(runtime, "win"),
+                         runtime / "python.exe")
+        self.assertEqual(build_portable.python_exe_for(runtime, "linux"),
+                         runtime / "bin" / "python")
 
     def test_write_launcher_bat_uses_portable_python(self):
         bundle = _mkdtemp("portable_bat_")
         build_portable.write_launcher_bat(bundle)
         content = (bundle / "启动.bat").read_text(encoding="utf-8")
         self.assertIn("portable\\python\\python.exe", content)
+        self.assertIn("launcher.py", content)
+
+    def test_write_launcher_sh_uses_portable_python(self):
+        bundle = _mkdtemp("portable_sh_")
+        build_portable.write_launcher_sh(bundle)
+        content = (bundle / "启动.sh").read_text(encoding="utf-8")
+        self.assertIn("portable/python/bin/python", content)
         self.assertIn("launcher.py", content)
 
     def test_write_readme_contains_usage(self):

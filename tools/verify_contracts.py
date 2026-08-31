@@ -24,7 +24,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PYTHON = sys.executable
 
 # 不参与编译的目录
-SKIP_DIRS = {".venv", ".venv-linux", ".venv314", ".git", "__pycache__", "dist",
+SKIP_DIRS = {".venv", ".venv-linux", ".venv314", ".git", "__pycache__", "dist", "portable",
              "node_modules", "data", "_scenario_forge", "prototypes",
              ".runtime", ".idea", ".ruff_cache", ".jspace"}
 

@@ -117,16 +117,23 @@ def requirements_file(win: bool | None = None) -> Path:
 
 
 def find_portable_python(win: bool | None = None) -> Path | None:
-    """查找项目内随包携带的便携 Python（便携版解压即用，不依赖系统 Python）。"""
+    """查找项目内随包携带的便携 Python（便携版解压即用，不依赖系统 Python）。
+
+    优先识别分平台目录 portable/win 与 portable/linux，也兼容旧版 portable/python。
+    """
     if win is None:
         win = is_windows()
     if win:
         candidates = (
+            PROJECT_ROOT / "portable" / "win" / "python" / "python.exe",
+            PROJECT_ROOT / "portable" / "win" / "python.exe",
             PROJECT_ROOT / "portable" / "python" / "python.exe",
             PROJECT_ROOT / "portable" / "python.exe",
         )
     else:
         candidates = (
+            PROJECT_ROOT / "portable" / "linux" / "python" / "bin" / "python",
+            PROJECT_ROOT / "portable" / "linux" / "bin" / "python",
             PROJECT_ROOT / "portable" / "python" / "bin" / "python",
             PROJECT_ROOT / "portable" / "bin" / "python",
         )
