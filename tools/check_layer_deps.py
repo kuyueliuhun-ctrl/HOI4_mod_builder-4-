@@ -31,6 +31,7 @@ ALGO_MODULES = {
     "content_types", "entity_scanner", "oob_format", "overlay_rules",
     "icon_manifest", "unit_counter_library", "validation", "export_health",
     "design_template", "game_data",
+    "playset_loader", "mod_stack",
 }
 
 # 绘图层：图形项/绘制（可依赖算法层，禁止依赖 UI/信号槽层）
