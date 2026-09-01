@@ -798,6 +798,8 @@ class EntityGalleryControllerMixin:
             if root is None or block_range is None:
                 # 回退：整文件编辑并定位实体
                 root = tree_from_pdx_text(content)
+                from tree_node import attach_verbatim_lines
+                attach_verbatim_lines(root, content)  # 保真：原文行
                 block_range = (1, len(file_lines) + 1)
                 whole_file = True
 

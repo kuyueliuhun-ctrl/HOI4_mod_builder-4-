@@ -9,6 +9,14 @@ import os
 import re
 
 from content_types import ICON_RULES, TOP_LEVEL_ENTITY_TYPES
+from pdx_span import (
+    blank_pdx,
+    block_spans,
+    children_in,
+    depth_index,
+    scan_blocks,
+    top_level_fields,
+)
 
 
 class EntityScanner:
@@ -16,6 +24,49 @@ class EntityScanner:
 
     # 国家 tag：2-4 位大写字母/数字，至少含一个字母
     _TAG_RE = re.compile(r'(?=[A-Z0-9]*[A-Z])[A-Z0-9]{2,4}')
+
+    # 国家 tag 全局索引（P2-7）：由 common/country_tags 构建的可选提示集。
+    # 未设置（空集）时保持纯启发式行为，向后兼容。
+    _COUNTRY_TAG_INDEX = set()
+    _TAG_INDEX_CACHE = {}
+
+    @classmethod
+    def set_country_tag_index(cls, tags):
+        """设置全局 tag 提示索引（如启动/打开 mod 时构建）。"""
+        cls._COUNTRY_TAG_INDEX = set(tags or ())
+
+    @classmethod
+    def get_country_tag_index(cls):
+        """返回当前全局 tag 提示索引（只读用途）。"""
+        return cls._COUNTRY_TAG_INDEX
+
+    @classmethod
+    def build_country_tag_index(cls, mod_path="", hoi4_path=""):
+        """从 common/country_tags/*.txt 构建全局 tag 集合（mod ∪ 游戏）。"""
+        tags = set()
+        pat = re.compile(r'^\s*([A-Za-z0-9]{2,4})\s*=', re.M)
+        for base in (mod_path, hoi4_path):
+            if not base:
+                continue
+            d = os.path.join(base, "common", "country_tags")
+            if not os.path.isdir(d):
+                continue
+            for name in sorted(os.listdir(d)):
+                if not name.lower().endswith(".txt"):
+                    continue
+                content = cls._read_file(os.path.join(d, name))
+                tags |= set(pat.findall(content))
+        return tags
+
+    @classmethod
+    def ensure_country_tag_index(cls, mod_path="", hoi4_path=""):
+        """构建（带缓存）并启用全局 tag 索引；供应用启动/打开 mod 时调用。"""
+        key = (mod_path or "", hoi4_path or "")
+        if key not in cls._TAG_INDEX_CACHE:
+            cls._TAG_INDEX_CACHE[key] = cls.build_country_tag_index(
+                mod_path, hoi4_path)
+        cls.set_country_tag_index(cls._TAG_INDEX_CACHE[key])
+        return cls._COUNTRY_TAG_INDEX
 
     @classmethod
     def _collect_file_entities(cls, content_type, content, fp):
@@ -65,22 +116,24 @@ class EntityScanner:
 
         - characters = { TAG = { 角色ID = {...} } }：角色实体 tag=TAG
         - characters = { 角色ID = {...} }：角色实体 tag=文件级 tag
+
+        子块筛选用按深度分桶 + 区间早退（P1-4），取代旧版
+        「每个 span 线性扫全部 spans」的 O(m²)。
         """
         try:
             spans = cls._block_spans(cls._scan_blocks(content))
         except Exception:
             return []
+        by_depth = depth_index(spans)
         entities = []
         file_tag = file_tags[0] if file_tags else ""
         for key, bdepth, bpos, bend in spans:
             if key != "characters":
                 continue
-            children = [s for s in spans
-                        if s[2] > bpos and s[3] <= bend and s[1] == bdepth + 1]
+            children = children_in(by_depth, bpos, bend, bdepth + 1)
             for ckey, cd, cstart, cend in children:
                 if cls._TAG_RE.fullmatch(ckey):
-                    subs = [s for s in spans
-                            if s[2] > cstart and s[3] <= cend and s[1] == cd + 1]
+                    subs = children_in(by_depth, cstart, cend, cd + 1)
                     for skey, _d, sstart, send in subs:
                         entities.append({"name": skey, "key": skey, "icon": "",
                                          "range": (sstart, send), "tag": ckey})
@@ -265,25 +318,9 @@ class EntityScanner:
     def _scan_blocks(text):
         """轻量扫描：返回所有 `key = {` 块的 (key, 深度, 起始位置) 列表。
 
-        单遍正则扫描，同时跟踪括号深度；注释与引号内容已原地替换为空格
-        （保持位置不变），避免误匹配且结果可直接索引原文本。
-        深度为块自身所处的层级（顶层块为 0）。
+        委托 pdx_span.scan_blocks（单遍正则 + 括号深度跟踪，整体 O(n)）。
         """
-        import re
-        clean = EntityScanner._blank_pdx(text)
-        pattern = re.compile(r'(\{|\})|([\w\.\-]+)\s*=\s*\{')
-        blocks = []
-        depth = 0
-        for m in pattern.finditer(clean):
-            brace = m.group(1)
-            if brace == "{":
-                depth += 1
-            elif brace == "}":
-                depth -= 1
-            else:
-                blocks.append((m.group(2), depth, m.start()))
-                depth += 1
-        return blocks
+        return scan_blocks(text)
 
     # ---------- 实体提取 ----------
 
@@ -293,20 +330,9 @@ class EntityScanner:
         """为 blocks 中每个 `key = {` 计算 (key, depth, start, end)。
 
         块结束位置 = 其后首个深度 <= 当前块深度的块位置；否则取到内容末尾。
-        使用单调栈从右向左 O(n) 求解。
+        委托 pdx_span.block_spans（单调栈从右向左 O(n)）。
         """
-        import math
-        n = len(blocks)
-        ends = [math.inf] * n
-        stack = []
-        for i in range(n - 1, -1, -1):
-            depth = blocks[i][1]
-            while stack and blocks[stack[-1]][1] > depth:
-                stack.pop()
-            if stack:
-                ends[i] = blocks[stack[-1]][2]
-            stack.append(i)
-        return [(key, depth, start, ends[i]) for i, (key, depth, start) in enumerate(blocks)]
+        return block_spans(blocks)
 
 
     @classmethod
@@ -344,43 +370,21 @@ class EntityScanner:
         """返回实体块顶层（括号深度1）的 key=value 映射（首次出现的值）。
 
         使用词法 token 扫描，忽略嵌套块与注释，仅取块直接层级的键值对。
+        委托 pdx_span.top_level_fields。
         """
-        token_pattern = r'("[^"]*"|#.*|\{|\}|=|[\w\.\-]+)'
-        toks = list(re.finditer(token_pattern, body))
-        depth = 0
-        fields = {}
-        i = 0
-        while i < len(toks):
-            t = toks[i].group(0)
-            if t == '{':
-                depth += 1
-                i += 1
-                continue
-            if t == '}':
-                depth -= 1
-                i += 1
-                continue
-            if t.startswith('#') or t == '=':
-                i += 1
-                continue
-            if depth == 1 and i + 2 < len(toks):
-                eq = toks[i + 1].group(0)
-                val = toks[i + 2].group(0)
-                if (eq == '=' and val not in ('=', '{', '}') and not val.startswith('#')
-                        and t not in fields):
-                    fields[t] = val.strip('"')
-            i += 1
-        return fields
+        return top_level_fields(body)
 
 
-    @staticmethod
-    def _detect_country_tags(file_path, content):
+    @classmethod
+    def _detect_country_tags(cls, file_path, content):
         """检测文件关联的国家 tag，返回去重后的列表；无则返回空列表。
 
         检测来源（按优先级）：
           1. history/countries 文件名前缀（"A24 - Civil War.txt" → A24）
           2. common/countries 文件名为裸 tag（"14K.txt" → 14K）
           3. 文件名末尾大写标记（TFR_characters_A24.txt / TFR_ideas_APA.txt → A24/APA）
+          3.5. 文件名前缀 tag（内容目录通用）：TAG_xxx / TAG(xxx) / TAG-xxx / 裸 TAG
+          3.6. 全局 tag 索引辅助（P2-7）：文件名任一 token 命中已知 tag
           4. common/country_tags 顶层 TAG = "..." 赋值（该文件夹专属）
           5. 内容模式：country = TAG / ideas = { TAG = {
         """
@@ -417,6 +421,13 @@ class EntityScanner:
         m = re.match(r'^' + tag + r'(?=[_\-\.(（]|$)', stem)
         if m:
             return [m.group(1)]
+
+        # 3.6) 全局 tag 索引辅助（P2-7）：文件名任一 token 命中已知 tag
+        #      如 "focus_GER_add.txt"（前后缀启发式都抓不到的中间段）
+        if cls._COUNTRY_TAG_INDEX:
+            for token in re.split(r'[^A-Za-z0-9]+', stem):
+                if token and token in cls._COUNTRY_TAG_INDEX:
+                    return [token]
 
         if not content:
             return []
@@ -532,39 +543,50 @@ class EntityScanner:
 
     @classmethod
     def _apply_locate_rule(cls, rule, content, spans, cfg):
-        """应用单条实体定位规则，返回实体列表。"""
+        """应用单条实体定位规则，返回实体列表。
+
+        P1-4：keys 分支嵌套去重改用单调栈 O(k)（旧版 any() 逐对 O(k²)）；
+        wrap/top_children 分支子块筛选改用深度分桶 + 区间早退（旧版 O(w·m)）。
+        """
         kind = rule[0]
         entities = []
         if kind == "keys":
             keys = set(rule[1])
             cand = [s for s in spans if s[0] in keys]
-            kept = []
+            result_spans = []  # 全部保留块（按 start 升序，保持原顺序输出）
+            stack = []         # 活跃包含链：栈顶为当前最内层未闭合的保留块
             for s in cand:
-                # 跳过被已保留实体块包含的块（避免嵌套同名块重复计数）
-                if any(o[2] <= s[2] and s[3] <= o[3] for o in kept):
+                while stack and stack[-1][3] <= s[2]:
+                    stack.pop()
+                if stack and s[3] <= stack[-1][3]:
+                    # 被先前保留块包含（嵌套同名块去重）
                     continue
-                kept.append(s)
-            for key, _d, start, end in kept:
+                result_spans.append(s)
+                stack.append(s)
+            for key, _d, start, end in result_spans:
                 entities.append(cls._make_entity(content, start, end, key, cfg))
         elif kind == "wrap":
+            by_depth = depth_index(spans)
             for wrap_key, depth_n in rule[1]:
                 for key, bdepth, bpos, bend in spans:
                     if key != wrap_key:
                         continue
-                    children = [s for s in spans
-                                if s[2] > bpos and s[3] <= bend and s[1] == bdepth + depth_n]
+                    children = children_in(by_depth, bpos, bend,
+                                           bdepth + depth_n)
                     for ckey, _cd, cstart, cend in children:
-                        entities.append(cls._make_entity(content, cstart, cend, ckey, cfg))
+                        entities.append(cls._make_entity(content, cstart, cend,
+                                                         ckey, cfg))
         elif kind == "top_children":
             # 未包裹的文件（如 decisions 顶层直接为类别块）：实体 = 顶层块直接子块
             md = min(s[1] for s in spans) if spans else 0
+            by_depth = depth_index(spans)
             for key, bdepth, bpos, bend in spans:
                 if bdepth != md:
                     continue
-                children = [s for s in spans
-                            if s[2] > bpos and s[3] <= bend and s[1] == bdepth + 1]
+                children = children_in(by_depth, bpos, bend, bdepth + 1)
                 for ckey, _cd, cstart, cend in children:
-                    entities.append(cls._make_entity(content, cstart, cend, ckey, cfg))
+                    entities.append(cls._make_entity(content, cstart, cend,
+                                                     ckey, cfg))
         return entities
 
 
@@ -594,29 +616,7 @@ class EntityScanner:
         """将注释与引号字符串原地替换为空格（保持字符位置不变）。
 
         用于 _scan_blocks 定位块范围时，保证扫描结果位置与原文一致。
+        委托 pdx_span.blank_pdx。
         """
-        chars = list(text)
-        n = len(chars)
-        in_str = False
-        i = 0
-        while i < n:
-            c = chars[i]
-            if in_str:
-                if c == '"':
-                    in_str = False
-                chars[i] = ' '
-                i += 1
-                continue
-            if c == '"':
-                in_str = True
-                chars[i] = ' '
-                i += 1
-                continue
-            if c == '#':
-                while i < n and chars[i] != '\n':
-                    chars[i] = ' '
-                    i += 1
-                continue
-            i += 1
-        return ''.join(chars)
+        return blank_pdx(text)
 

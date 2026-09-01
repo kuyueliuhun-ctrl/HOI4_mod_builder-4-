@@ -678,9 +678,8 @@ class VariantDesignerBase(QDialog):
                 if not path:
                     failed.append(tag)
                     continue
-                with open(path, "r", encoding="utf-8-sig",
-                          errors="ignore") as f:
-                    content = f.read()
+                from write_utils import read_text_for_write
+                content = read_text_for_write(path)  # 严格解码，失败计入 failed
                 if name in content:
                     new_content = type(self).APPLY_MODULES(
                         content, name, modules, typ)
@@ -729,8 +728,8 @@ class VariantDesignerBase(QDialog):
             QMessageBox.critical(self, "保存失败", f"找不到国家 {tag} 的文件。")
             return
         try:
-            with open(path, "r", encoding="utf-8-sig", errors="ignore") as f:
-                content = f.read()
+            from write_utils import read_text_for_write
+            content = read_text_for_write(path)  # 严格解码：坏字节中止写入
         except Exception as e:
             QMessageBox.critical(self, "保存失败", str(e))
             return

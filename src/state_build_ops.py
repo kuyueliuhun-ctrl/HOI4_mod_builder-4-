@@ -26,6 +26,27 @@ def _read_utf8(path):
         return None
 
 
+def _read_utf8_strict(path):
+    """写前严格读取：返回 (content, error)，error ∈ "" / "not_found" / "decode_error"。
+
+    目录扫描继续用宽松的 _read_utf8（容错枚举）；只有「已定位到目标文件、
+    准备写回」时用严格读取——坏字节文件直接中止写回（P1-3），
+    绝不把静默丢字节的文本原样写回。
+    """
+    if not os.path.isfile(path):
+        return None, "not_found"
+    try:
+        from write_utils import read_text_for_write, WriteContractError
+    except Exception:
+        return _read_utf8(path), ""
+    try:
+        return read_text_for_write(path), ""
+    except WriteContractError:
+        return None, "decode_error"
+    except OSError:
+        return None, "not_found"
+
+
 def ensure_file_in_mod(mod_path, hoi4_path, rel_path):
     """确保相对路径文件在 mod 内：原版则复制到 mod。
 
@@ -483,9 +504,9 @@ def _write_state_file(mod_path, hoi4_path, state_id, content_transform,
     fp, copied = _state_file_for(mod_path, hoi4_path, state_id, state_data)
     if fp is None:
         return False, "not_found", ""
-    content = _read_utf8(fp)
+    content, _err = _read_utf8_strict(fp)
     if content is None:
-        return False, "not_found", ""
+        return False, _err, ""
     new_content = content_transform(content)
     if new_content is None:
         return False, "not_found", ""
@@ -509,9 +530,9 @@ def set_state_building(mod_path, hoi4_path, state_id, btype, level,
     fp, copied = _state_file_for(mod_path, hoi4_path, state_id, state_data)
     if fp is None:
         return False, "not_found", ""
-    content = _read_utf8(fp)
+    content, _err = _read_utf8_strict(fp)
     if content is None:
-        return False, "not_found", ""
+        return False, _err, ""
     new_content = _edit_buildings(content, state_id, btype, level, pid)
     if new_content is None or new_content == content:
         return False, "not_found", ""
@@ -527,9 +548,9 @@ def set_state_category(mod_path, hoi4_path, state_id, category,
     fp, copied = _state_file_for(mod_path, hoi4_path, state_id, state_data)
     if fp is None:
         return False, "not_found", ""
-    content = _read_utf8(fp)
+    content, _err = _read_utf8_strict(fp)
     if content is None:
-        return False, "not_found", ""
+        return False, _err, ""
     new_content = set_state_category_in_content(content, state_id, category)
     if new_content is None or new_content == content:
         return False, "not_found", ""
@@ -612,9 +633,9 @@ def set_country_color(mod_path, hoi4_path, tag, rgb):
     fp, copied = ensure_file_in_mod(mod_path, hoi4_path, rel)
     if fp is None:
         return False, "not_found", ""
-    content = _read_utf8(fp)
+    content, _err = _read_utf8_strict(fp)
     if content is None:
-        return False, "not_found", ""
+        return False, _err, ""
     new_content = set_country_color_in_content(content, rgb)
     if new_content is None or new_content == content:
         return False, "not_found", ""

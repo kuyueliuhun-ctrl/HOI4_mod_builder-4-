@@ -18,20 +18,22 @@ LOC_PATTERN = re.compile(
 )
 
 
-def parse_loc_yml_file(filepath, cache):
-    """解析单个简体中文本地化 YML 文件，将键值对写入 cache 字典。
+def parse_loc_yml_file(filepath, cache, section="l_simp_chinese"):
+    """解析单个本地化 YML 文件，将键值对写入 cache 字典。
 
     Args:
         filepath: YML 文件路径
-        cache: 写入目标字典（key -> 中文翻译）
+        cache: 写入目标字典（key -> 翻译文本）
+        section: 语言节名（如 "l_simp_chinese" / "l_english"）
     """
     try:
         with open(filepath, "r", encoding="utf-8-sig") as f:
-            in_section = False  # 标记是否进入 l_simp_chinese 节
+            in_section = False  # 标记是否进入目标语言节
+            marker = section + ":"
             for line in f:
                 stripped = line.strip()
-                # 进入简体中文翻译节
-                if stripped == "l_simp_chinese:":
+                # 进入目标语言节
+                if stripped == marker:
                     in_section = True
                     continue
                 if not in_section:
@@ -49,12 +51,16 @@ def parse_loc_yml_file(filepath, cache):
         pass  # 忽略无法读取的文件
 
 
-def load_loc_yml_dir(loc_dir, cache):
-    """加载目录下所有 *_l_simp_chinese.yml 文件到 cache。
+def load_loc_yml_dir(loc_dir, cache, suffix="_l_simp_chinese.yml",
+                     section="l_simp_chinese"):
+    """加载目录下所有指定语言后缀的本地化 YML 文件到 cache。
 
     Args:
-        loc_dir: 简体中文本地化目录
+        loc_dir: 本地化语言目录
         cache: 写入目标字典
+        suffix: 文件名后缀（如 *_l_simp_chinese.yml / *_l_english.yml）
+        section: 语言节名
+
     Returns:
         list[str]: 已加载的文件路径列表
     """
@@ -64,10 +70,10 @@ def load_loc_yml_dir(loc_dir, cache):
     except Exception:
         return loaded
     for filename in sorted(names):
-        if not filename.endswith("_l_simp_chinese.yml"):
+        if not filename.endswith(suffix):
             continue
         filepath = os.path.join(loc_dir, filename)
-        parse_loc_yml_file(filepath, cache)
+        parse_loc_yml_file(filepath, cache, section=section)
         loaded.append(filepath)
     return loaded
 
@@ -86,6 +92,12 @@ class LocalizationManager:
         self.loc_cache = {}
         # 已加载的目录路径列表（防止重复加载同一目录）
         self._load_paths = []
+        # 参考语言缓存（P2-6 多语言回退）：简中缺失时回退显示，只读
+        self.ref_caches = {}
+        self._ref_loaded = []
+
+    # 参考语言：简中键缺失时按顺序回退（保证多语言 mod 名称/描述可见）
+    REF_LANGUAGES = ("english",)
 
     def add_game_path(self, hoi4_path):
         """
@@ -98,6 +110,10 @@ class LocalizationManager:
         # 游戏本地化目录：HOI4_path/localisation/simp_chinese
         loc_dir = os.path.join(hoi4_path, "localisation", "simp_chinese")
         self._load_localisation_dir(loc_dir)
+        # 参考语言（P2-6）：如 localisation/english，简中缺失时回退显示
+        for lang in self.REF_LANGUAGES:
+            ref_dir = os.path.join(hoi4_path, "localisation", lang)
+            self._load_ref_dir(lang, ref_dir)
 
     def add_mod_path(self, mod_path):
         """
@@ -123,6 +139,8 @@ class LocalizationManager:
         """清空所有缓存和加载记录"""
         self.loc_cache.clear()
         self._load_paths.clear()
+        self.ref_caches.clear()
+        self._ref_loaded.clear()
 
     def reload(self, game_path=None, mod_path=None):
         """
@@ -137,22 +155,50 @@ class LocalizationManager:
 
     def get_name(self, focus_id):
         """
-        获取本地化名称
+        获取本地化名称（简中优先，缺失时回退参考语言，见 P2-6）
         Args:
             focus_id: 本地化键名（如 GER_democratic_party）
         Returns:
-            中文翻译文本，无匹配时返回空字符串
+            翻译文本，无匹配时返回空字符串
         """
-        return self.loc_cache.get(focus_id, "")
+        v = self.loc_cache.get(focus_id, "")
+        if v:
+            return v
+        return self._ref_get(focus_id)
 
     def get_desc(self, focus_id):
         """
-        获取本地化描述
+        获取本地化描述（简中优先，缺失时回退参考语言）
         HOI4惯例：描述键名为 原key + "_desc"
         Args:
             focus_id: 本地化键名
         """
-        return self.loc_cache.get(focus_id + "_desc", "")
+        v = self.loc_cache.get(focus_id + "_desc", "")
+        if v:
+            return v
+        return self._ref_get(focus_id + "_desc")
+
+    def _ref_get(self, key):
+        """参考语言回退查询：按 REF_LANGUAGES 顺序取第一个非空值。"""
+        for lang in self.REF_LANGUAGES:
+            cache = self.ref_caches.get(lang)
+            if cache:
+                v = cache.get(key, "")
+                if v:
+                    return v
+        return ""
+
+    def _load_ref_dir(self, lang, loc_dir):
+        """加载参考语言目录（只读回退用）；目录缺失或已加载则跳过。"""
+        if not os.path.isdir(loc_dir):
+            return
+        key = (lang, loc_dir)
+        if key in self._ref_loaded:
+            return
+        self._ref_loaded.append(key)
+        cache = self.ref_caches.setdefault(lang, {})
+        load_loc_yml_dir(loc_dir, cache, suffix="_l_%s.yml" % lang,
+                         section="l_%s" % lang)
 
     def _load_localisation_dir(self, loc_dir):
         """

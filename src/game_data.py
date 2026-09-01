@@ -226,6 +226,9 @@ def find_duplicate_ids(mod_path):
 
     复用 workbench 的实体提取逻辑（能正确识别包装块下的实体键），
     只统计实体级 ID，避免把 allowed/modifier/traits 等字段名误判。
+    P2-7 起补充 history/states 的数字州 id 去重（同 id 多文件即冲突）；
+    country_history 按设计是整文件覆盖（mod 覆盖游戏同名文件），
+    同名共存属正常 overlay 语义，不参与重复判定。
     """
     try:
         from content_types import CONTENT_TYPES
@@ -268,6 +271,27 @@ def find_duplicate_ids(mod_path):
                     nm = e.get("name") or e.get("key")
                     if nm and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{2,}", nm):
                         seen.setdefault(nm, []).append(rp)
+
+    # 州 id 去重（P2-7）：history/states/*.txt 中 state 块的数字 id
+    states_dir = os.path.join(mod_path, "history", "states")
+    if os.path.isdir(states_dir):
+        state_ids = {}
+        for name in sorted(os.listdir(states_dir)):
+            if not name.lower().endswith(".txt"):
+                continue
+            fp = os.path.join(states_dir, name)
+            try:
+                content = open(fp, "r", encoding="utf-8-sig",
+                               errors="ignore").read()
+            except Exception:
+                continue
+            for m in re.finditer(
+                    r"\bstate\s*=\s*\{[^}]*?\bid\s*=\s*(\d+)", content):
+                state_ids.setdefault(m.group(1), []).append(
+                    os.path.relpath(fp, mod_path).replace(os.sep, "/"))
+        for sid, files in state_ids.items():
+            if len(files) > 1:
+                seen.setdefault("state_%s" % sid, []).extend(files)
     return {k: sorted(set(v)) for k, v in seen.items() if len(set(v)) > 1}
 
 

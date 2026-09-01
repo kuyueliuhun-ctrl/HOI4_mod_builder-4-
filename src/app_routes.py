@@ -795,8 +795,11 @@ def _open_generic_tree(ctx):
         with open(ctx.file_path, "r", encoding="utf-8-sig") as f:
             content = f.read()
         file_lines = content.splitlines()
+        root_node = tree_from_pdx_text(content)
+        from tree_node import attach_verbatim_lines
+        attach_verbatim_lines(root_node, content)  # 保真：原文行（注释/空行/缩进）
         editor = GenericTreeEditor(
-            root_node=tree_from_pdx_text(content),
+            root_node=root_node,
             file_path=ctx.file_path,
             file_lines=file_lines,
             block_range=(1, len(file_lines) + 1),

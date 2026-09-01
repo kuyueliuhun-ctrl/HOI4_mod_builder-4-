@@ -1,6 +1,27 @@
+from bisect import bisect_right
+
 import re
 from dataclasses import dataclass, field
 from typing import Dict, Union, List
+
+
+class _LineIndex:
+    """字符偏移 → 行号（1-based）索引：构建 O(n)，查询单次 O(log n)。
+
+    取代「每个 token 都 ``content[:pos].count('\\n')``」的写法
+    （大文件 O(n*m) 热点，见 docs/现状评估报告.md P0-1）。
+    """
+
+    def __init__(self, text: str):
+        self._newlines = []
+        find = text.find
+        i = find("\\n")
+        while i != -1:
+            self._newlines.append(i)
+            i = find("\\n", i + 1)
+
+    def line_of(self, pos: int) -> int:
+        return bisect_right(self._newlines, pos) + 1
 
 # 模板中已知的通用第一层子语句关键字
 KNOWN_KEYS = {
@@ -52,6 +73,7 @@ def parse_focus_file(file_path: str, focus_id: str) -> tuple:
         content = f.read()
 
     file_lines = content.splitlines()
+    line_index = _LineIndex(content)
 
     token_pattern = r'("[^"]*"|#.*|\{|\}|=|[\w\.\-]+)'
     raw_matches = [(m.group(0), m.start()) for m in re.finditer(token_pattern, content)]
@@ -66,14 +88,15 @@ def parse_focus_file(file_path: str, focus_id: str) -> tuple:
         if token in ['focus', 'shared_focus', 'joint_focus']:
             if i + 2 < len(tokens) and tokens[i + 1] == '=' and tokens[i + 2] == '{':
                 focus_type = token
-                start_line = content[:token_positions[i]].count('\n') + 1
+                start_line = line_index.line_of(token_positions[i])
                 first_field_idx = i + 3
                 i = first_field_idx
 
-                layer_1_data, end_idx = _parse_layer_1(tokens, i, token_positions, content)
+                layer_1_data, end_idx = _parse_layer_1(tokens, i, token_positions, content,
+                                                       line_index=line_index)
 
                 block_end_char = _find_block_end_char(content, raw_tokens, tokens, i, end_idx, token_positions)
-                end_line = content[:block_end_char].count('\n') + 1
+                end_line = line_index.line_of(block_end_char)
                 i = end_idx
 
                 current_id = layer_1_data.get('id', [''])[0].strip('"')
@@ -86,7 +109,8 @@ def parse_focus_file(file_path: str, focus_id: str) -> tuple:
                     result.known['__focus_type__'] = focus_type
                     raw_field_map = _build_raw_field_map(file_lines, content, raw_matches,
                                                           tokens, token_positions,
-                                                          start_line, first_field_idx)
+                                                          start_line, first_field_idx,
+                                                          line_index=line_index)
                     return result, file_lines, block_range, x_val, y_val, raw_field_map
         i += 1
 
@@ -94,7 +118,7 @@ def parse_focus_file(file_path: str, focus_id: str) -> tuple:
 
 
 def _build_raw_field_map(file_lines, content, raw_matches, tokens, token_positions,
-                           block_start_line, token_start_idx):
+                           block_start_line, token_start_idx, line_index=None):
     """构建字段名到原始文本行的映射"""
     field_map = {}
 
@@ -122,7 +146,8 @@ def _build_raw_field_map(file_lines, content, raw_matches, tokens, token_positio
             continue
 
         val_start_idx = ti + 2
-        key_start_line = content[:pos].count('\n') + 1
+        key_start_line = (line_index.line_of(pos) if line_index is not None
+                          else content[:pos].count('\n') + 1)
 
         if val_start_idx < len(tokens) and tokens[val_start_idx] == '{':
             depth = 1
@@ -136,7 +161,9 @@ def _build_raw_field_map(file_lines, content, raw_matches, tokens, token_positio
             closing_idx = end_idx - 1
             if closing_idx < len(token_positions):
                 block_end_pos = token_positions[closing_idx]
-                key_end_line = content[:block_end_pos].count('\n') + 1
+                key_end_line = (line_index.line_of(block_end_pos)
+                                if line_index is not None
+                                else content[:block_end_pos].count('\n') + 1)
             else:
                 key_end_line = key_start_line
         else:
@@ -176,7 +203,8 @@ def _find_block_end_char(content: str, raw_tokens: list, tokens: list,
     return len(content)
 
 
-def _parse_layer_1(tokens: list, start_idx: int, token_positions: list = None, content: str = ""):
+def _parse_layer_1(tokens: list, start_idx: int, token_positions: list = None, content: str = "",
+                   line_index=None):
     """解析结构体的第一层级
 
     参数:
@@ -192,6 +220,8 @@ def _parse_layer_1(tokens: list, start_idx: int, token_positions: list = None, c
 
     def get_line(idx):
         """获取 token 的行号"""
+        if line_index is not None and idx < len(token_positions):
+            return line_index.line_of(token_positions[idx])
         if token_positions and content and idx < len(token_positions):
             return content[:token_positions[idx]].count('\n') + 1
         return 0

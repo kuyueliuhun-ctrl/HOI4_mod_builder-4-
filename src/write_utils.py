@@ -19,11 +19,57 @@
 from __future__ import annotations
 
 import os
+import stat
 import tempfile
 
 
 class WriteContractError(ValueError):
     """写入违反编码/内容契约（BOM、不可编码字符等），原文件不会被触碰。"""
+
+
+def _replace_atomic(tmp_path, path):
+    """临时文件 → 原子替换目标文件。
+
+    目标被占用/只读（PermissionError）时：记录原权限 → 放宽后重试 →
+    替换成功后**恢复原权限**（修复旧版 chmod 0o666 一去不回的问题，
+    见 docs/现状评估报告.md P1-3）。
+    """
+    try:
+        os.replace(tmp_path, path)
+        return
+    except PermissionError:
+        pass
+    original_mode = None
+    try:
+        original_mode = stat.S_IMODE(os.stat(path).st_mode)
+        os.chmod(path, 0o666)
+    except OSError:
+        original_mode = None
+    os.replace(tmp_path, path)
+    if original_mode is not None:
+        try:
+            os.chmod(path, original_mode)
+        except OSError:
+            pass
+
+
+def read_text_for_write(path, *, encoding="utf-8-sig"):
+    """写前读取：严格解码，杜绝「坏字节静默丢弃后原样写回」的腐蚀。
+
+    旧版多处用 ``errors="ignore"`` 读入再整文件写回——GBK/损坏字节会被
+    静默删除且不可逆。所有「读入 → 变换 → 写回」路径都应使用本函数；
+    解码失败抛 WriteContractError（含文件名与字节位置），由调用方
+    中止写入并提示用户，原文件保持不动。
+    """
+    try:
+        with open(path, "r", encoding=encoding, errors="strict",
+                  newline="") as f:
+            return f.read()
+    except UnicodeDecodeError as exc:
+        raise WriteContractError(
+            "文件不是有效的 %s 编码（字节 0x%02X 位于偏移 %d），已取消写入"
+            "以避免坏字节被静默丢弃：%s"
+            % (encoding, exc.object[exc.start], exc.start, path)) from exc
 
 
 def validate_text_contract(text, *, encoding="utf-8", allow_bom=False):
@@ -83,15 +129,7 @@ def atomic_write_text(path, text, *, encoding="utf-8", newline="", undo=True,
     try:
         with os.fdopen(fd, "w", encoding=encoding, newline=newline) as f:
             f.write(text)
-        try:
-            os.replace(tmp_path, path)
-        except PermissionError:
-            # 目标被占用/只读时与原实现保持一致：尝试放宽权限后重试一次
-            try:
-                os.chmod(path, 0o666)
-            except OSError:
-                pass
-            os.replace(tmp_path, path)
+        _replace_atomic(tmp_path, path)
     except Exception:
         try:
             os.unlink(tmp_path)
@@ -122,14 +160,7 @@ def atomic_write_bytes(path, data, *, undo=False):
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(bytes(data))
-        try:
-            os.replace(tmp_path, path)
-        except PermissionError:
-            try:
-                os.chmod(path, 0o666)
-            except OSError:
-                pass
-            os.replace(tmp_path, path)
+        _replace_atomic(tmp_path, path)
     except Exception:
         try:
             os.unlink(tmp_path)

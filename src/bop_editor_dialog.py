@@ -556,9 +556,8 @@ class BopEditorDialog(BopEditorPagesMixin, QDialog):
                 "请先打开 mod 目录；原版文件只读，需复制到 mod 后才能编辑")
             return
         try:
-            with open(mod_fp, "r", encoding="utf-8-sig",
-                      errors="ignore") as f:
-                content = f.read()
+            from write_utils import read_text_for_write
+            content = read_text_for_write(mod_fp)  # 严格解码（P1-3）
         except Exception as e:
             QMessageBox.warning(self, "无法编辑", "读取文件失败：%s" % e)
             return
@@ -570,6 +569,8 @@ class BopEditorDialog(BopEditorPagesMixin, QDialog):
 
         file_lines = content.splitlines()
         root = tree_from_pdx_text(content)
+        from tree_node import attach_verbatim_lines
+        attach_verbatim_lines(root, content)  # 保真：原文行（注释/空行/缩进）
         editor = GenericTreeEditor(
             root_node=root,
             file_path=mod_fp,

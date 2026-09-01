@@ -18,46 +18,12 @@ def find_block_range(content, entity_key, entity_id=None):
         content (str): 文件内容
         entity_key (str 或 set): 实体块关键字（如 focus / decision / bookmark），可为集合
         entity_id (str, optional): 实体 id（块内 id = X 的值），None 时取首个匹配块
+
+    实现委托 pdx_span.find_block_range（单遍 O(n) 块扫描，P1-4），
+    取代旧版「每次调用整文件 token 化逐块扫描」。
     """
-    keys = set(entity_key) if isinstance(entity_key, (set, tuple, list)) else {entity_key}
-    token_pattern = r'("[^"]*"|#.*|\{|\}|=|[\w\.\-]+)'
-    raw_matches = list(re.finditer(token_pattern, content))
-    tokens = [m.group(0) for m in raw_matches if not m.group(0).startswith('#')]
-
-    i = 0
-    while i < len(tokens):
-        token = tokens[i]
-        if token in keys:
-            if i + 2 < len(tokens) and tokens[i + 1] == '=' and tokens[i + 2] == '{':
-                block_start = raw_matches[i].start()
-                depth = 1
-                j = i + 3
-                while j < len(tokens) and depth > 0:
-                    if tokens[j] == '{':
-                        depth += 1
-                    elif tokens[j] == '}':
-                        depth -= 1
-                    j += 1
-                block_end_idx = j - 1
-
-                # 校验 id 是否匹配（若指定）
-                if entity_id is not None:
-                    block_tokens = tokens[i + 3:block_end_idx]
-                    has_id = False
-                    for k, t in enumerate(block_tokens):
-                        if t == 'id' and k + 2 < len(block_tokens) and block_tokens[k + 1] == '=':
-                            if block_tokens[k + 2].strip('"') == entity_id:
-                                has_id = True
-                                break
-                    if not has_id:
-                        i = j
-                        continue
-
-                return block_start, raw_matches[block_end_idx].end()
-                i = j
-                continue
-        i += 1
-    return -1, -1
+    from pdx_span import find_block_range as _fast
+    return _fast(content, entity_key, entity_id)
 
 
 def get_entity_icon_field(content, block_start, block_end, field_path):

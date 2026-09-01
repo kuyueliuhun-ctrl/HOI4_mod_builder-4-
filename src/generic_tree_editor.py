@@ -210,6 +210,19 @@ class GenericTreeEditor(QDialog):
         self._undo_stack = []
         self._undo_limit = 200
 
+        # 保存纪律：脏标记（任何修改置位；无改动保存 = 不写盘，字节级保真）
+        self._dirty = False
+        # 打开时的 mtime：保存前检测文件是否被外部修改（游戏/其他工具）
+        self._opened_mtime_ns = None
+        try:
+            import os as _os
+            if file_path and _os.path.isfile(file_path):
+                self._opened_mtime_ns = _os.stat(file_path).st_mtime_ns
+        except OSError:
+            self._opened_mtime_ns = None
+        # 搜索状态（循环搜索：回车跳下一个匹配）
+        self._search_state = {"kw": "", "results": [], "pos": -1}
+
         # 设置窗口基本属性
         self.setWindowTitle(title)
         self.resize(750, 600)
@@ -436,6 +449,8 @@ class GenericTreeEditor(QDialog):
         """连接 UI 控件的信号与处理槽函数"""
         # 搜索框文本变化时触发搜索
         self.search_edit.textChanged.connect(self._on_search)
+        # 回车：跳到下一个匹配（循环搜索）
+        self.search_edit.returnPressed.connect(self._search_advance)
         # 展开/折叠全部节点
         self.expand_btn.clicked.connect(self.tree_view.expandAll)
         self.collapse_btn.clicked.connect(self.tree_view.collapseAll)
@@ -833,21 +848,23 @@ class GenericTreeEditor(QDialog):
         node.children = result.children
         # 清空 raw_lines，后续序列化时会重新生成
         node.raw_lines = []
+        self._dirty = True
         # 重新设置子节点的 parent 引用
         for child in node.children:
             child.parent = node
 
-    @staticmethod
-    def _invalidate_ancestors(node):
+    def _invalidate_ancestors(self, node):
         """清空节点自身及其所有祖先的 raw_lines，确保保存时从树重新序列化。
 
         若某个节点或其祖先块保留了原始文本行（raw_lines），修改内部后
-        保存时仍会输出旧文本，导致修改被丢弃。这里沿节点自身向上清空。
+        保存时仍会输出旧文本，导致修改被丢弃。这里沿节点自身向上清空，
+        并置位保存脏标记（无改动保存 = 不写盘，见 _save）。
         """
         p = node
         while p is not None:
             p.raw_lines = []
             p = p.parent
+        self._dirty = True
 
     # ---------- 撤销（Ctrl+Z） ----------
 
@@ -888,6 +905,8 @@ class GenericTreeEditor(QDialog):
         r.key = snap.key
         r.value = snap.value
         r.raw_lines = list(snap.raw_lines)
+        for _attr in ("_verbatim_lead", "_verbatim_tail"):
+            setattr(r, _attr, list(getattr(snap, _attr, None) or []))
         r.children = snap.children
         for c in r.children:
             c.parent = r
@@ -1102,25 +1121,73 @@ class GenericTreeEditor(QDialog):
             keyword (str): 搜索关键词
         """
         if not keyword.strip():
+            self._search_state = {"kw": "", "results": [], "pos": -1}
             return
-        results = self.model.find_nodes(keyword.strip())
-        if results:
-            self.tree_view.setCurrentIndex(results[0])
-            self.tree_view.scrollTo(results[0])
+        kw = keyword.strip()
+        st = self._search_state
+        if st["kw"] == kw and st["results"]:
+            # 同一关键词：回车/继续输入时跳下一个匹配
+            self._search_advance()
+            return
+        st["kw"] = kw
+        st["results"] = self.model.find_nodes(kw)
+        st["pos"] = -1
+        self._search_advance()
+
+    def _search_advance(self):
+        """跳到下一个搜索结果（循环）；状态栏显示进度（P2-8）。"""
+        st = self._search_state
+        if not st["results"]:
+            self.status_label.setText("无匹配节点")
+            return
+        st["pos"] = (st["pos"] + 1) % len(st["results"])
+        self._locate_node(st["results"][st["pos"]])
+        self.status_label.setText(
+            f"搜索 {st['pos'] + 1}/{len(st['results'])}（回车下一个）")
 
     def _save(self):
         """保存编辑结果到文件
 
         保存流程：
-        1. 检测原文件的缩进格式（tab 或空格）
-        2. 构建外层的包装起始行（如 "focus = {"）
-        3. 将树节点序列化为带缩进的 PDX 文本行
-        4. 拼接文件头 + 编辑块 + 文件尾
-        5. 写入文件（UTF-8 with BOM）
+        0. 外部修改检测：文件 mtime 与打开时不一致且有改动时，提示确认后覆盖。
+        1. 无改动（_dirty=False）→ 不写盘直接关闭（打开→保存字节级保真）。
+        2. 检测原文件的缩进格式（tab 或空格）。
+        3. 整文件打开（block_range 覆盖全文件）：根下有唯一包装块时重建包装壳，
+           否则按根子节点直接序列化（顶层不套壳、绝不补 focus 包装——修复旧版
+           多顶层块文件被整体包进 focus = {} 的破坏性问题）。
+           节点保留 raw_lines 原文行（注释/空行/缩进不丢，见
+           tree_node.attach_verbatim_lines）。
+        4. 块级打开（国策等）：沿用「文件头 + 包装 + 编辑块 + 文件尾」拼接。
+        5. 写入文件（UTF-8 无 BOM 原子写）；写前自动快照到撤销管理器。
 
         Returns:
             bool: 保存成功返回 True，失败返回 False
         """
+        # 外部修改检测（有改动才需要覆盖确认）
+        if self._dirty and self.file_path and self._opened_mtime_ns is not None:
+            try:
+                import os as _os
+                if _os.path.isfile(self.file_path):
+                    cur_mtime = _os.stat(self.file_path).st_mtime_ns
+                    if cur_mtime != self._opened_mtime_ns:
+                        ret = QMessageBox.question(
+                            self, "文件已被外部修改",
+                            "文件在编辑器打开后被外部修改过。\n"
+                            "继续保存将覆盖外部改动，是否继续？",
+                            QMessageBox.StandardButton.Yes
+                            | QMessageBox.StandardButton.No,
+                            QMessageBox.StandardButton.No)
+                        if ret != QMessageBox.StandardButton.Yes:
+                            return False
+            except OSError:
+                pass
+
+        # 无改动：不写盘（字节级保真，文件保持原样）
+        if not self._dirty:
+            self.tree_saved.emit()
+            self.close()
+            return True
+
         try:
             start, end = self.block_range
             # 获取编辑块起始行的文本，用于检测缩进
@@ -1136,27 +1203,48 @@ class GenericTreeEditor(QDialog):
                     indent += ch
                 else:
                     break
-            if indent and not indent.startswith("\t"):
+            if indent and not indent.startswith("\\t"):
                 unit = indent
 
-            # 构建编辑块的包装行
-            wrapper_start = self._get_wrapper_start(indent)
-            wrapper_end = f"{indent}}}"
+            whole_file = (start <= 1 and end >= len(self.file_lines) + 1)
+            wrapper = self._get_editable_wrapper_block()
+            if whole_file:
+                # 整文件打开：唯一包装块时重建包装壳，否则直接序列化根子节点
+                new_lines = []
+                if wrapper is not None:
+                    # 包装块之前的注释/空行原样保留
+                    new_lines.extend(getattr(wrapper, "_verbatim_lead", None) or [])
+                    new_lines.append(self._get_wrapper_start(indent))
+                    new_lines.extend(self._serialize_children(wrapper, 1, unit))
+                    new_lines.extend(getattr(wrapper, "_verbatim_tail", None) or [])
+                    new_lines.append(f"{indent}}}")
+                else:
+                    # 多顶层块文件：顶层不套壳，避免旧版 focus = {} 包装破坏文件
+                    new_lines.extend(
+                        self._serialize_children(self.root_node, 0, unit))
+                # 文件尾部注释/空行（最后一个顶层节点之后）
+                new_lines.extend(
+                    getattr(self.root_node, "_verbatim_tail", None) or [])
+            else:
+                # 构建编辑块的包装行
+                wrapper_start = self._get_wrapper_start(indent)
+                wrapper_end = f"{indent}}}"
 
-            # 若根节点下只有唯一的包装块子节点（如 focus 块），序列化该块的子节点
-            inner_source = self._get_editable_wrapper_block()
-            if inner_source is None:
-                inner_source = self.root_node
-            inner_lines = self._serialize_children(inner_source, indent=1, unit=unit)
+                # 若根节点下只有唯一的包装块子节点（如 focus 块），序列化该块的子节点
+                inner_source = self._get_editable_wrapper_block()
+                if inner_source is None:
+                    inner_source = self.root_node
+                inner_lines = self._serialize_children(inner_source, indent=1,
+                                                       unit=unit)
 
-            # 拼接完整文件内容：头 + 包装开始 + 内部内容 + 包装结束 + 尾
-            new_lines = (
-                self.file_lines[:start - 1] +
-                [wrapper_start] +
-                inner_lines +
-                [wrapper_end] +
-                self.file_lines[end:]
-            )
+                # 拼接完整文件内容：头 + 包装开始 + 内部内容 + 包装结束 + 尾
+                new_lines = (
+                    self.file_lines[:start - 1] +
+                    [wrapper_start] +
+                    inner_lines +
+                    [wrapper_end] +
+                    self.file_lines[end:]
+                )
 
             # 写入文件（UTF-8 无 BOM 原子写）；写前自动快照到撤销管理器
             output = "\n".join(new_lines) + "\n"
@@ -1164,7 +1252,8 @@ class GenericTreeEditor(QDialog):
             atomic_write_text(self.file_path, output)
             # 保存成功后刷新固定字段ID（翻译/描述条目跟随新ID）
             self._collect_fixed_fields()
-            self.model.set_editor_refs(self.translation_editor, self._fixed_field_ids)
+            self.model.set_editor_refs(self.translation_editor,
+                                       self._fixed_field_ids)
             # 发送保存成功信号
             self.tree_saved.emit()
             self.close()
@@ -1228,6 +1317,9 @@ class GenericTreeEditor(QDialog):
             # 跳过虚拟节点（顾问分配等展示条目，不写入文件）
             if getattr(child, "_virtual_parent_key", None):
                 continue
+            # 前导注释/空行：与节点是否被编辑无关，一律原样保留
+            for line in (getattr(child, "_verbatim_lead", None) or []):
+                lines.append(line)
             # 如果有原始行，直接使用（保留格式）
             if child.raw_lines:
                 for line in child.raw_lines:
@@ -1256,5 +1348,7 @@ class GenericTreeEditor(QDialog):
                     lines.append(f"{tabs}{quote_cjk_key(child.key)} = {{")
                     # 递归序列化子节点
                     lines.extend(self._serialize_children(child, indent + 1, unit))
+                    # 重建块时保留块尾注释/空行（最后一个子节点之后、闭括号之前）
+                    lines.extend(getattr(child, "_verbatim_tail", None) or [])
                     lines.append(f"{tabs}}}")
         return lines

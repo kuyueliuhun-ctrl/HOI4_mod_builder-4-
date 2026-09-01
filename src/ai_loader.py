@@ -44,6 +44,33 @@ def _clear_cache():
     _AI_CACHE.clear()
 
 
+def invalidate_cache(kind=None, mod_path=None, hoi4_path=None):
+    """按需失效 _AI_CACHE（P1-5 精确失效）。
+
+    旧版调用方（raw/simple 编辑器重载）直接 _AI_CACHE.clear()，
+    一处保存导致所有类型全部重扫。本函数支持三维过滤：
+    - kind: loader cache_key（如 "scripted_effects"）；None = 不限
+    - mod_path / hoi4_path: 缓存键中的路径分量；None = 不限
+
+    Returns:
+        int: 清除的缓存条目数
+    """
+    removed = 0
+    for key in list(_AI_CACHE.keys()):
+        parts = tuple(key) if isinstance(key, (tuple, list)) else (key,)
+        parts = (parts + ("", "", ""))[:3]
+        k_kind, k_mod, k_game = parts
+        if kind is not None and k_kind != kind:
+            continue
+        if mod_path is not None and k_mod != (mod_path or ""):
+            continue
+        if hoi4_path is not None and k_game != (hoi4_path or ""):
+            continue
+        del _AI_CACHE[key]
+        removed += 1
+    return removed
+
+
 # ---------- 基础解析辅助 ----------
 
 def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt"):

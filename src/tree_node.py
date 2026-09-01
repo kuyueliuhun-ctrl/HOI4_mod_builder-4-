@@ -1,3 +1,5 @@
+from bisect import bisect_right
+
 import re
 
 # 无空格日期字符串字段：裸写会被引擎按数字截断解析（如 1939.1.1 → 1939.1），
@@ -123,6 +125,11 @@ class TreeNode:
     def clone(self):
         """深拷贝当前节点及其所有子节点，返回一个完全独立的副本。"""
         new_node = TreeNode(self.node_type, self.key, self.value, raw_lines=list(self.raw_lines))
+        # 保真保存相关属性一并拷贝（撤销快照恢复后仍能保真序列化）
+        for attr in ("_tok_span", "_verbatim_lead", "_verbatim_tail"):
+            val = getattr(self, attr, None)
+            if val is not None:
+                setattr(new_node, attr, list(val))
         for child in self.children:
             new_node.add_child(child.clone())  # 递归克隆子节点
         return new_node
@@ -503,16 +510,20 @@ def _parse_tokens(parent, tokens, start, end):
     """解析 token 列表的指定范围，将结果添加到 parent 节点中。
 
     直接操作 token 列表和索引，保留行号信息以正确处理空值。
+    tokens 为 (token, line_number, char_pos) 三元组；同时为每个节点记录
+    ``_tok_span = (起始 token 下标, 结束 token 下标+1)``，供
+    :func:`attach_verbatim_lines` 映射回原文行（通用树保真保存用）。
 
     参数:
         parent: 父 TreeNode 节点
-        tokens: (token, line_number) 元组列表
+        tokens: (token, line_number, char_pos) 三元组列表
         start: 起始索引（包含）
         end: 结束索引（不包含）
     """
     i = start
     while i < end:
-        tok, line = tokens[i]
+        tok = tokens[i][0]
+        line = tokens[i][1]
         # 跳过等号和右大括号 token
         if tok in ("=", "}"):
             i += 1
@@ -521,13 +532,16 @@ def _parse_tokens(parent, tokens, start, end):
         key = tok
         # 检查是否是 key = value 或 key = { ... } 格式
         if i + 1 < end and tokens[i + 1][0] == "=":
-            _, eq_line = tokens[i + 1]
+            eq_line = tokens[i + 1][1]
             i += 2  # 跳过键和等号
             if i < end:
-                next_tok, next_line = tokens[i]
+                next_tok = tokens[i][0]
+                next_line = tokens[i][1]
                 # 如果 = 和下一个 token 不在同一行，说明是空值
                 if next_line != eq_line:
-                    parent.add_child(TreeNode("value", key, ""))
+                    node = TreeNode("value", key, "")
+                    node._tok_span = (i - 2, i)
+                    parent.add_child(node)
                     continue
                 if next_tok == "{":
                     # 块值：匹配嵌套大括号的起止位置
@@ -540,17 +554,22 @@ def _parse_tokens(parent, tokens, start, end):
                             depth -= 1
                         block_end += 1
                     sub = TreeNode("block", key)
+                    sub._tok_span = (i - 2, block_end)
                     _parse_tokens(sub, tokens, i, block_end - 1)  # 递归解析块内部
                     parent.add_child(sub)
                     i = block_end
                 else:
                     # 简单值：去除引号后存储
                     val = next_tok.strip('"')
-                    parent.add_child(TreeNode("value", key, val))
+                    node = TreeNode("value", key, val)
+                    node._tok_span = (i - 2, i + 1)
+                    parent.add_child(node)
                     i += 1
             else:
                 # = 后面没有 token，空值
-                parent.add_child(TreeNode("value", key, ""))
+                node = TreeNode("value", key, "")
+                node._tok_span = (i - 2, end)
+                parent.add_child(node)
                 i += 1
         else:
             # 比较语句：`key >= 100` / `key < value`（无等号，出现在触发/效果块中）
@@ -560,13 +579,17 @@ def _parse_tokens(parent, tokens, start, end):
                 op = tokens[i + 1][0]
                 stmt_val = tokens[i + 2][0].strip('"')
                 stmt_text = "%s %s %s" % (key, op, stmt_val)
-                parent.add_child(TreeNode("value", "", stmt_text,
-                                          raw_lines=[stmt_text]))
+                node = TreeNode("value", "", stmt_text,
+                                raw_lines=[stmt_text])
+                node._tok_span = (i, i + 3)
+                parent.add_child(node)
                 i += 3
                 continue
             # 独立 token（无等号），作为空值节点
             if key not in ("{", "}"):
-                parent.add_child(TreeNode("value", key, ""))
+                node = TreeNode("value", key, "")
+                node._tok_span = (i, i + 1)
+                parent.add_child(node)
             i += 1
 
 
@@ -593,7 +616,7 @@ def _strip_comments(text):
 
 
 def _tokenize(text):
-    """PDX 分词器：将 PDX 文本拆分为带行号的 token 列表。
+    """PDX 分词器：将 PDX 文本拆分为带行号与字符偏移的 token 列表。
 
     识别以下 token 类型：
     - 大括号 { }
@@ -602,17 +625,27 @@ def _tokenize(text):
     - 比较运算符 >= <= == != > <
     - 标识符（字母、数字、点、连字符、斜杠——斜杠用于 gfx 路径等值）
 
-    参数:
-        text: 原始 PDX 文本字符串
-    返回:
-        (token, line_number) 元组列表，line_number 为 1-indexed
+    返回 (token, line_number, char_pos) 三元组，line_number 为 1-indexed，
+    char_pos 为在「去注释后文本」中的偏移（行号与原文一一对应）。
+
+    性能契约：行号采用增量统计（相邻 token 间只 count 新增段落），
+    全文件 O(n)；禁止改回逐 token `text[:pos].count('\\n')`（那会退化为 O(n²)，
+    实测 1MB 文件解析 36s → 线性化后亚秒级，见 docs/现状评估报告.md P0-1）。
     """
     text = _strip_comments(text)
     tokens = []
-    for m in re.finditer(r'\{|\}|>=|<=|==|!=|=|>|<|"[^"]*"|[\w\.\-/]+', text):
-        line_no = text[:m.start()].count('\n') + 1
-        tokens.append((m.group(0), line_no))
+    line_no = 1
+    prev = 0
+    for m in _TOKEN_RE.finditer(text):
+        start = m.start()
+        if start > prev:
+            line_no += text.count("\n", prev, start)
+            prev = start
+        tokens.append((m.group(0), line_no, start))
     return tokens
+
+
+_TOKEN_RE = re.compile(r'\{|\}|>=|<=|==|!=|=|>|<|"[^"]*"|[\w\.\-/]+')
 
 
 def parse_pdx_block_to_tree(text, key="(root)"):
@@ -670,3 +703,97 @@ def tree_from_pdx_text(text):
     for child in children:
         root.add_child(child)
     return root
+
+
+class LineIndex:
+    """字符偏移 → 行号（1-based）查询索引。
+
+    构建 O(n)（str.find 循环，C 速度），查询单次 O(log n)。
+    取代「每个 token 都 text[:pos].count(newline)」的 O(n^2) 写法。
+    """
+
+    def __init__(self, text):
+        self._newlines = []
+        find = text.find
+        i = find("\n")
+        while i != -1:
+            self._newlines.append(i)
+            i = find("\n", i + 1)
+
+    def line_of(self, pos):
+        """返回字符偏移 pos 所在行号（1-based）。"""
+        return bisect_right(self._newlines, pos) + 1
+
+
+def attach_verbatim_lines(root, text):
+    """为树节点附加原始文本行（含节点间注释/空行），供通用树编辑器保真保存。
+
+    只应在「整文件树」（tree_from_pdx_text 的结果）上调用；国策路径
+    （TreeNode.from_focus_load）自带 raw_fields 原文行，不需要本函数。
+
+    附加规则：
+    - 节点自身行：从节点首个 token 行到末个 token 行（rstrip，保留原缩进），
+      写入 raw_lines（_serialize_children 原样输出）；
+    - 前导注释/空行：上一兄弟结束行到本节点起始行之间的行，
+      写入 _verbatim_lead（序列化时先于节点输出）；
+    - 块尾注释/空行（最后一个子节点之后、闭括号之前）：
+      写入 _verbatim_tail（重建块时插在子节点与闭括号之间）；
+    - 根级尾部（最后一个顶层节点之后到文件尾）：写入 root._verbatim_tail；
+    - 与父键同行的内联内容（如 key = { a = 1 } 单行块）不附加原文，
+      保存时按树重建，避免键行重复。
+
+    Args:
+        root: tree_from_pdx_text / parse_pdx_text_to_nodes 产出的树根
+        text: 构建该树时使用的原始文本
+    """
+    lines = text.splitlines()
+    if not lines:
+        return
+    # token 位置基于「去注释后文本」（_tokenize 先 _strip_comments），
+    # 但去注释是逐行截断（不改变行数），行号与原文一一对应；
+    # 因此索引必须建在去注释后的文本上，行内容仍取自原文。
+    idx = LineIndex(_strip_comments(text))
+    prev_end = 0  # 上一节点结束行（1-based；0 = 尚未消费任何行）
+
+    # _tok_span 记录的是 token 下标；换算回字符偏移再查行号
+    tok_pos = [t[2] for t in _tokenize(_strip_comments(text))]
+
+    def span_of(node):
+        span = getattr(node, "_tok_span", None)
+        if not span or span[0] >= len(tok_pos):
+            return None
+        start_line = idx.line_of(tok_pos[span[0]])
+        end_idx = min(span[1] - 1, len(tok_pos) - 1)
+        end_line = idx.line_of(tok_pos[end_idx])
+        return start_line, max(end_line, start_line)
+
+    def rstrip_lines(first, last):
+        """闭区间 [first, last]（1-based 行号）→ rstrip 后的行列表。"""
+        if last < first:
+            return []
+        return [lines[k - 1].rstrip() for k in range(first, last + 1)]
+
+    def walk(node, parent_key_line):
+        nonlocal prev_end
+        sp = span_of(node)
+        if sp is None:
+            return
+        start_line, end_line = sp
+        if start_line <= parent_key_line:
+            # 内联块/与父键同行：不附加原文（保存时按树重建）
+            return
+        node._verbatim_lead = rstrip_lines(prev_end + 1, start_line - 1)
+        node.raw_lines = rstrip_lines(start_line, end_line)
+        prev_end = start_line  # 子节点前导从键行之后开始
+        for child in node.children:
+            walk(child, start_line)
+        tail = rstrip_lines(prev_end + 1, end_line - 1)
+        if tail:
+            node._verbatim_tail = tail
+        prev_end = end_line  # 下一兄弟的前导接在本节点结束行之后
+
+    for child in root.children:
+        walk(child, 0)
+    tail = rstrip_lines(prev_end + 1, len(lines))
+    if tail:
+        root._verbatim_tail = tail

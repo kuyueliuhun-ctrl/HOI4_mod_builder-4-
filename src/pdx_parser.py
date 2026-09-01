@@ -58,11 +58,19 @@ def parse_pdx_script(text):
     # 分词：匹配符号、等号、大括号、比较运算符和字符串/关键字
     # 识别: { } = >= <= == != > < "字符串" 标识符
     # 标识符允许 @ : + / ( ) , 等 PDX 中常见的无引号字符（不再静默丢弃）
-    # 同时记录每个 token 的行号（1-indexed）
+    # 同时记录每个 token 的行号（1-indexed）。
+    # 性能契约：行号增量统计（相邻 token 间只 count 新增段落，全文件 O(n)）；
+    # 禁止改回逐 token `text[:pos].count('\n')`（会退化为 O(n²)，
+    # 实测 1MB 文件 36s → 线性化后亚秒级，见 docs/现状评估报告.md P0-1）。
     raw_tokens = []
+    line_no = 1
+    prev = 0
     for m in re.finditer(
             r'\{|\}|>=|<=|==|!=|=|>|<|"[^"]*"|[^\s\{\}=<>#]+', text):
-        line_no = text[:m.start()].count('\n') + 1
+        start = m.start()
+        if start > prev:
+            line_no += text.count("\n", prev, start)
+            prev = start
         raw_tokens.append((m.group(0), line_no))
 
     def parse_block(iterator, top=False):

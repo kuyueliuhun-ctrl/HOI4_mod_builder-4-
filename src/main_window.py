@@ -120,6 +120,16 @@ class MyWindow(MainWindowDocksMixin, QMainWindow):
         self.workbench_dock = None
         self._init_ui_mode()
 
+        # 构建/启用国家 tag 全局索引（P2-7：mod ∪ 游戏 common/country_tags，
+        # 带缓存；供实体扫描在文件名启发式之外命中中间段 tag）
+        try:
+            from entity_scanner import EntityScanner as _EntityScanner
+            _EntityScanner.ensure_country_tag_index(
+                self.settings.get("mod_path", ""),
+                self.settings.get("HOI4_path", ""))
+        except Exception:
+            pass
+
         # ---------- AI 助手菜单 ----------
         self.ui.action_ai_prompt_file.triggered.connect(self.on_ai_prompt_file)
         self.ui.action_ai_prompt_project.triggered.connect(self.on_ai_prompt_project)

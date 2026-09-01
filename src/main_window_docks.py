@@ -531,6 +531,8 @@ class MainWindowDocksMixin:
 
             file_lines = content.splitlines()
             root = tree_from_pdx_text(content)
+            from tree_node import attach_verbatim_lines
+            attach_verbatim_lines(root, content)  # 保真：原文行（注释/空行/缩进）
             translator = get_translator()
             loc_manager = get_localization_manager()
             hoi4 = self.settings.get("HOI4_path", "")

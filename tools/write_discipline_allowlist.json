@@ -1,8 +1,9 @@
 {
-  "_comment": "写入纪律豁免登记。规则：mod 内容文件（.txt/.gfx/.yml/.mod 等）必须走 write_utils.atomic_write_text（原子写 + 无 BOM 契约 + 撤销快照）；仅程序自身配置、程序数据文件与一次性开发脚本允许直写，登记于此并写明理由。新写入请优先走原子写，确需直写时在此登记。复核（2026-08-23 F8）：全部条目仍必要，无待移除项。",
+  "_comment": "写入纪律豁免登记。规则：mod 内容文件（.txt/.gfx/.yml/.mod 等）必须走 write_utils.atomic_write_text（原子写 + 无 BOM 契约 + 撤销快照）；仅程序自身配置、程序数据文件与一次性开发脚本允许直写，登记于此并写明理由。新写入请优先走原子写，确需直写时在此登记。复核（2026-08-23 F8）：全部条目仍必要，无待移除项。P2-8 起支持 allow_paths：模块级豁免可声明允许的写入目标（后缀/fnmatch 匹配），扫描器能静态解析出目标且不匹配时改判违规（无法解析时维持放行，尽力而为审计）。",
   "modules": {
     "src/ai_assist.py": {
-      "reason": "程序配置 settings.json 写入（非 mod 内容，低风险）"
+      "reason": "程序配置 settings.json 写入（非 mod 内容，低风险）",
+      "allow_paths": ["settings.json"]
     },
     "src/custom_statement_dialog.py": {
       "reason": "程序数据 custom_statements.json 写入（非 mod 内容）"
@@ -11,10 +12,12 @@
       "reason": "程序数据 custom_statements.json 写入（非 mod 内容）"
     },
     "src/main_window.py": {
-      "reason": "程序配置 settings.json 写入（非 mod 内容，多处）"
+      "reason": "程序配置 settings.json 写入（非 mod 内容，多处）",
+      "allow_paths": ["settings.json"]
     },
     "src/setup_wizard.py": {
-      "reason": "程序配置 settings.json 写入（非 mod 内容）"
+      "reason": "程序配置 settings.json 写入（非 mod 内容）",
+      "allow_paths": ["settings.json"]
     },
     "src/template_scheduler.py": {
       "reason": "程序变量配置 json 写入（非 mod 内容）"
@@ -38,7 +41,8 @@
       "reason": "分析报告/已分析.md 输出（非 mod 内容，开发调试工具；流式直写避免内存爆炸）"
     },
     "src/main_window_docks.py": {
-      "reason": "承继 main_window 的程序配置 settings.json 写入（F5 拆分，非 mod 内容）"
+      "reason": "承继 main_window 的程序配置 settings.json 写入（F5 拆分，非 mod 内容）",
+      "allow_paths": ["settings.json"]
     },
     "tools/build_portable.py": {
       "reason": "便携版打包脚本写 dist 输出目录（非 mod 内容，开发/发布工具）"

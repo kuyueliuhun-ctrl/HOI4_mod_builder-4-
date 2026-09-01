@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import fnmatch
 import json
 import os
 import sys
@@ -49,12 +50,74 @@ SKIP_FILES = {"write_utils.py"}  # 原子写实现本身
 _BINARY_OK = True
 
 
+def _static_path_hint(value):
+    """静态提取写入目标提示：字符串常量 / os.path.join(..., "尾部字面量")。"""
+    if isinstance(value, ast.Constant) and isinstance(value.value, str):
+        return value.value
+    if isinstance(value, ast.Call):
+        func = value.func
+        if isinstance(func, ast.Attribute) and func.attr == "join":
+            base = func.value
+            is_os_path = (
+                isinstance(base, ast.Name) and base.id in ("os", "path")) or (
+                isinstance(base, ast.Attribute) and base.attr == "path")
+            if (is_os_path and value.args
+                    and isinstance(value.args[-1], ast.Constant)
+                    and isinstance(value.args[-1].value, str)):
+                return value.args[-1].value
+    return None
+
+
+def _module_const_strings(tree):
+    """收集模块级「名字 → 路径提示」常量（open 目标解析用，一层回溯）。"""
+    consts = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            targets = [t for t in node.targets if isinstance(t, ast.Name)]
+        elif isinstance(node, ast.AnnAssign) \
+                and isinstance(node.target, ast.Name):
+            targets = [node.target]
+        else:
+            continue
+        hint = _static_path_hint(node.value)
+        if hint is not None:
+            for t in targets:
+                consts[t.id] = hint
+    return consts
+
+
+def _resolve_write_target(node, consts):
+    """尽力解析 open(path, ...) 的写入目标提示；无法静态解析返回 None。"""
+    if not node.args:
+        return None
+    arg = node.args[0]
+    if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+        return arg.value
+    if isinstance(arg, ast.Name) and arg.id in consts:
+        return consts[arg.id]
+    return None
+
+
+def _target_allowed(target, patterns):
+    """豁免 allow_paths 匹配：后缀一致或 fnmatch 命中（统一 / 分隔）。"""
+    t = (target or "").replace("\\", "/")
+    for pat in patterns:
+        p = str(pat).replace("\\", "/")
+        if t.endswith(p) or fnmatch.fnmatch(t, p):
+            return True
+    return False
+
+
 def scan_file(path, rel):
     """扫描单个文件，返回 (violations, registered, binaries)。
 
     violation: 未登记的文本直写（违反契约）
     registered: 已登记豁免的直写（信息）
     binaries: 二进制写入（信息）
+
+    P2-8：模块级豁免可带 ``allow_paths``（后缀/fnmatch 模式列表）——
+    豁免模块内的直写若能静态解析出目标且不匹配任何模式，改判违规。
+    无法静态解析的目标维持放行（尽力而为的审计，不做误报）。
     """
     violations, registered, binaries = [], [], []
     try:
@@ -68,8 +131,12 @@ def scan_file(path, rel):
         return violations, registered, binaries
 
     allow = _load_allowlist()
-    module_allowed = rel in allow.get("modules", {})
-    line_allow = set((allow.get("lines", {}) or {}).get(rel, {}).get("lines", []))
+    module_entry = allow.get("modules", {}).get(rel)
+    module_allowed = module_entry is not None
+    allow_paths = (module_entry or {}).get("allow_paths") or None
+    line_allow = set((allow.get("lines", {}) or {}).get(rel, {})
+                     .get("lines", []))
+    consts = _module_const_strings(tree)
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
@@ -82,6 +149,12 @@ def scan_file(path, rel):
             binaries.append(entry)
             continue
         if module_allowed or node.lineno in line_allow:
+            if module_allowed and allow_paths:
+                target = _resolve_write_target(node, consts)
+                if target is not None \
+                        and not _target_allowed(target, allow_paths):
+                    violations.append(entry)
+                    continue
             registered.append(entry)
         else:
             violations.append(entry)

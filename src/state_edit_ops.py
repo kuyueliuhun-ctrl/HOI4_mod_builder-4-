@@ -147,7 +147,18 @@ def set_state_owner(mod_path, state_id, tag, state_data=None):
             continue
         new_content = set_state_owner_in_content(content, state_id, tag)
         if new_content is not None:
-            if new_content == content:
+            # 命中目标文件：写回前用严格解码重读一遍（P1-3），
+            # 坏字节文件中止写回并上报，绝不把丢字节的文本写回。
+            from write_utils import read_text_for_write, WriteContractError
+            try:
+                strict_content = read_text_for_write(fp)
+            except (WriteContractError, OSError):
+                return False, "decode_error", os.path.relpath(fp, mod_path)
+            new_content = set_state_owner_in_content(
+                strict_content, state_id, tag)
+            if new_content is None:
+                return False, "not_found", os.path.relpath(fp, mod_path)
+            if new_content == strict_content:
                 return True, "unchanged", os.path.relpath(fp, mod_path)
             from write_utils import atomic_write_text
             atomic_write_text(fp, new_content)

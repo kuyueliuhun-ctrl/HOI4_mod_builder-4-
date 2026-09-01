@@ -12,17 +12,31 @@ UI：
 import os
 
 MAX_ENTRIES = 50
+# 撤销栈字节预算：所有快照的原始字节总量上限（超出时从最旧开始淘汰）。
+# 修复旧版「50 个文件完整字节无内存上限」的问题（MB 级 mod 文件可占数百 MB）。
+MAX_TOTAL_BYTES = 64 * 1024 * 1024
 
 
 class FileUndoManager:
-    def __init__(self, max_entries=MAX_ENTRIES):
+    def __init__(self, max_entries=MAX_ENTRIES,
+                 max_total_bytes=MAX_TOTAL_BYTES):
         self._stack = []          # [(path, old_bytes)]
         self._max = max_entries
+        self._max_bytes = max_total_bytes
+        self._total_bytes = 0
+
+    def _evict_over_budget(self):
+        """快照总字节超预算时从最旧开始淘汰（保证至少保留最新一条）。"""
+        while self._stack and len(self._stack) > 1 \
+                and self._total_bytes > self._max_bytes:
+            _path, old = self._stack.pop(0)
+            self._total_bytes -= len(old)
 
     def before_write(self, path):
         """写文件前调用：读取原始字节压栈（文件不存在则跳过）。
 
         使用字节快照，撤销时可无损恢复 BOM / CRLF / 任意编码。
+        总字节量受 max_total_bytes 预算约束，超限淘汰最旧快照。
         """
         if not path or not os.path.isfile(path):
             return
@@ -32,8 +46,11 @@ class FileUndoManager:
         except Exception:
             return
         self._stack.append((path, old))
+        self._total_bytes += len(old)
         if len(self._stack) > self._max:
-            self._stack.pop(0)
+            _path, old = self._stack.pop(0)
+            self._total_bytes -= len(old)
+        self._evict_over_budget()
 
     def can_undo(self):
         return bool(self._stack)
@@ -60,6 +77,7 @@ class FileUndoManager:
 
     def clear(self):
         self._stack.clear()
+        self._total_bytes = 0
 
 
 # 全局单例

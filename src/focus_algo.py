@@ -72,43 +72,13 @@ def build_focus_text(focus_id, x, y, parent_id=None, template_dir=None):
 
 
 def find_focus_block_range(content, focus_id):
-    """在文件内容中定位包含指定 id 的国策块，返回 (起始字符, 结束字符)，未找到返回 (-1, -1)。"""
-    token_pattern = r'("[^"]*"|#.*|\{|\}|=|[\w\.\-]+)'
-    raw_matches = list(re.finditer(token_pattern, content))
-    tokens = [m.group(0) for m in raw_matches if not m.group(0).startswith('#')]
+    """在文件内容中定位包含指定 id 的国策块，返回 (起始字符, 结束字符)，未找到返回 (-1, -1)。
 
-    i = 0
-    while i < len(tokens):
-        token = tokens[i]
-        if token in ('focus', 'shared_focus', 'joint_focus'):
-            if i + 2 < len(tokens) and tokens[i + 1] == '=' and tokens[i + 2] == '{':
-                block_start = raw_matches[i].start()
-                depth = 1
-                j = i + 3
-                while j < len(tokens) and depth > 0:
-                    if tokens[j] == '{':
-                        depth += 1
-                    elif tokens[j] == '}':
-                        depth -= 1
-                    j += 1
-                block_end_idx = j - 1
-
-                # 检查块内是否包含目标 id
-                block_tokens = tokens[i + 3:block_end_idx]
-                has_id = False
-                for k, t in enumerate(block_tokens):
-                    if t == 'id' and k + 2 < len(block_tokens) and block_tokens[k + 1] == '=':
-                        id_val = block_tokens[k + 2].strip('"')
-                        if id_val == focus_id:
-                            has_id = True
-                            break
-
-                if has_id:
-                    return block_start, raw_matches[block_end_idx].end()
-                i = j
-                continue
-        i += 1
-    return -1, -1
+    实现委托 pdx_span.find_block_range（单遍 O(n) 块扫描，P1-4），
+    语义与旧版一致：focus / shared_focus / joint_focus 块内顶层 id 匹配。
+    """
+    from pdx_span import find_block_range as _fast
+    return _fast(content, ("focus", "shared_focus", "joint_focus"), focus_id)
 
 
 def unique_entity_key(base, entities):

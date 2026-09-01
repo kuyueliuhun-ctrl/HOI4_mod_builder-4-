@@ -160,6 +160,8 @@ def _open_oob_tree_editor(file_path, mod_path="", hoi4_path="", parent=None):
     with open(file_path, "r", encoding="utf-8-sig", newline="") as f:
         content = f.read()
     root = tree_from_pdx_text(content)
+    from tree_node import attach_verbatim_lines
+    attach_verbatim_lines(root, content)  # 保真：原文行（注释/空行/缩进）
     file_lines = content.splitlines()
     editor = GenericTreeEditor(
         root_node=root,

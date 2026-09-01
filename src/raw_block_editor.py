@@ -92,7 +92,13 @@ class RawBlockEditorDialog(QDialog):
     # ---------- 数据流 ----------
 
     def _reload(self, select_id=None):
-        _AI_CACHE.clear()
+        # 精确失效本编辑器对应类型的缓存（P1-5），不再全量清空 _AI_CACHE
+        kind = getattr(self.loader, "__name__", "")
+        if kind.startswith("load_"):
+            from ai_loader import invalidate_cache
+            invalidate_cache(kind=kind[len("load_"):])
+        else:
+            _AI_CACHE.clear()
         try:
             self.entities = dict(self.loader(self.mod_path, self.hoi4_path))
         except Exception:
@@ -139,8 +145,13 @@ class RawBlockEditorDialog(QDialog):
         mod_fp, copied = ensure_file_in_mod(self.mod_path, self.hoi4_path, rel)
         if not mod_fp:
             return None, "", False
-        with open(mod_fp, "r", encoding="utf-8-sig", errors="ignore") as f:
-            content = f.read()
+        from write_utils import read_text_for_write, WriteContractError
+        try:
+            content = read_text_for_write(mod_fp)  # 严格解码（P1-3）
+        except (WriteContractError, OSError) as e:
+            QMessageBox.warning(self, "读取失败",
+                                "文件解码失败，已取消编辑保存：%s" % e)
+            return None, "", False
         return mod_fp, content, copied
 
     def _write_mod_file(self, mod_fp, content, msg=""):

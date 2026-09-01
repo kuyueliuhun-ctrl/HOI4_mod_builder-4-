@@ -1194,4 +1194,5 @@ class WorkbenchDock(QDockWidget):
             clear_cache()
         except Exception:
             pass
+        EntityScanner.ensure_country_tag_index(mod_path, "")  # P2-7 带缓存
         self._refresh()
