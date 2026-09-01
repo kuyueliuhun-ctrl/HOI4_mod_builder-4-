@@ -278,6 +278,19 @@ def from_paths(sub_mod="", mod_paths=(), vanilla="", submod_name="") -> ModStack
 
 # ---------- 传统两层语义（ensure_file_in_mod 的原始实现，保持逐字节等价） ----------
 
+def resolve_write_path(mod_path, rel_path):
+    """写路径统一解析：子 mod 模式激活时恒落子 mod，否则 join(mod_path, rel)。
+
+    供未走 ensure_file_in_mod 的直接写场景（如国家建立、电台文件）接入
+    层栈写路由，避免子 mod 模式下文件散落到旧 mod 目录。
+    """
+    st = _active_stack
+    if st is not None and st.layers and st.layers[0].writable:
+        return st.write_target(rel_path)
+    rel = str(rel_path).replace("\\", "/")
+    return os.path.join(mod_path, *rel.split("/"))
+
+
 def route_existing(mod_path, hoi4_path, rel_path):
     """ensure_file_in_mod 的层栈感知入口。
 

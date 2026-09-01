@@ -375,5 +375,48 @@ class TestSubmodWizardUI(unittest.TestCase):
             sub_path, "descriptor.mod")))
 
 
+class TestResolveWritePath(unittest.TestCase):
+    """直接写场景（国家建立/电台）的层栈写路径解析。"""
+
+    def setUp(self):
+        from mod_stack import clear_active_stack
+        clear_active_stack()
+        self.addCleanup(clear_active_stack)
+        self.sub, self.base = _mk("wp_sub"), _mk("wp_base")
+
+    def test_active_routes_to_submod(self):
+        from mod_stack import ModLayer, ModStack, resolve_write_path
+        from mod_stack import set_active_stack
+        set_active_stack(ModStack([
+            ModLayer("子mod", self.sub, True, "submod"),
+            ModLayer("底层", self.base, False, "mod")]))
+        got = resolve_write_path(self.base, "common/countries/AAA.txt")
+        self.assertEqual(got, os.path.join(self.sub, "common",
+                                           "countries", "AAA.txt"))
+
+    def test_inactive_joins_mod_path(self):
+        from mod_stack import resolve_write_path
+        got = resolve_write_path(self.base, "common/countries/AAA.txt")
+        self.assertEqual(got, os.path.join(self.base, "common", "countries",
+                                           "AAA.txt"))
+
+    def test_country_setup_writes_into_submod(self):
+        from mod_stack import ModLayer, ModStack, set_active_stack
+        from mod_stack import clear_active_stack
+        from country_setup_dialog import create_new_country_files
+        set_active_stack(ModStack([
+            ModLayer("子mod", self.sub, True, "submod"),
+            ModLayer("底层", self.base, False, "mod")]))
+        created = create_new_country_files(
+            self.base, "AAA", ["common/countries", "common/country_tags"],
+            game_path=None)
+        self.assertIn("common/countries/AAA.txt", created)
+        self.assertTrue(os.path.isfile(os.path.join(
+            self.sub, "common", "countries", "AAA.txt")))
+        self.assertFalse(os.path.isfile(os.path.join(
+            self.base, "common", "countries", "AAA.txt")))
+        clear_active_stack()
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -549,6 +549,23 @@ def _domain7_tools(core):
     ]
 
 
+def _playset_tools(core):
+    return [
+        _tool("playset_list", "列举 HOI4 播放集（launcher-v2.sqlite / dlc_load）",
+              _obj({"user_dir": _str("HOI4 用户文档目录（缺省读 settings.json 推断）")}),
+              lambda args: core.playset_list(args)),
+        _tool("playset_conflict_scan", "播放集多 mod 冲突扫描（只读：L0 元信息/L1 文件遮蔽+replace_path/L2 实体 id/L3 本地化）",
+              _obj({
+                  "playset_id": _str("播放集 id（缺省 = dlc_load 最近启动集）"),
+                  "user_dir": _str("HOI4 用户文档目录（缺省读 settings.json 推断）"),
+                  "include_vanilla": _bool("L1 是否纳入原版层（默认否）"),
+                  "scan_entities": _bool("是否扫描实体 id 冲突（默认是）"),
+                  "scan_loc": _bool("是否扫描本地化键冲突（默认是）"),
+              }),
+              lambda args: core.playset_conflict_scan(args)),
+    ]
+
+
 def _domain8_tools(core):
     return [
         _tool("upload_entity_icon", "上传任意实体图标（base64）并写实体字段",
@@ -851,6 +868,7 @@ def build_tools(core):
     tools.extend(_domain5_tools(core))
     tools.extend(_domain6_tools(core))
     tools.extend(_domain7_tools(core))
+    tools.extend(_playset_tools(core))
     tools.extend(_domain8_tools(core))
     tools.extend(_domain9_tools(core))
     tools.extend(_domain10_tools(core))
@@ -930,6 +948,7 @@ _CATEGORY_TOOLS = {
         "update_user_term", "remove_user_term", "vp_loc_dry_run",
     ],
     "health": [
+        "playset_list", "playset_conflict_scan",
         "validate_mod", "health_check", "scan_duplicate_ids",
         "undo_last_write", "get_undo_status", "coverage_report",
         "analyze_error_log", "get_overlay_report",

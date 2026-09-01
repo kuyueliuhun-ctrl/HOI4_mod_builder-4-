@@ -309,7 +309,8 @@ def copy_country_files(game_path, mod_path, tag, dirs, countries=None):
     for rel_dir in dirs:
         for fp in files.get(rel_dir, []):
             rel = os.path.relpath(fp, game_path).replace("\\", "/")
-            dest = os.path.join(mod_path, rel.replace("/", os.sep))
+            from mod_stack import resolve_write_path
+            dest = resolve_write_path(mod_path, rel)
             try:
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 # 复制并去除 BOM（游戏脚本要求 UTF-8 无 BOM）
@@ -342,7 +343,8 @@ def create_blank_overrides(mod_path, tag, dirs, game_path=None, countries=None):
         # 取该目录匹配的原版文件名；若无则跳过（无原版对应文件，无法“同名”）
         for fp in files.get(rel_dir, []):
             rel = os.path.relpath(fp, game_path).replace("\\", "/")
-            dest = os.path.join(mod_path, rel.replace("/", os.sep))
+            from mod_stack import resolve_write_path
+            dest = resolve_write_path(mod_path, rel)
             if os.path.exists(dest):
                 continue
             try:
@@ -373,16 +375,19 @@ def create_new_country_files(mod_path, tag, dirs, game_path=None):
     created = []
     for rel_dir in dirs:
         if rel_dir == "common/countries":
-            dest = os.path.join(mod_path, "common", "countries", f"{tag}.txt")
+            from mod_stack import resolve_write_path
+            rel_file = f"common/countries/{tag}.txt"
+            dest = resolve_write_path(mod_path, rel_file)
             if not os.path.exists(dest):
                 try:
                     os.makedirs(os.path.dirname(dest), exist_ok=True)
                     from write_utils import atomic_write_text
                     atomic_write_text(dest, "", undo=False)
-                    created.append(os.path.relpath(dest, mod_path).replace("\\", "/"))
+                    created.append(rel_file)
                 except Exception:
                     continue
         elif rel_dir == "common/country_tags":
+            from mod_stack import resolve_write_path
             dest_dir = os.path.join(mod_path, "common", "country_tags")
             os.makedirs(dest_dir, exist_ok=True)
             target = None

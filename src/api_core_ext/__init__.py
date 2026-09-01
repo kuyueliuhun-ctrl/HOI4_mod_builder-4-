@@ -12,6 +12,7 @@ from .rho import RhoGapMixin
 from .agent import AgentMixin
 from .debug import DebugMixin
 from .cwt_lite import CwtLiteMixin
+from .playset import PlaysetMixin
 
 __all__ = [
     "StatesMixin",
@@ -27,4 +28,5 @@ __all__ = [
     "AgentMixin",
     "DebugMixin",
     "CwtLiteMixin",
+    "PlaysetMixin",
 ]

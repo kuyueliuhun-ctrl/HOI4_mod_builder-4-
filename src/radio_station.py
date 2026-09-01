@@ -93,11 +93,12 @@ def add_ogg_track(mod_path, station_id, song_id, src_audio):
     if not song_id or not str(song_id).strip():
         raise ValueError("需要 song_id")
     sid = str(song_id).strip()
-    dst = os.path.join(mod_path, "music", sid + ".ogg")
+    from mod_stack import resolve_write_path
+    dst = resolve_write_path(mod_path, "music/%s.ogg" % sid)
     tr = transcode_ogg(src_audio, dst)
     # 读回 station，追加 song（不存在则新建）
     rel_station = "music/%s.txt" % str(station_id).strip()
-    fp = os.path.join(mod_path, *rel_station.split("/"))
+    fp = resolve_write_path(mod_path, rel_station)
     if os.path.isfile(fp):
         with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
             text = f.read()
