@@ -21,6 +21,7 @@ def build_tool_actions(menu):
     a["localisation_editor"] = menu.addAction("🌐 本地化编辑器…")
     a["entity_resource_workbench"] = menu.addAction("🗂 实体配套资源工作台…")
     a["health_check"] = menu.addAction("导出前健康检查…")
+    a["conflict_check"] = menu.addAction("⚔ 多Mod冲突检查…")
     a["content_generators"] = menu.addAction("🧰 内容生成器…")
     a["character_editor"] = menu.addAction("👤 角色编辑器…")
     a["pdx_format"] = menu.addAction("📐 PDX 格式化…")

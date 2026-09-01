@@ -157,6 +157,8 @@ class MyWindow(MainWindowDocksMixin, QMainWindow):
         self.act_entity_resource_workbench.triggered.connect(self.on_entity_resource_workbench)
         self.act_health_check = _tool_actions["health_check"]
         self.act_health_check.triggered.connect(self.on_health_check)
+        self.act_conflict_check = _tool_actions["conflict_check"]
+        self.act_conflict_check.triggered.connect(self.on_conflict_check)
         self.act_content_generators = _tool_actions["content_generators"]
         self.act_content_generators.triggered.connect(self.on_content_generators)
         self.act_character_editor = _tool_actions["character_editor"]
@@ -403,6 +405,13 @@ class MyWindow(MainWindowDocksMixin, QMainWindow):
             mod_path=mod_path,
             game_path=self.settings.get("HOI4_path", ""))
         dlg.exec()
+
+    def on_conflict_check(self):
+        """工具菜单：多Mod冲突检查（播放集级，只读扫描）。"""
+        from conflict_report_dialog import open_conflict_report
+        open_conflict_report(
+            parent=self, settings=self.settings,
+            open_file_cb=self.load_txt_pdx_to_memory)
 
     def on_content_generators(self):
         """工具菜单：内容生成器工作台。"""
