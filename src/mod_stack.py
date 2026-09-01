@@ -119,9 +119,11 @@ class ModStack:
         seen = {}
         for idx, layer in enumerate(self.layers):
             d = os.path.join(layer.path, rel_dir) if rel_dir else layer.path
-            if not os.path.isdir(d):
-                continue
-            for name in sorted(os.listdir(d)):
+            try:
+                names = sorted(os.listdir(d))
+            except OSError:
+                continue    # 层目录缺失/扫描中途被移除：跳过该层（与 _walk_rel 同口径）
+            for name in names:
                 fp = os.path.join(d, name)
                 if not os.path.isfile(fp):
                     continue

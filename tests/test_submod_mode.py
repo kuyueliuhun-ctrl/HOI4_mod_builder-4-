@@ -418,5 +418,145 @@ class TestResolveWritePath(unittest.TestCase):
         clear_active_stack()
 
 
+class TestSubmodMcpTools(unittest.TestCase):
+    """MCP 子 mod 工具（ApiCore.PlaysetMixin）契约。"""
+
+    def _make_fixture(self):
+        user = _mk("mcp_user")
+        dirA, dirB = _mk("mcp_A"), _mk("mcp_B")
+        _put(dirA, "common/ai_strategy/x.txt", "a")
+        _put(dirB, "common/ai_strategy/y.txt", "b")
+        _put(dirA, "interface/base_a.gfx", "gfx")
+        _put(user, "dlc_load.json", json.dumps(
+            {"enabled_mods": ["mod/a.mod", "mod/b.mod"]}))
+        os.makedirs(os.path.join(user, "mod"), exist_ok=True)
+        _put(user, "mod/a.mod", 'name="底层A"\npath="%s"\n'
+             % dirA.replace("\\", "/"))
+        _put(user, "mod/b.mod", 'name="底层B"\npath="%s"\n'
+             % dirB.replace("\\", "/"))
+        mod_root = _mk("mcp_mods")
+        return user, dirA, dirB, mod_root
+
+    def _core(self):
+        from api_server import ApiCore
+        return ApiCore(mod_path="", game_path="")
+
+    def tearDown(self):
+        from mod_stack import clear_active_stack
+        clear_active_stack()
+
+    def test_submod_create_activate_and_routing(self):
+        user, dirA, dirB, mod_root = self._make_fixture()
+        core = self._core()
+        r = core.submod_create({
+            "submod_name": "MCP子mod", "folder_name": "submod_mcp",
+            "base_names": ["底层A", "底层B"],
+            "user_dir": user, "mod_folder_path": mod_root,
+            "mod_file_path": mod_root,
+            "activate": True, "persist": False})
+        self.assertTrue(r["ok"])
+        self.assertTrue(os.path.isfile(r["mod_file"]))
+        self.assertTrue(os.path.isfile(os.path.join(
+            r["submod_path"], "descriptor.mod")))
+        self.assertEqual(r["base_names"], ["底层A", "底层B"])
+        self.assertTrue(r["activated"])
+        self.assertEqual([l["kind"] for l in r["layers"]],
+                         ["submod", "mod", "mod"])
+
+        # 激活后写路由：ensure_file_in_mod 落子 mod
+        from state_build_ops import ensure_file_in_mod
+        p, copied = ensure_file_in_mod("", "", "common/ai_strategy/x.txt")
+        self.assertTrue(copied)
+        self.assertTrue(p.startswith(r["submod_path"]))
+        # 读路由：ai_loader 合并视图
+        from ai_loader import _scan_files
+        names = {os.path.basename(q) for q in
+                 _scan_files("", "", "common/ai_strategy")}
+        self.assertEqual(names, {"x.txt", "y.txt"})
+
+        # 状态回读
+        st = core.submod_status({})
+        self.assertTrue(st["active"])
+        self.assertEqual(st["submod_path"], r["submod_path"])
+        self.assertEqual(len(st["layers"]), 3)
+
+        # 退出
+        self.assertTrue(core.submod_exit({})["ok"])
+        from mod_stack import active_stack
+        self.assertIsNone(active_stack())
+        self.assertFalse(core.submod_status({})["active"])
+
+    def test_submod_create_read_all_and_base_paths(self):
+        user, dirA, dirB, mod_root = self._make_fixture()
+        core = self._core()
+        r = core.submod_create({
+            "submod_name": "仅勾选", "base_names": ["底层B"],
+            "read_all": False, "user_dir": user,
+            "mod_folder_path": mod_root, "mod_file_path": mod_root,
+            "activate": True, "persist": False})
+        self.assertEqual(r["base_names"], ["底层B"])
+        self.assertEqual(r["read_paths"], [dirB])
+
+        # 显式 base_paths 优先，且缺失的 base_names 报错（不写盘）
+        core2 = self._core()
+        with self.assertRaises(ValueError):
+            core2.submod_create({
+                "submod_name": "会失败", "base_names": ["不存在"],
+                "user_dir": user, "mod_folder_path": mod_root,
+                "mod_file_path": mod_root, "activate": False})
+        r2 = core2.submod_create({
+            "submod_name": "显式路径", "base_paths": [dirA],
+            "read_all": False, "user_dir": user,
+            "mod_folder_path": mod_root, "mod_file_path": mod_root,
+            "activate": False})
+        self.assertEqual(r2["base_names"], ["底层A"])
+        self.assertFalse(r2["activated"])
+
+    def test_submod_activate_missing_path_raises(self):
+        core = self._core()
+        with self.assertRaises(ValueError):
+            core.submod_activate({"submod_path": ""})
+
+    def test_persist_writes_settings_fields(self):
+        import unittest.mock as mock
+        user, dirA, dirB, mod_root = self._make_fixture()
+        import project_paths
+        fake_root = _mk("persist_root")
+        real_settings = os.path.join(PROJECT_ROOT_SNAPSHOT, "settings.json")
+        fake_settings = os.path.join(fake_root, "settings.json")
+        with open(fake_settings, "w", encoding="utf-8") as f:
+            json.dump({"ui_mode": "workbench", "HOI4_path": "X:/game"}, f)
+        core = self._core()
+        with mock.patch.object(project_paths, "PROJECT_ROOT", fake_root):
+            r = core.submod_create({
+                "submod_name": "持久化子mod", "folder_name": "sub_p",
+                "base_paths": [dirA], "read_all": False,
+                "user_dir": user, "mod_folder_path": mod_root,
+                "mod_file_path": mod_root,
+                "activate": True, "persist": True})
+        self.assertTrue(r["activated"])
+        with open(fake_settings, encoding="utf-8") as f:
+            persisted = json.load(f)
+        self.assertEqual(persisted["ui_mode"], "workbench")   # 其余字段保留
+        self.assertEqual(persisted["HOI4_path"], "X:/game")
+        self.assertTrue(persisted["submod_active"])
+        self.assertEqual(persisted["submod_path"], r["submod_path"])
+
+    def test_playset_conflict_scan_via_core(self):
+        user, dirA, dirB, _mod_root = self._make_fixture()
+        _put(dirA, "common/x/shared.txt", "A")
+        _put(dirB, "common/x/shared.txt", "B")
+        core = self._core()
+        r = core.playset_conflict_scan({"user_dir": user})
+        self.assertTrue(r["ok"])
+        self.assertEqual(r["playset"], "dlc_load（最近启动）")
+        self.assertGreaterEqual(
+            r["counts"]["by_kind"].get("file_shadow", 0), 1)
+
+
+PROJECT_ROOT_SNAPSHOT = os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))
+
+
 if __name__ == "__main__":
     unittest.main()

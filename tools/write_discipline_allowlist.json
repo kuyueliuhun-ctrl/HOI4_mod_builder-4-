@@ -60,6 +60,12 @@
       "allow_paths": [
         "settings.json"
       ]
+    },
+    "src/api_core_ext/playset.py": {
+      "reason": "MCP submod_activate/create/exit 的 settings.json 持久化（承继 main_window，程序配置非 mod 内容；读改写仅合并 submod_* 字段）",
+      "allow_paths": [
+        "settings.json"
+      ]
     }
   },
   "lines": {

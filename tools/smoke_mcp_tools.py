@@ -33,7 +33,7 @@ _WRITE_HINTS = (
 
 _SKIP_WRITE_EXACT = {
     "undo_last_write", "register_icon_batch", "format_pdx", "convert_dds",
-    "set_agent_preference", "delete_agent_preference",
+    "set_agent_preference", "delete_agent_preference", "submod_activate",
 }
 
 # 重型/耗时工具：默认跳过，--full 启用（对真实大 mod 扫描很慢）
