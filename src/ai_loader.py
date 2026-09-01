@@ -74,7 +74,15 @@ def invalidate_cache(kind=None, mod_path=None, hoi4_path=None):
 # ---------- 基础解析辅助 ----------
 
 def _scan_files(mod_path, hoi4_path, rel_dir, ext=".txt"):
-    """扫描 mod/游戏下某个相对目录，返回文件绝对路径列表（mod 优先去重）。"""
+    """扫描 mod/游戏下某个相对目录，返回文件绝对路径列表（mod 优先去重）。
+
+    层栈感知（子mod模式）：激活时返回合并视图（子 mod → 底层 → 原版，
+    同相对路径取最高层）。
+    """
+    from mod_stack import active_stack
+    st = active_stack()
+    if st is not None:
+        return [r.path for r in st.scan_rel(rel_dir, ext)]
     out = []
     seen = set()
     for base in (mod_path, hoi4_path):

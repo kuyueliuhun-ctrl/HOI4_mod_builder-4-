@@ -48,6 +48,26 @@ class ResolvedFile:
 
 _active_stack = None   # type: ModStack | None
 
+# copy_up 确认钩子（用户策略：低层文件复制覆盖前弹窗确认）。
+# None = 自动复制（默认；测试/算法层/无 UI 场景向后兼容）。
+# 由 UI 层（main_window）注册：cb(rel_path, src_path, target_path) -> bool
+_copy_up_confirm = None
+
+
+def set_copy_up_confirm(cb):
+    """注册 copy_up 确认回调（None = 恢复自动复制）。"""
+    global _copy_up_confirm
+    _copy_up_confirm = cb
+
+
+def _confirm_copy_up(rel_path, src, target):
+    if _copy_up_confirm is None:
+        return True
+    try:
+        return bool(_copy_up_confirm(rel_path, src, target))
+    except Exception:
+        return False
+
 
 class ModStack:
     """有序 mod 层：index 0 = 顶部（写层），越靠后优先级越低。"""
@@ -176,7 +196,8 @@ class ModStack:
         """从命中层复制覆盖副本到子 mod。
 
         已在子 mod 顶层时原样返回目标路径（不复制）；
-        各层均无该文件返回 None。
+        各层均无该文件返回 None；
+        确认钩子（set_copy_up_confirm）拒绝时返回 None（不复制）。
         """
         target = self.write_target(rel_path)
         src = self.resolve(rel_path)
@@ -184,6 +205,8 @@ class ModStack:
             return None
         if os.path.realpath(src) == os.path.realpath(target):
             return target
+        if not _confirm_copy_up(rel_path, src, target):
+            return None
         os.makedirs(os.path.dirname(target) or ".", exist_ok=True)
         shutil.copyfile(src, target)
         return target
@@ -194,6 +217,8 @@ class ModStack:
         Returns:
             (abs_path, copied)：abs_path 为调用方应编辑/保存的绝对路径；
             copied=True 表示本次刚从低层复制上来。
+            确认钩子拒绝复制时返回 (None, False)——调用方按「文件缺失」
+            自行中止，与旧实现缺失语义一致。
         """
         if not self.layers or not self.layers[0].writable:
             return None, False
@@ -203,6 +228,8 @@ class ModStack:
             return target, False
         src = self.resolve(rel_path)
         if src is None:
+            return None, False
+        if not _confirm_copy_up(rel_path, src, target):
             return None, False
         try:
             os.makedirs(os.path.dirname(target) or ".", exist_ok=True)

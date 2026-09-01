@@ -3,7 +3,9 @@
   "modules": {
     "src/ai_assist.py": {
       "reason": "程序配置 settings.json 写入（非 mod 内容，低风险）",
-      "allow_paths": ["settings.json"]
+      "allow_paths": [
+        "settings.json"
+      ]
     },
     "src/custom_statement_dialog.py": {
       "reason": "程序数据 custom_statements.json 写入（非 mod 内容）"
@@ -13,11 +15,15 @@
     },
     "src/main_window.py": {
       "reason": "程序配置 settings.json 写入（非 mod 内容，多处）",
-      "allow_paths": ["settings.json"]
+      "allow_paths": [
+        "settings.json"
+      ]
     },
     "src/setup_wizard.py": {
       "reason": "程序配置 settings.json 写入（非 mod 内容）",
-      "allow_paths": ["settings.json"]
+      "allow_paths": [
+        "settings.json"
+      ]
     },
     "src/template_scheduler.py": {
       "reason": "程序变量配置 json 写入（非 mod 内容）"
@@ -42,10 +48,18 @@
     },
     "src/main_window_docks.py": {
       "reason": "承继 main_window 的程序配置 settings.json 写入（F5 拆分，非 mod 内容）",
-      "allow_paths": ["settings.json"]
+      "allow_paths": [
+        "settings.json"
+      ]
     },
     "tools/build_portable.py": {
       "reason": "便携版打包脚本写 dist 输出目录（非 mod 内容，开发/发布工具）"
+    },
+    "src/submod_controller.py": {
+      "reason": "子mod模式 settings.json 写入（承继 main_window，程序配置非 mod 内容）",
+      "allow_paths": [
+        "settings.json"
+      ]
     }
   },
   "lines": {

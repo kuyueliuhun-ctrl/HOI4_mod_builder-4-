@@ -3,5 +3,6 @@
   "src/advisor_assign_dialog.py",
   "src/map_canvas.py",
   "src/focus_view.py",
-  "src/focus_view_ctrl.py"
+  "src/focus_view_ctrl.py",
+  "src/workbench.py"
 ]

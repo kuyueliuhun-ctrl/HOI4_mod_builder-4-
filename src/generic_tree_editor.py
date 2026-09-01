@@ -19,7 +19,8 @@ from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import (
     QTreeView, QLineEdit, QPushButton, QLabel, QVBoxLayout,
     QHBoxLayout, QMenu, QMessageBox, QDialog, QAbstractItemView,
-    QStyledItemDelegate, QStyle, QStyleOptionViewItem, QTextEdit
+    QStyledItemDelegate, QStyle, QStyleOptionViewItem, QTextEdit,
+    QFileDialog
 )
 from PyQt6.QtCore import Qt, QPoint, QSize, pyqtSignal, QEvent
 from PyQt6.QtGui import QFontMetrics, QKeySequence, QShortcut
@@ -1145,6 +1146,44 @@ class GenericTreeEditor(QDialog):
         self.status_label.setText(
             f"搜索 {st['pos'] + 1}/{len(st['results'])}（回车下一个）")
 
+    def _resolve_submod_save_target(self):
+        """子mod模式保存目标重定向（用户策略：每次弹窗确认）。
+
+        文件来自低层（底层 mod / 原版）时三选：
+        是 = 在子 mod 创建覆盖副本；No = 另存为…；Cancel = 取消保存。
+
+        Returns:
+            str | None: 实际写入路径；用户取消返回 None。
+        """
+        from mod_stack import active_stack
+        st = active_stack()
+        if st is None or not self.file_path:
+            return self.file_path
+        idx = st.layer_index_of(self.file_path)
+        if idx is None or idx == 0:
+            return self.file_path
+        layer_name = st.layers[idx].name
+        rel = st.rel_path_of(self.file_path) or ""
+        target = st.write_target(rel)
+        ret = QMessageBox.question(
+            self, "保存到子mod",
+            "该文件来自底层「%s」。\n\n"
+            "在子mod模式下保存将在子mod中创建覆盖副本：\n%s\n\n"
+            "是 = 保存到子mod（覆盖副本）\n"
+            "否 = 另存为…\n"
+            "取消 = 放弃保存" % (layer_name, target),
+            QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No
+            | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Yes)
+        if ret == QMessageBox.StandardButton.Yes:
+            return target
+        if ret == QMessageBox.StandardButton.No:
+            path, _ = QFileDialog.getSaveFileName(
+                self, "另存为", target, "PDX 脚本 (*.txt);;所有文件 (*)")
+            return path or None
+        return None
+
     def _save(self):
         """保存编辑结果到文件
 
@@ -1187,6 +1226,11 @@ class GenericTreeEditor(QDialog):
             self.tree_saved.emit()
             self.close()
             return True
+
+        # 子mod模式：低层文件保存目标重定向（覆盖副本 / 另存为 / 取消）
+        write_path = self._resolve_submod_save_target()
+        if write_path is None:
+            return False
 
         try:
             start, end = self.block_range
@@ -1249,7 +1293,7 @@ class GenericTreeEditor(QDialog):
             # 写入文件（UTF-8 无 BOM 原子写）；写前自动快照到撤销管理器
             output = "\n".join(new_lines) + "\n"
             from write_utils import atomic_write_text
-            atomic_write_text(self.file_path, output)
+            atomic_write_text(write_path, output)
             # 保存成功后刷新固定字段ID（翻译/描述条目跟随新ID）
             self._collect_fixed_fields()
             self.model.set_editor_refs(self.translation_editor,

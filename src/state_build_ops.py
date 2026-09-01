@@ -50,31 +50,19 @@ def _read_utf8_strict(path):
 def ensure_file_in_mod(mod_path, hoi4_path, rel_path):
     """确保相对路径文件在 mod 内：原版则复制到 mod。
 
+    层栈感知（子mod模式）：文件在子 mod → 直接用；在底层 mod / 原版 →
+    复制覆盖副本到子 mod（copy_up 确认钩子可拦截，见 mod_stack）。
+    未激活层栈时与旧实现逐字节一致（mod_stack._legacy_route 原样迁移）。
+
     Args:
         rel_path: 相对路径（如 history/states/1-France.txt）
 
     Returns:
-        (mod_path_abs, copied): 文件在 mod 的绝对路径；
-        copied=True 表示本次从游戏复制；两处都无返回 (None, False)
+        (mod_path_abs, copied): 文件绝对路径；
+        copied=True 表示本次从低层/原版复制；两处都无返回 (None, False)
     """
-    if not mod_path or not os.path.isdir(mod_path):
-        return None, False
-    mod_fp = os.path.join(mod_path, rel_path)
-    if os.path.isfile(mod_fp):
-        return mod_fp, False
-    game_fp = None
-    if hoi4_path:
-        cand = os.path.join(hoi4_path, rel_path)
-        if os.path.isfile(cand):
-            game_fp = cand
-    if game_fp is None:
-        return None, False
-    try:
-        os.makedirs(os.path.dirname(mod_fp), exist_ok=True)
-        shutil.copyfile(game_fp, mod_fp)
-        return mod_fp, True
-    except Exception:
-        return None, False
+    from mod_stack import route_existing as _route
+    return _route(mod_path, hoi4_path, rel_path)
 
 
 def _state_file_for(mod_path, hoi4_path, state_id, state_data):

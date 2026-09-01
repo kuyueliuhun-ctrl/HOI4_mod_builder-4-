@@ -471,29 +471,41 @@ class WorkbenchDock(QDockWidget):
 
         folders 中若元素以 .txt 结尾，视为单个文件相对路径（如
         common/script_enums.txt），否则视为目录递归扫描。
+        子mod模式：合并视图遍历所有层（顶层优先，同相对路径取最高层）。
         """
         seen = set()
+        seen_rel = set()   # 跨层去重：同相对路径只取最高层（子mod模式）
+        from mod_stack import active_stack
+        st = active_stack()
+        roots = [l.path for l in st.layers] if st is not None else [mod_path]
         for rel in folders or []:
+            rel_key = rel.replace(os.sep, "/")
             if rel.lower().endswith(".txt"):
-                fp = os.path.join(mod_path, rel)
-                if os.path.isfile(fp):
-                    real = os.path.realpath(fp)
-                    if real not in seen:
-                        seen.add(real)
-                        yield fp
-                continue
-            base = mod_path if rel == "." else os.path.join(mod_path, rel)
-            if not os.path.isdir(base):
-                continue
-            for root, _dirs, names in os.walk(base):
-                for name in sorted(names):
-                    fp = os.path.join(root, name)
-                    if os.path.isfile(fp) and cls._ext_matches(name, exts):
+                for root in roots:
+                    fp = os.path.join(root, rel)
+                    if os.path.isfile(fp):
                         real = os.path.realpath(fp)
-                        if real in seen:
+                        if real in seen or rel_key in seen_rel:
                             continue
                         seen.add(real)
+                        seen_rel.add(rel_key)
                         yield fp
+                continue
+            for root in roots:
+                base = root if rel == "." else os.path.join(root, rel)
+                if not os.path.isdir(base):
+                    continue
+                for root_, _dirs, names in os.walk(base):
+                    for name in sorted(names):
+                        fp = os.path.join(root_, name)
+                        if os.path.isfile(fp) and cls._ext_matches(name, exts):
+                            real = os.path.realpath(fp)
+                            fk = os.path.relpath(fp, root).replace(os.sep, "/")
+                            if real in seen or fk in seen_rel:
+                                continue
+                            seen.add(real)
+                            seen_rel.add(fk)
+                            yield fp
 
     @staticmethod
     def _blank_pdx(text):
@@ -538,9 +550,18 @@ class WorkbenchDock(QDockWidget):
     def _add_file_item(self, fp, name):
         """添加单个文件卡片项（文件名 + 关联国家 tag）。"""
         tags = self._file_tags(fp)
-        rel = os.path.relpath(fp, self.mod_path) if self.mod_path else fp
+        # 子mod模式：文件可能来自低层 → 相对路径按所属层解析 + 底层标识
+        from mod_stack import active_stack
+        st = active_stack()
+        layer_idx = st.layer_index_of(fp) if st is not None else None
+        if st is not None and layer_idx is not None:
+            rel = st.rel_path_of(fp) or fp
+        else:
+            rel = os.path.relpath(fp, self.mod_path) if self.mod_path else fp
         is_icon = self._current_type in ICON_RULES
         item_text = f"{name}"
+        if layer_idx is not None and layer_idx > 0:
+            item_text = f"〔底层〕{item_text}"
         if tags:
             shown = ', '.join(tags[:8])
             if len(tags) > 8:

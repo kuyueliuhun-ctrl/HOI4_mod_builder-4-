@@ -45,16 +45,29 @@ class MainWindowDocksMixin:
 
 
     def _sync_loc_manager(self):
-        """同步本地化管理器：重新加载游戏和 mod 的本地化文本。"""
+        """同步本地化管理器：重新加载游戏和 mod 的本地化文本。
+
+        子mod模式：先加载底层 mod（播放集顺序），最后加载子 mod
+        （后加载覆盖先加载 → 子 mod 本地化优先级最高）。
+        """
         from localization_mgr import get_localization_manager, _manager
+        from mod_stack import active_stack
         hoi4 = self.settings.get("HOI4_path", "")
         mod = self.settings.get("mod_path", "")
+        stack = active_stack()
         if _manager is not None:
             _manager.reload(game_path=hoi4, mod_path=mod)
+            if stack is not None:
+                for layer in reversed(stack.layers[1:]):
+                    _manager.add_mod_path(layer.path)
+                _manager.add_mod_path(stack.submod_path)
         else:
             mgr = get_localization_manager()
             if hoi4:
                 mgr.add_game_path(hoi4)
+            if stack is not None:
+                for layer in reversed(stack.layers[1:]):
+                    mgr.add_mod_path(layer.path)
             if mod:
                 mgr.add_mod_path(mod)
         # 确保渲染器持有最新的本地化管理器引用

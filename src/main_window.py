@@ -14,7 +14,10 @@ import os as _os
 from main_window_docks import MainWindowDocksMixin
 
 
-class MyWindow(MainWindowDocksMixin, QMainWindow):
+from submod_controller import SubmodModeMixin
+
+
+class MyWindow(MainWindowDocksMixin, SubmodModeMixin, QMainWindow):
     """应用主窗口，负责 UI 初始化、设置管理、文件树交互、国策树解析与绘制。"""
 
     def __init__(self):
@@ -130,6 +133,10 @@ class MyWindow(MainWindowDocksMixin, QMainWindow):
         except Exception:
             pass
 
+        # ---------- 子 mod 模式恢复（阶段C：settings.submod_active） ----------
+        self._submod_badge = None
+        self._restore_submod_if_active()
+
         # ---------- AI 助手菜单 ----------
         self.ui.action_ai_prompt_file.triggered.connect(self.on_ai_prompt_file)
         self.ui.action_ai_prompt_project.triggered.connect(self.on_ai_prompt_project)
@@ -159,6 +166,10 @@ class MyWindow(MainWindowDocksMixin, QMainWindow):
         self.act_health_check.triggered.connect(self.on_health_check)
         self.act_conflict_check = _tool_actions["conflict_check"]
         self.act_conflict_check.triggered.connect(self.on_conflict_check)
+        self.act_submod_mode = _tool_actions["submod_mode"]
+        self.act_submod_mode.triggered.connect(self.on_submod_wizard)
+        self.act_submod_exit = _tool_actions["submod_exit"]
+        self.act_submod_exit.triggered.connect(self.on_submod_exit)
         self.act_content_generators = _tool_actions["content_generators"]
         self.act_content_generators.triggered.connect(self.on_content_generators)
         self.act_character_editor = _tool_actions["character_editor"]
