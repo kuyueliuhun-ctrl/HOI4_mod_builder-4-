@@ -23,7 +23,9 @@ if SRC not in sys.path:
 
 def _make_core():
     from api_server import ApiCore
-    tmp = tempfile.mkdtemp(prefix="mcp_contract_", dir=os.path.join(ROOT, ".runtime", "test_tmp"))
+    tmp_root = os.path.join(ROOT, ".runtime", "test_tmp")
+    os.makedirs(tmp_root, exist_ok=True)   # 干净检出/发布包内也自建，避免 mkdtemp 父目录缺失
+    tmp = tempfile.mkdtemp(prefix="mcp_contract_", dir=tmp_root)
     os.makedirs(tmp, exist_ok=True)
     return ApiCore(mod_path=tmp, game_path="")
 

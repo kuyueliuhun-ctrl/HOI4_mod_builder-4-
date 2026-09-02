@@ -79,6 +79,7 @@ class ProjectMixin:
         """返回允许创建 mod 的根目录集合（settings 白名单 + 当前 mod 父目录）。"""
         roots = set()
         from api_server import load_settings
+        from project_paths import PROJECT_ROOT
         settings = load_settings()
         for key in ("mod_folder_path", "mod_file_path"):
             v = (settings.get(key) or "").strip()
@@ -87,6 +88,9 @@ class ProjectMixin:
         if self.mod_path:
             roots.add(os.path.abspath(
                 os.path.dirname(os.path.abspath(self.mod_path))))
+        # 恒包含项目根：便携发布包无 settings.json 时仍可在项目内创建 mod
+        # （相对路径解析到项目根，无法越界；settings 有值时优先于项目根）。
+        roots.add(os.path.abspath(os.fspath(PROJECT_ROOT)))
         return sorted(roots)
 
     def _check_mod_create_path(self, value, label):

@@ -5,8 +5,8 @@
     "name": "我的第一个 Mod",
     "folder_name": "my_first_mod",
     "version": "1.14.*",
-    "mod_folder_path": "E:/mods/my_first_mod",
+    "mod_folder_path": "mods/my_first_mod",
     "dry_run": true
   },
-  "note": "新建 mod 前必须先 dry_run 预览；确认落盘时再传 dry_run=false 且 approved=true。"
+  "note": "新建 mod 前必须先 dry_run 预览；确认落盘时再传 dry_run=false 且 approved=true。相对路径解析到允许根（settings 的 mod_folder_path，无配置时解析到项目根）。"
 }

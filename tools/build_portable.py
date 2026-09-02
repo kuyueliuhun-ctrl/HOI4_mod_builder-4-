@@ -38,6 +38,7 @@ PBS_ARCH = "x86_64-unknown-linux-gnu"
 
 COPY_DIRS = (
     "src",
+    "tests",
     "docs",
     "templates",
     "translations",
@@ -72,8 +73,8 @@ def err(msg: str) -> None:
 
 
 def detect_platform(name: str | None) -> str:
-    if name:
-        return name.lower()
+    if name and str(name).lower() != "auto":
+        return str(name).lower()
     if os.name == "nt" or sys.platform == "win32":
         return "win"
     return "linux"
