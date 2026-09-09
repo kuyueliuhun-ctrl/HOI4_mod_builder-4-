@@ -477,13 +477,31 @@ class ApiCore(StatesMixin, DesignersMixin, AiContentMixin, BopMixin,
             fp = abs_path
         if not fp or not os.path.isfile(fp):
             raise ValueError("日志文件不存在")
-        from error_log import analyze_file, summarize, classify_by_subsystem
-        results = analyze_file(fp)
-        return {"ok": True, "count": len(results),
+        from error_log import (analyze_file, classify_by_subsystem, summarize,
+                               summarize_by_file)
+        user_dir = ""
+        try:
+            from playset_loader import hoi4_user_dir
+            user_dir = hoi4_user_dir(load_settings())
+        except Exception:
+            user_dir = ""
+        results = analyze_file(fp, mod_path=self.mod_path,
+                               hoi4_path=self.game_path, user_dir=user_dir,
+                               dedupe=True)
+        raw_count = sum(r.get("count", 1) for r in results)
+        return {"ok": True, "count": raw_count,
+                "unique_count": len(results),
                 "categories": summarize(results),
                 "subsystems": classify_by_subsystem(results),
+                "files": summarize_by_file(results),
                 "items": [{"lineno": r["lineno"], "category": r["category"],
-                           "message": r["message"]} for r in results]}
+                           "message": r["message"], "count": r.get("count", 1),
+                           "rel_path": r.get("rel_path", ""),
+                           "line": r.get("line", 0),
+                           "abs_path": r.get("abs_path", ""),
+                           "source": r.get("source", ""),
+                           "token": r.get("token", ""),
+                           "hint": r.get("hint", "")} for r in results]}
 
     def register_icon_batch(self, data):
         """在脚本文件中批量补注册缺失图标 GFX：{path, type?}"""
