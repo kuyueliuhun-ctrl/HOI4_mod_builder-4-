@@ -25,17 +25,28 @@ from PyQt6.QtWidgets import (
 
 from ai_ui_common import EntityListSidebar, file_tooltip
 from content_types import ICON_RULES
-from event_editor_dialog import LocEdit, OtherFieldsTable, StructuredBlockCard
+from event_editor_dialog import LocEdit, OtherFieldsTable
 from localisation_editor_data import (
     default_mod_loc_file, find_mod_file_for_key, load_loc_file,
     load_effective_dict, upsert_loc_entry,
 )
 from state_build_ops import ensure_file_in_mod
+from structure_view import StructureView
 from tech_data import (
     apply_tech_edits, delete_tech, duplicate_tech, insert_tech,
     load_tech_entities, rename_tech,
 )
+from tree_node import TreeNode
 from write_utils import atomic_write_text
+
+
+def _shared_translator():
+    """接入全局翻译器（GuiTranslator），失败时返回 None（纯原文展示）。"""
+    try:
+        from gui_translator import get_translator
+        return get_translator()
+    except Exception:
+        return None
 
 
 class TechEditorDialog(QDialog):
@@ -217,18 +228,31 @@ class TechEditorDialog(QDialog):
 
         block_card = self._card("允许与加成块（allow / category_*）")
         blk = block_card.layout()
-        self.allow_card = StructuredBlockCard("allow", "", parent=self)
-        self.ai_card = StructuredBlockCard("ai_will_do", "", parent=self)
-        blk.addWidget(self.allow_card)
-        blk.addWidget(self.ai_card)
-        bonus_note = QLabel("装备加成块（category_*，修正名自动中文化 + 百分比格式化）")
+        self.allow_view = StructureView(translator=_shared_translator())
+        self.allow_view.set_compact(True)
+        self.allow_view.setFixedHeight(120)
+        blk.addWidget(self.allow_view)
+        self.ai_view = StructureView(translator=_shared_translator())
+        self.ai_view.set_compact(True)
+        self.ai_view.setFixedHeight(90)
+        blk.addWidget(self.ai_view)
+        bonus_note = QLabel("装备加成块（category_*，修正名自动中文化 + 百分比格式化；"
+                            "右键空白处可添加条目）")
         bonus_note.setStyleSheet("color:#5d6b7a;font-size:11px;")
         blk.addWidget(bonus_note)
-        self.category_cards_layout = QVBoxLayout()
-        blk.addLayout(self.category_cards_layout)
+        self.category_view = StructureView(translator=_shared_translator())
+        self.category_view.set_compact(True)
+        self.category_view.setFixedHeight(150)
+        blk.addWidget(self.category_view)
+        cat_btns = QHBoxLayout()
         add_bonus = QPushButton("＋ 添加加成块")
         add_bonus.clicked.connect(self._add_category_bonus)
-        blk.addWidget(add_bonus)
+        del_bonus = QPushButton("－ 移除选中块")
+        del_bonus.clicked.connect(self._remove_selected_category_block)
+        cat_btns.addWidget(add_bonus)
+        cat_btns.addWidget(del_bonus)
+        cat_btns.addStretch(1)
+        blk.addLayout(cat_btns)
         form.addWidget(block_card)
 
         other_card = self._card("其他字段（树编辑器兜底）")
@@ -446,45 +470,33 @@ class TechEditorDialog(QDialog):
         self.enable_list.clear()
         for e in t.get("enable_equipments", []):
             self.enable_list.addItem(QListWidgetItem(e))
-        self.allow_card.set_block_text(t.get("allow", ""))
-        self.ai_card.set_block_text(t.get("ai_will_do", ""))
-        # 重建 category 卡片
-        while self.category_cards_layout.count():
-            item = self.category_cards_layout.takeAt(0)
-            w = item.widget()
-            if w is not None:
-                w.deleteLater()
-        for key, raw in t.get("category_blocks", []):
-            self._append_category_card(key, raw)
+        self.allow_view.load_text(t.get("allow", ""))
+        self.ai_view.load_text(t.get("ai_will_do", ""))
+        # 重建 category 块（结构视图：每个 category_* 顶层块一行）
+        self.category_view.load_text(
+            "\n".join(raw for _k, raw in (t.get("category_blocks") or [])))
         self.other_fields_table.set_rows(t.get("other_fields", []))
         self.file_label.setText(t.get("file", ""))
         self._refresh_icon()
 
-    def _append_category_card(self, key, raw):
-        card = StructuredBlockCard(key, raw, parent=self)
-        row = QHBoxLayout()
-        row.addWidget(card, 1)
-        del_btn = QPushButton("🗑")
-        del_btn.setFixedSize(30, 28)
-        del_btn.clicked.connect(
-            lambda: self._remove_category_card(card))
-        row.addWidget(del_btn)
-        self.category_cards_layout.addLayout(row)
-
-    def _remove_category_card(self, card):
-        for i in range(self.category_cards_layout.count()):
-            item = self.category_cards_layout.itemAt(i)
-            if item.layout() is not None:
-                lay = item.layout()
-                for j in range(lay.count()):
-                    w = lay.itemAt(j).widget()
-                    if w is card:
-                        while lay.count():
-                            w2 = lay.takeAt(0).widget()
-                            if w2 is not None:
-                                w2.deleteLater()
-                        self.category_cards_layout.removeItem(item)
-                        return
+    def _remove_selected_category_block(self):
+        """移除选中的顶层 category_* 块行（含子条目）。"""
+        view = self.category_view
+        root = view.root_node()
+        removed = False
+        for item in view.selectedItems():
+            node = getattr(item, "node", None)
+            if node is None or node.parent is not root or not (node.key or ""):
+                continue
+            if node.node_type != "block" or not node.key.startswith("category_"):
+                continue
+            idx = view.indexOfTopLevelItem(item)
+            if idx >= 0:
+                root.remove_child(node)
+                view.takeTopLevelItem(idx)
+                removed = True
+        if removed:
+            view.structureChanged.emit()
 
     # ---------- 图标 ----------
 
@@ -598,7 +610,8 @@ class TechEditorDialog(QDialog):
         key = (key or "").strip()
         if not ok or not key:
             return
-        self._append_category_card(key, "%s = {\n}" % key)
+        # 结构视图直接插入空块，用户可右键添加子条目
+        self.category_view.add_node(TreeNode("block", key))
 
     # ---------- CRUD ----------
 
@@ -683,15 +696,17 @@ class TechEditorDialog(QDialog):
         return [r for r in rows if r["leads_to_tech"]]
 
     def _category_blocks(self):
+        """从结构视图序列化 category_* 顶层块：{key: 完整块文本}。"""
         out = {}
-        for i in range(self.category_cards_layout.count()):
-            item = self.category_cards_layout.itemAt(i)
-            lay = item.layout()
-            if lay is None or lay.count() == 0:
+        root = self.category_view.root_node()
+        for node in root.children:
+            if node.node_type != "block" or not (node.key or ""):
                 continue
-            w = lay.itemAt(0).widget()
-            if isinstance(w, StructuredBlockCard) and w.block_text.strip():
-                out[w.block_key] = w.block_text
+            if not node.key.startswith("category_"):
+                continue
+            text = node.to_pdx(indent=0).strip()
+            if text:
+                out[node.key] = text
         return out
 
     def _save(self):
@@ -704,10 +719,12 @@ class TechEditorDialog(QDialog):
             "research_cost": self.cost_edit.text().strip(),
         }
         blocks = {}
-        if self.allow_card.block_text.strip():
-            blocks["allow"] = self.allow_card.block_text
-        if self.ai_card.block_text.strip():
-            blocks["ai_will_do"] = self.ai_card.block_text
+        allow_text = self.allow_view.to_pdx_text().strip()
+        if allow_text:
+            blocks["allow"] = allow_text
+        ai_text = self.ai_view.to_pdx_text().strip()
+        if ai_text:
+            blocks["ai_will_do"] = ai_text
         blocks.update(self._category_blocks())
 
         categories = [self.categories_list.item(i).text().strip()

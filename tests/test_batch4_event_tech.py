@@ -369,6 +369,68 @@ class Batch4TechEditorSmokeTest(unittest.TestCase):
         self.assertEqual(dlg.path_table.rowCount(), 1)
         dlg.close()
 
+    def test_block_editors_use_structure_view(self):
+        """科技块编辑组件换成优化后的 StructureView（allow/ai_will_do/category_*）。"""
+        from structure_view import StructureView
+        from tech_editor_dialog import TechEditorDialog
+        mod = self._make()
+        dlg = TechEditorDialog(mod_path=mod)
+        dlg.show()
+        self.app.processEvents()
+        self.assertIsInstance(dlg.allow_view, StructureView)
+        self.assertIsInstance(dlg.ai_view, StructureView)
+        self.assertIsInstance(dlg.category_view, StructureView)
+        # allow / ai_will_do / category_* 各自以顶层块行载入
+        self.assertEqual(dlg.allow_view.topLevelItemCount(), 1)
+        self.assertEqual(dlg.ai_view.topLevelItemCount(), 1)
+        self.assertEqual(dlg.category_view.topLevelItemCount(), 1)
+        # 数据原样保留（含注释/子条目经 TreeNode 结构序列化往返）
+        self.assertIn("has_dlc", dlg.allow_view.to_pdx_text())
+        self.assertIn("factor = 1", dlg.ai_view.to_pdx_text())
+        blocks = dlg._category_blocks()
+        self.assertEqual(list(blocks), ["category_infantry_equipment"])
+        self.assertIn("soft_attack", blocks["category_infantry_equipment"])
+        dlg.close()
+
+    def test_block_edit_serializes_back_through_structure_view(self):
+        """在结构视图中改值 → _category_blocks / to_pdx_text 序列化含新值。"""
+        from tech_editor_dialog import TechEditorDialog
+        mod = self._make()
+        dlg = TechEditorDialog(mod_path=mod)
+        dlg.show()
+        self.app.processEvents()
+        # 找到 allow_view 顶层块的子条目 has_dlc，改值为另一个 dlc
+        allow_root = dlg.allow_view.root_node()
+        self.assertEqual(len(allow_root.children), 1)
+        allow_block = allow_root.children[0]
+        edited = False
+        for child in allow_block.children:
+            if child.node_type == "value" and child.key == "has_dlc":
+                child.value = '"man_the_guns"'
+                child.raw_lines = []
+                edited = True
+        self.assertTrue(edited, "allow 块应含 has_dlc 子条目")
+        text = dlg.allow_view.to_pdx_text()
+        self.assertIn('has_dlc = "man_the_guns"', text)
+        # category 块改值后 _category_blocks 含新值
+        cat_root = dlg.category_view.root_node()
+        cat_block = cat_root.children[0]
+        # category 块内层为 infantry_equipment = { soft_attack = 1 }
+        sub = next((c for c in cat_block.children
+                    if c.node_type == "block" and c.key == "infantry_equipment"),
+                   None)
+        self.assertIsNotNone(sub)
+        edited_cat = False
+        for child in sub.children:
+            if child.node_type == "value" and child.key == "soft_attack":
+                child.value = "99"
+                child.raw_lines = []
+                edited_cat = True
+        self.assertTrue(edited_cat, "category 块应含 soft_attack 子条目")
+        blocks = dlg._category_blocks()
+        self.assertIn("soft_attack = 99", blocks["category_infantry_equipment"])
+        dlg.close()
+
 
 class Batch4TechDoubleClickOpenTest(unittest.TestCase):
     """画布双击联动：_open_tech_in_editor 打开专用编辑器并连接保存刷新。"""
