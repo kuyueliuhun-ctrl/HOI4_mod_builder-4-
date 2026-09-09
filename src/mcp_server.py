@@ -324,6 +324,9 @@ class BuiltinMcpServer:
             {"uri": "hoi4://docs/pitfalls", "name": "全项目踩坑索引",
              "description": "按类别组织的踩坑索引；开发/使用前先查对应分类",
              "mimeType": "text/markdown"},
+            {"uri": "hoi4://docs/pitfalls_user", "name": "真实用户踩坑大全",
+             "description": "真实 mod 制作历次踩坑与验证结论（v1.19.2.0 实战向：编码/语法/加载语义/州号连续性/工具链）",
+             "mimeType": "text/markdown"},
             {"uri": "hoi4://templates/mcp", "name": "MCP 正确调用模板",
              "description": "正确且无报错的 MCP 调用模板清单",
              "mimeType": "application/json"},
@@ -352,7 +355,8 @@ class BuiltinMcpServer:
                 return self._json_text({"error": str(e)})
         if uri in ("hoi4://docs/rhoiscribe", "hoi4://docs/mcp",
                    "hoi4://docs/quickstart", "hoi4://docs/user",
-                   "hoi4://docs/developer", "hoi4://docs/pitfalls"):
+                   "hoi4://docs/developer", "hoi4://docs/pitfalls",
+                   "hoi4://docs/pitfalls_user"):
             doc_map = {
                 "rhoiscribe": "RHoiScribe知识映射与补全.md",
                 "quickstart": "MCP_quickstart.md",
@@ -360,6 +364,7 @@ class BuiltinMcpServer:
                 "user": "MCP用户指南.md",
                 "developer": "MCP开发者指南.md",
                 "pitfalls": "踩坑索引.md",
+                "pitfalls_user": "HOI4mod制作踩坑大全.md",
             }
             key = uri.split("/")[-1]
             fname = doc_map[key]

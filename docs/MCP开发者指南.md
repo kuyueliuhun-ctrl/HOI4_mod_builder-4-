@@ -99,6 +99,9 @@
   5. 工具描述/schema 改了但 `docs/MCP与接口规格.md` 未同步 → verify_contracts 不查文档，
      但工作流要求手动同步。
 - 新增规则/新坑时同步 `src/mcp_validator.py` 与 `docs/踩坑索引.md`。
+- 真实用户（AI Agent 驱动 MCP 制作 mod）实战坑见 **`docs/HOI4mod制作踩坑大全.md`**；
+  其工具链/流程类精华（API 进程挂起重启+回读确认、heredoc `\n` 变 `/n`、
+  回收站删除返回码恒 2 等）已提取进踩坑索引对应分类。
 
 ## 5. 模板与回归测试
 

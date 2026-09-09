@@ -195,6 +195,9 @@ class ResourcesAndPromptsTest(unittest.TestCase):
         self.assertIn("MCPVAL", dev_doc)
         pitfalls = server._read_resource("hoi4://docs/pitfalls")
         self.assertIn("踩坑", pitfalls)
+        pitfalls_user = server._read_resource("hoi4://docs/pitfalls_user")
+        self.assertIn("踩坑", pitfalls_user)
+        self.assertIn("州号", pitfalls_user)  # 真实用户指南精华（州号连续性）
         tpl = server._read_resource("hoi4://templates/mcp")
         self.assertIn("get_status", tpl)
         prompts = server._list_prompts()
